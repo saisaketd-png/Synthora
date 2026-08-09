@@ -1,5 +1,6 @@
 package com.synthora.identity.service;
 
+import java.util.UUID;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
@@ -44,6 +45,20 @@ public class UserService {
                 saved.getPhone(),
                 saved.getRole(),
                 saved.getStatus()
+        );
+    }
+    public UserResponse getById(UUID id) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole(),
+                user.getStatus()
         );
     }
 }

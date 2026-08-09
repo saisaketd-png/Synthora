@@ -6,5 +6,6 @@ com\synthora\identity\dto\RegisterRequest.class
 com\synthora\identity\User.class
 com\synthora\SynthoraApplication.class
 com\synthora\identity\UserRepository.class
+com\synthora\identity\api\UserController.class
 com\synthora\identity\dto\UserResponse.class
 com\synthora\config\SecurityConfig.class

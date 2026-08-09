@@ -1,4 +1,4 @@
-package com.synthora.identity;
+    package com.synthora.identity;
 
 public enum UserRole {
     USER,

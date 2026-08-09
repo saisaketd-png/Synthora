@@ -1,5 +1,6 @@
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\config\SecurityConfig.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\api\AuthController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\api\UserController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\dto\RegisterRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\dto\UserResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\service\UserService.java
