@@ -1,0 +1,210 @@
+Synthora Database Specification v0.1
+This document defines the core database entities for the MVP. 
+1. Users
+Field
+Type
+Description
+id
+UUID
+Primary key
+name
+VARCHAR
+Full name
+email
+VARCHAR UNIQUE
+Login email
+phone
+VARCHAR UNIQUE
+Mobile number
+password_hash
+TEXT
+Hashed password
+role
+ENUM(USER,SUPPLIER,ADMIN)
+System role
+status
+ENUM(ACTIVE,SUSPENDED,PENDING)
+Account status
+created_at
+TIMESTAMP
+Created time
+updated_at
+TIMESTAMP
+Updated time
+2. Companies
+Field
+Type
+Description
+id
+UUID
+Primary key
+owner_user_id
+UUID FK Users
+Company owner
+name
+VARCHAR
+Company name
+slug
+VARCHAR UNIQUE
+SEO URL
+business_type
+VARCHAR
+Manufacturer/Trader/etc.
+gst_number
+VARCHAR
+Optional until verification
+website
+VARCHAR
+Website
+country
+VARCHAR
+Country
+state
+VARCHAR
+State
+city
+VARCHAR
+City
+verification_status
+ENUM
+Pending/Verified/Rejected
+subscription_plan_id
+UUID FK
+Current plan
+3. Master Products
+Field
+Type
+Description
+id
+UUID
+Primary key
+name
+VARCHAR
+Product name
+slug
+VARCHAR UNIQUE
+SEO slug
+cas_number
+VARCHAR INDEX
+CAS
+molecular_formula
+VARCHAR
+Formula
+description
+TEXT
+Overview
+category_id
+UUID FK
+Category
+status
+ENUM
+Pending/Approved
+4. Supplier Listings
+Field
+Type
+Description
+id
+UUID
+Primary key
+company_id
+UUID FK
+Supplier
+master_product_id
+UUID FK
+Master product
+purity
+VARCHAR
+Purity
+packaging
+VARCHAR
+Packaging
+moq
+VARCHAR
+MOQ
+lead_time
+VARCHAR
+Lead time
+status
+ENUM
+Draft/Pending/Approved
+5. RFQs
+Field
+Type
+Description
+id
+UUID
+Primary key
+buyer_id
+UUID FK Users
+Buyer
+listing_id
+UUID FK Supplier Listings
+Supplier listing
+quantity
+VARCHAR
+Requested quantity
+message
+TEXT
+Requirements
+status
+ENUM
+Workflow
+6. Categories
+Field
+Type
+Description
+id
+UUID
+Primary key
+parent_id
+UUID FK
+Hierarchy
+name
+VARCHAR
+Category
+slug
+VARCHAR UNIQUE
+SEO slug
+7. Documents
+Field
+Type
+Description
+id
+UUID
+Primary key
+owner_type
+ENUM
+Company/Product
+owner_id
+UUID
+Linked record
+document_type
+ENUM
+COA/MSDS/TDS/etc.
+file_url
+TEXT
+Storage URL
+visibility
+ENUM
+Private/Login/Public
+8. Notifications
+Field
+Type
+Description
+id
+UUID
+Primary key
+user_id
+UUID FK
+Recipient
+title
+VARCHAR
+Title
+message
+TEXT
+Body
+is_read
+BOOLEAN
+Read status
+Core Relationships
+User → Company (1:N planned, 1:1 in MVP)Company → Supplier Listing (1:N)Master Product → Supplier Listing (1:N)Supplier Listing → RFQ (1:N)Category → Master Product (1:N)
