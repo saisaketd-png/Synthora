@@ -1,4 +1,5 @@
 com\synthora\identity\service\UserService.class
+com\synthora\common\GlobalExceptionHandler.class
 com\synthora\identity\UserRole.class
 com\synthora\identity\UserStatus.class
 com\synthora\identity\api\AuthController.class
