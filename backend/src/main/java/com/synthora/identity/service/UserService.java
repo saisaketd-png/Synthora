@@ -1,6 +1,7 @@
 package com.synthora.identity.service;
 
 import java.util.UUID;
+import java.util.List;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
@@ -60,5 +61,18 @@ public class UserService {
                 user.getRole(),
                 user.getStatus()
         );
+    }
+    public List<UserResponse> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(user -> new UserResponse(
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail(),
+                        user.getPhone(),
+                        user.getRole(),
+                        user.getStatus()
+                ))
+                .toList();
     }
 }

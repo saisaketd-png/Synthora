@@ -4,6 +4,7 @@ import com.synthora.identity.dto.UserResponse;
 import com.synthora.identity.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,5 +20,10 @@ public class UserController {
     @GetMapping("/{id}")
     public UserResponse getUser(@PathVariable UUID id) {
         return userService.getById(id);
+    }
+
+    @GetMapping
+    public List<UserResponse> getAllUsers() {
+        return userService.getAllUsers();
     }
 }
