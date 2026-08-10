@@ -2,6 +2,7 @@ package com.synthora.identity.api;
 
 import com.synthora.identity.dto.RegisterRequest;
 import com.synthora.identity.dto.UserResponse;
+import jakarta.validation.Valid;
 import com.synthora.identity.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
-            @RequestBody RegisterRequest request) {
+            @Valid @RequestBody RegisterRequest request) {
 
         UserResponse response = userService.register(request);
 
