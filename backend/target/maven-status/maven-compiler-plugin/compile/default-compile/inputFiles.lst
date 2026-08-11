@@ -1,7 +1,12 @@
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\admin\api\AdminController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\category\Category.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\common\GlobalExceptionHandler.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\config\OpenApiConfig.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\config\SecurityConfig.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\api\AuthController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\api\UserController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\dto\LoginRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\dto\LoginResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\dto\RegisterRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\dto\UserResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\service\UserService.java
@@ -9,4 +14,14 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\User.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\UserRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\UserRole.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\UserStatus.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\apis\ProductController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\CreateProductRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\UpdateProductRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\Product.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductCategory.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductRepository.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtAuthenticationFilter.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\SynthoraApplication.java

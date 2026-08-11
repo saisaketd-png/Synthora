@@ -2,6 +2,8 @@ package com.synthora.identity.api;
 
 import com.synthora.identity.dto.RegisterRequest;
 import com.synthora.identity.dto.UserResponse;
+import com.synthora.identity.dto.LoginRequest;
+import com.synthora.identity.dto.LoginResponse;
 import jakarta.validation.Valid;
 import com.synthora.identity.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -28,4 +30,11 @@ public class AuthController {
                 .status(HttpStatus.CREATED)
                 .body(response);
     }
+    @PostMapping("/login")
+public ResponseEntity<LoginResponse> login(
+        @Valid @RequestBody LoginRequest request) {
+
+    LoginResponse response = userService.login(request);
+    return ResponseEntity.ok(response);
+        }
 }

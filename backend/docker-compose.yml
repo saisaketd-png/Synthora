@@ -4,9 +4,9 @@ services:
     container_name: synthora-postgres
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER:-synthora_admin}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-synthora_password}
-      POSTGRES_DB: ${DB_NAME:-synthora}
+      POSTGRES_USER: synthora_admin
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: synthora
     ports:
       - "5433:5432"
     volumes:
@@ -19,12 +19,31 @@ services:
     container_name: synthora-pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@synthora.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_DEFAULT_EMAIL: admin@synthora.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
     depends_on:
       - postgres
+    networks:
+      - synthora-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: synthora-backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/synthora
+      SPRING_DATASOURCE_USERNAME: synthora_admin
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: ThisIsAVeryLongSecretKeyForJwtSigning123456789
+      SERVER_PORT: 8085
+    ports:
+      - "8085:8085"
     networks:
       - synthora-network
 
