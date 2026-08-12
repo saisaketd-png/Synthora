@@ -85,7 +85,7 @@ export function FeaturedCatalogPreview({ products }: FeaturedCatalogPreviewProps
         purity: "99.0%",
         stockStatus: (p.stock > 0 ? "In Stock" : "Made to Order") as "In Stock" | "Made to Order",
         supplier: {
-          id: p.sellerId,
+          id: p.sellerId || "unknown",
           name: p.sellerName || "Unknown Supplier",
           isVerified: true,
           country: p.country || "Global",

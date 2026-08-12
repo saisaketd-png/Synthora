@@ -7,8 +7,19 @@ export type ProductCategory =
   | "AGROCHEMICAL"
   | string;
 
+export interface SupplierSummary {
+  id: string;
+  name: string;
+  countryCode?: string;
+  countryName?: string;
+  verified?: boolean;
+  verificationLevel?: string;
+  responseRate?: number;
+}
+
 export interface Product {
   id: string;
+  slug?: string;
   name: string;
   description: string;
   price: number;
@@ -16,15 +27,29 @@ export interface Product {
   category: ProductCategory;
   createdAt: string;
   updatedAt: string;
-  sellerId: string;
-  sellerName: string;
-  // Optional enterprise fields for graceful degradation
+  
+  // Extended Domain Model fields
   casNumber?: string;
-  moq?: string;
-  country?: string;
+  molecularFormula?: string;
+  subcategory?: string;
   purity?: string;
-  verificationStatus?: string; // e.g. "GMP Certified", "ISO 9001"
-  availability?: string; // e.g. "In Stock", "Made to Order"
+  grade?: string;
+  packaging?: string;
+  moq?: string;
+  availability?: string;
+  leadTime?: string;
+  exportReady?: boolean;
+  coaAvailable?: boolean;
+  msdsAvailable?: boolean;
+  
+  // Legacy flat fields (falling back if needed)
+  sellerId?: string;
+  sellerName?: string;
+  country?: string; // Kept for legacy fallback
+  verificationStatus?: string; // Kept for legacy fallback
+
+  // Nested Supplier
+  supplier?: SupplierSummary;
 }
 
 export interface ProductPage {
@@ -42,5 +67,34 @@ export interface ProductQueryParams {
   category?: string;
   country?: string;
   verified?: boolean;
+  purityMin?: string;
+  purityMax?: string;
+  availability?: string;
   sort?: string;
+}
+
+export interface ProductSearchSupplier {
+  id: string;
+  name: string;
+  countryCode?: string;
+  countryName?: string;
+  verified?: boolean;
+  verificationLevel?: string;
+  yearsInBusiness?: number;
+  responseRate?: number;
+  purity?: string;
+  grade?: string;
+  packaging?: string;
+  moq?: string;
+  leadTime?: string;
+  exportReady?: boolean;
+  coaAvailable?: boolean;
+  msdsAvailable?: boolean;
+}
+
+export interface ProductSearchResponse {
+  mode: "EXACT" | "MULTIPLE" | "NONE";
+  product?: Product;
+  products?: Product[];
+  suppliers?: ProductSearchSupplier[];
 }
