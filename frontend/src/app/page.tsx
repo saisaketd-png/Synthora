@@ -1,50 +1,52 @@
 import { getProducts } from "@/features/products/api/getProducts";
+import { Product } from "@/features/products/types/product";
+import { Navbar } from "@/features/home/components/Navbar";
+import { SearchHeader } from "@/features/home/components/SearchHeader";
+import { TrustBar } from "@/features/home/components/TrustBar";
+import { FeaturedCatalogPreview } from "@/features/home/components/FeaturedCatalogPreview";
+import { CategoryShortcuts } from "@/features/home/components/CategoryShortcuts";
+import { SupplierSpotlight } from "@/features/home/components/SupplierSpotlight";
+import { MarketActivity } from "@/features/home/components/MarketActivity";
+import { ProcurementWorkflow } from "@/features/home/components/ProcurementWorkflow";
+import { IndustryGrid } from "@/features/home/components/IndustryGrid";
+import { ResourcesSection } from "@/features/home/components/ResourcesSection";
+import { EnterpriseCTA } from "@/features/home/components/EnterpriseCTA";
+import { Footer } from "@/features/home/components/Footer";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const data = await getProducts();
+  let products: Product[] = [];
+
+  try {
+    const pageData = await getProducts();
+    if (pageData && Array.isArray(pageData.content)) {
+      products = pageData.content;
+    }
+  } catch (error) {
+    console.warn("Using fallback demo products in buyer-first table view:", error);
+  }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="mb-8 text-4xl font-bold text-gray-900">
-          Synthora Marketplace
-        </h1>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {data.content.map((product) => (
-            <div
-              key={product.id}
-              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-            >
-              <h2 className="text-xl font-semibold text-gray-900">
-                {product.name}
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-600">
-                {product.description}
-              </p>
-
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-lg font-bold text-blue-700">
-                  ₹{product.price}
-                </span>
-
-                <span className="text-sm text-gray-500">
-                  Stock: {product.stock}
-                </span>
-              </div>
-
-              <p className="mt-4 text-xs text-gray-500">
-                Seller: {product.sellerName}
-              </p>
-
-              <p className="mt-1 text-xs text-gray-400">
-                Category: {product.category}
-              </p>
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased selection:bg-[#17B5AE]/20">
+      <Navbar />
+      <main className="flex-1">
+        <SearchHeader />
+        <FeaturedCatalogPreview products={products} />
+        <section className="py-24 bg-slate-50 border-b border-slate-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <MarketActivity />
+              <ProcurementWorkflow />
             </div>
-          ))}
-        </div>
-      </div>
-    </main>
+          </div>
+        </section>
+        <CategoryShortcuts />
+        <IndustryGrid />
+        <ResourcesSection />
+        <EnterpriseCTA />
+      </main>
+      <Footer />
+    </div>
   );
 }
