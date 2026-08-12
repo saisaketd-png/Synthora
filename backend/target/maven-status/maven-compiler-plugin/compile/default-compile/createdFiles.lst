@@ -4,12 +4,17 @@ com\synthora\common\GlobalExceptionHandler.class
 com\synthora\identity\UserRole.class
 com\synthora\identity\UserStatus.class
 com\synthora\product\dto\CreateProductRequest.class
+com\synthora\seller\api\SellerProfileController.class
 com\synthora\product\dto\ProductResponse.class
 com\synthora\config\OpenApiConfig.class
+com\synthora\seller\dto\SellerProfileResponse.class
+com\synthora\seller\SellerProfile.class
 com\synthora\identity\dto\UserResponse.class
 com\synthora\security\JwtAuthenticationFilter.class
 com\synthora\identity\service\UserService.class
+com\synthora\seller\SellerProfileRepository.class
 com\synthora\product\ProductService.class
+com\synthora\seller\SellerProfileService.class
 com\synthora\admin\api\AdminController.class
 com\synthora\identity\api\AuthController.class
 com\synthora\identity\dto\RegisterRequest.class
@@ -17,6 +22,7 @@ com\synthora\category\Category.class
 com\synthora\product\dto\UpdateProductRequest.class
 com\synthora\identity\User.class
 com\synthora\SynthoraApplication.class
+com\synthora\seller\dto\UpdateSellerProfileRequest.class
 com\synthora\security\JwtService.class
 com\synthora\identity\UserRepository.class
 com\synthora\product\ProductRepository.class

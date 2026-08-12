@@ -1,8 +1,23 @@
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+
   application:
     name: synthora
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/synthora
+    username: synthora_admin
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
 
 server:
   port: 8085
@@ -21,3 +36,7 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /v3/api-docs
+
+jwt:
+  secret: ${JWT_SECRET:SynthoraDevSecretKeyForJwtSigning2026!}
+  expiration: ${JWT_EXPIRATION:86400000}

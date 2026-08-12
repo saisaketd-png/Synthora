@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,6 +62,7 @@ public class ProductService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<ProductResponse> getAllProducts() {
 
         return productRepository.findAll()
@@ -79,7 +81,7 @@ public class ProductService {
                 ))
                 .toList();
     }
-
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(UUID id) {
 
         Product product = productRepository.findById(id)
@@ -98,7 +100,7 @@ public class ProductService {
                 product.getSeller().getName()
         );
     }
-
+    @Transactional(readOnly = true)
     public ProductResponse updateProduct(
             UUID id,
             UpdateProductRequest request,
@@ -164,7 +166,7 @@ public class ProductService {
 
         productRepository.delete(product);
     }
-
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProducts(
             int page,
             int size,
@@ -192,6 +194,7 @@ public class ProductService {
                 ));
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> searchProducts(
             String keyword,
             int page,
@@ -220,6 +223,8 @@ public class ProductService {
                         product.getSeller().getName()
                 ));
     }
+
+    @Transactional(readOnly = true)
     public Page<ProductResponse> filterProducts(
             BigDecimal minPrice,
             BigDecimal maxPrice,
@@ -250,7 +255,7 @@ public class ProductService {
                         product.getSeller().getName()
                 ));
     }
-
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProductsByCategory(
             ProductCategory category,
             int page,
@@ -279,6 +284,8 @@ public class ProductService {
                 ));
     }
 
+
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getMyProducts(
             Authentication authentication,
             int page,

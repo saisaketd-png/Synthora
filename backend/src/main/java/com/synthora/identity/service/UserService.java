@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 
 
+
 @Service
 public class UserService {
 
@@ -44,6 +45,7 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(UserRole.USER);
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.SUPPLIER);
 
         User saved = userRepository.save(user);
 

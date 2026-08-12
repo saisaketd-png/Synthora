@@ -6,12 +6,14 @@ import com.synthora.product.dto.ProductResponse;
 import com.synthora.product.dto.UpdateProductRequest;
 import com.synthora.product.ProductCategory;
 
+
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -124,6 +126,7 @@ public class ProductController {
     }
 
     // CREATE PRODUCT
+    @PreAuthorize("hasAnyRole('SUPPLIER','ADMIN')")
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(
             @Valid @RequestBody CreateProductRequest request,
@@ -136,6 +139,7 @@ public class ProductController {
     }
 
     // UPDATE PRODUCT
+    @PreAuthorize("hasAnyRole('SUPPLIER','ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable UUID id,
@@ -149,6 +153,7 @@ public class ProductController {
     }
 
     // DELETE PRODUCT
+    @PreAuthorize("hasAnyRole('SUPPLIER','ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(
             @PathVariable UUID id,

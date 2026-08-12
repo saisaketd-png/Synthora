@@ -24,4 +24,10 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductRepositor
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtAuthenticationFilter.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\api\SellerProfileController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\SellerProfileResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\UpdateSellerProfileRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SellerProfile.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SellerProfileRepository.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SellerProfileService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\SynthoraApplication.java

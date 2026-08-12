@@ -37,10 +37,12 @@ services:
     depends_on:
       - postgres
     environment:
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/synthora
       SPRING_DATASOURCE_USERNAME: synthora_admin
       SPRING_DATASOURCE_PASSWORD: postgres
       JWT_SECRET: ThisIsAVeryLongSecretKeyForJwtSigning123456789
+      JWT_EXPIRATION: 86400000
       SERVER_PORT: 8085
     ports:
       - "8085:8085"
