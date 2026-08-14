@@ -36,8 +36,11 @@ export interface Product {
   grade?: string;
   packaging?: string;
   moq?: string;
+  moqKg?: number;
   availability?: string;
+  availabilityStatus?: string;
   leadTime?: string;
+  leadTimeDays?: number;
   exportReady?: boolean;
   coaAvailable?: boolean;
   msdsAvailable?: boolean;

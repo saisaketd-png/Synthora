@@ -2,24 +2,21 @@ import { Navbar } from "@/features/home/components/Navbar";
 import { Footer } from "@/features/home/components/Footer";
 import { ShieldCheck, MapPin, FlaskConical, FileCheck, ArrowRight, PackageOpen } from "lucide-react";
 import Link from "next/link";
-import { getProducts } from "@/features/products/api/getProducts";
+import { fetchProductDetail } from "@/lib/api";
 import { notFound } from "next/navigation";
 import { Product } from "@/features/products/types/product";
+import SupplierComparison from "@/features/products/components/SupplierComparison";
+import RequestQuoteButton from "@/features/rfq/components/RequestQuoteButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-  let products: Product[] = [];
+
+  let product: Product;
+
   try {
-    const data = await getProducts();
-    if (data && Array.isArray(data.content)) {
-      products = data.content;
-    }
-  } catch (err) {}
-
-  const product = products.find((p: any) => p.id === params.id) || products[0];
-
-  if (!product) {
+    product = await fetchProductDetail(params.id);
+  } catch (err) {
     notFound();
   }
 
@@ -77,27 +74,78 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                 </p>
               </div>
 
+
               <div className="pt-6 border-t border-slate-200">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 mb-4">
                   Technical Specifications
                 </h3>
+
                 <dl className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 text-sm">
+
+                  {/* CAS Number */}
+                  <div>
+                    <dt className="text-slate-500 mb-1">CAS Number</dt>
+                    <dd className="font-semibold text-slate-900">
+                      {product.casNumber || "N/A"}
+                    </dd>
+                  </div>
+
+                  {/* Molecular Formula */}
+                  <div>
+                    <dt className="text-slate-500 mb-1">Molecular Formula</dt>
+                    <dd className="font-semibold text-slate-900">
+                      {product.molecularFormula || "N/A"}
+                    </dd>
+                  </div>
+
+                  {/* Purity */}
                   <div>
                     <dt className="text-slate-500 mb-1">Purity</dt>
-                    <dd className="font-semibold text-slate-900">&ge; 99.0%</dd>
+                    <dd className="font-semibold text-slate-900">
+                      {product.purity ? `${product.purity}%` : "N/A"}
+                    </dd>
                   </div>
+
+                  {/* Grade */}
                   <div>
                     <dt className="text-slate-500 mb-1">Grade</dt>
-                    <dd className="font-semibold text-slate-900">USP / EP</dd>
+                    <dd className="font-semibold text-slate-900">
+                      {product.grade || "N/A"}
+                    </dd>
                   </div>
+
+                  {/* Packaging */}
                   <div>
-                    <dt className="text-slate-500 mb-1">Form</dt>
-                    <dd className="font-semibold text-slate-900">Crystalline Powder</dd>
+                    <dt className="text-slate-500 mb-1">Packaging</dt>
+                    <dd className="font-semibold text-slate-900">
+                      {product.packaging || "N/A"}
+                    </dd>
                   </div>
+
+                  {/* MOQ */}
                   <div>
-                    <dt className="text-slate-500 mb-1">Storage</dt>
-                    <dd className="font-semibold text-slate-900">Room Temp</dd>
+                    <dt className="text-slate-500 mb-1">MOQ</dt>
+                    <dd className="font-semibold text-slate-900">
+                      {product.moqKg ? `${product.moqKg} kg` : "N/A"}
+                    </dd>
                   </div>
+
+                  {/* Lead Time */}
+                  <div>
+                    <dt className="text-slate-500 mb-1">Lead Time</dt>
+                    <dd className="font-semibold text-slate-900">
+                      {product.leadTimeDays ? `${product.leadTimeDays} days` : "N/A"}
+                    </dd>
+                  </div>
+
+                  {/* Availability */}
+                  <div>
+                    <dt className="text-slate-500 mb-1">Availability</dt>
+                    <dd className="font-semibold text-slate-900">
+                      {product.availabilityStatus || "N/A"}
+                    </dd>
+                  </div>
+
                 </dl>
               </div>
             </div>
@@ -113,7 +161,9 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
 
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm text-slate-500">MOQ</span>
-                    <span className="font-bold text-slate-900">{product.moq || "10 kg"}</span>
+                    <span className="font-bold text-slate-900">
+                      {product.moqKg ? `${product.moqKg} kg` : "N/A"}
+                    </span>
                   </div>
 
                   <div className="flex items-baseline justify-between">
@@ -138,23 +188,32 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                       </Link>
                       <span className="text-xs text-slate-500 flex items-center gap-1 mt-1">
                         <MapPin className="w-3 h-3" />
-                        {product.country || "Global"}
+                       {"India"}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-8 space-y-3">
-                  <button className="w-full flex items-center justify-center gap-2 bg-[#17B5AE] hover:bg-[#149d97] text-slate-900 font-bold py-3 px-4 rounded-sm transition-colors text-sm">
-                    <FileCheck className="w-4 h-4" />
-                    Request Quote (RFQ)
-                  </button>
+                  <RequestQuoteButton 
+                     productId={product.id} 
+                     productName={product.name} 
+                     supplierId={Number(product.sellerId) || 1} 
+                     supplierName={product.sellerName || "Unknown Supplier"} 
+                     supplierCountry={"India"} 
+                     defaultQuantity={product.moqKg || 10} 
+                  />
                   <button className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-900 font-bold py-3 px-4 rounded-sm transition-colors text-sm">
                     Contact Supplier
                   </button>
                 </div>
               </div>
             </div>
+          </div>
+          
+          {/* Supplier Comparison Section */}
+          <div className="mt-8">
+            <SupplierComparison productId={params.id} productName={product.name} />
           </div>
         </div>
       </main>

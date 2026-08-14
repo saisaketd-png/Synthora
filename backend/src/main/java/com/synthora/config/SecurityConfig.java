@@ -52,15 +52,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .httpBasic(httpBasic -> httpBasic.disable())
-                .formLogin(formLogin -> formLogin.disable())
 
-                // TEMPORARY DIAGNOSTIC
                 .authorizeHttpRequests(auth -> auth
 
                         // Public endpoints
@@ -72,6 +69,8 @@ public class SecurityConfig {
                                 "/actuator/health",
                                 "/actuator/info"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/rfqs").permitAll()
+
 
                         // Public product browsing
                         .requestMatchers(
@@ -79,8 +78,11 @@ public class SecurityConfig {
                                 "/api/v1/products",
                                 "/api/v1/products/**",
                                 "/api/v1/categories",
+                                "/api/v1/categories/**",
                                 "/api/v1/countries",
-                                "/api/v1/suppliers"
+                                "/api/v1/suppliers",
+                                "/api/v1/suppliers/**",
+                                "/api/v1/rfqs/**"
                         ).permitAll()
 
                         // Everything else requires login

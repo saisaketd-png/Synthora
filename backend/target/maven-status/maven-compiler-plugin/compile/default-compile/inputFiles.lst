@@ -27,6 +27,13 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductService.j
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplier.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplierRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\Supplier.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\apis\RfqController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\CreateRfqRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\RfqResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\Rfq.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\RfqRepository.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\RfqService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\RfqStatus.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtAuthenticationFilter.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\api\SellerProfileController.java
