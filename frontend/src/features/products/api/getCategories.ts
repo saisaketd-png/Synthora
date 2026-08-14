@@ -7,8 +7,8 @@ export async function getCategories(): Promise<string[]> {
     });
 
     if (!response.ok) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error(`API error fetching categories: ${response.status}`);
+      if (process.env.NODE_ENV !== "production" && response.status !== 404) {
+        console.warn(`API error fetching categories: ${response.status}`);
       }
       return [];
     }

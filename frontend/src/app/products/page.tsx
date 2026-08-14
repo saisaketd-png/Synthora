@@ -25,11 +25,11 @@ export const metadata: Metadata = {
   description: "Browse APIs, pharmaceutical intermediates, specialty chemicals, and solvents from verified global suppliers. Search by CAS number, compare specifications, and request quotations.",
 };
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
+export default async function ProductsPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const searchParams = await props.searchParams;
+
   // Parse search params
   const queryParams: ProductQueryParams = {
     page: typeof searchParams.page === "string" ? parseInt(searchParams.page, 10) : 0,
@@ -51,13 +51,13 @@ export default async function ProductsPage({
     getCategories(),
     getCountries(),
     getSuppliers(),
-    !searchQuery ? getProducts(queryParams) : Promise.resolve(null),
+    getProducts(queryParams),
     searchQuery ? searchProducts(searchQuery) : Promise.resolve(null)
   ]);
 
   // Handle generic product catalog
   let productPage: ProductPage = { content: [], totalElements: 0, totalPages: 0, number: 0, size: queryParams.size || 20 };
-  if (!searchQuery && productsResult.status === "fulfilled" && productsResult.value) {
+  if (productsResult.status === "fulfilled" && productsResult.value) {
     productPage = productsResult.value;
   }
   const products = productPage.content || [];
@@ -106,13 +106,9 @@ export default async function ProductsPage({
             {/* Main Content Area (9/12) */}
             <div className="w-full lg:w-9/12 flex-1 min-w-0">
               
-              {searchQuery && searchResponse ? (
+              {searchQuery && searchResponse?.mode === "EXACT" ? (
                 // --- SEARCH RESULTS MODE ---
-                searchResponse.mode === "EXACT" ? (
-                  <ProductSupplierResults searchResponse={searchResponse} />
-                ) : (
-                  <ProductEmptyState />
-                )
+                <ProductSupplierResults searchResponse={searchResponse} />
               ) : (
                 // --- GENERIC CATALOG MODE ---
                 <>

@@ -48,6 +48,39 @@ public class Product {
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
 
+    @Column(name = "cas_number", length = 100)
+    private String casNumber;
+
+    @Column(name = "molecular_formula", length = 100)
+    private String molecularFormula;
+
+    @Column(name = "purity", precision = 5, scale = 2)
+    private BigDecimal purity;
+
+    @Column(name = "grade", length = 100)
+    private String grade;
+
+    @Column(name = "packaging", length = 150)
+    private String packaging;
+
+    @Column(name = "moq_kg", precision = 12, scale = 2)
+    private BigDecimal moqKg;
+
+    @Column(name = "lead_time_days")
+    private Integer leadTimeDays;
+
+    @Column(name = "coa_available")
+    private Boolean coaAvailable = false;
+
+    @Column(name = "msds_available")
+    private Boolean msdsAvailable = false;
+
+    @Column(name = "export_ready")
+    private Boolean exportReady = false;
+
+    @Column(name = "availability_status", length = 50)
+    private String availabilityStatus;
+
     public Product() {
     }
 
@@ -120,4 +153,39 @@ public class Product {
     public void setSeller(User seller) {
         this.seller = seller;
     }
+
+    public String getCasNumber() { return casNumber; }
+    public void setCasNumber(String casNumber) { this.casNumber = casNumber; }
+
+    public String getMolecularFormula() { return molecularFormula; }
+    public void setMolecularFormula(String molecularFormula) { this.molecularFormula = molecularFormula; }
+
+    public BigDecimal getPurity() { return purity; }
+    public void setPurity(BigDecimal purity) { this.purity = purity; }
+
+    public String getGrade() { return grade; }
+    public void setGrade(String grade) { this.grade = grade; }
+
+    public String getPackaging() { return packaging; }
+    public void setPackaging(String packaging) { this.packaging = packaging; }
+
+    public BigDecimal getMoqKg() { return moqKg; }
+    public void setMoqKg(BigDecimal moqKg) { this.moqKg = moqKg; }
+
+    public Integer getLeadTimeDays() { return leadTimeDays; }
+    public void setLeadTimeDays(Integer leadTimeDays) { this.leadTimeDays = leadTimeDays; }
+
+    public Boolean getCoaAvailable() { return coaAvailable; }
+    public void setCoaAvailable(Boolean coaAvailable) { this.coaAvailable = coaAvailable; }
+
+    public Boolean getMsdsAvailable() { return msdsAvailable; }
+    public void setMsdsAvailable(Boolean msdsAvailable) { this.msdsAvailable = msdsAvailable; }
+
+    public Boolean getExportReady() { return exportReady; }
+    public void setExportReady(Boolean exportReady) { this.exportReady = exportReady; }
+
+    public String getAvailabilityStatus() { return availabilityStatus; }
+    public void setAvailabilityStatus(String availabilityStatus) { this.availabilityStatus = availabilityStatus; }
+
+
 }

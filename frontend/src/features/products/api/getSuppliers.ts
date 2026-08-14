@@ -9,8 +9,8 @@ export async function getSuppliers(): Promise<SupplierSummary[]> {
     });
 
     if (!response.ok) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error(`API error fetching suppliers: ${response.status}`);
+      if (process.env.NODE_ENV !== "production" && response.status !== 404) {
+        console.warn(`API error fetching suppliers: ${response.status}`);
       }
       return [];
     }

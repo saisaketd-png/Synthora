@@ -12,8 +12,8 @@ export async function searchProducts(query: string): Promise<ProductSearchRespon
     });
 
     if (!response.ok) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error(`API error searching products: ${response.status}`);
+      if (process.env.NODE_ENV !== "production" && response.status !== 404) {
+        console.warn(`API error searching products: ${response.status}`);
       }
       return { mode: "NONE" };
     }

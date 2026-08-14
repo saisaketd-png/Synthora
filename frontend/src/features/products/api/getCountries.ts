@@ -7,8 +7,8 @@ export async function getCountries(): Promise<string[]> {
     });
 
     if (!response.ok) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error(`API error fetching countries: ${response.status}`);
+      if (process.env.NODE_ENV !== "production" && response.status !== 404) {
+        console.warn(`API error fetching countries: ${response.status}`);
       }
       return [];
     }

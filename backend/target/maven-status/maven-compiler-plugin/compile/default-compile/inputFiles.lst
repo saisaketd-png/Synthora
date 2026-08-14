@@ -16,12 +16,17 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\UserRole.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\identity\UserStatus.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\apis\ProductController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\CreateProductRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductDetailResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductSupplierResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\UpdateProductRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\Product.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductCategory.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplier.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplierRepository.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\Supplier.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtAuthenticationFilter.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\JwtService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\api\SellerProfileController.java

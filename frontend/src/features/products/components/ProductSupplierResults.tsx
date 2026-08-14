@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ProductSearchResponse, ProductSearchSupplier, Product } from "../types/product";
-import { ShieldCheck, Flag, CheckCircle2, ChevronRight, Download, Store } from "lucide-react";
+import { ShieldCheck, Flag, CheckCircle2, ChevronRight, Download, Beaker } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 interface ProductSupplierResultsProps {
@@ -26,39 +26,46 @@ export function ProductSupplierResults({ searchResponse }: ProductSupplierResult
     <div className="w-full flex-1">
       {/* Product Summary Header Card */}
       <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row md:justify-between md:items-start gap-6">
-        <div>
-          <h2 className="text-2xl font-bold text-[#0A192F] mb-2">{product.name}</h2>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
-            <span className="font-mono text-sm text-slate-600">CAS: {product.casNumber || "—"}</span>
-            {product.molecularFormula && (
-              <>
-                <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                <span className="font-mono text-sm text-slate-600">{product.molecularFormula}</span>
-              </>
-            )}
+        <div className="flex flex-col sm:flex-row gap-5 items-start">
+          {/* Product Image / Molecular Structure Area */}
+          <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center p-2">
+            <Beaker className="w-10 h-10 text-slate-300" strokeWidth={1.5} />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded uppercase tracking-wider">
-              {product.category}
-            </span>
-            {verifiedCount > 0 && (
-              <span className="px-2.5 py-1 bg-teal-50 text-teal-700 border border-teal-100 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                {verifiedCount} Verified Suppliers
+          
+          <div>
+            <h2 className="text-2xl font-bold text-[#0A192F] mb-2">{product.name}</h2>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
+              <span className="font-mono text-sm text-slate-600">CAS: {product.casNumber || "—"}</span>
+              {product.molecularFormula && (
+                <>
+                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                  <span className="font-mono text-sm text-slate-600">{product.molecularFormula}</span>
+                </>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2.5 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded uppercase tracking-wider">
+                {product.category}
               </span>
-            )}
-            {countries.size > 0 && (
-              <span className="px-2.5 py-1 bg-slate-50 text-slate-600 border border-slate-200 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1">
-                <Flag className="w-3.5 h-3.5" />
-                {countries.size} Countries
-              </span>
-            )}
-            {suppliers.some(s => s.exportReady) && (
-              <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Export Ready
-              </span>
-            )}
+              {verifiedCount > 0 && (
+                <span className="px-2.5 py-1 bg-teal-50 text-teal-700 border border-teal-100 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  {verifiedCount} Verified Suppliers
+                </span>
+              )}
+              {countries.size > 0 && (
+                <span className="px-2.5 py-1 bg-slate-50 text-slate-600 border border-slate-200 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1">
+                  <Flag className="w-3.5 h-3.5" />
+                  {countries.size} Countries
+                </span>
+              )}
+              {suppliers.some(s => s.exportReady) && (
+                <span className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Export Ready
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex gap-3 shrink-0 w-full md:w-auto">
@@ -85,8 +92,10 @@ export function ProductSupplierResults({ searchResponse }: ProductSupplierResult
             {/* Column 1: Supplier Info */}
             <div className="flex-1 md:w-1/3 border-b md:border-b-0 md:border-r border-slate-100 pb-4 md:pb-0 md:pr-6">
               <div className="flex gap-4">
-                <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center shrink-0">
-                  <Store className="w-6 h-6 text-slate-300" />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white border border-slate-200 rounded-lg flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                  <span className="text-[17px] font-black text-slate-400 tracking-tighter select-none">
+                    {supplier.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                  </span>
                 </div>
                 <div>
                   <Link href={`/suppliers/${supplier.id}`} className="font-bold text-[#0A192F] hover:text-blue-600 hover:underline text-[17px] leading-tight block mb-1">

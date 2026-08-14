@@ -77,7 +77,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/products",
-                                "/api/v1/products/**"
+                                "/api/v1/products/**",
+                                "/api/v1/categories",
+                                "/api/v1/countries",
+                                "/api/v1/suppliers"
                         ).permitAll()
 
                         // Everything else requires login
