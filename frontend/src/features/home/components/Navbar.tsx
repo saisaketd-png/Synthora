@@ -70,7 +70,7 @@ export function Navbar() {
             Become a Supplier
           </Link>
           <Link
-            href="/rfq"
+            href="/products"
             className="px-5 py-2.5 text-[13px] font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full transition-all shadow-sm shadow-blue-600/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600"
           >
             Submit RFQ
@@ -116,7 +116,7 @@ export function Navbar() {
               Become a Supplier
             </Link>
             <Link
-              href="/rfq"
+             href="/products"
               onClick={() => setIsMobileOpen(false)}
               className="text-center py-3 text-sm font-bold text-white bg-blue-600 rounded-full"
             >

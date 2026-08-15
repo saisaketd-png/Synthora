@@ -10,12 +10,12 @@ import RequestQuoteButton from "@/features/rfq/components/RequestQuoteButton";
 
 export const dynamic = "force-dynamic";
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
-
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
   let product: Product;
 
   try {
-    product = await fetchProductDetail(params.id);
+    product = await fetchProductDetail(resolvedParams.id);
   } catch (err) {
     notFound();
   }
@@ -213,7 +213,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           
           {/* Supplier Comparison Section */}
           <div className="mt-8">
-            <SupplierComparison productId={params.id} productName={product.name} />
+            <SupplierComparison productId={resolvedParams.id} productName={product.name} />
           </div>
         </div>
       </main>

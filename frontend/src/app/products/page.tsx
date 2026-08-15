@@ -3,9 +3,7 @@ import { Navbar } from "@/features/home/components/Navbar";
 import { Footer } from "@/features/home/components/Footer";
 import { getProducts } from "@/features/products/api/getProducts";
 import { searchProducts } from "@/features/products/api/searchProducts";
-import { getCategories } from "@/features/products/api/getCategories";
-import { getCountries } from "@/features/products/api/getCountries";
-import { getSuppliers } from "@/features/products/api/getSuppliers";
+
 import { ProductPage, ProductQueryParams, ProductSearchResponse } from "@/features/products/types/product";
 import { ProductFilters } from "@/features/products/components/ProductFilters";
 import { ProductToolbar } from "@/features/products/components/ProductToolbar";
@@ -47,13 +45,10 @@ export default async function ProductsPage(props: {
   const searchQuery = queryParams.search;
 
   // Fetch all data concurrently with Promise.allSettled
-  const [categoriesResult, countriesResult, suppliersResult, productsResult, searchResult] = await Promise.allSettled([
-    getCategories(),
-    getCountries(),
-    getSuppliers(),
-    getProducts(queryParams),
-    searchQuery ? searchProducts(searchQuery) : Promise.resolve(null)
-  ]);
+const [productsResult, searchResult] = await Promise.allSettled([
+  getProducts(queryParams),
+  searchQuery ? searchProducts(searchQuery) : Promise.resolve(null)
+]);
 
   // Handle generic product catalog
   let productPage: ProductPage = { content: [], totalElements: 0, totalPages: 0, number: 0, size: queryParams.size || 20 };
@@ -70,15 +65,8 @@ export default async function ProductsPage(props: {
   }
 
   // Categories & Countries fallback
-  let categories = categoriesResult.status === "fulfilled" ? categoriesResult.value : [];
-  if (categories.length === 0) {
-    categories = getUniqueCategories(products);
-  }
-
-  let countries = countriesResult.status === "fulfilled" ? countriesResult.value : [];
-  if (countries.length === 0) {
-    countries = getUniqueCountries(products);
-  }
+ const categories = getUniqueCategories(products);
+const countries = getUniqueCountries(products);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased">

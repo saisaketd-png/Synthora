@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { X, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { createRfq } from "../api/createRfq";
+
+
+console.log("🚨🚨🚨 RFQ MODAL FILE LOADED 🚨🚨🚨");
 
 export type RfqModalProps = {
   isOpen: boolean;
@@ -15,7 +19,6 @@ export type RfqModalProps = {
   defaultQuantity?: number;
 };
 
-const DEMO_BUYER_ID = "59efa3ea-3329-43ff-9397-b20a00d6a0d7";
 
 export default function RfqModal({
   isOpen,
@@ -27,10 +30,12 @@ export default function RfqModal({
   supplierCountry,
   defaultQuantity,
 }: RfqModalProps) {
-  const [quantity, setQuantity] = useState<number | "">(defaultQuantity || "");
+  const router = useRouter();
+  const [quantity, setQuantity] = useState<number | string>(defaultQuantity || "");
   const [unit, setUnit] = useState("kg");
   
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -67,48 +72,72 @@ export default function RfqModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!quantity || Number(quantity) <= 0 || Number(quantity) > 1000000) {
-      setError("Please enter a valid quantity between 1 and 1,000,000.");
-      return;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  console.log("🔥 RFQ SUBMIT STARTED");
+
+  if (submittingRef.current) {
+    console.log("❌ Submission already in progress");
+    return;
+  }
+
+  const numericQuantity = Number(quantity);
+
+  console.log("Quantity entered:", quantity);
+  console.log("Quantity sent:", numericQuantity);
+  console.log("Product ID:", productId);
+  console.log("Supplier ID:", supplierId);
+
+  if (!quantity || !Number.isFinite(numericQuantity) || numericQuantity <= 0 || numericQuantity > 1000000) {
+    console.log("❌ Quantity validation failed");
+    setError("Please enter a valid quantity between 1 and 1,000,000.");
+    return;
+  }
+
+  if (messageText.length > 1000) {
+    setError("Message cannot exceed 1000 characters.");
+    return;
+  }
+
+  const payload = {
+  productId,
+  supplierId,
+  quantity: numericQuantity,
+  unit,
+  message: messageText,
+};
+
+  console.log("🚀 RFQ PAYLOAD:");
+  console.log(JSON.stringify(payload, null, 2));
+
+  setError(null);
+  setLoading(true);
+  submittingRef.current = true;
+
+  try {
+    console.log("🚀 Sending POST /api/v1/rfqs");
+
+    const res = await createRfq(payload);
+
+    console.log("✅ RFQ CREATED:");
+    console.log(res);
+
+    setSuccess(res.id);
+
+  } catch (err: unknown) {
+    console.error("❌ RFQ CREATION FAILED:", err);
+
+    if (err instanceof Error) {
+      setError(err.message);
+    } else {
+      setError("Failed to submit RFQ.");
     }
-
-    if (messageText.length > 1000) {
-      setError("Message cannot exceed 1000 characters.");
-      return;
-    }
-
-    setError(null);
-    setLoading(true);
-
-    try {
-      const res = await createRfq({
-        buyerId: DEMO_BUYER_ID, // TODO: Replace with authenticated user ID
-        productId,
-        supplierId,
-        quantity: Number(quantity),
-        unit,
-        message: messageText,
-      });
-
-      setSuccess(res.id);
-      
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
-      
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  } finally {
+    setLoading(false);
+    submittingRef.current = false;
+  }
+};
 
   return (
     <div 
@@ -146,7 +175,11 @@ export default function RfqModal({
               <p className="text-xs font-mono text-slate-400 mt-4">RFQ ID: {success}</p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form
+  onSubmit={handleSubmit}
+  className="space-y-6"
+  noValidate
+>
               
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
@@ -178,9 +211,10 @@ export default function RfqModal({
                     required
                     min="1"
                     max="1000000"
+                    step="any"
                     disabled={loading}
                     value={quantity}
-                    onChange={(e) => setQuantity(e.target.value ? Number(e.target.value) : "")}
+                    onChange={(e) => setQuantity(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#17B5AE] focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
                     placeholder="Enter amount"
                   />
@@ -234,14 +268,14 @@ export default function RfqModal({
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#17B5AE] hover:bg-[#149d97] rounded-lg transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
-                >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {loading ? "Submitting..." : "Submit RFQ"}
-                </button>
+               <button
+  type="submit"
+  disabled={loading}
+  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#17B5AE] hover:bg-[#149d97] rounded-lg transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
+>
+  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+  {loading ? "Submitting..." : "Submit RFQ"}
+</button>
               </div>
             </form>
           )}

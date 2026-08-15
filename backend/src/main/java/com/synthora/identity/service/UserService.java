@@ -42,10 +42,9 @@ public class UserService {
         user.setName(request.name());
         user.setEmail(request.email());
         user.setPhone(request.phone());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
-        user.setRole(UserRole.USER);
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.SUPPLIER);
+       user.setPasswordHash(passwordEncoder.encode(request.password()));
+user.setRole(UserRole.USER);
+user.setStatus(UserStatus.ACTIVE);
 
         User saved = userRepository.save(user);
 

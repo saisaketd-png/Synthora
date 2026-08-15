@@ -110,7 +110,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
                 <td className="px-4 py-2 text-center sticky right-0 bg-white group-hover:bg-slate-50 z-10 shadow-[inset_1px_0_0_0_#e2e8f0] transition-colors">
                   <div className="flex flex-col gap-1 items-center justify-center">
                     <Link
-                      href={`/rfq?productId=${p.id}`}
+                      href={`/products/${p.slug || p.id}`}
                       className="inline-flex items-center justify-center px-3 py-1.5 bg-white border border-slate-200 text-blue-600 text-[11px] font-bold rounded shadow-sm hover:bg-blue-50 hover:border-blue-200 transition-colors"
                     >
                       Request Quote
@@ -184,7 +184,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
 
             <div className="flex gap-2 pt-2">
               <Link
-                href={`/rfq?productId=${p.id}`}
+                href={`/products/${p.slug || p.id}`}
                 className="flex-1 flex items-center justify-center px-4 py-2 min-h-[44px] bg-blue-600 text-white text-[13px] font-bold rounded-full hover:bg-blue-700 transition-colors shadow-sm"
               >
                 Request Quote

@@ -9,8 +9,6 @@ import java.util.UUID;
 
 public record CreateRfqRequest(
 
-        @NotNull
-        UUID buyerId,
 
         @NotNull
         UUID productId,

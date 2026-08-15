@@ -6,6 +6,8 @@ import com.synthora.rfq.dto.RfqResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -27,8 +29,11 @@ public class RfqController {
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public RfqResponse createRfq(@Valid @RequestBody CreateRfqRequest request) {
-        return rfqService.createRfq(request);
-    }
+@ResponseStatus(HttpStatus.CREATED)
+public RfqResponse createRfq(
+        @Valid @RequestBody CreateRfqRequest request,
+        Authentication authentication) {
+
+    return rfqService.createRfq(request, authentication);
+}
 }

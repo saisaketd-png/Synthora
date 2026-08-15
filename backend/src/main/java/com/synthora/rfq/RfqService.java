@@ -5,6 +5,11 @@ import com.synthora.rfq.dto.RfqResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import com.synthora.identity.User;
+import com.synthora.identity.UserRepository;
+import org.springframework.security.core.Authentication;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -13,15 +18,27 @@ import java.util.UUID;
 public class RfqService {
 
     private final RfqRepository rfqRepository;
+    private final UserRepository userRepository;
 
-    public RfqService(RfqRepository rfqRepository) {
-        this.rfqRepository = rfqRepository;
-    }
+   public RfqService(
+        RfqRepository rfqRepository,
+        UserRepository userRepository) {
 
-    public RfqResponse createRfq(CreateRfqRequest request) {
+    this.rfqRepository = rfqRepository;
+    this.userRepository = userRepository;
+}
 
-        Rfq rfq = new Rfq();
-        rfq.setBuyerId(request.buyerId());
+   public RfqResponse createRfq(
+        CreateRfqRequest request,
+        Authentication authentication) {
+
+    String email = authentication.getName();
+
+    User buyer = userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+    Rfq rfq = new Rfq();
+    rfq.setBuyerId(buyer.getId());
         rfq.setProductId(request.productId());
         rfq.setSupplierId(request.supplierId());
         rfq.setQuantity(request.quantity());
