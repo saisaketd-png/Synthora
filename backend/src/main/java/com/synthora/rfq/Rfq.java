@@ -35,6 +35,9 @@ public class Rfq {
     @Column(nullable = false, length = 30)
     private RfqStatus status;
 
+    @Column(name = "accepted_quotation_id")
+    private UUID acceptedQuotationId;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -121,6 +124,14 @@ public class Rfq {
 
     public void setStatus(RfqStatus status) {
         this.status = status;
+    }
+
+    public UUID getAcceptedQuotationId() {
+        return acceptedQuotationId;
+    }
+
+    public void setAcceptedQuotationId(UUID acceptedQuotationId) {
+        this.acceptedQuotationId = acceptedQuotationId;
     }
 
     public LocalDateTime getCreatedAt() {

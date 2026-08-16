@@ -1,5 +1,4 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 export type BuyerRfq = {
   id: string;
@@ -13,15 +12,16 @@ export type BuyerRfq = {
   createdAt: string;
 };
 
-const DEMO_BUYER_ID = "59efa3ea-3329-43ff-9397-b20a00d6a0d7";
-
 export async function getBuyerRfqs(): Promise<BuyerRfq[]> {
-  const response = await fetch(
-    `${API_URL}/api/v1/rfqs/buyer/${DEMO_BUYER_ID}`,
-    { cache: "no-store" }
-  );
+  const response = await authenticatedFetch("/api/v1/rfqs/my", {
+    cache: "no-store",
+  });
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Authentication required");
+    }
+
     throw new Error("Failed to fetch RFQs");
   }
 

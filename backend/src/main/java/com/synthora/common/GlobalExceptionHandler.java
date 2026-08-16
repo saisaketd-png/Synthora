@@ -40,4 +40,11 @@ public class GlobalExceptionHandler {
 
         return Map.of("error", ex.getMessage());
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> handleIllegalState(IllegalStateException ex) {
+
+        return Map.of("error", ex.getMessage());
+    }
 }

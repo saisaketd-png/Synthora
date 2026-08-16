@@ -8,7 +8,7 @@ public record ProductSupplierResponse(
         String countryName,
         Boolean verified,
         Integer yearsInBusiness,
-        Integer responseRate,
+        Integer responseRate,   
         Boolean exportReady,
         String purity,
         String grade,

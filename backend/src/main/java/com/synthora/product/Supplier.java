@@ -2,6 +2,8 @@ package com.synthora.product;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import com.synthora.identity.User;
+
 
 @Entity
 @Table(name = "suppliers")
@@ -10,6 +12,10 @@ public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+@JoinColumn(name = "user_id")
+private User user;
 
     private String name;
 
@@ -49,4 +55,14 @@ public class Supplier {
     public Integer getResponseRate() { return responseRate; }
     public Boolean getExportReady() { return exportReady; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+
+
+    public User getUser() {
+    return user;
+}
+
+public void setUser(User user) {
+    this.user = user;
+}   
 }

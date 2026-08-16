@@ -35,45 +35,64 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:3000")
+        );
+
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        );
+
+        configuration.setAllowedHeaders(
+                List.of("*")
+        );
+
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http) throws Exception {
 
         http
                 .cors(Customizer.withDefaults())
+
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
                 )
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Public endpoints
+                        // -----------------------------
+                        // Public authentication
+                        // -----------------------------
                         .requestMatchers(
-        "/api/v1/auth/register",
-        "/api/v1/auth/login",
-        "/swagger-ui/**",
-        "/swagger-ui.html",
-        "/v3/api-docs/**",
-        "/actuator/health",
-        "/actuator/info"
-).permitAll()
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/login",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/actuator/health",
+                                "/actuator/info"
+                        ).permitAll()
 
-
+                        // -----------------------------
                         // Public product browsing
+                        // -----------------------------
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/products",
@@ -82,11 +101,43 @@ public class SecurityConfig {
                                 "/api/v1/categories/**",
                                 "/api/v1/countries",
                                 "/api/v1/suppliers",
-                                "/api/v1/suppliers/**",
-                                "/api/v1/rfqs/**"
+                                "/api/v1/suppliers/**"
                         ).permitAll()
 
-                        // Everything else requires login
+                        // -----------------------------
+                        // Buyer RFQ operations
+                        // -----------------------------
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/rfqs/my",
+                                "/api/v1/rfqs/*",
+                                "/api/v1/rfqs/*/quotations"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/rfqs",
+                                "/api/v1/rfqs/*/quotations/*/accept",
+                                "/api/v1/rfqs/*/quotations/*/reject"
+                        ).authenticated()
+
+                        // -----------------------------
+                        // Supplier RFQ inbox
+                        // -----------------------------
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/v1/rfqs/supplier",
+                                "/api/v1/rfqs/supplier/*"
+                        ).authenticated()
+
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/v1/rfqs/supplier/*/quotations"
+                        ).authenticated()
+
+                        // -----------------------------
+                        // Everything else
+                        // -----------------------------
                         .anyRequest().authenticated()
                 )
 

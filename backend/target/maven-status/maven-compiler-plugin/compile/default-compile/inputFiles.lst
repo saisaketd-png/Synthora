@@ -27,9 +27,17 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductService.j
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplier.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplierRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\Supplier.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SupplierRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\apis\RfqController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\AcceptQuotationRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\CreateQuotationRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\CreateRfqRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\QuotationDecisionResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\QuotationResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\RejectQuotationRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\dto\RfqResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\quotation\Quotation.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\quotation\QuotationRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\Rfq.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\RfqRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\rfq\RfqService.java

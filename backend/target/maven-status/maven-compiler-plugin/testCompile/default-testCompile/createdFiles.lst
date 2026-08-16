@@ -1,1 +1,3 @@
+com\synthora\rfq\BuyerQuotationDecisionTest.class
 com\synthora\identity\UserPersistenceIntegrationTest.class
+com\synthora\rfq\QuotationSecurityTest.class
