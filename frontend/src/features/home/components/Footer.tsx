@@ -160,8 +160,8 @@ export function Footer() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/become-supplier" className="hover:text-white transition-colors">
-                    Supplier Onboarding
+                  <Link href="/suppliers" className="hover:text-white transition-colors">
+                    Supplier Directory
                   </Link>
                 </li>
               </ul>

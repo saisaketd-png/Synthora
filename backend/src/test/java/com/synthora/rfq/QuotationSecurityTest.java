@@ -39,10 +39,18 @@ public class QuotationSecurityTest {
     @Autowired
     private com.synthora.product.SupplierRepository supplierRepository;
 
+    @Autowired
+    private com.synthora.order.PurchaseOrderRepository purchaseOrderRepository;
+
+    @Autowired
+    private com.synthora.product.ProductRepository productRepository;
+
     @org.junit.jupiter.api.BeforeEach
     public void setup() {
+        purchaseOrderRepository.deleteAll();
         quotationRepository.deleteAll();
         rfqRepository.deleteAll();
+        productRepository.deleteAll();
         supplierRepository.deleteAll();
         userRepository.deleteAll();
     }

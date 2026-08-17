@@ -1,5 +1,6 @@
 package com.synthora.product;
 
+import com.synthora.common.ResourceNotFoundException;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.product.dto.CreateProductRequest;
@@ -44,7 +45,7 @@ public class ProductService {
         String email = authentication.getName();
 
         User seller = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Product product = new Product();
         product.setName(request.name());
@@ -72,7 +73,7 @@ public class ProductService {
     public ProductResponse getProductById(UUID id) {
 
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         return toResponse(product);
     }
@@ -81,7 +82,7 @@ public class ProductService {
     public ProductDetailResponse getProductDetail(UUID id) {
 
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         return new ProductDetailResponse(
                 product.getId(),
@@ -120,12 +121,12 @@ public class ProductService {
             Authentication authentication) {
 
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         String email = authentication.getName();
 
         User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
 
@@ -150,12 +151,12 @@ public class ProductService {
     public void deleteProduct(UUID id, Authentication authentication) {
 
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         String email = authentication.getName();
 
         User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         boolean isAdmin = currentUser.getRole().name().equals("ADMIN");
 
@@ -255,7 +256,7 @@ public class ProductService {
         String email = authentication.getName();
 
         User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortField).descending()

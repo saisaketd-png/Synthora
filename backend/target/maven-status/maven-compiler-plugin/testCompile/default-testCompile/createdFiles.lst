@@ -1,3 +1,6 @@
+com\synthora\common\GlobalExceptionSemanticsTest.class
 com\synthora\rfq\BuyerQuotationDecisionTest.class
+com\synthora\identity\UserSecurityTest.class
+com\synthora\order\PurchaseOrderSecurityAndFlowTest.class
 com\synthora\identity\UserPersistenceIntegrationTest.class
 com\synthora\rfq\QuotationSecurityTest.class

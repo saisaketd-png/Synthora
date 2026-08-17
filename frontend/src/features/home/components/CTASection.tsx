@@ -33,10 +33,10 @@ export function CTASection() {
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
-                href="/become-supplier"
+                href="/suppliers"
                 className="w-full sm:w-auto px-8 py-3.5 bg-transparent hover:bg-white/10 text-white font-bold text-sm rounded-xl border border-white/30 transition-all flex items-center justify-center min-h-[48px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
-                Become a Supplier
+                Verified Suppliers
               </Link>
             </div>
           </div>

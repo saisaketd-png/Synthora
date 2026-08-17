@@ -1,5 +1,6 @@
 package com.synthora.seller;
 
+import com.synthora.common.ResourceNotFoundException;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.seller.dto.SellerProfileResponse;
@@ -24,7 +25,7 @@ public class SellerProfileService {
         User user = getCurrentUser(authentication);
 
         SellerProfile profile = sellerProfileRepository.findByUser(user)
-                .orElseThrow(() -> new IllegalArgumentException("Seller profile not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller profile not found"));
 
         return mapToResponse(profile);
     }
@@ -62,7 +63,7 @@ public class SellerProfileService {
         String email = authentication.getName();
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     private SellerProfileResponse mapToResponse(SellerProfile profile) {

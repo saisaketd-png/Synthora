@@ -1,3 +1,6 @@
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\common\GlobalExceptionSemanticsTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\identity\UserPersistenceIntegrationTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\identity\UserSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\order\PurchaseOrderSecurityAndFlowTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\BuyerQuotationDecisionTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\QuotationSecurityTest.java

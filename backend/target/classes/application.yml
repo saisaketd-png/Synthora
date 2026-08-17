@@ -38,5 +38,5 @@ springdoc:
     path: /v3/api-docs
 
 jwt:
-  secret: ${JWT_SECRET:SynthoraDevSecretKeyForJwtSigning2026!}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}

@@ -21,3 +21,7 @@ logging:
   level:
     root: INFO
     com.synthora: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET:SynthoraDevSecretKeyForJwtSigning2026!}
+  expiration: ${JWT_EXPIRATION:86400000}

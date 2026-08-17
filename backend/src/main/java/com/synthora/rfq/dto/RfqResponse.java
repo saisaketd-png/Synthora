@@ -8,9 +8,13 @@ import java.util.UUID;
 
 public record RfqResponse(
         UUID id,
+        String rfqReference,
         UUID buyerId,
+        String buyerName,
         UUID productId,
+        String productName,
         Long supplierId,
+        String supplierName,
         BigDecimal quantity,
         String unit,
         String message,

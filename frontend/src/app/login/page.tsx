@@ -1,16 +1,32 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import { login } from "@/features/auth/api/auth";
+import { FormEvent, useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { login, getAuthUser } from "@/features/auth/api/auth";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const user = getAuthUser();
+    if (user) {
+      if (redirectParam && redirectParam.startsWith("/")) {
+        router.push(redirectParam);
+      } else if (user.role === "SUPPLIER") {
+        router.push("/dashboard/supplier");
+      } else {
+        router.push("/dashboard");
+      }
+    }
+  }, [router, redirectParam]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,8 +41,17 @@ export default function LoginPage() {
       });
 
       localStorage.setItem("synthora_token", response.token);
+      window.dispatchEvent(new Event("auth-changed"));
 
-      router.push("/");
+      const user = getAuthUser();
+
+      if (redirectParam && redirectParam.startsWith("/")) {
+        router.push(redirectParam);
+      } else if (user && user.role === "SUPPLIER") {
+        router.push("/dashboard/supplier");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error) {
       setError(
         error instanceof Error
@@ -120,5 +145,17 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#17B5AE] border-t-transparent rounded-full animate-spin" />
+      </main>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }

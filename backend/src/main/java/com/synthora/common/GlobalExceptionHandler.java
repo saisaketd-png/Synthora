@@ -13,10 +13,15 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleIllegalArgument(IllegalArgumentException ex) {
+    public Map<String, String> handleResourceNotFound(ResourceNotFoundException ex) {
+        return Map.of("error", ex.getMessage());
+    }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleIllegalArgument(IllegalArgumentException ex) {
         return Map.of("error", ex.getMessage());
     }
 

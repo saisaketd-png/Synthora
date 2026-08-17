@@ -136,6 +136,14 @@ public class SecurityConfig {
                         ).authenticated()
 
                         // -----------------------------
+                        // Purchase Orders
+                        // -----------------------------
+                        .requestMatchers(
+                                "/api/v1/orders",
+                                "/api/v1/orders/**"
+                        ).authenticated()
+
+                        // -----------------------------
                         // Everything else
                         // -----------------------------
                         .anyRequest().authenticated()

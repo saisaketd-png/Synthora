@@ -2,9 +2,13 @@ import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 export type RfqDetail = {
   id: string;
+  rfqReference?: string;
   buyerId: string;
+  buyerName?: string;
   productId: string;
+  productName?: string;
   supplierId: number;
+  supplierName?: string;
   quantity: number;
   unit: string;
   message: string;
