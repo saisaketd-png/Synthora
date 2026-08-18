@@ -96,7 +96,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
         <div>
           <Link
             href={`/products/${item.id}`}
-            className="font-bold text-[#0F3D91] hover:underline"
+            className="font-bold text-blue-600 hover:underline"
           >
             {item.name}
           </Link>
@@ -117,7 +117,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
     {
       header: "Category",
       cell: (item) => (
-        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-[#0F3D91]/10 text-[#0F3D91] uppercase">
+        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-blue-600/10 text-blue-600 uppercase">
           {item.category}
         </span>
       ),
@@ -128,11 +128,11 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
         <div className="flex items-center gap-1">
           <Link
             href={`/suppliers/${item.sellerId}`}
-            className="font-medium text-slate-900 hover:text-[#0F3D91] hover:underline"
+            className="font-medium text-slate-900 hover:text-blue-600 hover:underline"
           >
             {item.sellerName}
           </Link>
-          <ShieldCheck className="w-3.5 h-3.5 text-[#17B5AE] shrink-0" />
+          <ShieldCheck className="w-3.5 h-3.5 text-teal-500 shrink-0" />
         </div>
       ),
     },
@@ -157,7 +157,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
       cell: (item) => (
         <Link
           href={`/products/${item.id}`}
-          className="px-3 py-1.5 bg-[#0F3D91] hover:bg-[#0c3175] text-white font-bold text-xs rounded transition-colors inline-flex items-center gap-1"
+          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded transition-colors inline-flex items-center gap-1"
         >
           <span>RFQ</span>
           <ArrowRight className="w-3 h-3" />
@@ -171,7 +171,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#17B5AE]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-teal-500">
               Verified Directory
             </span>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 mt-1">
@@ -180,7 +180,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
           </div>
           <Link
             href="/products"
-            className="text-xs font-bold text-[#0F3D91] hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1"
           >
             <span>View Full Directory ({displayProducts.length} items)</span>
             <ArrowRight className="w-3.5 h-3.5" />

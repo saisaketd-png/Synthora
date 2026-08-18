@@ -11,8 +11,8 @@ export default function RFQPage() {
       <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
         <div className="max-w-3xl mx-auto bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-6">
           <div className="border-b border-slate-100 pb-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#0F3D91]/10 text-[#0F3D91] text-xs font-bold mb-2">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#17B5AE]" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-600/10 text-blue-600 text-xs font-bold mb-2">
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-500" />
               <span>Direct Factory RFQ Submission</span>
             </div>
             <h1 className="text-2xl font-extrabold text-slate-900">
@@ -91,7 +91,7 @@ export default function RFQPage() {
             <div className="pt-2 flex justify-end">
               <button
                 type="submit"
-                className="px-6 py-3 bg-[#0F3D91] hover:bg-[#0c3175] text-white font-bold text-xs rounded-lg transition-colors shadow-sm flex items-center gap-2"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-full transition-colors shadow-sm flex items-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 <span>Submit RFQ to Verified Suppliers</span>

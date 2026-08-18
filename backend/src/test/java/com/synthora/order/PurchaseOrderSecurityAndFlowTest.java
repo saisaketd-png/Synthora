@@ -63,6 +63,9 @@ public class PurchaseOrderSecurityAndFlowTest {
     @Autowired
     private PurchaseOrderRepository purchaseOrderRepository;
 
+    @Autowired
+    private com.synthora.order.ShipmentRepository shipmentRepository;
+
     private User buyer1;
     private String buyer1Token;
 
@@ -81,6 +84,7 @@ public class PurchaseOrderSecurityAndFlowTest {
 
     @BeforeEach
     public void setup() {
+        shipmentRepository.deleteAll();
         purchaseOrderRepository.deleteAll();
         quotationRepository.deleteAll();
         rfqRepository.deleteAll();

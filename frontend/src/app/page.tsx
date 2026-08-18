@@ -28,7 +28,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased selection:bg-[#17B5AE]/20">
+    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased selection:bg-teal-500/20">
       <Navbar />
       <main className="flex-1">
         <SearchHeader />

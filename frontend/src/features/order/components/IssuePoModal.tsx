@@ -70,7 +70,7 @@ export function IssuePoModal({
         {/* Modal Header */}
         <div className="p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex justify-between items-center">
           <div>
-            <span className="text-xs font-semibold tracking-wider text-[#17B5AE] uppercase">
+            <span className="text-xs font-semibold tracking-wider text-teal-500 uppercase">
               Procurement Commitment
             </span>
             <h2 className="text-xl font-bold text-white mt-1">
@@ -126,7 +126,7 @@ export function IssuePoModal({
 
               <div>
                 <p className="text-xs text-slate-500 font-medium">Total Amount</p>
-                <p className="font-bold text-[#17B5AE] mt-0.5">
+                <p className="font-bold text-teal-500 mt-0.5">
                   {currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
@@ -152,7 +152,7 @@ export function IssuePoModal({
                 value={shippingAddress}
                 onChange={(e) => setShippingAddress(e.target.value)}
                 placeholder="e.g. Warehouse 4B, 100 Industrial Parkway, Chicago, IL 60601"
-                className="w-full text-sm rounded-xl border border-slate-300 p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B5AE] focus:border-transparent transition-all"
+                className="w-full text-sm rounded-xl border border-slate-300 p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
               />
             </div>
 
@@ -166,7 +166,7 @@ export function IssuePoModal({
                 value={billingContact}
                 onChange={(e) => setBillingContact(e.target.value)}
                 placeholder="e.g. procurement@buyercompany.com or +1 312 555 0199"
-                className="w-full text-sm rounded-xl border border-slate-300 p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B5AE] focus:border-transparent transition-all"
+                className="w-full text-sm rounded-xl border border-slate-300 p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
               />
             </div>
 
@@ -179,7 +179,7 @@ export function IssuePoModal({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g. Receiving hours Mon-Fri 8am-4pm. Forklift available on site."
-                className="w-full text-sm rounded-xl border border-slate-300 p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#17B5AE] focus:border-transparent transition-all"
+                className="w-full text-sm rounded-xl border border-slate-300 p-3 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
               />
             </div>
           </div>
@@ -197,7 +197,7 @@ export function IssuePoModal({
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-[#17B5AE] hover:bg-[#149f99] text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-2.5 rounded-full bg-teal-500 hover:bg-[#149f99] text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
             >
               {submitting ? (
                 <>

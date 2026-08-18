@@ -38,7 +38,7 @@ export function IndustriesSection() {
     <section id="industries" className="py-16 md:py-24 bg-white border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#0F3D91]">
+          <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
             Global Coverage
           </span>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#0F172A] mt-1">
@@ -55,12 +55,12 @@ export function IndustriesSection() {
             return (
               <div
                 key={ind.title}
-                className="p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#17B5AE] hover:bg-white transition-all duration-200 group"
+                className="p-6 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-teal-500 hover:bg-white transition-all duration-200 group"
               >
-                <div className="w-12 h-12 rounded-xl bg-white group-hover:bg-[#17B5AE]/10 border border-[#E2E8F0] flex items-center justify-center text-[#0F3D91] group-hover:text-[#17B5AE] transition-colors mb-4 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-white group-hover:bg-teal-500/10 border border-[#E2E8F0] flex items-center justify-center text-blue-600 group-hover:text-teal-500 transition-colors mb-4 shadow-sm">
                   <Icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F172A] mb-2 group-hover:text-[#0F3D91] transition-colors">
+                <h3 className="text-lg font-bold text-[#0F172A] mb-2 group-hover:text-blue-600 transition-colors">
                   {ind.title}
                 </h3>
                 <p className="text-xs text-[#475569] leading-relaxed">

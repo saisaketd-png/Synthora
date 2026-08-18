@@ -64,7 +64,7 @@ export function ProductCatalogHero({ categories }: ProductCatalogHeroProps) {
       </p>
 
       {/* Search Bar */}
-      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row shadow-sm rounded-xl overflow-hidden bg-white border border-slate-300 focus-within:ring-2 focus-within:ring-[#0F3D91] focus-within:border-transparent transition-shadow mb-5 w-full max-w-[900px]">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row shadow-sm rounded-xl overflow-hidden bg-white border border-slate-300 focus-within:ring-2 focus-within:ring-blue-600 focus-within:border-transparent transition-shadow mb-5 w-full max-w-[900px]">
         <div className="relative border-b sm:border-b-0 sm:border-r border-slate-200 bg-slate-50 shrink-0">
           <select
             value={selectedCategory}
@@ -99,14 +99,14 @@ export function ProductCatalogHero({ categories }: ProductCatalogHeroProps) {
         <div className="flex bg-white">
           <button
             type="submit"
-            className="px-8 py-4 bg-[#0F3D91] text-white font-bold text-[15px] hover:bg-blue-900 transition-colors sm:w-auto w-full"
+            className="px-8 py-4 bg-blue-600 text-white font-bold text-[15px] hover:bg-blue-900 transition-colors sm:w-auto w-full"
           >
             Search
           </button>
           <button
             type="button"
             onClick={() => router.push('/rfq')}
-            className="px-8 py-4 bg-white text-[#0F3D91] border-l border-slate-200 font-bold text-[15px] hover:bg-slate-50 transition-colors sm:w-auto w-full hidden sm:block"
+            className="px-8 py-4 bg-white text-blue-600 border-l border-slate-200 font-bold text-[15px] hover:bg-slate-50 transition-colors sm:w-auto w-full hidden sm:block"
           >
             Submit RFQ
           </button>
@@ -121,7 +121,7 @@ export function ProductCatalogHero({ categories }: ProductCatalogHeroProps) {
             key={term}
             type="button"
             onClick={() => handleChipClick(term)}
-            className="px-4 py-1.5 bg-transparent border border-slate-300 text-slate-700 rounded-full hover:border-[#0F3D91] hover:text-[#0F3D91] transition-colors font-medium"
+            className="px-4 py-1.5 bg-transparent border border-slate-300 text-slate-700 rounded-full hover:border-blue-600 hover:text-blue-600 transition-colors font-medium"
           >
             {term}
           </button>
@@ -130,12 +130,12 @@ export function ProductCatalogHero({ categories }: ProductCatalogHeroProps) {
 
       {/* Trust Strip */}
       <div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest pt-4 border-t border-slate-200 w-full max-w-[900px]">
-        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#0F3D91]" /> GMP Verified</div>
-        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#0F3D91]" /> ISO 9001</div>
-        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#0F3D91]" /> COA Available</div>
-        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#0F3D91]" /> MSDS Available</div>
-        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#0F3D91]" /> Export Support</div>
-        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-[#0F3D91]" /> Worldwide Logistics</div>
+        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> GMP Verified</div>
+        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> ISO 9001</div>
+        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> COA Available</div>
+        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> MSDS Available</div>
+        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> Export Support</div>
+        <div className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> Worldwide Logistics</div>
       </div>
 
     </div>

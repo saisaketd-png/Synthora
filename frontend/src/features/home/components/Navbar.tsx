@@ -127,7 +127,7 @@ export function Navbar() {
                   <>
                     <Link
                       href="/dashboard/supplier/rfqs"
-                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
+                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
                         pathname.startsWith("/dashboard/supplier/rfqs")
                           ? "bg-blue-50 text-blue-700"
                           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
@@ -138,13 +138,13 @@ export function Navbar() {
                     </Link>
                     <Link
                       href="/dashboard/supplier/orders"
-                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
+                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
                         pathname.startsWith("/dashboard/supplier/orders")
-                          ? "bg-teal-50 text-[#17B5AE]"
+                          ? "bg-teal-50 text-teal-500"
                           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
-                      <Package className="w-3.5 h-3.5 text-[#17B5AE]" />
+                      <Package className="w-3.5 h-3.5 text-teal-500" />
                       Orders
                     </Link>
                   </>
@@ -152,7 +152,7 @@ export function Navbar() {
                   <>
                     <Link
                       href="/dashboard/rfqs"
-                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
+                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
                         pathname.startsWith("/dashboard/rfqs")
                           ? "bg-blue-50 text-blue-700"
                           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
@@ -163,13 +163,13 @@ export function Navbar() {
                     </Link>
                     <Link
                       href="/dashboard/orders"
-                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
+                      className={`text-[13px] font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-colors ${
                         pathname.startsWith("/dashboard/orders")
-                          ? "bg-teal-50 text-[#17B5AE]"
+                          ? "bg-teal-50 text-teal-500"
                           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                       }`}
                     >
-                      <Package className="w-3.5 h-3.5 text-[#17B5AE]" />
+                      <Package className="w-3.5 h-3.5 text-teal-500" />
                       Orders
                     </Link>
                   </>
@@ -254,7 +254,7 @@ export function Navbar() {
                             href="/dashboard/supplier/orders"
                             className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                           >
-                            <Package className="w-4 h-4 text-[#17B5AE]" />
+                            <Package className="w-4 h-4 text-teal-500" />
                             Incoming Orders
                           </Link>
                         </>
@@ -278,7 +278,7 @@ export function Navbar() {
                             href="/dashboard/orders"
                             className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                           >
-                            <Package className="w-4 h-4 text-[#17B5AE]" />
+                            <Package className="w-4 h-4 text-teal-500" />
                             Purchase Orders
                           </Link>
                         </>
@@ -354,7 +354,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="text-xs font-bold text-rose-600 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 transition-colors flex items-center gap-1"
+                className="text-xs font-bold text-rose-600 px-3 py-1.5 rounded-full bg-rose-50 hover:bg-rose-100 transition-colors flex items-center gap-1"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Sign Out
@@ -381,7 +381,7 @@ export function Navbar() {
                   <Link
                     href="/dashboard/supplier/orders"
                     onClick={() => setIsMobileOpen(false)}
-                    className="px-4 py-2.5 text-sm font-bold text-[#17B5AE] bg-teal-50 rounded-lg flex items-center gap-2"
+                    className="px-4 py-2.5 text-sm font-bold text-teal-500 bg-teal-50 rounded-lg flex items-center gap-2"
                   >
                     <Package className="w-4 h-4" />
                     Incoming Orders
@@ -400,7 +400,7 @@ export function Navbar() {
                   <Link
                     href="/dashboard/orders"
                     onClick={() => setIsMobileOpen(false)}
-                    className="px-4 py-2.5 text-sm font-bold text-[#17B5AE] bg-teal-50 rounded-lg flex items-center gap-2"
+                    className="px-4 py-2.5 text-sm font-bold text-teal-500 bg-teal-50 rounded-lg flex items-center gap-2"
                   >
                     <Package className="w-4 h-4" />
                     Purchase Orders
@@ -420,7 +420,7 @@ export function Navbar() {
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsMobileOpen(false)}
-                className="px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 rounded-lg flex items-center justify-between"
+                className="px-4 py-2.5 text-sm font-semibold text-slate-800 hover:bg-slate-50 rounded-full flex items-center justify-between"
               >
                 <span>{link.name}</span>
               </Link>

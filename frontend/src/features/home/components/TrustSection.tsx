@@ -29,7 +29,7 @@ export function TrustSection() {
     <section id="suppliers" className="py-16 md:py-24 bg-gradient-to-b from-[#F0F5FD] to-[#EBF3FC] border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#17B5AE]">
+          <span className="text-xs font-semibold uppercase tracking-wider text-teal-500">
             Enterprise Trust & Safety
           </span>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#0F172A] mt-1">
@@ -50,10 +50,10 @@ export function TrustSection() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-14 h-14 rounded-xl bg-[#0F3D91]/10 text-[#0F3D91] flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-xl bg-blue-600/10 text-blue-600 flex items-center justify-center">
                       <Icon className="w-7 h-7" />
                     </div>
-                    <span className="px-3 py-1 bg-[#17B5AE]/10 text-[#17B5AE] rounded-full text-xs font-bold">
+                    <span className="px-3 py-1 bg-teal-500/10 text-teal-500 rounded-full text-xs font-bold">
                       {pillar.badge}
                     </span>
                   </div>

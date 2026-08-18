@@ -69,13 +69,13 @@ export function CategoryShortcuts() {
                 className="bg-white p-4 rounded-sm border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all group flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-10 h-10 bg-slate-50 border border-slate-100 group-hover:bg-[#0F3D91] group-hover:text-white text-slate-500 flex items-center justify-center transition-colors mb-4 rounded-sm">
+                  <div className="w-10 h-10 bg-slate-50 border border-slate-100 group-hover:bg-blue-600 group-hover:text-white text-slate-500 flex items-center justify-center transition-colors mb-4 rounded-sm">
                     <Icon className="w-5 h-5" />
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#0F3D91] transition-colors truncate">
+                  <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
                     {cat.name}
                   </h3>
-                  <span className="text-[10px] font-bold text-[#17B5AE] uppercase tracking-wider block mt-1">
+                  <span className="text-[10px] font-bold text-teal-500 uppercase tracking-wider block mt-1">
                     {cat.count}
                   </span>
                   <p className="text-xs text-slate-500 leading-tight mt-2 line-clamp-2">
@@ -83,7 +83,7 @@ export function CategoryShortcuts() {
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0F3D91]">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
                   <span>Browse</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>

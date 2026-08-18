@@ -3,13 +3,13 @@ import { Phone, Mail, MapPin, ShieldCheck, Building2 } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="bg-[#0B132B] text-slate-300 pt-16 pb-8 text-sm">
+    <footer className="bg-[#0A192F] text-slate-300 pt-16 pb-8 text-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 pb-12 border-b border-slate-800">
           {/* Brand & Procurement Contacts (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-teal-400 text-[#0B132B] font-serif font-extrabold flex items-center justify-center text-base rounded-sm">
+              <div className="w-8 h-8 bg-teal-400 text-[#0A192F] font-serif font-extrabold flex items-center justify-center text-base rounded-sm">
                 S
               </div>
               <span className="text-xl font-serif font-extrabold tracking-tight text-white">

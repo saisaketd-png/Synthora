@@ -80,7 +80,7 @@ export function ProductGrid({ products }: ProductGridProps) {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#0F3D91]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
               Verified Listings
             </span>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#0F172A] mt-1">
@@ -92,7 +92,7 @@ export function ProductGrid({ products }: ProductGridProps) {
           </div>
           <Link
             href="#all-products"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F3D91] hover:text-[#0c3175] transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F3D91] rounded-md p-1"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-md p-1"
           >
             <span>Browse Catalog ({displayProducts.length})</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -104,12 +104,12 @@ export function ProductGrid({ products }: ProductGridProps) {
           {displayProducts.map((product) => (
             <div
               key={product.id}
-              className="bg-white rounded-2xl border border-[#E2E8F0] hover:border-[#0F3D91]/40 hover:shadow-lg transition-all duration-200 p-6 flex flex-col justify-between group"
+              className="bg-white rounded-2xl border border-[#E2E8F0] hover:border-blue-600/40 hover:shadow-lg transition-all duration-200 p-6 flex flex-col justify-between group"
             >
               <div>
                 {/* Header Badge Row */}
                 <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#0F3D91]/10 text-[#0F3D91] uppercase tracking-wide">
+                  <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-600/10 text-blue-600 uppercase tracking-wide">
                     {product.category || "CHEMICAL"}
                   </span>
                   <span className="text-xs font-mono font-medium text-[#64748B] bg-[#F1F5F9] px-2 py-0.5 rounded">
@@ -118,7 +118,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                 </div>
 
                 {/* Product Title */}
-                <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-[#0F3D91] transition-colors line-clamp-2 leading-snug mb-2">
+                <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug mb-2">
                   {product.name}
                 </h3>
 
@@ -131,10 +131,10 @@ export function ProductGrid({ products }: ProductGridProps) {
                 <div className="space-y-2 py-3 border-t border-b border-[#F1F5F9] my-4 text-xs text-[#475569]">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 font-medium text-[#0F172A]">
-                      <Building2 className="w-3.5 h-3.5 text-[#17B5AE]" />
+                      <Building2 className="w-3.5 h-3.5 text-teal-500" />
                       {product.sellerName || "Verified Exporter"}
                     </span>
-                    <ShieldCheck className="w-4 h-4 text-[#17B5AE]" />
+                    <ShieldCheck className="w-4 h-4 text-teal-500" />
                   </div>
                   <div className="flex items-center justify-between text-[#64748B]">
                     <span className="flex items-center gap-1">
@@ -152,7 +152,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                   <span className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8] block">
                     Pricing
                   </span>
-                  <span className="text-base font-bold text-[#0F3D91]">
+                  <span className="text-base font-bold text-blue-600">
                     {product.price && product.price > 0
                       ? `$${product.price.toFixed(2)} / unit`
                       : "Request Quote"}
@@ -161,7 +161,7 @@ export function ProductGrid({ products }: ProductGridProps) {
 
                 <Link
                   href={`/products/${product.id}`}
-                  className="px-4 py-2 text-xs font-semibold text-white bg-[#0F3D91] hover:bg-[#0c3175] active:translate-y-[1px] rounded-lg transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0F3D91] min-h-[38px] flex items-center justify-center"
+                  className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:translate-y-[1px] rounded-full transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600 min-h-[38px] flex items-center justify-center"
                   aria-label={`View details for ${product.name}`}
                 >
                   View Details

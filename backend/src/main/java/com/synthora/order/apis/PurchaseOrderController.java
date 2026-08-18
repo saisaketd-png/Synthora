@@ -74,4 +74,37 @@ public class PurchaseOrderController {
             Authentication authentication) {
         return purchaseOrderService.getOrderByRfqId(rfqId, authentication);
     }
+
+    @PostMapping("/supplier/{orderId}/process")
+    @PreAuthorize("hasRole('SUPPLIER')")
+    public PurchaseOrderResponse processSupplierOrder(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        return purchaseOrderService.startProcessingSupplierOrder(orderId, authentication);
+    }
+
+    @PostMapping("/supplier/{orderId}/ship")
+    @PreAuthorize("hasRole('SUPPLIER')")
+    public PurchaseOrderResponse shipSupplierOrder(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody com.synthora.order.dto.ShipOrderRequest request,
+            Authentication authentication) {
+        return purchaseOrderService.shipSupplierOrder(orderId, request.carrier(), request.trackingNumber(), request.estimatedDeliveryDate(), authentication);
+    }
+
+    @GetMapping("/{orderId}/shipment")
+    @PreAuthorize("hasRole('BUYER') or hasRole('USER') or hasRole('SUPPLIER')")
+    public com.synthora.order.dto.ShipmentResponse getShipment(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        return purchaseOrderService.getShipment(orderId, authentication);
+    }
+
+    @PostMapping("/{orderId}/deliver")
+    @PreAuthorize("hasRole('SUPPLIER')")
+    public PurchaseOrderResponse deliverOrder(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        return purchaseOrderService.markOrderDeliveredSupplier(orderId, authentication);
+    }
 }

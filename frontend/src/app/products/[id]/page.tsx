@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Product } from "@/features/products/types/product";
 import SupplierComparison from "@/features/products/components/SupplierComparison";
 import RequestQuoteButton from "@/features/rfq/components/RequestQuoteButton";
+import { ProductDocuments } from "@/features/products/components/ProductDocuments";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +29,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumbs */}
           <nav className="text-xs text-slate-500 mb-8 flex items-center gap-2">
-            <Link href="/" className="hover:text-[#0F3D91]">Home</Link>
+            <Link href="/" className="hover:text-blue-600">Home</Link>
             <span>/</span>
-            <Link href="/products" className="hover:text-[#0F3D91]">Products</Link>
+            <Link href="/products" className="hover:text-blue-600">Products</Link>
             <span>/</span>
             <span className="text-slate-900 font-semibold">{product.name}</span>
           </nav>
@@ -40,7 +41,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="lg:col-span-1 space-y-6">
               <div className="aspect-square bg-white border border-slate-200 rounded-sm flex items-center justify-center p-8 relative">
                 <FlaskConical className="w-24 h-24 text-slate-300" />
-                <div className="absolute top-4 right-4 flex items-center gap-1 bg-[#17B5AE]/10 text-[#17B5AE] px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-[#17B5AE]/20">
+                <div className="absolute top-4 right-4 flex items-center gap-1 bg-teal-500/10 text-teal-500 px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider border border-teal-500/20">
                   <ShieldCheck className="w-3 h-3" />
                   Verified
                 </div>
@@ -51,7 +52,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="lg:col-span-1 space-y-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs font-bold text-[#0F3D91] bg-[#0F3D91]/5 px-2 py-0.5 rounded-sm uppercase tracking-wider">
+                  <span className="text-xs font-bold text-blue-600 bg-blue-600/5 px-2 py-0.5 rounded-sm uppercase tracking-wider">
                     {product.category}
                   </span>
                 </div>
@@ -148,6 +149,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
                 </dl>
               </div>
+
+              {/* Product Documents Section */}
+              <ProductDocuments productId={resolvedParams.id} isSeller={false} />
             </div>
 
             {/* Right Column: Sourcing & Supplier */}
@@ -183,7 +187,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                       {(product.sellerName || "U").charAt(0)}
                     </div>
                     <div>
-                      <Link href={`/suppliers/${product.sellerId || 'demo'}`} className="font-bold text-[#0F3D91] hover:underline block leading-tight">
+                      <Link href={`/suppliers/${product.sellerId || 'demo'}`} className="font-bold text-blue-600 hover:underline block leading-tight">
                         {product.sellerName || "Unknown Supplier"}
                       </Link>
                       <span className="text-xs text-slate-500 flex items-center gap-1 mt-1">

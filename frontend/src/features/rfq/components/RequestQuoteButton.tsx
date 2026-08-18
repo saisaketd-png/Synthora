@@ -31,7 +31,7 @@ export default function RequestQuoteButton({
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className={className || "w-full flex items-center justify-center gap-2 bg-[#17B5AE] hover:bg-[#149d97] text-slate-900 font-bold py-3 px-4 rounded-sm transition-colors text-sm"}
+        className={className || "w-full flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-slate-900 font-bold py-3 px-4 rounded-sm transition-colors text-sm"}
       >
         {children || (
           <>

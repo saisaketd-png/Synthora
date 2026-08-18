@@ -3,24 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  FileText,
-  Building2,
-  ShieldCheck,
-  Package,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  RefreshCw,
-  ChevronLeft,
-  ExternalLink,
-  Info,
-  Layers,
-  FlaskConical,
-} from "lucide-react";
-
 import { getRfq, RfqDetail } from "@/features/rfq/api/getRfq";
 import { getBuyerQuotations } from "@/features/rfq/api/getBuyerQuotations";
 import { QuotationResponse } from "@/features/rfq/api/submitQuotation";
@@ -30,6 +12,7 @@ import { getProductSuppliers } from "@/app/products/api/getProductSuppliers";
 import { getOrderByRfqId } from "@/features/order/api/getOrderByRfqId";
 import { IssuePoModal } from "@/features/order/components/IssuePoModal";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
+import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
 
 type ProductDetail = {
   id: string;
@@ -119,80 +102,55 @@ export default function BuyerRfqDetailPage() {
     loadRfqDetail();
   }, [loadRfqDetail]);
 
-  const getStatusBadge = (status: string) => {
+  const getSemanticStatusClass = (status: string) => {
     switch (status) {
       case "ACCEPTED":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "CONFIRMED":
+        return "text-teal-600";
       case "QUOTED":
-        return "bg-blue-50 text-blue-700 border-blue-200";
+      case "PLACED":
+        return "text-blue-600";
       case "PENDING":
+      case "SUBMITTED":
       case "CONTACTED":
-        return "bg-amber-50 text-amber-700 border-amber-200";
+        return "text-orange-500";
       case "REJECTED":
-        return "bg-rose-50 text-rose-700 border-rose-200";
-      case "CLOSED":
       case "CANCELLED":
+      case "CLOSED":
+        return "text-slate-500 line-through";
       default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
+        return "text-slate-600";
     }
   };
 
-  // Loading Skeleton State
   if (loading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto space-y-6 animate-pulse">
-        {/* Breadcrumb Skeleton */}
-        <div className="h-4 w-64 bg-slate-200 rounded-md" />
-
-        {/* Header Skeleton */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <div className="h-8 w-60 bg-slate-200 rounded-lg" />
-            <div className="h-4 w-96 bg-slate-200 rounded-md" />
-          </div>
-          <div className="h-8 w-28 bg-slate-200 rounded-full" />
-        </div>
-
-        {/* Two Column Grid Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 h-72 bg-white border border-slate-200 rounded-2xl p-6" />
-          <div className="h-72 bg-white border border-slate-200 rounded-2xl p-6" />
-        </div>
-
-        {/* Quotation & Timeline Skeletons */}
-        <div className="h-64 bg-white border border-slate-200 rounded-2xl p-6" />
-        <div className="h-48 bg-white border border-slate-200 rounded-2xl p-6" />
+      <div className="p-8 max-w-[1440px] mx-auto min-h-[50vh] flex items-center justify-center">
+        <span className="text-[11px] font-mono text-slate-400 uppercase tracking-widest">
+          LOADING DOSSIER...
+        </span>
       </div>
     );
   }
 
-  // Error State View
   if (error || !rfq) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-rose-800 space-y-4">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-6 h-6 text-rose-600 flex-shrink-0" />
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Unable to Load RFQ</h2>
-              <p className="text-sm text-slate-600 mt-0.5">{error ?? "RFQ reference not found"}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 pt-2">
+      <div className="p-8 max-w-[1440px] mx-auto">
+        <div className="border-l-[3px] border-orange-500 pl-4 py-1">
+          <p className="text-[11px] font-bold text-orange-600 uppercase tracking-widest">Dossier Retrieval Error</p>
+          <p className="text-sm font-mono text-slate-700 mt-2">{error ?? "RFQ reference not found"}</p>
+          <div className="mt-4 flex gap-4">
             <button
-              type="button"
               onClick={loadRfqDetail}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+              className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Retry
+              RETRY FETCH →
             </button>
             <Link
               href="/dashboard/rfqs"
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+              className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-800 transition-colors"
             >
-              <ChevronLeft className="w-4 h-4" />
-              Back to My RFQs
+              ← BACK TO REGISTER
             </Link>
           </div>
         </div>
@@ -200,407 +158,360 @@ export default function BuyerRfqDetailPage() {
     );
   }
 
+  const rfqShortId = rfq.rfqReference || `RFQ-${rfq.id.substring(0, 8).toUpperCase()}`;
+
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      {/* Breadcrumb Navigation & Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <Link href="/dashboard" className="hover:text-slate-900 transition-colors">
-              Workspace
-            </Link>
-            <span className="text-slate-300">/</span>
-            <Link href="/dashboard/rfqs" className="hover:text-slate-900 transition-colors">
-              My RFQs
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="font-mono text-slate-900 font-bold">
-              #{rfq.id.substring(0, 8)}
-            </span>
-          </div>
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900 pb-24">
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-10">
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-1 flex items-center gap-3">
-            Procurement Request
-            <span className="font-mono text-xl sm:text-2xl text-slate-500 font-bold">
-              #{rfq.id.substring(0, 8)}
-            </span>
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <Link
-            href="/dashboard/rfqs"
-            className="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all shadow-xs"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Back to RFQs
-          </Link>
-          <span
-            className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold border ${getStatusBadge(
-              rfq.status
-            )}`}
-          >
-            {rfq.status}
-          </span>
-        </div>
-      </div>
-
-      {/* Commercial Consensus / Purchase Order Action Banner (When ACCEPTED) */}
-      {rfq.status === "ACCEPTED" && (
-        <section className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Commercial Consensus Reached
-                </span>
-                {existingPo && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#17B5AE]/20 text-[#17B5AE] border border-[#17B5AE]/30">
-                    PO #{existingPo.poNumber} ({existingPo.status})
-                  </span>
-                )}
-              </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white">
-                {existingPo ? "Official Purchase Order Issued" : "Ready to Issue Purchase Order"}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                {existingPo
-                  ? `Purchase Order ${existingPo.poNumber} was placed on ${new Date(
-                      existingPo.placedAt
-                    ).toLocaleDateString()} for ${existingPo.currency} ${existingPo.totalAmount.toLocaleString(
-                      undefined,
-                      { minimumFractionDigits: 2 }
-                    )}. Supplier status: ${existingPo.status}.`
-                  : "You have accepted the quotation terms. Specify shipping address and billing contact to transmit a binding Purchase Order to the supplier."}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 flex-shrink-0">
-              {existingPo ? (
+        {/* =========================================
+            HEADER: PROCUREMENT DOSSIER
+            ========================================= */}
+        <header className="border-t-[3px] border-[#0A192F] pt-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+            <div className="max-w-3xl">
+              <div className="flex items-center gap-6 mb-4">
                 <Link
-                  href={`/dashboard/orders/${existingPo.id}`}
-                  className="px-6 py-3 rounded-xl bg-[#17B5AE] hover:bg-[#149f99] text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2"
+                  href="/dashboard/rfqs"
+                  className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-[#0A192F] transition-colors"
                 >
-                  <Package className="w-4 h-4" />
-                  View Purchase Order ({existingPo.poNumber}) →
+                  ← BACK TO RFQs
                 </Link>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsPoModalOpen(true)}
-                  className="px-6 py-3 rounded-xl bg-[#17B5AE] hover:bg-[#149f99] text-white font-bold text-xs shadow-lg hover:shadow-[#17B5AE]/25 transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <Package className="w-4 h-4" />
-                  Issue Purchase Order (PO) →
-                </button>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Two-Column Specification & Supplier Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Product & Buyer Requirements */}
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
-          <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <FlaskConical className="w-3.5 h-3.5 text-[#17B5AE]" />
-                Chemical Specification & Sourcing Target
-              </span>
-              <h2 className="text-xl font-bold text-slate-900 mt-1">
+                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-300">|</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-500">
+                  PROCUREMENT / RFQ DOSSIER
+                </span>
+              </div>
+              <h1 className="text-3xl lg:text-4xl font-mono font-bold text-[#0A192F] tracking-tight mb-2">
+                {rfqShortId}
+              </h1>
+              <h2 className="text-xl font-bold text-slate-700 tracking-tight">
                 {product?.name ?? "Specialty Chemical Raw Material"}
               </h2>
-              {product?.casNumber && (
-                <p className="text-xs text-slate-500 font-mono mt-0.5">
-                  CAS: <span className="font-bold text-slate-800">{product.casNumber}</span>
-                </p>
-              )}
             </div>
-
-            {product?.category && (
-              <span className="px-3 py-1 rounded-lg bg-slate-100 text-xs font-bold text-slate-700">
-                {product.category}
+            
+            <div className="shrink-0 flex flex-col md:items-end gap-1 border-l-2 md:border-l-0 md:border-r-2 border-[#0A192F] pl-4 md:pl-0 md:pr-4 py-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-1">STATUS</span>
+              <span className={`text-sm font-bold uppercase tracking-widest ${getSemanticStatusClass(rfq.status)}`}>
+                {rfq.status}
               </span>
-            )}
-          </div>
-
-          {/* Technical Chemical Specs */}
-          {product && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 block font-semibold">Molecular Formula</span>
-                <span className="font-mono font-bold text-slate-900 mt-0.5 block">
-                  {product.molecularFormula || "—"}
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 block font-semibold">Assay / Purity</span>
-                <span className="font-bold text-slate-900 mt-0.5 block">
-                  {product.purity ? `${product.purity}%` : "Standard"}
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 block font-semibold">Grade</span>
-                <span className="font-bold text-slate-900 mt-0.5 block">
-                  {product.grade || "Industrial"}
-                </span>
-              </div>
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
-                <span className="text-slate-400 block font-semibold">Packaging</span>
-                <span className="font-bold text-slate-900 mt-0.5 block truncate">
-                  {product.packaging || "Drum / Tote"}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Requirement Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Requested Quantity
+              <span className="text-[11px] font-mono text-slate-500 uppercase mt-2">
+                {new Date(rfq.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
               </span>
-              <p className="text-xl font-extrabold text-slate-900 mt-1">
-                {rfq.quantity.toLocaleString()} {rfq.unit}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Inquiry Date
-              </span>
-              <p className="text-sm font-bold text-slate-800 mt-1.5 flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                {new Date(rfq.createdAt).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </p>
-            </div>
-
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                RFQ ID Reference
-              </span>
-              <p className="text-xs font-mono font-bold text-slate-800 mt-2 truncate">
-                {rfq.id}
-              </p>
             </div>
           </div>
+        </header>
 
-          {/* Buyer Message */}
-          {rfq.message && (
-            <div className="pt-2">
-              <span className="text-xs font-bold text-slate-700">Buyer Remarks / Specific Instructions:</span>
-              <div className="mt-1.5 p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                {rfq.message}
-              </div>
+        {/* =========================================
+            METADATA BAND
+            ========================================= */}
+        <div className="border-t border-b border-slate-200 py-3 mb-16 overflow-x-auto">
+          <div className="flex items-center gap-12 min-w-max">
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Product</span>
+              <span className="text-[11px] font-bold text-slate-800 uppercase mt-1">{product?.name ?? "Specialty Chemical"}</span>
             </div>
-          )}
+            <div className="w-[1px] h-6 bg-slate-200" />
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Supplier</span>
+              <span className="text-[11px] font-bold text-slate-800 uppercase mt-1">{supplier?.supplierName ?? `Supplier ID: ${rfq.supplierId}`}</span>
+            </div>
+            <div className="w-[1px] h-6 bg-slate-200" />
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Requested Quantity</span>
+              <span className="text-[11px] font-mono font-bold text-slate-800 uppercase mt-1">{rfq.quantity.toLocaleString()} {rfq.unit}</span>
+            </div>
+            <div className="w-[1px] h-6 bg-slate-200" />
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Request Date</span>
+              <span className="text-[11px] font-mono font-bold text-slate-800 mt-1">
+                {new Date(rfq.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Right 1 Col: Assigned Supplier Dossier */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                Assigned Supplier
-              </span>
-              {supplier?.verified && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <ShieldCheck className="w-3 h-3" />
-                  Verified
-                </span>
-              )}
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-slate-900">
-                {supplier?.supplierName ?? `Supplier #${rfq.supplierId}`}
-              </h3>
-              {supplier?.countryName && (
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Origin: {supplier.countryName}
-                </p>
-              )}
-            </div>
-
-            {supplier ? (
-              <div className="space-y-2.5 pt-2 text-xs">
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Response Rate:</span>
-                  <span className="font-bold text-slate-900">{supplier.responseRate}%</span>
+        {/* =========================================
+            MAIN DOSSIER (70/30)
+            ========================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-16 gap-y-20">
+          
+          {/* --- MAIN CONTENT (70%) --- */}
+          <div className="lg:col-span-8">
+            
+            {/* 01 / CHEMICAL SPECIFICATION */}
+            <section className="mb-16">
+              <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
+                  01 / Chemical Specification
+                </h2>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4">
+                <div className="border-b border-slate-200 pb-3 flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Molecular Formula</span>
+                  <span className="font-mono text-xs font-bold text-[#0A192F]">{product?.molecularFormula || "—"}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Years in Business:</span>
-                  <span className="font-bold text-slate-900">{supplier.yearsInBusiness} Years</span>
+                <div className="border-b border-slate-200 pb-3 flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">CAS Number</span>
+                  <span className="font-mono text-xs font-bold text-[#0A192F]">{product?.casNumber || "—"}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">Standard Lead Time:</span>
-                  <span className="font-bold text-slate-900">{supplier.leadTimeDays} Days</span>
+                <div className="border-b border-slate-200 pb-3 flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Assay / Purity</span>
+                  <span className="text-xs font-bold text-[#0A192F] uppercase">{product?.purity ? `${product.purity}%` : "STANDARD"}</span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                  <span className="text-slate-500">CoA / MSDS Compliance:</span>
-                  <span className="font-bold text-emerald-700">Verified Available</span>
+                <div className="border-b border-slate-200 pb-3 flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Grade</span>
+                  <span className="text-xs font-bold text-[#0A192F] uppercase">{product?.grade || "INDUSTRIAL"}</span>
+                </div>
+                <div className="border-b border-slate-200 pb-3 flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Packaging</span>
+                  <span className="text-xs font-bold text-[#0A192F] uppercase truncate ml-4">{product?.packaging || "DRUM / TOTE"}</span>
+                </div>
+                <div className="border-b border-slate-200 pb-3 flex justify-between items-baseline">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Target Category</span>
+                  <span className="text-xs font-bold text-[#0A192F] uppercase">{product?.category || "—"}</span>
                 </div>
               </div>
-            ) : (
-              <div className="p-4 bg-slate-50 rounded-xl text-xs text-slate-500 border border-slate-100">
-                Supplier Profile registered under ID #{rfq.supplierId}.
+            </section>
+
+            {/* 02 / BUYER REQUIREMENTS */}
+            <section className="mb-16">
+              <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
+                  02 / Buyer Requirements
+                </h2>
               </div>
+              
+              {rfq.message ? (
+                <div className="pl-4 border-l-2 border-slate-300">
+                  <p className="text-sm text-slate-700 leading-relaxed font-mono whitespace-pre-wrap">
+                    {rfq.message}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs font-mono text-slate-500 uppercase">NO ADDITIONAL BUYER REQUIREMENTS SPECIFIED.</p>
+              )}
+            </section>
+
+            {/* 03 / RFQ DOCUMENTS */}
+            <section className="mb-16">
+              <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
+                  03 / RFQ Documents
+                </h2>
+              </div>
+              <GenericDocumentManager
+                title="RFQ Attachments"
+                description="Technical specifications, NDAs, and other requirements."
+                ownerType="RFQ"
+                ownerId={rfq.id}
+                canUpload={true}
+                canDelete={true}
+                allowedCategories={[
+                  { value: "TECHNICAL_SPECIFICATION", label: "Technical Specification" },
+                  { value: "CERTIFICATION", label: "Certification" }
+                ]}
+                emptyMessage="No documents attached to this RFQ."
+              />
+            </section>
+
+            {/* 04 / COMMERCIAL QUOTATION */}
+            <QuotationComparison
+              quotations={quotations}
+              rfqStatus={rfq.status}
+              rfqId={rfq.id}
+              onDecisionSuccess={loadRfqDetail}
+            />
+
+            {/* 05 / PROCUREMENT DECISION (ONLY SHOWN IF ACCEPTED) */}
+            {rfq.status === "ACCEPTED" && (
+              <section className="mb-16">
+                <div className="border-b-[2px] border-teal-700 pb-2 mb-6">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-teal-800">
+                    05 / Procurement Decision
+                  </h2>
+                </div>
+
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-teal-600 mb-2">
+                      QUOTATION ACCEPTED
+                    </span>
+                    {existingPo ? (
+                      <h3 className="text-2xl font-mono font-bold text-[#0A192F]">
+                        {existingPo.poNumber}
+                      </h3>
+                    ) : (
+                      <h3 className="text-2xl font-bold text-[#0A192F]">
+                        Ready for Purchase Order
+                      </h3>
+                    )}
+                    <p className="text-xs text-slate-500 font-mono mt-2 max-w-lg">
+                      {existingPo 
+                        ? `Binding purchase order was issued on ${new Date(existingPo.placedAt).toLocaleDateString("en-GB").toUpperCase()}.` 
+                        : "Commercial consensus has been reached. Generate a binding purchase order to initiate supply chain fulfillment."}
+                    </p>
+                  </div>
+
+                  <div>
+                    {existingPo ? (
+                      <Link
+                        href={`/dashboard/orders/${existingPo.id}`}
+                        className="inline-block text-[11px] font-bold uppercase tracking-widest text-teal-600 hover:text-teal-800 transition-colors"
+                      >
+                        VIEW PURCHASE ORDER →
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsPoModalOpen(true)}
+                        className="text-[11px] font-bold uppercase tracking-widest text-teal-600 hover:text-teal-800 transition-colors"
+                      >
+                        ISSUE PURCHASE ORDER →
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </section>
             )}
           </div>
 
-          <div className="pt-4 border-t border-slate-100">
-            <Link
-              href={`/products/${rfq.productId}`}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors"
-            >
-              <span>View Product in Catalog</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+          {/* --- RIGHT RAIL (30%) --- */}
+          <aside className="lg:col-span-4 relative">
+            <div className="sticky top-12 space-y-16">
+              
+              {/* SUPPLIER DOSSIER */}
+              <section>
+                <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
+                    Supplier Dossier
+                  </h3>
+                </div>
+                
+                <h4 className="text-lg font-bold text-[#0A192F] mb-1">
+                  {supplier?.supplierName ?? `Supplier #${rfq.supplierId}`}
+                </h4>
+                {supplier?.countryName && (
+                  <p className="text-[11px] font-mono text-slate-500 uppercase tracking-widest mb-6">
+                    Origin: {supplier.countryName}
+                  </p>
+                )}
+
+                {supplier ? (
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-baseline border-b border-slate-100 pb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Verification</span>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${supplier.verified ? 'text-teal-600' : 'text-slate-400'}`}>
+                        {supplier.verified ? 'VERIFIED' : 'UNVERIFIED'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-baseline border-b border-slate-100 pb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Response Rate</span>
+                      <span className="font-mono text-[11px] font-bold text-[#0A192F]">{supplier.responseRate}%</span>
+                    </div>
+                    <div className="flex justify-between items-baseline border-b border-slate-100 pb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Time in Business</span>
+                      <span className="font-mono text-[11px] font-bold text-[#0A192F]">{supplier.yearsInBusiness} YRS</span>
+                    </div>
+                    <div className="flex justify-between items-baseline border-b border-slate-100 pb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Compliance</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">COA / MSDS</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-4">
+                    SUPPLIER METADATA NOT AVAILABLE
+                  </p>
+                )}
+              </section>
+
+              {/* PROCUREMENT LIFECYCLE */}
+              <section>
+                <div className="border-b-[2px] border-slate-900 pb-2 mb-6">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
+                    Procurement Lifecycle
+                  </h3>
+                </div>
+                
+                <div className="relative border-l border-slate-200 ml-[3px] space-y-8 pb-4">
+                  {/* Step 1: Submission */}
+                  <div className="relative pl-6">
+                    <div className="absolute -left-[3.5px] top-1.5 w-[6px] h-[6px] bg-[#0A192F]" />
+                    <div className="flex flex-col">
+                      <span className="font-mono text-[11px] text-slate-500 mb-1">
+                        {new Date(rfq.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                      </span>
+                      <span className="text-[11px] font-bold text-[#0A192F] uppercase tracking-widest">
+                        RFQ SUBMITTED
+                      </span>
+                      <span className="font-mono text-[12px] text-slate-700 mt-1">
+                        {rfqShortId}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Quotation */}
+                  <div className="relative pl-6">
+                    <div className={`absolute -left-[3.5px] top-1.5 w-[6px] h-[6px] ${quotations.length > 0 ? 'bg-blue-600' : 'bg-slate-200'}`} />
+                    <div className="flex flex-col">
+                      <span className="font-mono text-[11px] text-slate-500 mb-1">
+                        {quotations.length > 0 ? new Date(quotations[0].createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : 'PENDING'}
+                      </span>
+                      <span className={`text-[11px] font-bold uppercase tracking-widest ${quotations.length > 0 ? 'text-[#0A192F]' : 'text-slate-400'}`}>
+                        QUOTATION RECEIVED
+                      </span>
+                      <span className="font-mono text-[12px] text-slate-700 mt-1">
+                        {quotations.length > 0 ? `${quotations.length} REVISION(S)` : '—'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Decision */}
+                  <div className="relative pl-6">
+                    <div className={`absolute -left-[3.5px] top-1.5 w-[6px] h-[6px] ${
+                      rfq.status === 'ACCEPTED' ? 'bg-teal-600' : 
+                      rfq.status === 'REJECTED' ? 'bg-slate-400' : 'bg-slate-200'
+                    }`} />
+                    <div className="flex flex-col">
+                      <span className="font-mono text-[11px] text-slate-500 mb-1">
+                        {rfq.status === 'ACCEPTED' || rfq.status === 'REJECTED' ? 'LOGGED' : 'PENDING'}
+                      </span>
+                      <span className={`text-[11px] font-bold uppercase tracking-widest ${
+                        rfq.status === 'ACCEPTED' || rfq.status === 'REJECTED' ? 'text-[#0A192F]' : 'text-slate-400'
+                      }`}>
+                        COMMERCIAL DECISION
+                      </span>
+                      <span className="font-mono text-[12px] text-slate-700 mt-1">
+                        {rfq.status === 'ACCEPTED' ? 'ACCEPTED' : 
+                         rfq.status === 'REJECTED' ? 'REJECTED' : '—'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Step 4: PO */}
+                  <div className="relative pl-6">
+                    <div className={`absolute -left-[3.5px] top-1.5 w-[6px] h-[6px] ${existingPo ? 'bg-[#0A192F]' : 'bg-slate-200'}`} />
+                    <div className="flex flex-col">
+                      <span className="font-mono text-[11px] text-slate-500 mb-1">
+                        {existingPo ? new Date(existingPo.placedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase() : 'PENDING'}
+                      </span>
+                      <span className={`text-[11px] font-bold uppercase tracking-widest ${existingPo ? 'text-[#0A192F]' : 'text-slate-400'}`}>
+                        PURCHASE ORDER ISSUED
+                      </span>
+                      <span className="font-mono text-[12px] text-slate-700 mt-1">
+                        {existingPo ? existingPo.poNumber : '—'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+            </div>
+          </aside>
+
         </div>
       </div>
-
-      {/* Quotations & Multi-Version Decision Workspace */}
-      <QuotationComparison
-        quotations={quotations}
-        rfqStatus={rfq.status}
-        rfqId={rfq.id}
-        onDecisionSuccess={loadRfqDetail}
-      />
-
-      {/* Procurement Lifecycle Timeline */}
-      <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
-        <div className="border-b border-slate-100 pb-3">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Audit & Compliance
-          </span>
-          <h2 className="text-base font-bold text-slate-900 mt-0.5">
-            Procurement Lifecycle Timeline
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
-          {/* Milestone 1: RFQ Submitted */}
-          <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/70 space-y-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#17B5AE]" />
-              <span className="text-xs font-bold text-slate-900">1. RFQ Submitted</span>
-            </div>
-            <p className="text-[11px] text-slate-500">
-              {new Date(rfq.createdAt).toLocaleString()}
-            </p>
-            <p className="text-[11px] text-slate-600 leading-tight">
-              Inquiry dispatched to supplier with specification requirements.
-            </p>
-          </div>
-
-          {/* Milestone 2: Supplier Engagement */}
-          <div
-            className={`p-4 rounded-xl border space-y-1.5 ${
-              quotations.length > 0 || rfq.status !== "PENDING"
-                ? "border-slate-100 bg-slate-50/70"
-                : "border-dashed border-slate-200 bg-white opacity-60"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  quotations.length > 0 || rfq.status !== "PENDING"
-                    ? "bg-[#17B5AE]"
-                    : "bg-slate-300"
-                }`}
-              />
-              <span className="text-xs font-bold text-slate-900">2. Supplier Review</span>
-            </div>
-            <p className="text-[11px] text-slate-500">
-              {quotations.length > 0 ? "Review Complete" : "In Progress"}
-            </p>
-            <p className="text-[11px] text-slate-600 leading-tight">
-              {quotations.length > 0
-                ? "Supplier analyzed specifications and prepared commercial terms."
-                : "Awaiting supplier pricing evaluation."}
-            </p>
-          </div>
-
-          {/* Milestone 3: Quotation Received */}
-          <div
-            className={`p-4 rounded-xl border space-y-1.5 ${
-              quotations.length > 0
-                ? "border-slate-100 bg-slate-50/70"
-                : "border-dashed border-slate-200 bg-white opacity-60"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  quotations.length > 0 ? "bg-[#17B5AE]" : "bg-slate-300"
-                }`}
-              />
-              <span className="text-xs font-bold text-slate-900">3. Commercial Quotation</span>
-            </div>
-            <p className="text-[11px] text-slate-500">
-              {quotations.length > 0
-                ? `Version ${quotations[0].quotationVersion} Active`
-                : "Pending Quote"}
-            </p>
-            <p className="text-[11px] text-slate-600 leading-tight">
-              {quotations.length > 0
-                ? `${quotations.length} revision(s) received with binding unit price & MOQ.`
-                : "No quotation received yet."}
-            </p>
-          </div>
-
-          {/* Milestone 4: Order Consensus */}
-          <div
-            className={`p-4 rounded-xl border space-y-1.5 ${
-              rfq.status === "ACCEPTED"
-                ? "border-emerald-200 bg-emerald-50/40"
-                : rfq.status === "REJECTED"
-                ? "border-rose-200 bg-rose-50/40"
-                : "border-dashed border-slate-200 bg-white opacity-60"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  rfq.status === "ACCEPTED"
-                    ? "bg-emerald-500"
-                    : rfq.status === "REJECTED"
-                    ? "bg-rose-500"
-                    : "bg-slate-300"
-                }`}
-              />
-              <span className="text-xs font-bold text-slate-900">4. Decision & PO</span>
-            </div>
-            <p className="text-[11px] text-slate-500">
-              {rfq.status === "ACCEPTED"
-                ? existingPo
-                  ? "PO Transmitted"
-                  : "Consensus Reached"
-                : rfq.status === "REJECTED"
-                ? "Declined"
-                : "Awaiting Decision"}
-            </p>
-            <p className="text-[11px] text-slate-600 leading-tight">
-              {rfq.status === "ACCEPTED"
-                ? existingPo
-                  ? `PO ${existingPo.poNumber} locked into fulfillment schedule.`
-                  : "Terms accepted. PO issuance enabled."
-                : rfq.status === "REJECTED"
-                ? "Proposal declined. Inquiry concluded."
-                : "Pending buyer quotation evaluation."}
-            </p>
-          </div>
-        </div>
-      </section>
 
       {/* Issue PO Modal Dialog */}
       {rfq.status === "ACCEPTED" && quotations.length > 0 && (

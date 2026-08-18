@@ -54,7 +54,13 @@ public class BuyerQuotationDecisionTest {
     private com.synthora.order.PurchaseOrderRepository purchaseOrderRepository;
 
     @Autowired
+    private com.synthora.order.ShipmentRepository shipmentRepository;
+
+    @Autowired
     private com.synthora.product.ProductRepository productRepository;
+
+    @Autowired
+    private com.synthora.seller.SellerProfileRepository sellerProfileRepository;
 
     private User buyer1;
     private String buyer1Token;
@@ -68,11 +74,13 @@ public class BuyerQuotationDecisionTest {
 
     @BeforeEach
     public void setup() {
+        shipmentRepository.deleteAll();
         purchaseOrderRepository.deleteAll();
         quotationRepository.deleteAll();
         rfqRepository.deleteAll();
         productRepository.deleteAll();
         supplierRepository.deleteAll();
+        sellerProfileRepository.deleteAll();
         userRepository.deleteAll();
 
         buyer1 = new User();

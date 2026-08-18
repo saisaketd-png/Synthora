@@ -43,6 +43,9 @@ public class UserSecurityTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private com.synthora.order.ShipmentRepository shipmentRepository;
+
     private User adminUser;
     private String adminToken;
 
@@ -54,6 +57,7 @@ public class UserSecurityTest {
 
     @BeforeEach
     public void setup() {
+        shipmentRepository.deleteAll();
         purchaseOrderRepository.deleteAll();
         quotationRepository.deleteAll();
         rfqRepository.deleteAll();

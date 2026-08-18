@@ -7,16 +7,25 @@ import com.synthora.seller.dto.SellerProfileResponse;
 import com.synthora.seller.dto.UpdateSellerProfileRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.synthora.product.Supplier;
+import com.synthora.product.SupplierRepository;
 
 @Service
 public class SellerProfileService {
 
     private final SellerProfileRepository sellerProfileRepository;
+    private final SupplierRepository supplierRepository;
+    private final SupplierIdentityResolver identityResolver;
     private final UserRepository userRepository;
 
     public SellerProfileService(SellerProfileRepository sellerProfileRepository,
+                                SupplierRepository supplierRepository,
+                                SupplierIdentityResolver identityResolver,
                                 UserRepository userRepository) {
         this.sellerProfileRepository = sellerProfileRepository;
+        this.supplierRepository = supplierRepository;
+        this.identityResolver = identityResolver;
         this.userRepository = userRepository;
     }
 
@@ -30,6 +39,7 @@ public class SellerProfileService {
         return mapToResponse(profile);
     }
 
+    @Transactional
     public SellerProfileResponse updateMyProfile(
             UpdateSellerProfileRequest request,
             Authentication authentication) {
@@ -54,6 +64,14 @@ public class SellerProfileService {
         profile.setAboutCompany(request.aboutCompany());
 
         SellerProfile saved = sellerProfileRepository.save(profile);
+
+        // Synchronize with the operational Supplier record using the canonical resolver
+        // This will strictly throw if missing, preventing silent fabrication
+        Supplier supplier = identityResolver.resolveOperationalSupplier(user);
+        
+        supplier.setName(request.companyName());
+        supplier.setCountryName(request.country());
+        supplierRepository.save(supplier);
 
         return mapToResponse(saved);
     }

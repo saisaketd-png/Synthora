@@ -38,7 +38,7 @@ export function WorkflowSection() {
     <section id="workflow" className="py-16 md:py-24 bg-white border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#17B5AE]">
+          <span className="text-xs font-semibold uppercase tracking-wider text-teal-500">
             Simplified Sourcing Process
           </span>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#0F172A] mt-1">
@@ -62,9 +62,9 @@ export function WorkflowSection() {
                   key={s.step}
                   className="flex flex-col items-center text-center bg-white p-4 rounded-xl border border-[#E2E8F0] lg:border-none shadow-sm lg:shadow-none"
                 >
-                  <div className="w-14 h-14 rounded-full bg-[#0F3D91] text-white flex items-center justify-center text-lg font-bold shadow-md mb-4 relative">
+                  <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold shadow-md mb-4 relative">
                     <Icon className="w-6 h-6 text-white" />
-                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#17B5AE] text-white text-xs flex items-center justify-center font-extrabold border-2 border-white">
+                    <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center font-extrabold border-2 border-white">
                       {s.step}
                     </span>
                   </div>

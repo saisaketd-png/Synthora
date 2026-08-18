@@ -1,0 +1,14 @@
+package com.synthora.document;
+
+public enum DocumentCategory {
+    COA,
+    MSDS,
+    TECHNICAL_SPECIFICATION,
+    CERTIFICATION,
+    QUOTATION_ATTACHMENT,
+    PURCHASE_ORDER,
+    INVOICE,
+    PACKING_LIST,
+    DELIVERY_CONFIRMATION,
+    SHIPPING_DOCUMENT
+}

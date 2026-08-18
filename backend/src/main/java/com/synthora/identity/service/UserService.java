@@ -64,6 +64,14 @@ public class UserService {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
+        if (user.getDeletedAt() != null) {
+            throw new IllegalArgumentException("Account has been deactivated");
+        }
+
+        if (user.getStatus() == UserStatus.SUSPENDED) {
+            throw new IllegalArgumentException("Account is suspended");
+        }
+
         String token = jwtService.generateToken(user);
         return new LoginResponse("Login successful", token);
     }

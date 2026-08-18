@@ -9,6 +9,11 @@ import com.synthora.product.Supplier;
 import com.synthora.product.SupplierRepository;
 import com.synthora.rfq.dto.CreateRfqRequest;
 import com.synthora.rfq.dto.RfqResponse;
+import com.synthora.notification.events.QuotationAcceptedEvent;
+import com.synthora.notification.events.QuotationRejectedEvent;
+import com.synthora.notification.events.QuotationSubmittedEvent;
+import com.synthora.notification.events.RfqSubmittedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,19 +34,22 @@ public class RfqService {
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
     private final com.synthora.rfq.quotation.QuotationRepository quotationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RfqService(
             RfqRepository rfqRepository,
             UserRepository userRepository,
             SupplierRepository supplierRepository,
             ProductRepository productRepository,
-            com.synthora.rfq.quotation.QuotationRepository quotationRepository) {
+            com.synthora.rfq.quotation.QuotationRepository quotationRepository,
+            ApplicationEventPublisher eventPublisher) {
 
         this.rfqRepository = rfqRepository;
         this.userRepository = userRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
         this.quotationRepository = quotationRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     private String deriveRfqReference(Rfq rfq) {
@@ -100,6 +108,12 @@ public class RfqService {
         rfq.setMessage(request.message());
 
         Rfq saved = rfqRepository.save(rfq);
+
+        eventPublisher.publishEvent(new RfqSubmittedEvent(
+                saved.getId(),
+                saved.getBuyerId(),
+                saved.getSupplierId()
+        ));
 
         return buildSingleRfqResponse(saved, buyer.getName(), null, null);
     }
@@ -263,6 +277,13 @@ public class RfqService {
             rfqRepository.save(rfq);
         }
 
+        eventPublisher.publishEvent(new QuotationSubmittedEvent(
+                saved.getId(),
+                rfq.getId(),
+                rfq.getBuyerId(),
+                rfq.getSupplierId()
+        ));
+
         return new com.synthora.rfq.dto.QuotationResponse(
                 saved.getId(),
                 saved.getRfq().getId(),
@@ -334,6 +355,13 @@ public class RfqService {
         rfq.setAcceptedQuotationId(quotation.getId());
         rfqRepository.save(rfq);
 
+        eventPublisher.publishEvent(new QuotationAcceptedEvent(
+                quotation.getId(),
+                rfq.getId(),
+                rfq.getBuyerId(),
+                rfq.getSupplierId()
+        ));
+
         return new com.synthora.rfq.dto.QuotationDecisionResponse(
                 rfq.getId(),
                 quotation.getId(),
@@ -371,6 +399,13 @@ public class RfqService {
 
         rfq.setStatus(RfqStatus.REJECTED);
         rfqRepository.save(rfq);
+
+        eventPublisher.publishEvent(new QuotationRejectedEvent(
+                quotation.getId(),
+                rfq.getId(),
+                rfq.getBuyerId(),
+                rfq.getSupplierId()
+        ));
 
         return new com.synthora.rfq.dto.QuotationDecisionResponse(
                 rfq.getId(),

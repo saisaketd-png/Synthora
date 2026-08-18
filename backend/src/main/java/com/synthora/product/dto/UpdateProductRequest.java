@@ -22,7 +22,38 @@ public record UpdateProductRequest(
 
         @NotNull(message = "Stock is required")
         @Min(value = 0, message = "Stock cannot be negative")
-        Integer stock
+        Integer stock,
+
+        @Size(max = 100, message = "CAS number too long")
+        String casNumber,
+
+        @Size(max = 100, message = "Molecular formula too long")
+        String molecularFormula,
+
+        @DecimalMin(value = "0.0", message = "Purity cannot be negative")
+        @DecimalMax(value = "100.0", message = "Purity cannot exceed 100")
+        BigDecimal purity,
+
+        @Size(max = 100, message = "Grade description too long")
+        String grade,
+
+        @Min(value = 0, message = "MOQ cannot be negative")
+        BigDecimal moqKg,
+
+        @Size(max = 150, message = "Packaging description too long")
+        String packaging,
+
+        @Min(value = 0, message = "Lead time cannot be negative")
+        Integer leadTimeDays,
+
+        Boolean coaAvailable,
+
+        Boolean msdsAvailable,
+
+        Boolean exportReady,
+
+        @Size(max = 50, message = "Availability status too long")
+        String availabilityStatus
 
 ) {
 }

@@ -14,6 +14,8 @@ import com.synthora.rfq.RfqRepository;
 import com.synthora.rfq.RfqStatus;
 import com.synthora.rfq.quotation.Quotation;
 import com.synthora.rfq.quotation.QuotationRepository;
+import com.synthora.notification.events.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +37,8 @@ public class PurchaseOrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final SupplierRepository supplierRepository;
+    private final ShipmentRepository shipmentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PurchaseOrderService(
             PurchaseOrderRepository purchaseOrderRepository,
@@ -42,13 +46,17 @@ public class PurchaseOrderService {
             QuotationRepository quotationRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
-            SupplierRepository supplierRepository) {
+            SupplierRepository supplierRepository,
+            ShipmentRepository shipmentRepository,
+            ApplicationEventPublisher eventPublisher) {
         this.purchaseOrderRepository = purchaseOrderRepository;
         this.rfqRepository = rfqRepository;
         this.quotationRepository = quotationRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.supplierRepository = supplierRepository;
+        this.shipmentRepository = shipmentRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     public PurchaseOrderResponse createPurchaseOrder(
@@ -117,6 +125,12 @@ public class PurchaseOrderService {
         po.setPlacedAt(LocalDateTime.now());
 
         PurchaseOrder saved = purchaseOrderRepository.save(po);
+
+        eventPublisher.publishEvent(new PurchaseOrderIssuedEvent(
+                saved.getId(),
+                saved.getBuyerId(),
+                saved.getSupplierId()
+        ));
 
         return mapToResponse(saved);
     }
@@ -194,7 +208,148 @@ public class PurchaseOrderService {
         order.setConfirmedAt(LocalDateTime.now());
 
         PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        eventPublisher.publishEvent(new PurchaseOrderConfirmedEvent(
+                updated.getId(),
+                updated.getBuyerId(),
+                updated.getSupplierId()
+        ));
+
         return mapToResponse(updated);
+    }
+
+    public PurchaseOrderResponse startProcessingSupplierOrder(UUID orderId, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Supplier supplier = supplierRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
+
+        PurchaseOrder order = purchaseOrderRepository.findByIdAndSupplierId(orderId, supplier.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.CONFIRMED) {
+            throw new IllegalStateException("Cannot start processing order in status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.PROCESSING);
+        PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        eventPublisher.publishEvent(new OrderProcessingStartedEvent(
+                updated.getId(),
+                updated.getBuyerId(),
+                updated.getSupplierId()
+        ));
+
+        return mapToResponse(updated);
+    }
+
+    public PurchaseOrderResponse shipSupplierOrder(UUID orderId, String carrier, String trackingNumber, java.time.LocalDate estimatedDeliveryDate, Authentication authentication) {
+        if (carrier == null || carrier.isBlank()) {
+            throw new IllegalArgumentException("Carrier must not be blank");
+        }
+        if (trackingNumber == null || trackingNumber.isBlank()) {
+            throw new IllegalArgumentException("Tracking number must not be blank");
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Supplier supplier = supplierRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
+
+        PurchaseOrder order = purchaseOrderRepository.findByIdAndSupplierId(orderId, supplier.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PROCESSING) {
+            throw new IllegalStateException("Cannot ship order in status: " + order.getStatus());
+        }
+
+        if (shipmentRepository.findByPurchaseOrderId(orderId).isPresent()) {
+            throw new IllegalStateException("A shipment already exists for this order");
+        }
+
+        Shipment shipment = new Shipment();
+        shipment.setPurchaseOrder(order);
+        shipment.setCarrier(carrier.trim());
+        shipment.setTrackingNumber(trackingNumber.trim());
+        shipment.setEstimatedDeliveryDate(estimatedDeliveryDate);
+        shipment.setShippedAt(LocalDateTime.now());
+        Shipment savedShipment = shipmentRepository.save(shipment);
+
+        order.setStatus(OrderStatus.SHIPPED);
+        PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        eventPublisher.publishEvent(new OrderShippedEvent(
+                updated.getId(),
+                updated.getBuyerId(),
+                updated.getSupplierId(),
+                savedShipment.getId()
+        ));
+
+        return mapToResponse(updated);
+    }
+
+    public PurchaseOrderResponse markOrderDeliveredSupplier(UUID orderId, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Supplier supplier = supplierRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
+
+        PurchaseOrder order = purchaseOrderRepository.findByIdAndSupplierId(orderId, supplier.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            throw new IllegalStateException("Cannot mark delivered order in status: " + order.getStatus());
+        }
+
+        if (shipmentRepository.findByPurchaseOrderId(orderId).isEmpty()) {
+            throw new IllegalStateException("Cannot mark delivered: Shipment record not found for this order");
+        }
+
+        order.setStatus(OrderStatus.DELIVERED);
+        PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        eventPublisher.publishEvent(new OrderDeliveredEvent(
+                updated.getId(),
+                updated.getBuyerId(),
+                updated.getSupplierId()
+        ));
+
+        return mapToResponse(updated);
+    }
+
+    @Transactional(readOnly = true)
+    public com.synthora.order.dto.ShipmentResponse getShipment(UUID orderId, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        PurchaseOrder order = purchaseOrderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        Supplier supplier = supplierRepository.findByUser(user).orElse(null);
+        boolean isBuyer = order.getBuyerId().equals(user.getId());
+        boolean isSupplier = supplier != null && order.getSupplierId().equals(supplier.getId());
+
+        if (!isBuyer && !isSupplier) {
+            throw new ResourceNotFoundException("Order not found");
+        }
+
+        Shipment shipment = shipmentRepository.findByPurchaseOrderId(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Shipment not found for this order"));
+
+        return new com.synthora.order.dto.ShipmentResponse(
+                shipment.getId(),
+                shipment.getCarrier(),
+                shipment.getTrackingNumber(),
+                shipment.getEstimatedDeliveryDate(),
+                shipment.getShippedAt()
+        );
     }
 
     @Transactional(readOnly = true)

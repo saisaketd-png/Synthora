@@ -61,6 +61,9 @@ public class GlobalExceptionSemanticsTest {
     private PurchaseOrderRepository purchaseOrderRepository;
 
     @Autowired
+    private com.synthora.order.ShipmentRepository shipmentRepository;
+
+    @Autowired
     private JwtService jwtService;
 
     private User buyer1;
@@ -78,6 +81,7 @@ public class GlobalExceptionSemanticsTest {
 
     @BeforeEach
     public void setup() {
+        shipmentRepository.deleteAll();
         purchaseOrderRepository.deleteAll();
         quotationRepository.deleteAll();
         rfqRepository.deleteAll();

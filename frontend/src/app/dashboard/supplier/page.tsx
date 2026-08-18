@@ -2,19 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  FileText,
-  Package,
-  ArrowUpRight,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Building2,
-  TrendingUp,
-} from "lucide-react";
 import { getSupplierRfqs, SupplierRfq } from "@/features/rfq/api/getSupplierRfqs";
 import { getSupplierOrders } from "@/features/order/api/getSupplierOrders";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
+
+type ActivityEvent = {
+  id: string;
+  type: "RFQ_RECEIVED" | "QUOTATION_SUBMITTED" | "ORDER_RECEIVED";
+  reference: string;
+  timestamp: Date;
+  link: string;
+};
 
 export default function SupplierDashboardOverviewPage() {
   const [rfqs, setRfqs] = useState<SupplierRfq[]>([]);
@@ -43,295 +41,447 @@ export default function SupplierDashboardOverviewPage() {
     loadSupplierData();
   }, []);
 
+  const getSemanticStatusClass = (status: string) => {
+    switch (status) {
+      case "ACCEPTED":
+      case "CONFIRMED":
+      case "DELIVERED": return "text-teal-600";
+      case "QUOTED": return "text-blue-600";
+      case "PENDING":
+      case "CONTACTED":
+      case "PLACED": return "text-orange-500";
+      case "REJECTED": return "text-red-700";
+      case "CLOSED":
+      case "CANCELLED": return "text-slate-500";
+      default: return "text-slate-600";
+    }
+  };
+
   if (loading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center shadow-sm">
-          <div className="inline-block w-8 h-8 border-4 border-[#17B5AE] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-slate-500 text-sm font-medium">Loading supplier workspace overview...</p>
+      <div className="p-8 max-w-[1440px] mx-auto min-h-[50vh] flex items-center justify-center bg-white">
+        <span className="text-[11px] font-mono text-slate-400 uppercase tracking-widest animate-pulse">
+          LOADING SUPPLIER OPERATIONS...
+        </span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 max-w-[1440px] mx-auto bg-white min-h-[50vh]">
+        <div className="border-l-[3px] border-orange-500 pl-4 py-1">
+          <p className="text-[11px] font-bold text-orange-600 uppercase tracking-widest">System Error</p>
+          <p className="text-sm font-mono text-slate-700 mt-2">UNABLE TO LOAD SUPPLIER OPERATIONS DATA</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
+          >
+            RETRY FETCH →
+          </button>
         </div>
       </div>
     );
   }
 
-  // Real derived metrics
+  // Derived metrics
   const totalRfqs = rfqs.length;
-  const pendingQuoteRfqs = rfqs.filter(
-    (r) => r.status === "SUBMITTED" || r.status === "PENDING"
-  ).length;
-  const quotedRfqs = rfqs.filter((r) => r.status === "QUOTED").length;
-  const acceptedRfqs = rfqs.filter((r) => r.status === "ACCEPTED").length;
-
+  const awaitingQuoteRfqs = rfqs.filter(r => r.status === "SUBMITTED" || r.status === "PENDING");
+  const quotedRfqs = rfqs.filter(r => r.status === "QUOTED");
+  
   const totalOrders = orders.length;
-  const awaitingConfirmationOrders = orders.filter((o) => o.status === "PLACED").length;
-  const confirmedOrders = orders.filter((o) => o.status === "CONFIRMED").length;
+  const awaitingConfirmationOrders = orders.filter(o => o.status === "PLACED");
+  const confirmedOrders = orders.filter(o => o.status === "CONFIRMED");
 
-  const recentRfqs = [...rfqs].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  ).slice(0, 5);
+  // Registers
+  const recentRfqs = [...rfqs].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 8);
+  const recentOrders = [...orders].sort((a, b) => new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime()).slice(0, 8);
 
-  const recentOrders = [...orders].sort(
-    (a, b) => new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime()
-  ).slice(0, 5);
+  // Operations Log Generation
+  const activityEvents: ActivityEvent[] = [];
+  rfqs.forEach(rfq => {
+    activityEvents.push({
+      id: `rcv-${rfq.id}`,
+      type: "RFQ_RECEIVED",
+      reference: rfq.rfqReference || `RFQ-${rfq.id.substring(0, 8).toUpperCase()}`,
+      timestamp: new Date(rfq.createdAt),
+      link: `/dashboard/supplier/rfqs/${rfq.id}`
+    });
+    // NOTE: In a real system, quotation timestamp would be available. We approximate here.
+    if (rfq.status === "QUOTED" || rfq.status === "ACCEPTED") {
+      activityEvents.push({
+        id: `qto-${rfq.id}`,
+        type: "QUOTATION_SUBMITTED",
+        reference: rfq.rfqReference || `RFQ-${rfq.id.substring(0, 8).toUpperCase()}`,
+        timestamp: new Date(new Date(rfq.createdAt).getTime() + 86400000), // Approx +1 day
+        link: `/dashboard/supplier/rfqs/${rfq.id}`
+      });
+    }
+  });
+  orders.forEach(order => {
+    activityEvents.push({
+      id: `ord-${order.id}`,
+      type: "ORDER_RECEIVED",
+      reference: order.poNumber,
+      timestamp: new Date(order.placedAt),
+      link: `/dashboard/supplier/orders/${order.id}`
+    });
+  });
+
+  const sortedActivities = activityEvents
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    .slice(0, 10);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
-      {/* Supplier Workspace Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-600">
-              Supplier Sales & Fulfillment Center
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mt-0.5">
-            Supplier Overview
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage incoming buyer RFQs, issue competitive price quotations, and confirm purchase orders.
-          </p>
-        </div>
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900 pb-24">
+      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-10">
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/supplier/rfqs"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-all flex-shrink-0"
-          >
-            <FileText className="w-3.5 h-3.5 text-teal-400" />
-            Open RFQ Inbox
-          </Link>
-        </div>
-      </div>
-
-      {/* Action Required Alert Banner if unconfirmed orders exist */}
-      {awaitingConfirmationOrders > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-bold text-slate-900">
-                Action Required: {awaitingConfirmationOrders} Purchase Order{awaitingConfirmationOrders > 1 ? "s" : ""} Awaiting Confirmation
-              </p>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Buyers have accepted your quotations and issued purchase orders. Confirm receipt to lock delivery timelines.
+        {/* =========================================
+            EDITORIAL HEADER
+            ========================================= */}
+        <header className="border-t-[3px] border-[#0A192F] pt-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+            <div className="max-w-2xl">
+              <span className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">
+                SUPPLIER OPERATIONS / COMMERCIAL DESK
+              </span>
+              <h1 className="text-4xl lg:text-5xl font-sans font-extrabold text-[#0A192F] tracking-tighter mb-4">
+                Supplier Operations
+              </h1>
+              <p className="text-sm text-slate-600 font-medium">
+                Manage incoming sourcing requests, commercial quotations and purchase orders.
               </p>
             </div>
           </div>
-          <Link
-            href="/dashboard/supplier/orders"
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex-shrink-0 text-center"
-          >
-            Review Orders →
-          </Link>
-        </div>
-      )}
+        </header>
 
-      {/* KPI Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* RFQs Received */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              RFQs Received
+        {/* =========================================
+            OPERATIONAL INDEX
+            ========================================= */}
+        <div className="flex flex-wrap sm:flex-nowrap border-y border-slate-200 py-6 mb-12 gap-y-8 gap-x-12">
+          <div className="flex flex-col">
+            <span className="font-mono text-3xl font-bold text-[#0A192F]">
+              {totalRfqs.toString().padStart(2, "0")}
             </span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <FileText className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <p className="text-3xl font-extrabold text-slate-900">{totalRfqs}</p>
-            <Link
-              href="/dashboard/supplier/rfqs"
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-0.5"
-            >
-              Inbox <ArrowUpRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-3 text-xs text-slate-500 font-medium">
-            <span>{pendingQuoteRfqs} New</span>
-            <span>•</span>
-            <span>{quotedRfqs} Quoted</span>
-          </div>
-        </div>
-
-        {/* Actionable Quotes */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Awaiting Quotation
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <p className="text-3xl font-extrabold text-slate-900">{pendingQuoteRfqs}</p>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-              {pendingQuoteRfqs > 0 ? "Pending Quote" : "Up to date"}
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">
+              TOTAL INQUIRIES
             </span>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 font-medium">
-            Requests ready for price submission
+          <div className="hidden sm:block w-px bg-slate-200" />
+          <div className="flex flex-col">
+            <span className="font-mono text-3xl font-bold text-orange-600">
+              {awaitingQuoteRfqs.length.toString().padStart(2, "0")}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">
+              AWAITING QUOTE
+            </span>
+          </div>
+          <div className="hidden sm:block w-px bg-slate-200" />
+          <div className="flex flex-col">
+            <span className="font-mono text-3xl font-bold text-[#0A192F]">
+              {quotedRfqs.length.toString().padStart(2, "0")}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">
+              QUOTED
+            </span>
+          </div>
+          <div className="hidden sm:block w-px bg-slate-200" />
+          <div className="flex flex-col">
+            <span className="font-mono text-3xl font-bold text-[#0A192F]">
+              {totalOrders.toString().padStart(2, "0")}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">
+              ORDERS PLACED
+            </span>
+          </div>
+          <div className="hidden sm:block w-px bg-slate-200" />
+          <div className="flex flex-col">
+            <span className="font-mono text-3xl font-bold text-teal-600">
+              {confirmedOrders.length.toString().padStart(2, "0")}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">
+              CONFIRMED
+            </span>
           </div>
         </div>
 
-        {/* Purchase Orders */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Total Purchase Orders
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-teal-50 text-[#17B5AE] flex items-center justify-center">
-              <Package className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <p className="text-3xl font-extrabold text-slate-900">{totalOrders}</p>
-            <Link
-              href="/dashboard/supplier/orders"
-              className="text-xs font-bold text-[#17B5AE] hover:text-teal-700 flex items-center gap-0.5"
-            >
-              View all <ArrowUpRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-3 text-xs text-slate-500 font-medium">
-            <span>{awaitingConfirmationOrders} Placed</span>
-            <span>•</span>
-            <span>{confirmedOrders} Confirmed</span>
-          </div>
-        </div>
+        {/* =========================================
+            ASYMMETRIC GRID (70/30)
+            ========================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+          
+          {/* LEFT COLUMN: MAIN OPERATIONS (70%) */}
+          <div className="lg:col-span-8 xl:col-span-9 space-y-16">
 
-        {/* Confirmed Orders */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Confirmed Orders
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-baseline justify-between">
-            <p className="text-3xl font-extrabold text-slate-900">{confirmedOrders}</p>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Active
-            </span>
-          </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500 font-medium">
-            Fulfillment schedule confirmed
-          </div>
-        </div>
-      </div>
+            {/* 01 / ACTION REQUIRED */}
+            {(awaitingConfirmationOrders.length > 0 || awaitingQuoteRfqs.length > 0) && (
+              <section>
+                <h2 className="text-[11px] font-bold uppercase tracking-widest text-orange-600 mb-6 flex items-center gap-4">
+                  <span className="text-orange-300">01 /</span> ACTION REQUIRED
+                  <div className="h-px bg-slate-200 flex-1 ml-4" />
+                </h2>
 
-      {/* Two-Column Recent Activity Tables */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent RFQs */}
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Incoming RFQs</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Requests assigned to your supplier profile</p>
-            </div>
-            <Link
-              href="/dashboard/supplier/rfqs"
-              className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
-            >
-              View Inbox ({totalRfqs}) <ArrowUpRight className="w-3 h-3" />
-            </Link>
-          </div>
+                <div className="divide-y divide-slate-200 border-y border-slate-200">
+                  {awaitingConfirmationOrders.map(order => (
+                    <div key={order.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-5 pl-4 border-l-2 border-orange-500 hover:bg-slate-50 transition-colors">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 flex-1">
+                        <div>
+                          <span className="font-mono text-sm font-bold text-[#0A192F]">{order.poNumber}</span>
+                          <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">PURCHASE ORDER</span>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <span className="text-sm font-bold text-[#0A192F] truncate block">{order.productName}</span>
+                          <span className="font-mono text-[11px] text-slate-500 mt-1">{order.quantity.toLocaleString()} {order.unit.toUpperCase()}</span>
+                        </div>
+                        <div>
+                          <span className="block text-xs font-bold uppercase tracking-widest text-orange-500">PLACED</span>
+                        </div>
+                      </div>
+                      <div className="mt-4 sm:mt-0 sm:ml-4 shrink-0">
+                        <Link
+                          href={`/dashboard/supplier/orders/${order.id}`}
+                          className="inline-block px-6 py-2 bg-[#0A192F] hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest transition-colors"
+                        >
+                          CONFIRM ORDER →
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
 
-          {recentRfqs.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">
-              No RFQs received yet. New buyer inquiries will appear here.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100 text-xs">
-              {recentRfqs.map((rfq) => (
-                <Link
-                  key={rfq.id}
-                  href={`/dashboard/supplier/rfqs/${rfq.id}`}
-                  className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors block"
-                >
-                  <div className="space-y-0.5">
-                    <p className="font-mono font-bold text-slate-800">
-                      RFQ #{rfq.id.substring(0, 8)}...
-                    </p>
-                    <p className="text-slate-500">
-                      Buyer: <span className="font-mono">{rfq.buyerId.substring(0, 12)}...</span> • {rfq.quantity} {rfq.unit}
-                    </p>
+                  {awaitingQuoteRfqs.map(rfq => (
+                    <div key={rfq.id} className="flex flex-col sm:flex-row sm:items-center justify-between py-5 pl-4 border-l-2 border-orange-500 hover:bg-slate-50 transition-colors">
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 flex-1">
+                        <div>
+                          <span className="font-mono text-sm font-bold text-[#0A192F]">{rfq.rfqReference || `RFQ-${rfq.id.substring(0, 8).toUpperCase()}`}</span>
+                          <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">INQUIRY</span>
+                        </div>
+                        <div className="sm:col-span-2">
+                          <span className="text-sm font-bold text-[#0A192F] truncate block">{rfq.productName || "Specialty Chemical"}</span>
+                          <span className="font-mono text-[11px] text-slate-500 mt-1">{rfq.quantity.toLocaleString()} {rfq.unit.toUpperCase()} • {rfq.buyerName || "Buyer Organization"}</span>
+                        </div>
+                        <div>
+                          <span className="block text-xs font-bold uppercase tracking-widest text-orange-500">AWAITING QUOTE</span>
+                        </div>
+                      </div>
+                      <div className="mt-4 sm:mt-0 sm:ml-4 shrink-0">
+                        <Link
+                          href={`/dashboard/supplier/rfqs/${rfq.id}`}
+                          className="inline-block px-6 py-2 bg-[#0A192F] hover:bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest transition-colors"
+                        >
+                          SUBMIT QUOTE →
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* 02 / INCOMING RFQ REGISTER */}
+            <section>
+              <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
+                <span className="text-slate-300">{(awaitingConfirmationOrders.length > 0 || awaitingQuoteRfqs.length > 0) ? "02" : "01"} /</span> INCOMING RFQ REGISTER
+                <div className="h-px bg-slate-200 flex-1 ml-4" />
+              </h2>
+
+              {recentRfqs.length === 0 ? (
+                <div className="border-t border-slate-200 pt-8">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">NO ACTIVE RFQ INQUIRIES</span>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-slate-200">
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">RFQ REFERENCE</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">PRODUCT</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">BUYER</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">QUANTITY</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">RECEIVED</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {recentRfqs.map((rfq) => (
+                        <tr key={rfq.id} className="hover:bg-slate-50 transition-colors group">
+                          <td className="py-4 pr-6">
+                            <Link href={`/dashboard/supplier/rfqs/${rfq.id}`} className="font-mono text-xs font-bold text-[#0A192F] group-hover:text-blue-600 transition-colors">
+                              {rfq.rfqReference || `RFQ-${rfq.id.substring(0, 8).toUpperCase()}`}
+                            </Link>
+                          </td>
+                          <td className="py-4 pr-6 text-sm font-semibold text-slate-800 max-w-[200px] truncate">
+                            {rfq.productName || "Specialty Chemical"}
+                          </td>
+                          <td className="py-4 pr-6 text-xs text-slate-600 truncate max-w-[150px]">
+                            {rfq.buyerName || "Buyer Organization"}
+                          </td>
+                          <td className="py-4 pr-6 font-mono text-xs text-slate-600">
+                            {rfq.quantity.toLocaleString()} {rfq.unit.toUpperCase()}
+                          </td>
+                          <td className="py-4 pr-6 font-mono text-xs text-slate-500">
+                            {new Date(rfq.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                          </td>
+                          <td className="py-4">
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${getSemanticStatusClass(rfq.status)}`}>
+                              {rfq.status === "SUBMITTED" || rfq.status === "PENDING" ? "AWAITING QUOTE" : rfq.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="mt-6">
+                    <Link
+                      href="/dashboard/supplier/rfqs"
+                      className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
+                    >
+                      VIEW ALL RFQS →
+                    </Link>
                   </div>
-                  <div className="text-right space-y-1">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      rfq.status === "ACCEPTED"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : rfq.status === "QUOTED"
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
-                    }`}>
-                      {rfq.status}
-                    </span>
-                    <p className="text-[10px] text-slate-400">
-                      {new Date(rfq.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+                </div>
+              )}
+            </section>
 
-        {/* Recent Purchase Orders */}
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Assigned Purchase Orders</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Orders placed against your quotations</p>
-            </div>
-            <Link
-              href="/dashboard/supplier/orders"
-              className="text-xs font-bold text-[#17B5AE] hover:text-teal-700 flex items-center gap-1"
-            >
-              View all ({totalOrders}) <ArrowUpRight className="w-3 h-3" />
-            </Link>
+            {/* 03 / ORDER ACTIVITY */}
+            <section>
+              <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
+                <span className="text-slate-300">{(awaitingConfirmationOrders.length > 0 || awaitingQuoteRfqs.length > 0) ? "03" : "02"} /</span> ORDER ACTIVITY
+                <div className="h-px bg-slate-200 flex-1 ml-4" />
+              </h2>
+
+              {recentOrders.length === 0 ? (
+                <div className="border-t border-slate-200 pt-8">
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">NO ACTIVE PURCHASE ORDERS</span>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-slate-200">
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">PO NUMBER</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">PRODUCT</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">BUYER</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">QUANTITY</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap pr-6">DATE</th>
+                        <th className="pb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 whitespace-nowrap">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {recentOrders.map((order) => (
+                        <tr key={order.id} className="hover:bg-slate-50 transition-colors group">
+                          <td className="py-4 pr-6">
+                            <Link href={`/dashboard/supplier/orders/${order.id}`} className="font-mono text-xs font-bold text-[#0A192F] group-hover:text-teal-600 transition-colors">
+                              {order.poNumber}
+                            </Link>
+                          </td>
+                          <td className="py-4 pr-6 text-sm font-semibold text-slate-800 max-w-[200px] truncate">
+                            {order.productName}
+                          </td>
+                          <td className="py-4 pr-6 text-xs text-slate-600 truncate max-w-[150px]">
+                            {/* Buyer information not available on PO response */}
+                            —
+                          </td>
+                          <td className="py-4 pr-6 font-mono text-xs text-slate-600">
+                            {order.quantity.toLocaleString()} {order.unit.toUpperCase()}
+                          </td>
+                          <td className="py-4 pr-6 font-mono text-xs text-slate-500">
+                            {new Date(order.placedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                          </td>
+                          <td className="py-4">
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${getSemanticStatusClass(order.status)}`}>
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="mt-6">
+                    <Link
+                      href="/dashboard/supplier/orders"
+                      className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
+                    >
+                      VIEW ALL ORDERS →
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </section>
+
           </div>
 
-          {recentOrders.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">
-              No purchase orders assigned yet.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100 text-xs">
-              {recentOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  href={`/dashboard/supplier/orders/${order.id}`}
-                  className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors block"
-                >
-                  <div className="space-y-0.5">
-                    <p className="font-mono font-bold text-slate-800">
-                      {order.poNumber}
-                    </p>
-                    <p className="text-slate-500">
-                      {order.productName} • {order.quantity} {order.unit}
-                    </p>
+          {/* RIGHT COLUMN: OPERATIONS RAIL (30%) */}
+          <div className="lg:col-span-4 xl:col-span-3 border-t lg:border-t-0 lg:border-l border-slate-200 pt-8 lg:pt-0 lg:pl-12 lg:pr-4">
+            
+            <div className="sticky top-8 space-y-16">
+              
+              {/* SUPPLIER WORKFLOW */}
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-200 pb-2">
+                  SUPPLIER WORKFLOW
+                </span>
+                
+                <div className="border-l border-slate-200 ml-1.5 space-y-6 pt-2 pb-2">
+                  <div className="relative pl-5">
+                    <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 -left-[3.5px] top-1.5" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">RFQ RECEIVED</p>
                   </div>
-                  <div className="text-right space-y-1">
-                    <p className="font-bold text-[#17B5AE]">
-                      {order.currency} {order.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </p>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      order.status === "CONFIRMED"
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border border-amber-200"
-                    }`}>
-                      {order.status}
-                    </span>
+                  <div className="relative pl-5">
+                    <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 -left-[3.5px] top-1.5" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">REVIEW REQUIREMENTS</p>
                   </div>
-                </Link>
-              ))}
+                  <div className="relative pl-5">
+                    <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 -left-[3.5px] top-1.5" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">SUBMIT QUOTATION</p>
+                  </div>
+                  <div className="relative pl-5">
+                    <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 -left-[3.5px] top-1.5" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">BUYER DECISION</p>
+                  </div>
+                  <div className="relative pl-5">
+                    <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 -left-[3.5px] top-1.5" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">PURCHASE ORDER</p>
+                  </div>
+                  <div className="relative pl-5">
+                    <div className="absolute w-1.5 h-1.5 rounded-full bg-slate-300 -left-[3.5px] top-1.5" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">CONFIRM ORDER</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* OPERATIONS LOG */}
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-6 border-b border-slate-200 pb-2">
+                  OPERATIONS LOG
+                </span>
+                
+                {sortedActivities.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">No recent activity.</p>
+                ) : (
+                  <div className="border-l border-slate-200 ml-1.5 space-y-6 pt-2">
+                    {sortedActivities.map(activity => (
+                      <div key={activity.id} className="relative pl-5 group">
+                        <div className="absolute w-1.5 h-1.5 rounded-full bg-blue-600 -left-[3.5px] top-1.5 group-hover:scale-150 transition-transform" />
+                        <p className="font-mono text-[10px] text-slate-400 mb-0.5">
+                          {activity.timestamp.toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit' })} • {activity.timestamp.toLocaleDateString("en-GB", { day: '2-digit', month: 'short' }).toUpperCase()}
+                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F]">
+                          {activity.type.replace("_", " ")}
+                        </p>
+                        <Link href={activity.link} className="font-mono text-[10px] text-blue-600 hover:text-blue-800 transition-colors mt-0.5 block">
+                          {activity.reference}
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
-          )}
+          </div>
+
         </div>
+
       </div>
     </div>
   );

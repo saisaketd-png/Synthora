@@ -18,7 +18,7 @@ export interface PurchaseOrderResponse {
   shippingAddress: string;
   billingContact: string;
   notes: string | null;
-  status: "PLACED" | "CONFIRMED" | "CANCELLED";
+  status: "PLACED" | "CONFIRMED" | "CANCELLED" | "PROCESSING" | "SHIPPED" | "DELIVERED";
   placedAt: string;
   confirmedAt: string | null;
   createdAt: string;

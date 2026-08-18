@@ -25,7 +25,7 @@ export function SectionHeader({
     <div className={`flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 ${className}`}>
       <div className="max-w-2xl">
         {badge && (
-          <span className={`text-[11px] font-bold uppercase tracking-wider block mb-2 ${dark ? "text-teal-400" : "text-[#17B5AE]"}`}>
+          <span className={`text-[11px] font-bold uppercase tracking-wider block mb-2 ${dark ? "text-teal-400" : "text-teal-500"}`}>
             {badge}
           </span>
         )}
@@ -42,7 +42,7 @@ export function SectionHeader({
       {actionHref && actionText && (
         <Link
           href={actionHref}
-          className={`text-sm font-bold flex items-center gap-1 shrink-0 group transition-colors ${dark ? "text-slate-300 hover:text-white" : "text-[#0F3D91] hover:text-[#0c3175]"}`}
+          className={`text-sm font-bold flex items-center gap-1 shrink-0 group transition-colors ${dark ? "text-slate-300 hover:text-white" : "text-blue-600 hover:text-blue-700"}`}
         >
           <span>{actionText}</span>
           <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />

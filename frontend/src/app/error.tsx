@@ -30,14 +30,14 @@ export default function Error({
       <div className="mt-8 flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => reset()}
-          className="px-6 py-3 bg-[#0F3D91] hover:bg-[#0c3175] text-white font-medium text-sm rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F3D91]"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-full transition-colors shadow-sm flex items-center justify-center gap-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
         >
           <RefreshCw className="w-4 h-4" />
           <span>Try Again</span>
         </button>
         <Link
           href="/"
-          className="px-6 py-3 bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0F172A] font-medium text-sm rounded-lg transition-colors flex items-center justify-center min-h-[44px]"
+          className="px-6 py-3 bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#0F172A] font-medium text-sm rounded-full transition-colors flex items-center justify-center min-h-[44px]"
         >
           Return Home
         </Link>

@@ -16,7 +16,9 @@ export async function authenticatedFetch(
   headers.set("Authorization", `Bearer ${token}`);
 
   if (options.body && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+    if (!(options.body instanceof FormData)) {
+      headers.set("Content-Type", "application/json");
+    }
   }
 
   return fetch(`${API_URL}${path}`, {

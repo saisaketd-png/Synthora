@@ -55,9 +55,16 @@ private User user;
     public Integer getResponseRate() { return responseRate; }
     public Boolean getExportReady() { return exportReady; }
     public LocalDateTime getCreatedAt() { return createdAt; }
-
-
-
+    public void setName(String name) { this.name = name; }
+    public void setSlug(String slug) { this.slug = slug; }
+    public void setCountryCode(String countryCode) { this.countryCode = countryCode; }
+    public void setCountryName(String countryName) { this.countryName = countryName; }
+    public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public void setVerified(Boolean verified) { this.verified = verified; }
+    public void setYearsInBusiness(Integer yearsInBusiness) { this.yearsInBusiness = yearsInBusiness; }
+    public void setResponseRate(Integer responseRate) { this.responseRate = responseRate; }
+    public void setExportReady(Boolean exportReady) { this.exportReady = exportReady; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public User getUser() {
     return user;
 }

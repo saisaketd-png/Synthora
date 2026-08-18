@@ -155,7 +155,7 @@ export default function RfqModal({
           <h2 className="text-xl font-semibold text-slate-900">Request Quote</h2>
           <button 
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-[#17B5AE] rounded-full p-1"
+            className="text-slate-400 hover:text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-full p-1"
           >
             <X className="w-5 h-5" />
           </button>
@@ -215,7 +215,7 @@ export default function RfqModal({
                     disabled={loading}
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#17B5AE] focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
                     placeholder="Enter amount"
                   />
                 </div>
@@ -229,7 +229,7 @@ export default function RfqModal({
                     disabled={loading}
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#17B5AE] focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
                   >
                     <option value="kg">kg</option>
                     <option value="g">g</option>
@@ -255,7 +255,7 @@ export default function RfqModal({
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   placeholder="Include any specific requirements, certifications needed, or shipping details..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#17B5AE] focus:border-transparent resize-none disabled:bg-slate-100 disabled:text-slate-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none disabled:bg-slate-100 disabled:text-slate-500"
                 ></textarea>
               </div>
 
@@ -264,14 +264,14 @@ export default function RfqModal({
                   type="button"
                   onClick={handleClose}
                   disabled={loading}
-                  className="px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 border border-transparent rounded-lg transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 border border-transparent rounded-full transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                <button
   type="submit"
   disabled={loading}
-  className="px-5 py-2.5 text-sm font-semibold text-white bg-[#17B5AE] hover:bg-[#149d97] rounded-lg transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
+  className="px-5 py-2.5 text-sm font-semibold text-white bg-teal-500 hover:bg-teal-600 rounded-full transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
 >
   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
   {loading ? "Submitting..." : "Submit RFQ"}

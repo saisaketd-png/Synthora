@@ -1,6 +1,7 @@
 package com.synthora.rfq;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
 import jakarta.persistence.LockModeType;
 
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface RfqRepository extends JpaRepository<Rfq, UUID> {
+public interface RfqRepository extends JpaRepository<Rfq, UUID>, JpaSpecificationExecutor<Rfq> {
 
     List<Rfq> findByBuyerIdOrderByCreatedAtDesc(UUID buyerId);
 

@@ -36,7 +36,7 @@ export function ProductToolbar({ totalResults }: ProductToolbarProps) {
 
       <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
         <button
-          className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 transition-colors"
+          className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-slate-600 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-colors"
           aria-label="Export CSV"
           title="Export CSV (Coming Soon)"
         >

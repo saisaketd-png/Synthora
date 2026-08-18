@@ -78,7 +78,7 @@ export function ProductFilters({ categories, countries }: ProductFiltersProps) {
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Search keywords..."
-            className="block w-full pl-9 pr-3 py-2 border border-slate-200 rounded-md text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow bg-slate-50"
+            className="block w-full pl-9 pr-3 py-2 border border-slate-200 rounded-full text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-shadow bg-slate-50"
             aria-label="Search within results"
           />
         </form>

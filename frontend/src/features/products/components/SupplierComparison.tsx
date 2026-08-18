@@ -149,7 +149,7 @@ export default function SupplierComparison({ productId, productName }: { product
               <div className="lg:col-span-4 flex flex-col justify-between h-full min-h-[120px]">
                 <div className="flex flex-wrap gap-2">
                   {supplier.exportReady && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#0F3D91] bg-[#0F3D91]/10 px-2 py-1 rounded-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-600/10 px-2 py-1 rounded-sm">
                       Export Ready
                     </span>
                   )}
@@ -192,11 +192,11 @@ export default function SupplierComparison({ productId, productName }: { product
                 <div className="flex items-center gap-4 mt-4 lg:mt-auto">
                   <button 
                     onClick={() => setRfqSupplier(supplier)}
-                    className="flex-1 bg-[#17B5AE] hover:bg-[#149d97] text-slate-900 font-bold py-2.5 px-4 rounded-sm transition-colors text-sm text-center"
+                    className="flex-1 bg-teal-500 hover:bg-teal-600 text-slate-900 font-bold py-2.5 px-4 rounded-sm transition-colors text-sm text-center"
                   >
                     Request Quote
                   </button>
-                  <Link href={`/suppliers/${supplier.supplierId}`} className="text-[#0F3D91] hover:text-[#0c3175] text-sm font-semibold flex items-center gap-1 whitespace-nowrap">
+                  <Link href={`/suppliers/${supplier.supplierId}`} className="text-blue-600 hover:text-blue-700 text-sm font-semibold flex items-center gap-1 whitespace-nowrap">
                     View Profile <ChevronRight className="w-4 h-4" />
                   </Link>
                 </div>

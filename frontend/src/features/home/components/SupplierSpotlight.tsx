@@ -63,17 +63,17 @@ export function SupplierSpotlight({ suppliers = SAMPLE_SUPPLIERS }: { suppliers?
       header: "Supplier Name",
       cell: (item) => (
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-sm bg-[#0F3D91]/5 text-[#0F3D91] font-bold flex items-center justify-center text-sm shrink-0 border border-[#0F3D91]/10">
+          <div className="w-10 h-10 rounded-sm bg-blue-600/5 text-blue-600 font-bold flex items-center justify-center text-sm shrink-0 border border-blue-600/10">
             {item.name.charAt(0)}
           </div>
           <div>
             <Link
               href={`/suppliers/${item.id}`}
-              className="font-bold text-[#0F3D91] hover:underline flex items-center gap-1"
+              className="font-bold text-blue-600 hover:underline flex items-center gap-1"
             >
               <span>{item.name}</span>
               {item.verified && (
-                <ShieldCheck className="w-3.5 h-3.5 text-[#17B5AE] shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-500 shrink-0" />
               )}
             </Link>
             <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-1">
@@ -113,7 +113,7 @@ export function SupplierSpotlight({ suppliers = SAMPLE_SUPPLIERS }: { suppliers?
           {item.complianceCertificates.map((c) => (
             <span
               key={c}
-              className="px-1.5 py-0.5 text-[10px] font-bold bg-[#17B5AE]/10 text-[#17B5AE] rounded-sm flex items-center gap-1 uppercase tracking-wider"
+              className="px-1.5 py-0.5 text-[10px] font-bold bg-teal-500/10 text-teal-500 rounded-sm flex items-center gap-1 uppercase tracking-wider"
             >
               <Award className="w-3 h-3" />
               {c}
@@ -135,7 +135,7 @@ export function SupplierSpotlight({ suppliers = SAMPLE_SUPPLIERS }: { suppliers?
       cell: (item) => (
         <Link
           href={`/suppliers/${item.id}`}
-          className="px-4 py-1.5 bg-white border border-slate-300 hover:border-[#0F3D91] hover:text-[#0F3D91] text-slate-800 font-bold text-xs rounded-sm transition-colors inline-flex items-center gap-1.5"
+          className="px-4 py-1.5 bg-white border border-slate-300 hover:border-blue-600 hover:text-blue-600 text-slate-800 font-bold text-xs rounded-sm transition-colors inline-flex items-center gap-1.5"
         >
           <span>View Profile</span>
           <ArrowRight className="w-3.5 h-3.5" />

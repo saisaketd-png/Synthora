@@ -8,14 +8,27 @@ import {
   FileText,
   Package,
   Building2,
+  Users,
+  ShoppingCart,
   LogOut,
   Shield,
   ChevronRight,
   Menu,
   X,
   Hexagon,
+  Bell,
 } from "lucide-react";
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  exact?: boolean;
+  badge?: string;
+  isExternal?: boolean;
+}
 
 export default function DashboardLayout({
   children,
@@ -35,6 +48,17 @@ export default function DashboardLayout({
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
+
+    // Admin Route Protection Guard
+    if (pathname.startsWith("/dashboard/admin") && currentUser.role !== "ADMIN") {
+      if (currentUser.role === "SUPPLIER") {
+        router.push("/dashboard/supplier");
+      } else {
+        router.push("/dashboard");
+      }
+      return;
+    }
+
     setUser(currentUser);
 
     const handleAuthChange = () => {
@@ -42,6 +66,15 @@ export default function DashboardLayout({
       if (!updated) {
         router.push("/login");
       } else {
+        // Re-check admin route guard on auth change
+        if (pathname.startsWith("/dashboard/admin") && updated.role !== "ADMIN") {
+          if (updated.role === "SUPPLIER") {
+            router.push("/dashboard/supplier");
+          } else {
+            router.push("/dashboard");
+          }
+          return;
+        }
         setUser(updated);
       }
     };
@@ -67,14 +100,15 @@ export default function DashboardLayout({
   if (!mounted || !user) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#17B5AE] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  const isSupplier = user.role === "SUPPLIER" || pathname.startsWith("/dashboard/supplier");
+  const isAdmin = user.role === "ADMIN" || pathname.startsWith("/dashboard/admin");
+  const isSupplier = !isAdmin && (user.role === "SUPPLIER" || pathname.startsWith("/dashboard/supplier"));
 
-  const buyerNavItems = [
+  const buyerNavItems: NavItem[] = [
     {
       name: "Overview",
       href: "/dashboard",
@@ -94,6 +128,12 @@ export default function DashboardLayout({
       badge: "POs",
     },
     {
+      name: "Notifications",
+      href: "/dashboard/notifications",
+      icon: Bell,
+      badge: "Alerts",
+    },
+    {
       name: "Browse Catalog",
       href: "/products",
       icon: Building2,
@@ -101,12 +141,24 @@ export default function DashboardLayout({
     },
   ];
 
-  const supplierNavItems = [
+  const supplierNavItems: NavItem[] = [
     {
       name: "Overview",
       href: "/dashboard/supplier",
       icon: LayoutDashboard,
       exact: true,
+    },
+    {
+      name: "My Profile",
+      href: "/dashboard/supplier/profile",
+      icon: Building2,
+      badge: "Company",
+    },
+    {
+      name: "My Products",
+      href: "/dashboard/supplier/products",
+      icon: Package,
+      badge: "Inventory",
     },
     {
       name: "RFQ Inbox",
@@ -121,6 +173,12 @@ export default function DashboardLayout({
       badge: "POs",
     },
     {
+      name: "Notifications",
+      href: "/dashboard/notifications",
+      icon: Bell,
+      badge: "Alerts",
+    },
+    {
       name: "Browse Catalog",
       href: "/products",
       icon: Building2,
@@ -128,7 +186,74 @@ export default function DashboardLayout({
     },
   ];
 
-  const navItems = isSupplier ? supplierNavItems : buyerNavItems;
+  const adminNavItems: NavItem[] = [
+    {
+      name: "Overview",
+      href: "/dashboard/admin",
+      icon: LayoutDashboard,
+      exact: true,
+    },
+    {
+      name: "User Management",
+      href: "/dashboard/admin/users",
+      icon: Users,
+      badge: "Accounts",
+    },
+    {
+      name: "Supplier Moderation",
+      href: "/dashboard/admin/suppliers",
+      icon: Building2,
+      badge: "Verification",
+    },
+    {
+      name: "Product Catalog",
+      href: "/dashboard/admin/products",
+      icon: Package,
+      badge: "Catalog",
+    },
+    {
+      name: "RFQ Oversight",
+      href: "/dashboard/admin/transactions/rfqs",
+      icon: FileText,
+      badge: "Oversight",
+    },
+    {
+      name: "Order Oversight",
+      href: "/dashboard/admin/transactions/orders",
+      icon: ShoppingCart,
+      badge: "POs",
+    },
+    {
+      name: "Notifications",
+      href: "/dashboard/notifications",
+      icon: Bell,
+      badge: "Alerts",
+    },
+  ];
+
+  const navItems = isAdmin
+    ? adminNavItems
+    : isSupplier
+    ? supplierNavItems
+    : buyerNavItems;
+
+  const roleBadgeStyle = isAdmin
+    ? "bg-amber-50 text-amber-800 border-amber-300"
+    : isSupplier
+    ? "bg-purple-50 text-purple-700 border-purple-200"
+    : "bg-blue-50 text-blue-700 border-blue-200";
+
+  const roleLabel = isAdmin
+    ? "Admin Workspace"
+    : isSupplier
+    ? "Supplier Workspace"
+    : "Buyer Workspace";
+
+  const avatarStyle = isAdmin
+    ? "bg-amber-100 text-amber-800"
+    : isSupplier
+    ? "bg-purple-100 text-purple-700"
+    : "bg-blue-100 text-blue-700";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -156,14 +281,10 @@ export default function DashboardLayout({
 
           <div className="hidden sm:flex items-center gap-2 pl-4 border-l border-slate-200">
             <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                isSupplier
-                  ? "bg-purple-50 text-purple-700 border border-purple-200"
-                  : "bg-blue-50 text-blue-700 border border-blue-200"
-              }`}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${roleBadgeStyle}`}
             >
               <Shield className="w-3 h-3" />
-              {isSupplier ? "Supplier Workspace" : "Buyer Workspace"}
+              {roleLabel}
             </span>
           </div>
         </div>
@@ -171,7 +292,7 @@ export default function DashboardLayout({
         <div className="flex items-center gap-3">
           <Link
             href="/products"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-full hover:bg-slate-100 transition-colors"
           >
             <Building2 className="w-3.5 h-3.5" />
             Chemical Catalog
@@ -179,11 +300,14 @@ export default function DashboardLayout({
 
           <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
+          {/* Notification Bell */}
+          <NotificationBell isSupplier={isSupplier} />
+
+          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
           <div className="flex items-center gap-2">
             <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                isSupplier ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
-              }`}
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${avatarStyle}`}
             >
               {user.email.charAt(0).toUpperCase()}
             </div>
@@ -220,9 +344,11 @@ export default function DashboardLayout({
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs font-bold transition-all ${
                       isActive
-                        ? isSupplier
+                        ? isAdmin
+                          ? "bg-amber-50 text-amber-900 border border-amber-200/80 shadow-xs"
+                          : isSupplier
                           ? "bg-purple-50 text-purple-700 border border-purple-200/60 shadow-xs"
                           : "bg-blue-50 text-blue-700 border border-blue-200/60 shadow-xs"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -232,7 +358,9 @@ export default function DashboardLayout({
                       <item.icon
                         className={`w-4 h-4 ${
                           isActive
-                            ? isSupplier
+                            ? isAdmin
+                              ? "text-amber-700"
+                              : isSupplier
                               ? "text-purple-600"
                               : "text-blue-600"
                             : "text-slate-400"
@@ -253,16 +381,22 @@ export default function DashboardLayout({
 
           <div className="mt-auto pt-4 border-t border-slate-100">
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-              <p className="text-[11px] font-bold text-slate-700">Need Help?</p>
-              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                Connect with procurement support for specialized inquiries.
+              <p className="text-[11px] font-bold text-slate-700">
+                {isAdmin ? "Governance Portal" : "Need Help?"}
               </p>
-              <Link
-                href="/resources"
-                className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700"
-              >
-                Procurement Guide <ChevronRight className="w-3 h-3" />
-              </Link>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                {isAdmin
+                  ? "All moderation actions are recorded to the immutable audit log."
+                  : "Connect with procurement support for specialized inquiries."}
+              </p>
+              {!isAdmin && (
+                <Link
+                  href="/resources"
+                  className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-700"
+                >
+                  Procurement Guide <ChevronRight className="w-3 h-3" />
+                </Link>
+              )}
             </div>
           </div>
         </aside>
@@ -279,7 +413,7 @@ export default function DashboardLayout({
             >
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  {isSupplier ? "Supplier Workspace" : "Buyer Workspace"}
+                  {roleLabel}
                 </span>
                 <button
                   type="button"
@@ -301,9 +435,11 @@ export default function DashboardLayout({
                       key={item.name}
                       href={item.href}
                       onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-full text-xs font-bold transition-all ${
                         isActive
-                          ? isSupplier
+                          ? isAdmin
+                            ? "bg-amber-50 text-amber-900 border border-amber-200"
+                            : isSupplier
                             ? "bg-purple-50 text-purple-700 border border-purple-200"
                             : "bg-blue-50 text-blue-700 border border-blue-200"
                           : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -322,7 +458,7 @@ export default function DashboardLayout({
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100"
+                  className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-full bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   Sign Out

@@ -33,7 +33,7 @@ export function EmptyState({
         {actionHref ? (
           <Link
             href={actionHref}
-            className="px-4 py-2 bg-[#0F3D91] hover:bg-[#0c3175] text-white font-bold text-xs rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-full transition-colors shadow-sm inline-flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{actionText}</span>
@@ -42,7 +42,7 @@ export function EmptyState({
           <button
             type="button"
             onClick={onActionClick}
-            className="px-4 py-2 bg-[#0F3D91] hover:bg-[#0c3175] text-white font-bold text-xs rounded-lg transition-colors shadow-sm inline-flex items-center gap-1.5"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-full transition-colors shadow-sm inline-flex items-center gap-1.5"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>{actionText}</span>

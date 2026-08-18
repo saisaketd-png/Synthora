@@ -6,6 +6,16 @@ import Link from "next/link";
 import { getSupplierOrders } from "@/features/order/api/getSupplierOrders";
 import { confirmOrder } from "@/features/order/api/confirmOrder";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
+import { ShipOrderModal } from "@/features/order/components/ShipOrderModal";
+import { 
+  ShipmentResponse, 
+  ShipOrderRequest, 
+  getShipment, 
+  startProcessingSupplierOrder, 
+  shipSupplierOrder, 
+  markOrderDeliveredSupplier 
+} from "@/features/order/api/fulfillment";
+import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
 
 export default function SupplierOrderDetailPage() {
   const params = useParams();
@@ -15,6 +25,12 @@ export default function SupplierOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fulfillment State
+  const [shipment, setShipment] = useState<ShipmentResponse | null>(null);
+  const [shipmentLoading, setShipmentLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [showShipModal, setShowShipModal] = useState(false);
 
   const loadOrder = async () => {
     if (!orderId) return;
@@ -27,10 +43,26 @@ export default function SupplierOrderDetailPage() {
         throw new Error("Order not found or unauthorized");
       }
       setOrder(matching);
+      
+      if (matching.status === "SHIPPED" || matching.status === "DELIVERED") {
+        await loadShipment(matching.id);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load order");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadShipment = async (id: string) => {
+    try {
+      setShipmentLoading(true);
+      const data = await getShipment(id);
+      setShipment(data);
+    } catch (err) {
+      console.error("Failed to load shipment details:", err);
+    } finally {
+      setShipmentLoading(false);
     }
   };
 
@@ -51,287 +83,383 @@ export default function SupplierOrderDetailPage() {
     }
   };
 
+  const handleStartProcessing = async () => {
+    if (!order) return;
+    try {
+      setActionLoading(true);
+      const updated = await startProcessingSupplierOrder(order.id);
+      setOrder(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to start processing");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleShipOrder = async (data: ShipOrderRequest) => {
+    if (!order) return;
+    try {
+      setActionLoading(true);
+      const updated = await shipSupplierOrder(order.id, data);
+      setOrder(updated);
+      await loadShipment(order.id);
+      setShowShipModal(false);
+    } catch (err) {
+      throw err; // Passed up to modal
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleMarkDelivered = async () => {
+    if (!order) return;
+    try {
+      setActionLoading(true);
+      const updated = await markOrderDeliveredSupplier(order.id);
+      setOrder(updated);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to mark delivered");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const getSemanticStatusClass = (status: string) => {
+    switch (status) {
+      case "CONFIRMED": return "text-teal-600";
+      case "PLACED": return "text-orange-500";
+      case "CANCELLED": return "text-red-700";
+      case "PROCESSING": return "text-blue-600";
+      case "SHIPPED": return "text-indigo-600";
+      case "DELIVERED": return "text-green-600";
+      default: return "text-slate-600";
+    }
+  };
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto bg-white border border-slate-200 rounded-3xl p-12 text-center shadow-sm">
-          <div className="inline-block w-8 h-8 border-4 border-[#17B5AE] border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-slate-500 text-sm font-medium">Loading Purchase Order...</p>
-        </div>
-      </main>
+      <div className="p-8 max-w-[1440px] mx-auto min-h-[50vh] flex items-center justify-center bg-white">
+        <span className="text-[11px] font-mono text-slate-400 uppercase tracking-widest">
+          LOADING ORDER DOCUMENT...
+        </span>
+      </div>
     );
   }
 
   if (error || !order) {
     return (
-      <main className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <Link
-            href="/dashboard/supplier/orders"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors"
-          >
-            ← Back to Orders
-          </Link>
-          <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 text-rose-700 text-sm">
-            <p className="font-semibold">Unable to find Purchase Order</p>
-            <p className="mt-1">{error || "Order not found"}</p>
-          </div>
+      <div className="p-8 max-w-[1440px] mx-auto bg-white min-h-screen">
+        <div className="border-l-[3px] border-orange-500 pl-4 py-1 mb-8">
+          <p className="text-[11px] font-bold text-orange-600 uppercase tracking-widest">System Error</p>
+          <p className="text-sm font-mono text-slate-700 mt-2">{error || "Order not found"}</p>
         </div>
-      </main>
+        <Link
+          href="/dashboard/supplier/orders"
+          className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
+        >
+          ← BACK TO FULFILLMENT REGISTER
+        </Link>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Navigation & Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/dashboard/supplier/orders"
-                className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors uppercase tracking-wider"
-              >
-                Supplier Orders
-              </Link>
-              <span className="text-slate-400">/</span>
-              <span className="text-xs font-semibold text-[#17B5AE] font-mono uppercase tracking-wider">
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900 pb-24">
+      <div className="max-w-[1024px] mx-auto px-6 lg:px-12 py-10">
+
+        {/* =========================================
+            1. DOCUMENT HEADER
+            ========================================= */}
+        <header className="border-t-[3px] border-[#0A192F] pt-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+            <div className="max-w-2xl">
+              <span className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">
+                SUPPLIER OPERATIONS / PURCHASE ORDER
+              </span>
+              <h1 className="text-4xl lg:text-5xl font-mono font-bold text-[#0A192F] tracking-tighter mb-2">
                 {order.poNumber}
+              </h1>
+            </div>
+            
+            <div className="shrink-0 flex flex-col md:items-end gap-1 md:pl-4 py-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                STATUS
+              </span>
+              <span className={`text-sm font-bold uppercase tracking-widest ${getSemanticStatusClass(order.status)}`}>
+                {order.status}
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-slate-900 mt-1 flex items-center gap-3">
-              Purchase Order
-              <span className="font-mono text-2xl text-slate-600 font-semibold">
-                {order.poNumber}
-              </span>
-            </h1>
           </div>
+        </header>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/dashboard/supplier/rfqs/${order.rfqId}`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 shadow-sm transition-all"
-            >
-              View Origin RFQ ↗
-            </Link>
-            <Link
-              href="/dashboard/supplier/orders"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 shadow-sm transition-all"
-            >
-              ← Back to Orders
-            </Link>
+        {/* =========================================
+            2. DOCUMENT META BAND
+            ========================================= */}
+        <div className="flex flex-col sm:flex-row sm:items-center border-y border-slate-200 py-3 mb-12 gap-y-4 gap-x-8">
+          <div className="flex-1 sm:border-r border-slate-200 sm:pr-6">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">PO NUMBER</span>
+            <span className="font-mono text-xs font-semibold text-[#0A192F]">{order.poNumber}</span>
+          </div>
+          <div className="flex-1 sm:border-r border-slate-200 sm:pr-6">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">ORDER DATE</span>
+            <span className="font-mono text-xs font-semibold text-[#0A192F]">
+              {new Date(order.placedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+            </span>
+          </div>
+          <div className="flex-1 sm:border-r border-slate-200 sm:pr-6">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">RFQ REFERENCE</span>
+            <span className="font-mono text-xs font-semibold text-[#0A192F]">
+              {`RFQ-${order.rfqId.substring(0, 8).toUpperCase()}`}
+            </span>
+          </div>
+          <div className="flex-1">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">BUYER</span>
+            <span className="text-xs font-bold text-[#0A192F] truncate block">
+              Synthora Organization
+            </span>
           </div>
         </div>
 
-        {/* Confirmation Action Callout Banner if PLACED */}
+        {/* =========================================
+            3. ACTION REQUIRED (CONFIRMATION BLOCK)
+            ========================================= */}
         {order.status === "PLACED" && (
-          <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-            <div>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-900">
-                Action Required
-              </span>
-              <h3 className="text-lg font-bold text-slate-900 mt-1">
-                Confirm Order Acceptance
-              </h3>
-              <p className="text-sm text-slate-600 mt-0.5">
-                Buyer has issued this purchase order based on your accepted quotation. Please confirm receipt to lock the fulfillment schedule.
-              </p>
+          <section className="mb-12 border-l-[3px] border-orange-500 bg-orange-50/30 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-orange-600 mb-2">
+                  ACTION REQUIRED
+                </span>
+                <p className="text-sm font-medium text-slate-800">
+                  Confirm this purchase order to acknowledge the procurement commitment and lock the fulfillment schedule.
+                </p>
+              </div>
+              <button
+                onClick={handleConfirm}
+                disabled={confirming}
+                className="shrink-0 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:opacity-50"
+              >
+                {confirming ? "CONFIRMING..." : "CONFIRM PURCHASE ORDER"}
+              </button>
             </div>
-
-            <button
-              onClick={handleConfirm}
-              disabled={confirming}
-              className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 flex-shrink-0 disabled:opacity-50"
-            >
-              {confirming ? (
-                <>
-                  <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Confirming...</span>
-                </>
-              ) : (
-                <span>Confirm Order Acceptance ✓</span>
-              )}
-            </button>
-          </div>
+          </section>
         )}
 
-        {/* PO Sheet Card */}
-        <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden divide-y divide-slate-100">
-          {/* Header Bar */}
-          <div className="p-6 sm:p-8 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
-                Procurement Order Sheet
-              </p>
-              <p className="text-2xl font-mono font-bold text-white mt-1">
-                {order.poNumber}
-              </p>
-              <p className="text-xs text-slate-400 mt-1">
-                Received on {new Date(order.placedAt).toLocaleString()}
-              </p>
-            </div>
-
-            <div>
-              <span
-                className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                  order.status === "CONFIRMED"
-                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                    : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                }`}
-              >
-                {order.status === "CONFIRMED" ? "● Confirmed" : "○ Placed (Awaiting Your Confirmation)"}
-              </span>
-            </div>
-          </div>
-
-          {/* Metric Highlights */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-6 sm:p-8 bg-slate-50/50">
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Total Order Value
-              </p>
-              <p className="text-2xl font-bold text-[#17B5AE] mt-1">
-                {order.currency} {order.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Agreed Unit Price
-              </p>
-              <p className="text-xl font-bold text-slate-900 mt-1">
-                {order.currency} {order.unitPrice.toFixed(2)}
-                <span className="text-xs font-normal text-slate-500"> / {order.unit}</span>
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Quantity
-              </p>
-              <p className="text-xl font-bold text-slate-900 mt-1">
-                {order.quantity.toLocaleString()} {order.unit}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Lead Time
-              </p>
-              <p className="text-xl font-bold text-slate-900 mt-1">
-                {order.agreedLeadTimeDays ? `${order.agreedLeadTimeDays} Days` : "Standard"}
-              </p>
-            </div>
-          </div>
-
-          {/* Line Item Breakdown */}
-          <div className="p-6 sm:p-8 space-y-4">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Order Line Item
+        <div className="space-y-16">
+          
+          {/* =========================================
+              01 / ORDERED MATERIAL
+              ========================================= */}
+          <section>
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
+              <span className="text-slate-300">01 /</span> ORDERED MATERIAL
+              <div className="h-px bg-slate-200 flex-1 ml-4" />
             </h2>
 
-            <div className="border border-slate-200 rounded-2xl overflow-hidden">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50 text-xs font-semibold uppercase text-slate-500 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-3">Product</th>
-                    <th className="px-6 py-3 text-right">Quantity</th>
-                    <th className="px-6 py-3 text-right">Unit Price</th>
-                    <th className="px-6 py-3 text-right">Line Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr>
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-slate-900">{order.productName}</p>
-                      <p className="text-xs text-slate-500 mt-0.5 font-mono">Product ID: {order.productId}</p>
-                    </td>
-                    <td className="px-6 py-4 text-right font-medium text-slate-900">
-                      {order.quantity.toLocaleString()} {order.unit}
-                    </td>
-                    <td className="px-6 py-4 text-right font-medium text-slate-900">
-                      {order.currency} {order.unitPrice.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold text-[#17B5AE]">
-                      {order.currency} {order.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Delivery & Billing Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 sm:p-8">
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Buyer Delivery / Shipping Address
-              </p>
-              <p className="text-sm font-medium text-slate-900 whitespace-pre-line">
-                {order.shippingAddress}
-              </p>
+            <div className="border-b-[2px] border-[#0A192F] pb-4 mb-4">
+              <h3 className="text-2xl font-bold text-[#0A192F] tracking-tight">
+                {order.productName || "Specialty Chemical Raw Material"}
+              </h3>
             </div>
 
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Buyer Procurement Contact
-              </p>
-              <p className="text-sm font-medium text-slate-900">
-                {order.billingContact}
-              </p>
-              {order.notes && (
-                <div className="pt-2 border-t border-slate-200 text-xs text-slate-600">
-                  <span className="font-semibold text-slate-700">Special Notes: </span>
-                  {order.notes}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-4">
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">QUANTITY</span>
+                <span className="font-mono text-lg font-bold text-[#0A192F]">
+                  {order.quantity.toLocaleString()} {order.unit.toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">INTERNAL PRODUCT ID</span>
+                <span className="font-mono text-sm font-medium text-slate-700">
+                  {order.productId}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* =========================================
+              02 / COMMERCIAL TERMS
+              ========================================= */}
+          <section>
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
+              <span className="text-slate-300">02 /</span> COMMERCIAL TERMS
+              <div className="h-px bg-slate-200 flex-1 ml-4" />
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 border-b border-slate-200 mb-6">
+              <div className="flex justify-between py-3 border-b border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">UNIT PRICE</span>
+                <span className="font-mono text-[11px] font-bold text-[#0A192F]">
+                  {order.currency} {order.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                </span>
+              </div>
+              <div className="flex justify-between py-3 border-b border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">CURRENCY</span>
+                <span className="font-mono text-[11px] font-bold text-[#0A192F]">{order.currency}</span>
+              </div>
+              <div className="flex justify-between py-3 border-b border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">LEAD TIME</span>
+                <span className="font-mono text-[11px] font-bold text-[#0A192F]">
+                  {order.agreedLeadTimeDays ? `${order.agreedLeadTimeDays} DAYS` : "STANDARD"}
+                </span>
+              </div>
+            </div>
+
+            {/* COMMERCIAL VALUE HIGHLIGHT */}
+            <div className="bg-slate-50 p-6 flex flex-col md:flex-row md:items-end justify-between border-l-[3px] border-[#0A192F]">
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                  TOTAL ORDER VALUE
+                </span>
+              </div>
+              <div className="mt-2 md:mt-0 text-right">
+                <span className="font-mono text-3xl font-bold text-[#0A192F] tracking-tighter block">
+                  {order.currency} {order.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* =========================================
+                </h3>
+                <p className="text-sm font-medium text-slate-700 leading-relaxed mb-4">
+                  {order.billingContact}
+                </p>
+                {order.notes && (
+                  <div className="border-l-[2px] border-slate-300 pl-4 py-1 mt-6">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">SPECIAL NOTES</p>
+                    <p className="text-xs font-medium text-slate-700 leading-relaxed italic">
+                      "{order.notes}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* =========================================
+              04 / COMMERCIAL DOCUMENTS
+              ========================================= */}
+          <section>
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
+              <span className="text-slate-300">04 /</span> COMMERCIAL DOCUMENTS
+              <div className="h-px bg-slate-200 flex-1 ml-4" />
+            </h2>
+            <div className="bg-white border border-slate-200 shadow-sm">
+              <GenericDocumentManager
+                title="Purchase Order Documents"
+                description="Upload invoices and other commercial documents for the buyer."
+                allowedCategories={[
+                  { value: "PURCHASE_ORDER", label: "Purchase Order" },
+                  { value: "TECHNICAL_SPECIFICATION", label: "Technical Specification" },
+                  { value: "CERTIFICATION", label: "Certification" },
+                  { value: "INVOICE", label: "Invoice" }
+                ]}
+                ownerType="PURCHASE_ORDER"
+                ownerId={order.id}
+                canUpload={true}
+                canDelete={true}
+              />
+            </div>
+          </section>
+
+          {/* =========================================
+              05 / SHIPMENT DOCUMENTS
+              ========================================= */}
+          {(order.status === "SHIPPED" || order.status === "DELIVERED") && shipment && (
+            <section>
+              <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
+                <span className="text-slate-300">05 /</span> SHIPMENT DOCUMENTS
+                <div className="h-px bg-slate-200 flex-1 ml-4" />
+              </h2>
+              <div className="bg-white border border-slate-200 shadow-sm">
+                <GenericDocumentManager
+                  title="Shipment Documents"
+                  description="Upload packing lists and tracking proofs for this shipment."
+                  allowedCategories={[
+                    { value: "PACKING_LIST", label: "Packing List" },
+                    { value: "DELIVERY_CONFIRMATION", label: "Delivery Confirmation" },
+                    { value: "CERTIFICATION", label: "Certification" },
+                    { value: "SHIPPING_DOCUMENT", label: "Shipping Document" }
+                  ]}
+                  ownerType="SHIPMENT"
+                  ownerId={shipment.id}
+                  canUpload={true}
+                  canDelete={true}
+                />
+              </div>
+            </section>
+          )}
+
+          {/* =========================================
+              06 / FULFILLMENT STATUS
+              ========================================= */}
+          <section>
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
+              <span className="text-slate-300">06 /</span> FULFILLMENT STATUS
+              <div className="h-px bg-slate-200 flex-1 ml-4" />
+            </h2>
+
+            <div className="border-l border-slate-200 ml-1 space-y-6">
+              
+              {order.confirmedAt && (
+                <div className="relative pl-5">
+                  <div className="absolute w-2 h-2 rounded-full bg-teal-500 -left-[4.5px] top-1" />
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F]">ORDER CONFIRMED</p>
+                  <p className="font-mono text-[10px] text-slate-500 mt-0.5">
+                    {new Date(order.confirmedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
+                  </p>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="p-6 sm:p-8 space-y-6">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Fulfillment Timeline
-            </h2>
-
-            <div className="space-y-6">
-              <div className="flex gap-4">
-                <div className="mt-1 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100 flex-shrink-0" />
-                <div>
-                  <p className="font-bold text-slate-900 text-sm">Purchase Order Received</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {new Date(order.placedAt).toLocaleString()} — Formal purchase order issued by buyer
-                  </p>
-                </div>
+              
+              <div className="relative pl-5">
+                <div className={`absolute w-2 h-2 rounded-full -left-[4.5px] top-1 ${!order.confirmedAt ? "bg-blue-600" : "bg-slate-300"}`} />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700">ORDER ISSUED</p>
+                <p className="font-mono text-[10px] text-slate-500 mt-0.5">
+                  {new Date(order.placedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
+                </p>
               </div>
 
-              <div className="flex gap-4">
-                <div
-                  className={`mt-1 h-3.5 w-3.5 rounded-full flex-shrink-0 ${
-                    order.status === "CONFIRMED"
-                      ? "bg-emerald-500 ring-4 ring-emerald-100"
-                      : "bg-slate-300"
-                  }`}
-                />
-                <div>
-                  <p
-                    className={`text-sm font-bold ${
-                      order.status === "CONFIRMED" ? "text-slate-900" : "text-slate-400"
-                    }`}
-                  >
-                    Supplier Order Confirmation
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {order.confirmedAt
-                      ? `${new Date(order.confirmedAt).toLocaleString()} — Confirmed by you`
-                      : "Pending your confirmation"}
-                  </p>
-                </div>
-              </div>
             </div>
-          </div>
+          </section>
+
         </div>
+
+        {/* =========================================
+            DOCUMENT FOOTER & TRACEABILITY
+            ========================================= */}
+        <footer className="mt-20 pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-12 w-full md:w-auto">
+            
+            <Link
+              href="/dashboard/supplier/orders"
+              className="inline-block text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
+            >
+              ← BACK TO REGISTER
+            </Link>
+
+            <div className="hidden md:block w-px h-6 bg-slate-200" />
+
+            <div>
+              <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                PROCUREMENT ORIGIN
+              </span>
+              <Link
+                href={`/dashboard/supplier/rfqs/${order.rfqId}`}
+                className="font-mono text-[11px] text-blue-600 hover:text-blue-800 transition-colors font-semibold"
+              >
+                {`RFQ-${order.rfqId.substring(0, 8).toUpperCase()}`} ↗
+              </Link>
+            </div>
+          </div>
+          
+          <span className={`text-[10px] font-bold uppercase tracking-widest ${getSemanticStatusClass(order.status)}`}>
+            {order.status}
+          </span>
+        </footer>
+
       </div>
-    </main>
+    </div>
   );
 }

@@ -47,7 +47,7 @@ export function CategoryGrid() {
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
           <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#17B5AE]">
+            <span className="text-xs font-semibold uppercase tracking-wider text-teal-500">
               Explore Marketplace
             </span>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#0F172A] mt-1">
@@ -59,7 +59,7 @@ export function CategoryGrid() {
           </div>
           <Link
             href="#all-categories"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F3D91] hover:text-[#0c3175] transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F3D91] rounded-md p-1"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded-md p-1"
           >
             <span>View All Categories</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -74,16 +74,16 @@ export function CategoryGrid() {
               <Link
                 key={cat.id}
                 href={`/categories/${cat.id}`}
-                className="group relative bg-[#F8FAFC] hover:bg-white p-6 rounded-2xl border border-[#E2E8F0] hover:border-[#0F3D91]/40 hover:shadow-lg transition-all duration-200 flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F3D91]"
+                className="group relative bg-[#F8FAFC] hover:bg-white p-6 rounded-2xl border border-[#E2E8F0] hover:border-blue-600/40 hover:shadow-lg transition-all duration-200 flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-xl bg-white group-hover:bg-[#0F3D91] border border-[#E2E8F0] group-hover:border-[#0F3D91] flex items-center justify-center text-[#0F3D91] group-hover:text-white transition-colors shadow-sm mb-4">
+                  <div className="w-12 h-12 rounded-full bg-white group-hover:bg-blue-600 border border-[#E2E8F0] group-hover:border-blue-600 flex items-center justify-center text-blue-600 group-hover:text-white transition-colors shadow-sm mb-4">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-[#0F3D91] transition-colors">
+                  <h3 className="text-lg font-bold text-[#0F172A] group-hover:text-blue-600 transition-colors">
                     {cat.name}
                   </h3>
-                  <span className="inline-block px-2.5 py-0.5 mt-2 rounded-full text-xs font-semibold bg-[#0F3D91]/10 text-[#0F3D91]">
+                  <span className="inline-block px-2.5 py-0.5 mt-2 rounded-full text-xs font-semibold bg-blue-600/10 text-blue-600">
                     {cat.count}
                   </span>
                   <p className="text-sm text-[#475569] mt-3 leading-relaxed">
@@ -91,7 +91,7 @@ export function CategoryGrid() {
                   </p>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs font-semibold text-[#0F3D91]">
+                <div className="mt-6 pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-xs font-semibold text-blue-600">
                   <span>Explore Products</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </div>

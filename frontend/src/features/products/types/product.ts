@@ -101,3 +101,41 @@ export interface ProductSearchResponse {
   products?: Product[];
   suppliers?: ProductSearchSupplier[];
 }
+
+export interface CreateProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  category: ProductCategory;
+  stock: number;
+  casNumber?: string;
+  molecularFormula?: string;
+  purity?: number;
+  grade?: string;
+  moqKg?: number;
+  packaging?: string;
+  leadTimeDays?: number;
+  coaAvailable?: boolean;
+  msdsAvailable?: boolean;
+  exportReady?: boolean;
+  availabilityStatus?: string;
+}
+
+export interface UpdateProductRequest {
+  name: string;
+  description: string;
+  price: number;
+  category: ProductCategory;
+  stock: number;
+  casNumber?: string;
+  molecularFormula?: string;
+  purity?: number;
+  grade?: string;
+  moqKg?: number;
+  packaging?: string;
+  leadTimeDays?: number;
+  coaAvailable?: boolean;
+  msdsAvailable?: boolean;
+  exportReady?: boolean;
+  availabilityStatus?: string;
+}
