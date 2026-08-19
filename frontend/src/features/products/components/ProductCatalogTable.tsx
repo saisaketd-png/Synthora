@@ -1,204 +1,262 @@
+"use client";
+
+import React, { useState } from "react";
 import Link from "next/link";
 import { Product } from "../types/product";
-import { ShieldCheck, Flag, FileText, Beaker } from "lucide-react";
+import { ShieldCheck, FlaskConical, ChevronRight, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { fetchProductSuppliers } from "@/lib/api";
+import { ExpandableSupplierOfferingsDrawer, SupplierOffering } from "./ExpandableSupplierOfferingsDrawer";
+import RfqModal from "../../rfq/components/RfqModal";
 
 interface ProductCatalogTableProps {
   products: Product[];
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+
 export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
-  const formatPrice = (price?: number) => {
-    if (price === undefined) return "—";
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [offeringsCache, setOfferingsCache] = useState<Record<string, SupplierOffering[]>>({});
+  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
+  const [errorMap, setErrorMap] = useState<Record<string, string | null>>({});
+  const [selectedRfqOffering, setSelectedRfqOffering] = useState<{ offering: SupplierOffering; productName: string } | null>(null);
+
+  const loadOfferingsForProduct = async (productCodeOrId: string) => {
+    try {
+      setLoadingMap((prev) => ({ ...prev, [productCodeOrId]: true }));
+      setErrorMap((prev) => ({ ...prev, [productCodeOrId]: null }));
+      const data = await fetchProductSuppliers(productCodeOrId);
+      setOfferingsCache((prev) => ({ ...prev, [productCodeOrId]: data }));
+    } catch (err: any) {
+      setErrorMap((prev) => ({ ...prev, [productCodeOrId]: err.message || "Failed to load supplier availability" }));
+    } finally {
+      setLoadingMap((prev) => ({ ...prev, [productCodeOrId]: false }));
+    }
   };
 
-  const getAvailabilityColor = (status?: string, stock?: number) => {
-    const s = status?.toLowerCase() || (stock && stock > 0 ? "in stock" : "made to order");
-    if (s.includes("in stock")) return "bg-teal-50 text-teal-700 border-teal-100";
-    if (s.includes("limited")) return "bg-amber-50 text-amber-700 border-amber-100";
-    return "bg-slate-50 text-slate-600 border-slate-200";
+  const handleToggleExpand = (productCodeOrId: string) => {
+    if (expandedId === productCodeOrId) {
+      setExpandedId(null);
+    } else {
+      setExpandedId(productCodeOrId);
+      if (!offeringsCache[productCodeOrId] && !loadingMap[productCodeOrId]) {
+        loadOfferingsForProduct(productCodeOrId);
+      }
+    }
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-      {/* Desktop/Tablet Table View */}
+    <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden flex flex-col">
+      {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto w-full">
-        <table className="w-full text-left text-[13px] whitespace-nowrap border-collapse">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+        <table className="w-full text-left whitespace-nowrap border-collapse">
+          <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-xs">
             <tr>
-              <th scope="col" className="px-4 py-3 sticky left-0 bg-slate-50 z-10 w-64 shadow-[inset_-1px_0_0_0_#e2e8f0]">
-                Product
-              </th>
-              <th scope="col" className="px-4 py-3">CAS No.</th>
-              <th scope="col" className="px-4 py-3">Category</th>
-              <th scope="col" className="px-4 py-3 w-48">Supplier</th>
-              <th scope="col" className="px-4 py-3">Country</th>
-              <th scope="col" className="px-4 py-3">Purity</th>
-              <th scope="col" className="px-4 py-3 text-right">MOQ</th>
-              <th scope="col" className="px-4 py-3 text-center">Availability</th>
-              <th scope="col" className="px-4 py-3 text-center">Docs</th>
-              <th scope="col" className="px-4 py-3 text-center sticky right-0 bg-slate-50 z-10 shadow-[inset_1px_0_0_0_#e2e8f0]">Action</th>
+              <th scope="col" className="px-5 py-4 w-72">Chemical / Compound</th>
+              <th scope="col" className="px-4 py-4">CAS Number</th>
+              <th scope="col" className="px-4 py-4">Formula</th>
+              <th scope="col" className="px-4 py-4">Category</th>
+              <th scope="col" className="px-4 py-4 text-center">Verified Suppliers</th>
+              <th scope="col" className="px-5 py-4 text-right">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
-            {products.map((p) => (
-              <tr key={p.id} className="hover:bg-slate-50 transition-colors h-[64px] group">
-                <td className="px-4 py-2 sticky left-0 bg-white group-hover:bg-slate-50 z-10 shadow-[inset_-1px_0_0_0_#e2e8f0] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center shrink-0">
-                      <Beaker className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <div className="flex flex-col overflow-hidden w-48">
-                      <Link href={`/products/${p.slug || p.id}`} className="font-bold text-[#0A192F] hover:text-blue-600 hover:underline truncate transition-colors">
-                        {p.name}
-                      </Link>
-                      {p.molecularFormula && (
-                        <span className="text-[11px] font-mono text-slate-400 truncate mt-0.5">{p.molecularFormula}</span>
+          <tbody className="divide-y divide-slate-100 text-slate-700 text-sm">
+            {products.map((p) => {
+              const codeOrId = p.productCode || p.id;
+              const productUrl = `/products/${codeOrId}`;
+              const offeringCount = (p as any).offeringCount || 0;
+              const isExpanded = expandedId === codeOrId;
+
+              return (
+                <React.Fragment key={p.id}>
+                  <tr className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-10 h-10 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+                          {p.primaryImageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={`${API_URL}${p.primaryImageUrl}`}
+                              alt={p.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <FlaskConical className="w-5 h-5 text-blue-600" />
+                          )}
+                        </div>
+                        <div className="flex flex-col min-w-0 max-w-xs">
+                          <Link
+                            href={productUrl}
+                            className="font-bold text-slate-900 hover:text-blue-600 truncate transition-colors text-sm"
+                          >
+                            {p.name}
+                          </Link>
+                          {p.productCode && (
+                            <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded w-fit mt-0.5">
+                              {p.productCode}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4 font-mono text-slate-700 text-xs font-semibold">
+                      {p.casNumber || "—"}
+                    </td>
+
+                    <td className="px-4 py-4 font-mono text-slate-600 text-xs font-medium">
+                      {p.molecularFormula || "—"}
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <span className="inline-block px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold uppercase">
+                        {p.category ? p.category.replace("_", " ") : "GENERAL"}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      {offeringCount > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleExpand(codeOrId)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-extrabold rounded-full border border-emerald-200 cursor-pointer transition-colors shadow-2xs"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>{offeringCount} {offeringCount === 1 ? "Verified Supplier ▾" : "Verified Suppliers ▾"}</span>
+                          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full border border-amber-200">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-600" /> Onboarding
+                        </span>
                       )}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-2 font-mono text-slate-600">
-                  {p.casNumber || "—"}
-                </td>
-                <td className="px-4 py-2">
-                  <span className="inline-block px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[11px] font-medium tracking-wide">
-                    {p.category}
-                  </span>
-                </td>
-                <td className="px-4 py-2 w-48 truncate">
-                  <div className="flex items-center gap-1.5" title="Verified Supplier">
-                    {(p.supplier?.verified || p.verificationStatus) && (
-                      <ShieldCheck className="w-3.5 h-3.5 text-teal-500 shrink-0" />
-                    )}
-                    <Link href={`/suppliers/${p.supplier?.id || p.sellerId}`} className="hover:underline truncate text-slate-900 font-medium">
-                      {p.supplier?.name || p.sellerName || "—"}
-                    </Link>
-                  </div>
-                </td>
-                <td className="px-4 py-2">
-                  <div className="flex items-center gap-1.5 text-slate-500">
-                    <Flag className="w-3.5 h-3.5" />
-                    <span>{p.supplier?.countryName || p.supplier?.countryCode || p.country || "—"}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-2 font-mono font-medium">
-                  {p.purity || "—"}
-                </td>
-                <td className="px-4 py-2 text-right">
-                  <span className="font-mono font-bold text-slate-900">{p.moq || "Contact"}</span>
-                </td>
-                <td className="px-4 py-2 text-center">
-                  <span className={`inline-flex items-center justify-center px-2 py-1 border rounded-sm text-[10px] font-bold uppercase tracking-widest ${getAvailabilityColor(p.availability, p.stock)}`}>
-                    {p.availability || (p.stock > 0 ? "In Stock" : "Made to Order")}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    {p.coaAvailable ? (
-                      <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-sm border border-blue-100" title="COA Available">COA</span>
-                    ) : (
-                      <span className="px-1.5 py-0.5 text-transparent text-[10px]">COA</span>
-                    )}
-                    {p.msdsAvailable ? (
-                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-sm border border-slate-200" title="MSDS Available">MSDS</span>
-                    ) : (
-                      <span className="px-1.5 py-0.5 text-transparent text-[10px]">MSDS</span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-2 text-center sticky right-0 bg-white group-hover:bg-slate-50 z-10 shadow-[inset_1px_0_0_0_#e2e8f0] transition-colors">
-                  <div className="flex flex-col gap-1 items-center justify-center">
-                    <Link
-                      href={`/products/${p.slug || p.id}`}
-                      className="inline-flex items-center justify-center px-3 py-1.5 bg-white border border-slate-200 text-blue-600 text-[11px] font-bold rounded shadow-sm hover:bg-blue-50 hover:border-blue-200 transition-colors"
-                    >
-                      Request Quote
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                    </td>
+
+                    <td className="px-5 py-4 text-right">
+                      <Link
+                        href={productUrl}
+                        className="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-2xs"
+                      >
+                        View Product <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </td>
+                  </tr>
+
+                  {/* Expanded Sub-row */}
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={6} className="p-0 border-b border-slate-200">
+                        <ExpandableSupplierOfferingsDrawer
+                          masterProductCode={codeOrId}
+                          masterProductName={p.name}
+                          offerings={offeringsCache[codeOrId] || []}
+                          loading={!!loadingMap[codeOrId]}
+                          error={errorMap[codeOrId] || null}
+                          onRetry={() => loadOfferingsForProduct(codeOrId)}
+                          onRequestQuote={(offering) => setSelectedRfqOffering({ offering, productName: p.name })}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {/* Mobile Stacked Card View */}
+      {/* Mobile Stacked View */}
       <div className="md:hidden divide-y divide-slate-100">
-        {products.map((p) => (
-          <div key={p.id} className="p-4 bg-white flex flex-col gap-4">
-            <div className="flex gap-3">
-              <div className="w-10 h-10 bg-slate-50 rounded flex items-center justify-center shrink-0 border border-slate-100">
-                <Beaker className="w-5 h-5 text-slate-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <Link href={`/products/${p.slug || p.id}`} className="font-bold text-[#0A192F] hover:text-blue-600 hover:underline text-[15px] leading-tight block truncate">
-                  {p.name}
-                </Link>
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                  <span className="font-mono text-xs text-slate-500">CAS: {p.casNumber || "—"}</span>
-                  {p.molecularFormula && (
-                    <>
-                      <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                      <span className="font-mono text-xs text-slate-400">{p.molecularFormula}</span>
-                    </>
+        {products.map((p) => {
+          const codeOrId = p.productCode || p.id;
+          const productUrl = `/products/${codeOrId}`;
+          const offeringCount = (p as any).offeringCount || 0;
+          const isExpanded = expandedId === codeOrId;
+
+          return (
+            <div key={p.id} className="bg-white flex flex-col overflow-hidden">
+              <div className="p-5 flex flex-col gap-3">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-12 h-12 bg-blue-50/60 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 overflow-hidden">
+                    <FlaskConical className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                        {p.category ? p.category.replace("_", " ") : "GENERAL"}
+                      </span>
+                      {p.productCode && (
+                        <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {p.productCode}
+                        </span>
+                      )}
+                    </div>
+                    <Link
+                      href={productUrl}
+                      className="font-bold text-slate-900 hover:text-blue-600 text-base leading-tight block truncate"
+                    >
+                      {p.name}
+                    </Link>
+                    <p className="font-mono text-xs text-slate-500 mt-1">
+                      CAS: {p.casNumber || "N/A"} {p.molecularFormula ? `| ${p.molecularFormula}` : ""}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                  {offeringCount > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => handleToggleExpand(codeOrId)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 text-emerald-800 font-extrabold rounded-xl border border-emerald-200 text-xs"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{offeringCount} Verified Suppliers ▾</span>
+                    </button>
+                  ) : (
+                    <span className="text-slate-400 text-xs italic">No suppliers available</span>
                   )}
+
+                  <Link
+                    href={productUrl}
+                    className="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-2xs flex items-center gap-1"
+                  >
+                    View Product <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-md border border-slate-100">
-              <div>
-                <span className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Supplier</span>
-                <Link href={`/suppliers/${p.supplier?.id || p.sellerId}`} className="text-xs font-medium text-slate-900 hover:underline flex items-center gap-1 mt-0.5 truncate">
-                  {(p.supplier?.verified || p.verificationStatus) && <ShieldCheck className="w-3 h-3 text-teal-500 shrink-0" />}
-                  {p.supplier?.name || p.sellerName || "—"}
-                </Link>
-              </div>
-              <div>
-                <span className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Country</span>
-                <span className="text-xs font-medium text-slate-700 flex items-center gap-1 mt-0.5 truncate">
-                  <Flag className="w-3 h-3 text-slate-400" />
-                  {p.supplier?.countryName || p.supplier?.countryCode || p.country || "—"}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">Purity</span>
-                <span className="text-xs font-mono font-medium text-[#0A192F] mt-0.5 block">{p.purity || "—"}</span>
-              </div>
-              <div>
-                <span className="block text-[10px] font-bold uppercase text-slate-400 tracking-wider">MOQ</span>
-                <span className="text-xs font-mono font-bold text-[#0A192F] mt-0.5 block">{p.moq || "Contact"}</span>
-              </div>
+              {/* Mobile Expanded Drawer */}
+              {isExpanded && (
+                <ExpandableSupplierOfferingsDrawer
+                  masterProductCode={codeOrId}
+                  masterProductName={p.name}
+                  offerings={offeringsCache[codeOrId] || []}
+                  loading={!!loadingMap[codeOrId]}
+                  error={errorMap[codeOrId] || null}
+                  onRetry={() => loadOfferingsForProduct(codeOrId)}
+                  onRequestQuote={(offering) => setSelectedRfqOffering({ offering, productName: p.name })}
+                />
+              )}
             </div>
-
-            <div className="flex items-center justify-between mt-1">
-              <span className={`inline-flex items-center justify-center px-2 py-1 border rounded-sm text-[9px] font-bold uppercase tracking-widest ${getAvailabilityColor(p.availability, p.stock)}`}>
-                {p.availability || (p.stock > 0 ? "In Stock" : "Order")}
-              </span>
-              <div className="flex gap-1">
-                {p.coaAvailable && <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[9px] font-bold rounded-sm border border-blue-100">COA</span>}
-                {p.msdsAvailable && <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded-sm border border-slate-200">MSDS</span>}
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <Link
-                href={`/products/${p.slug || p.id}`}
-                className="flex-1 flex items-center justify-center px-4 py-2 min-h-[44px] bg-blue-600 text-white text-[13px] font-bold rounded-full hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                Request Quote
-              </Link>
-              <Link
-                href={`/products/${p.slug || p.id}`}
-                className="flex-1 flex items-center justify-center px-4 py-2 min-h-[44px] bg-white border border-slate-200 text-slate-800 text-[13px] font-bold rounded-full hover:bg-slate-50 transition-colors"
-              >
-                View Details
-              </Link>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Target RFQ Modal */}
+      {selectedRfqOffering && (
+        <RfqModal
+          isOpen={!!selectedRfqOffering}
+          onClose={() => setSelectedRfqOffering(null)}
+          masterProductId={selectedRfqOffering.offering.masterProductId}
+          supplierOfferingId={selectedRfqOffering.offering.id}
+          productName={selectedRfqOffering.productName}
+          supplierId={selectedRfqOffering.offering.supplierId}
+          supplierName={selectedRfqOffering.offering.supplierName}
+          supplierCountry={selectedRfqOffering.offering.countryName || "India"}
+          defaultQuantity={selectedRfqOffering.offering.moqKg}
+        />
+      )}
     </div>
   );
 }

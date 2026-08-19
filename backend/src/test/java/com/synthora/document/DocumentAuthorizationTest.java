@@ -109,9 +109,17 @@ class DocumentAuthorizationTest {
 
         when(productRepository.findById(productId)).thenReturn(Optional.of(product));
 
+        // Public product documents (COA, MSDS, TDS) are viewable by any user when product exists
         assertTrue(authorizationService.canAccessDocument(DocumentOwnerType.PRODUCT, productId, supplierUserA));
-        assertFalse(authorizationService.canAccessDocument(DocumentOwnerType.PRODUCT, productId, supplierUserB));
-        assertFalse(authorizationService.canAccessDocument(DocumentOwnerType.PRODUCT, productId, buyerA));
+        assertTrue(authorizationService.canAccessDocument(DocumentOwnerType.PRODUCT, productId, supplierUserB));
+        assertTrue(authorizationService.canAccessDocument(DocumentOwnerType.PRODUCT, productId, buyerA));
+        assertTrue(authorizationService.canAccessDocument(DocumentOwnerType.PRODUCT, productId, null));
+
+        // Uploading product documents is strictly restricted to the owning seller
+        assertTrue(authorizationService.canUploadDocument(DocumentOwnerType.PRODUCT, productId, supplierUserA));
+        assertFalse(authorizationService.canUploadDocument(DocumentOwnerType.PRODUCT, productId, supplierUserB));
+        assertFalse(authorizationService.canUploadDocument(DocumentOwnerType.PRODUCT, productId, buyerA));
+        assertFalse(authorizationService.canUploadDocument(DocumentOwnerType.PRODUCT, productId, null));
     }
 
     @Test

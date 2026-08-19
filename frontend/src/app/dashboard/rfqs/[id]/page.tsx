@@ -13,6 +13,9 @@ import { getOrderByRfqId } from "@/features/order/api/getOrderByRfqId";
 import { IssuePoModal } from "@/features/order/components/IssuePoModal";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
 import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
+import { CounterOfferModal } from "@/features/rfq/components/CounterOfferModal";
+import { useToast } from "@/shared/context/ToastContext";
+import { getSupplierPublicProfile } from "@/features/suppliers/api";
 
 type ProductDetail = {
   id: string;
@@ -58,9 +61,12 @@ export default function BuyerRfqDetailPage() {
   const [rfq, setRfq] = useState<RfqDetail | null>(null);
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [supplier, setSupplier] = useState<Supplier | null>(null);
+  const [supplierNameResolved, setSupplierNameResolved] = useState<string | null>(null);
   const [quotations, setQuotations] = useState<QuotationResponse[]>([]);
   const [existingPo, setExistingPo] = useState<PurchaseOrderResponse | null>(null);
   const [isPoModalOpen, setIsPoModalOpen] = useState(false);
+  const [isCounterModalOpen, setIsCounterModalOpen] = useState(false);
+  const toast = useToast();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +97,12 @@ export default function BuyerRfqDetailPage() {
       setExistingPo(poData);
       setProduct(productData);
       setSupplier(matchingSupplier ?? null);
+
+      if (rfqData.supplierId) {
+        getSupplierPublicProfile(rfqData.supplierId)
+          .then((s) => { if (s?.name) setSupplierNameResolved(s.name); })
+          .catch(() => null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load RFQ details");
     } finally {
@@ -214,7 +226,7 @@ export default function BuyerRfqDetailPage() {
             <div className="w-[1px] h-6 bg-slate-200" />
             <div className="flex flex-col">
               <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Supplier</span>
-              <span className="text-[11px] font-bold text-slate-800 uppercase mt-1">{supplier?.supplierName ?? `Supplier ID: ${rfq.supplierId}`}</span>
+              <span className="text-[11px] font-bold text-slate-800 uppercase mt-1">{supplier?.supplierName ?? supplierNameResolved ?? "Verified Supplier"}</span>
             </div>
             <div className="w-[1px] h-6 bg-slate-200" />
             <div className="flex flex-col">
@@ -316,12 +328,13 @@ export default function BuyerRfqDetailPage() {
               />
             </section>
 
-            {/* 04 / COMMERCIAL QUOTATION */}
+            {/* 04 / COMMERCIAL QUOTATION & NEGOTIATION */}
             <QuotationComparison
               quotations={quotations}
               rfqStatus={rfq.status}
               rfqId={rfq.id}
               onDecisionSuccess={loadRfqDetail}
+              onOpenCounterOffer={() => setIsCounterModalOpen(true)}
             />
 
             {/* 05 / PROCUREMENT DECISION (ONLY SHOWN IF ACCEPTED) */}
@@ -531,6 +544,23 @@ export default function BuyerRfqDetailPage() {
           unitPrice={quotations[0].unitPrice}
           currency={quotations[0].currency}
           leadTimeDays={quotations[0].leadTimeDays}
+        />
+      )}
+
+      {/* Counter Offer Modal Dialog */}
+      {isCounterModalOpen && (
+        <CounterOfferModal
+          rfqId={rfq.id}
+          initialUnitPrice={quotations.length > 0 ? quotations[0].unitPrice : undefined}
+          initialCurrency={quotations.length > 0 ? quotations[0].currency : "INR"}
+          initialMoq={quotations.length > 0 && quotations[0].minimumOrderQuantity != null ? quotations[0].minimumOrderQuantity : undefined}
+          initialLeadTimeDays={quotations.length > 0 && quotations[0].leadTimeDays != null ? quotations[0].leadTimeDays : undefined}
+          initialPackaging={quotations.length > 0 && quotations[0].packagingDetails != null ? quotations[0].packagingDetails : undefined}
+          onClose={() => setIsCounterModalOpen(false)}
+          onSuccess={() => {
+            toast.success("Counter offer transmitted to supplier.");
+            loadRfqDetail();
+          }}
         />
       )}
     </div>

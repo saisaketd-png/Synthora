@@ -1,12 +1,13 @@
 import { NotificationEntityType, NotificationResponse } from "../types/notification";
 
 /**
- * Resolves the destination URL for a notification, accounting for user role and entity hierarchy.
- * Returns null if no safe navigation route exists (e.g. for Document uploads without a dedicated page).
+ * Resolves the destination URL for a notification, accounting for user role (Admin, Supplier, Buyer) and entity hierarchy.
+ * Returns null if no safe navigation route exists.
  */
 export function resolveNotificationRoute(
   notification: NotificationResponse,
-  isSupplier: boolean
+  isSupplier: boolean,
+  isAdmin: boolean = false
 ): string | null {
   const { entityType, entityId } = notification;
 
@@ -14,22 +15,57 @@ export function resolveNotificationRoute(
     return null;
   }
 
+  if (isAdmin) {
+    switch (entityType) {
+      case "SUPPLIER_OFFERING":
+        return `/dashboard/admin/catalog/offerings/${entityId}`;
+      case "SUPPLIER":
+        return `/dashboard/admin/catalog/verification/${entityId}`;
+      case "PRODUCT_REQUEST":
+        return `/dashboard/admin/catalog/requests`;
+      case "MASTER_PRODUCT":
+        return `/dashboard/admin/catalog/master-products/${entityId}`;
+      case "RFQ":
+      case "QUOTATION":
+        return `/dashboard/admin/transactions/rfqs`;
+      case "PURCHASE_ORDER":
+      case "SHIPMENT":
+        return `/dashboard/admin/transactions/orders`;
+      default:
+        return `/dashboard/admin/activity`;
+    }
+  }
+
+  if (isSupplier) {
+    switch (entityType) {
+      case "RFQ":
+      case "QUOTATION":
+        return `/dashboard/supplier/rfqs/${entityId}`;
+      case "PURCHASE_ORDER":
+      case "SHIPMENT":
+        return `/dashboard/supplier/orders/${entityId}`;
+      case "SUPPLIER_OFFERING":
+      case "PRODUCT_REQUEST":
+        return `/dashboard/supplier/products`;
+      case "SUPPLIER":
+        return `/dashboard/supplier/verification`;
+      default:
+        return `/dashboard/supplier`;
+    }
+  }
+
+  // Buyer Role
   switch (entityType) {
     case "RFQ":
     case "QUOTATION":
-      return isSupplier
-        ? `/dashboard/supplier/rfqs/${entityId}`
-        : `/dashboard/rfqs/${entityId}`;
-
+      return `/dashboard/rfqs/${entityId}`;
     case "PURCHASE_ORDER":
     case "SHIPMENT":
-      return isSupplier
-        ? `/dashboard/supplier/orders/${entityId}`
-        : `/dashboard/orders/${entityId}`;
-
-    case "DOCUMENT":
+      return `/dashboard/orders/${entityId}`;
+    case "MASTER_PRODUCT":
+      return `/products/${entityId}`;
     default:
-      return null;
+      return `/dashboard`;
   }
 }
 

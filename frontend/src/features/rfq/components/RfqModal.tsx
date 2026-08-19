@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { X, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Send } from "lucide-react";
 import { createRfq } from "../api/createRfq";
-
-
-console.log("🚨🚨🚨 RFQ MODAL FILE LOADED 🚨🚨🚨");
 
 export type RfqModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  productId: string;
+  productId?: string;
+  masterProductId?: string;
+  supplierOfferingId?: string;
   productName: string;
   supplierId: number;
   supplierName: string;
@@ -19,35 +17,37 @@ export type RfqModalProps = {
   defaultQuantity?: number;
 };
 
-
 export default function RfqModal({
   isOpen,
   onClose,
   productId,
+  masterProductId,
+  supplierOfferingId,
   productName,
   supplierId,
   supplierName,
   supplierCountry,
   defaultQuantity,
 }: RfqModalProps) {
-  const router = useRouter();
+  const [step, setStep] = useState<"fill" | "review" | "success">("fill");
   const [quantity, setQuantity] = useState<number | string>(defaultQuantity || "");
   const [unit, setUnit] = useState("kg");
-  
+  const [deliveryLocation, setDeliveryLocation] = useState("Mumbai, India");
+  const [messageText, setMessageText] = useState("");
+
   const [loading, setLoading] = useState(false);
   const submittingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-
-  // Re-enable message tracking properly
-  const [messageText, setMessageText] = useState("");
+  const [submittedRfq, setSubmittedRfq] = useState<any | null>(null);
 
   const handleClose = () => {
+    setStep("fill");
     setQuantity(defaultQuantity || "");
     setUnit("kg");
+    setDeliveryLocation("Mumbai, India");
     setMessageText("");
     setError(null);
-    setSuccess(null);
+    setSubmittedRfq(null);
     onClose();
   };
 
@@ -72,137 +72,116 @@ export default function RfqModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-
-  console.log("🔥 RFQ SUBMIT STARTED");
-
-  if (submittingRef.current) {
-    console.log("❌ Submission already in progress");
-    return;
-  }
-
-  const numericQuantity = Number(quantity);
-
-  console.log("Quantity entered:", quantity);
-  console.log("Quantity sent:", numericQuantity);
-  console.log("Product ID:", productId);
-  console.log("Supplier ID:", supplierId);
-
-  if (!quantity || !Number.isFinite(numericQuantity) || numericQuantity <= 0 || numericQuantity > 1000000) {
-    console.log("❌ Quantity validation failed");
-    setError("Please enter a valid quantity between 1 and 1,000,000.");
-    return;
-  }
-
-  if (messageText.length > 1000) {
-    setError("Message cannot exceed 1000 characters.");
-    return;
-  }
-
-  const payload = {
-  productId,
-  supplierId,
-  quantity: numericQuantity,
-  unit,
-  message: messageText,
-};
-
-  console.log("🚀 RFQ PAYLOAD:");
-  console.log(JSON.stringify(payload, null, 2));
-
-  setError(null);
-  setLoading(true);
-  submittingRef.current = true;
-
-  try {
-    console.log("🚀 Sending POST /api/v1/rfqs");
-
-    const res = await createRfq(payload);
-
-    console.log("✅ RFQ CREATED:");
-    console.log(res);
-
-    setSuccess(res.id);
-
-  } catch (err: unknown) {
-    console.error("❌ RFQ CREATION FAILED:", err);
-
-    if (err instanceof Error) {
-      setError(err.message);
-    } else {
-      setError("Failed to submit RFQ.");
+  const handleProceedToReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    const numericQuantity = Number(quantity);
+    if (!quantity || !Number.isFinite(numericQuantity) || numericQuantity <= 0 || numericQuantity > 1000000) {
+      setError("Please enter a valid quantity between 1 and 1,000,000.");
+      return;
     }
-  } finally {
-    setLoading(false);
-    submittingRef.current = false;
-  }
-};
+    setError(null);
+    setStep("review");
+  };
+
+  const handleFinalSubmit = async () => {
+    if (submittingRef.current) return;
+
+    const numericQuantity = Number(quantity);
+    const fullMessage = deliveryLocation ? `Delivery Location: ${deliveryLocation}\n${messageText}`.trim() : messageText;
+
+    const payload = {
+      productId: productId || undefined,
+      masterProductId: masterProductId || undefined,
+      supplierOfferingId: supplierOfferingId || undefined,
+      supplierId,
+      quantity: numericQuantity,
+      unit,
+      message: fullMessage,
+    };
+
+    setError(null);
+    setLoading(true);
+    submittingRef.current = true;
+
+    try {
+      const res = await createRfq(payload);
+      setSubmittedRfq(res);
+      setStep("success");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to submit RFQ.");
+      }
+      setStep("fill");
+    } finally {
+      setLoading(false);
+      submittingRef.current = false;
+    }
+  };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       onClick={handleClose}
     >
-      <div 
-        className="bg-white rounded-xl shadow-xl w-full max-w-[640px] flex flex-col overflow-hidden max-h-[90vh]"
+      <div
+        className="bg-white rounded-2xl shadow-xl w-full max-w-[640px] flex flex-col overflow-hidden max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-xl font-semibold text-slate-900">Request Quote</h2>
-          <button 
+          <div className="flex items-center gap-2">
+            {step === "review" && (
+              <button
+                type="button"
+                onClick={() => setStep("fill")}
+                className="p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <h2 className="text-xl font-bold text-slate-900">
+              {step === "fill" ? "Request Quote" : step === "review" ? "Confirm RFQ Sourcing Request" : "RFQ Submitted"}
+            </h2>
+          </div>
+          <button
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 rounded-full p-1"
+            className="text-slate-400 hover:text-slate-600 transition-colors rounded-full p-1"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Content */}
+        {/* Body */}
         <div className="p-6 overflow-y-auto">
-          {success ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
-              </div>
-              <h3 className="text-2xl font-semibold text-slate-900 mb-2">RFQ Submitted Successfully</h3>
-              <p className="text-slate-500">
-                Your request has been sent to {supplierName}.
-              </p>
-              <p className="text-xs font-mono text-slate-400 mt-4">RFQ ID: {success}</p>
+          {error && (
+            <div className="mb-4 bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-rose-800 font-medium">{error}</p>
             </div>
-          ) : (
-            <form
-  onSubmit={handleSubmit}
-  className="space-y-6"
-  noValidate
->
-              
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              )}
+          )}
 
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+          {/* Step 1: Form Fill */}
+          {step === "fill" && (
+            <form onSubmit={handleProceedToReview} className="space-y-5">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-sm text-slate-500">Product</span>
-                  <span className="text-sm font-semibold text-slate-900">{productName}</span>
+                  <span className="text-slate-500 font-bold uppercase">Chemical</span>
+                  <span className="font-extrabold text-slate-900">{productName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-slate-500">Supplier</span>
-                  <span className="text-sm font-semibold text-slate-900">{supplierName} ({supplierCountry})</span>
+                  <span className="text-slate-500 font-bold uppercase">Target Supplier</span>
+                  <span className="font-bold text-slate-900">{supplierName} ({supplierCountry})</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="quantity" className="text-sm font-semibold text-slate-700">
-                    Quantity <span className="text-red-500">*</span>
+                  <label htmlFor="quantity" className="text-xs font-bold text-slate-700">
+                    Required Quantity <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -215,13 +194,14 @@ export default function RfqModal({
                     disabled={loading}
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
-                    placeholder="Enter amount"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
+                    placeholder="Enter quantity"
                   />
                 </div>
+
                 <div className="space-y-1.5">
-                  <label htmlFor="unit" className="text-sm font-semibold text-slate-700">
-                    Unit <span className="text-red-500">*</span>
+                  <label htmlFor="unit" className="text-xs font-bold text-slate-700">
+                    Unit <span className="text-rose-500">*</span>
                   </label>
                   <select
                     id="unit"
@@ -229,7 +209,7 @@ export default function RfqModal({
                     disabled={loading}
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:bg-slate-100 disabled:text-slate-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
                   >
                     <option value="kg">kg</option>
                     <option value="g">g</option>
@@ -241,21 +221,35 @@ export default function RfqModal({
               </div>
 
               <div className="space-y-1.5">
+                <label htmlFor="location" className="text-xs font-bold text-slate-700">
+                  Delivery Location / Destination Port
+                </label>
+                <input
+                  type="text"
+                  id="location"
+                  value={deliveryLocation}
+                  onChange={(e) => setDeliveryLocation(e.target.value)}
+                  placeholder="City, Country or Destination Port"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <div className="flex justify-between">
-                  <label htmlFor="message" className="text-sm font-semibold text-slate-700">
-                    Message to Supplier
+                  <label htmlFor="message" className="text-xs font-bold text-slate-700">
+                    Commercial & Technical Requirements
                   </label>
-                  <span className="text-xs text-slate-400">{messageText.length}/1000</span>
+                  <span className="text-[11px] text-slate-400">{messageText.length}/1000</span>
                 </div>
                 <textarea
                   id="message"
-                  rows={4}
+                  rows={3}
                   maxLength={1000}
                   disabled={loading}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Include any specific requirements, certifications needed, or shipping details..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none disabled:bg-slate-100 disabled:text-slate-500"
+                  placeholder="Specify purity target, grade, lead time constraints, shipping terms..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
                 ></textarea>
               </div>
 
@@ -263,21 +257,118 @@ export default function RfqModal({
                 <button
                   type="button"
                   onClick={handleClose}
-                  disabled={loading}
-                  className="px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 border border-transparent rounded-full transition-colors disabled:opacity-50"
+                  className="px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
-               <button
-  type="submit"
-  disabled={loading}
-  className="px-5 py-2.5 text-sm font-semibold text-white bg-teal-500 hover:bg-teal-600 rounded-full transition-colors shadow-sm disabled:opacity-70 flex items-center gap-2"
->
-  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-  {loading ? "Submitting..." : "Submit RFQ"}
-</button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-2xs"
+                >
+                  Review Request
+                </button>
               </div>
             </form>
+          )}
+
+          {/* Step 2: Pre-Submission Review */}
+          {step === "review" && (
+            <div className="space-y-6">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3 text-xs">
+                <h3 className="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">Sourcing Summary</h3>
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Chemical Compound</span>
+                    <span className="font-extrabold text-slate-900 text-sm">{productName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Target Supplier</span>
+                    <span className="font-bold text-slate-900 text-sm">{supplierName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Requested Sourcing Quantity</span>
+                    <span className="font-mono font-extrabold text-slate-900 text-sm">{quantity} {unit}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Delivery Destination</span>
+                    <span className="font-bold text-slate-900 text-sm">{deliveryLocation || "Not specified"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {messageText && (
+                <div className="bg-white border border-slate-200 p-4 rounded-xl text-xs space-y-1">
+                  <span className="font-bold text-slate-500 uppercase text-[10px]">Notes & Specifications</span>
+                  <p className="text-slate-800 whitespace-pre-wrap">{messageText}</p>
+                </div>
+              )}
+
+              <div className="pt-4 flex items-center justify-between gap-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setStep("fill")}
+                  disabled={loading}
+                  className="px-5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  [ BACK ]
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFinalSubmit}
+                  disabled={loading}
+                  className="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-2xs flex items-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {loading ? "Submitting..." : "[ SUBMIT RFQ ]"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Success Confirmation */}
+          {step === "success" && (
+            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-xl font-extrabold text-slate-900">RFQ Created Successfully</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Your sourcing request has been transmitted directly to {supplierName}.
+                </p>
+              </div>
+
+              {submittedRfq && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 w-full text-xs space-y-2 text-left mt-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-bold">RFQ Reference:</span>
+                    <span className="font-mono font-extrabold text-slate-900">{submittedRfq.rfqReference || submittedRfq.id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-bold">Chemical:</span>
+                    <span className="font-bold text-slate-900">{productName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-bold">Target Quantity:</span>
+                    <span className="font-mono font-bold text-slate-900">{submittedRfq.quantity} {submittedRfq.unit}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500 font-bold">Status:</span>
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-extrabold rounded text-[10px] uppercase">
+                      {submittedRfq.status || "SUBMITTED"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-6 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-colors mt-4"
+              >
+                Close & Return to Catalog
+              </button>
+            </div>
           )}
         </div>
       </div>

@@ -67,3 +67,31 @@ export async function markOrderDeliveredSupplier(orderId: string): Promise<Purch
 
   return response.json();
 }
+
+export async function confirmReceiptBuyer(orderId: string): Promise<PurchaseOrderResponse> {
+  const response = await authenticatedFetch(`/api/v1/orders/${orderId}/receive`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to confirm receipt of order");
+  }
+
+  return response.json();
+}
+
+export async function rejectSupplierOrder(orderId: string, reason: string): Promise<PurchaseOrderResponse> {
+  const response = await authenticatedFetch(`/api/v1/orders/supplier/${orderId}/reject`, {
+    method: "POST",
+    body: JSON.stringify({ reason }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to reject purchase order");
+  }
+
+  return response.json();
+}
+

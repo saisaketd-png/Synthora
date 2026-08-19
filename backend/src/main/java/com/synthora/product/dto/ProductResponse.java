@@ -8,8 +8,10 @@ import java.util.UUID;
 
 public record ProductResponse(
         UUID id,
+        String productCode,
         String name,
         String description,
+        String primaryImageUrl,
 
         // Commercial fields
         BigDecimal price,

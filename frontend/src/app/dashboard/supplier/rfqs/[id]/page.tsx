@@ -2,29 +2,58 @@
 
 import { useEffect, useState } from "react";
 import { getSupplierRfq } from "@/features/rfq/api/getSupplierRfq";
+import { getSupplierQuotations } from "@/features/rfq/api/getSupplierQuotations";
 import { SupplierRfq } from "@/features/rfq/api/getSupplierRfqs";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { QuotationForm } from "@/features/rfq/components/QuotationForm";
 import { QuotationResponse } from "@/features/rfq/api/submitQuotation";
 import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
+import { getProductDetail } from "@/app/products/api/getProductDetail";
+import { useToast } from "@/shared/context/ToastContext";
+
+type ProductDetail = {
+  id: string;
+  name: string;
+  productCode?: string;
+  casNumber?: string;
+  molecularFormula?: string;
+  purity?: number;
+  grade?: string;
+};
 
 export default function SupplierRfqDetailPage() {
   const params = useParams();
   const id = params?.id as string;
+  const toast = useToast();
 
   const [rfq, setRfq] = useState<SupplierRfq | null>(null);
+  const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quotation, setQuotation] = useState<QuotationResponse | null>(null);
+  const [quotations, setQuotations] = useState<QuotationResponse[]>([]);
+  const [showRevisionForm, setShowRevisionForm] = useState(false);
+
+  // Latest quotation for display; derived from quotations list
+  const latestQuotation = quotations.length > 0 ? quotations[0] : null;
 
   const loadRfq = async () => {
     if (!id) return;
     try {
       setLoading(true);
       setError(null);
-      const data = await getSupplierRfq(id);
-      setRfq(data);
+      const [rfqData, quotationData] = await Promise.all([
+        getSupplierRfq(id),
+        getSupplierQuotations(id).catch(() => [] as QuotationResponse[]),
+      ]);
+      setRfq(rfqData);
+      setQuotations(quotationData);
+
+      if (rfqData?.productId) {
+        getProductDetail(rfqData.productId)
+          .then((p) => setProduct(p))
+          .catch(() => null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load supplier RFQ");
     } finally {
@@ -63,8 +92,8 @@ export default function SupplierRfqDetailPage() {
     return (
       <div className="p-8 max-w-[1440px] mx-auto bg-white min-h-screen">
         <div className="border-l-[3px] border-orange-500 pl-4 py-1 mb-8">
-          <p className="text-[11px] font-bold text-orange-600 uppercase tracking-widest">System Error</p>
-          <p className="text-sm font-mono text-slate-700 mt-2">{error || "RFQ reference not found"}</p>
+          <p className="text-[11px] font-bold text-orange-600 uppercase tracking-widest">RFQ No Longer Available</p>
+          <p className="text-sm font-mono text-slate-700 mt-2">{error || "The requested RFQ reference could not be found or is no longer available."}</p>
           <button
             onClick={loadRfq}
             className="mt-4 text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
@@ -82,7 +111,7 @@ export default function SupplierRfqDetailPage() {
     );
   }
 
-  const effectiveStatus = quotation ? "QUOTED" : rfq.status;
+  const effectiveStatus = latestQuotation ? "QUOTED" : rfq.status;
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900 pb-24">
@@ -139,9 +168,9 @@ export default function SupplierRfqDetailPage() {
             </span>
           </div>
           <div className="flex-1">
-            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">INTERNAL ID</span>
-            <span className="font-mono text-[10px] text-slate-500 truncate block">
-              {rfq.id}
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">PRODUCT</span>
+            <span className="text-xs font-bold text-[#0A192F] truncate block">
+              {rfq.productName || "Specialty Chemical"}
             </span>
           </div>
         </div>
@@ -173,12 +202,22 @@ export default function SupplierRfqDetailPage() {
                     {rfq.quantity.toLocaleString()} {rfq.unit.toUpperCase()}
                   </span>
                 </div>
-                <div>
-                  <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">PRODUCT ID</span>
-                  <span className="font-mono text-sm font-medium text-slate-700">
-                    {rfq.productId}
-                  </span>
-                </div>
+                {product?.productCode && (
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">PRODUCT CODE</span>
+                    <span className="font-mono text-sm font-bold text-[#0A192F]">
+                      {product.productCode}
+                    </span>
+                  </div>
+                )}
+                {product?.casNumber && (
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">CAS NUMBER</span>
+                    <span className="font-mono text-sm font-bold text-[#0A192F]">
+                      {product.casNumber}
+                    </span>
+                  </div>
+                )}
               </div>
             </section>
 
@@ -217,76 +256,224 @@ export default function SupplierRfqDetailPage() {
               />
             </section>
 
-            {/* 04 / COMMERCIAL QUOTATION */}
-            {quotation ? (
+            {/* 04 / COMMERCIAL QUOTATION & NEGOTIATION */}
+            {latestQuotation ? (
               <section>
-                <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
-                  <span className="text-slate-300">04 /</span> COMMERCIAL QUOTATION
-                  <div className="h-px bg-slate-200 flex-1 ml-4" />
-                </h2>
+                <div className="flex items-center justify-between mb-6 border-b border-slate-200 pb-2">
+                  <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-4">
+                    <span className="text-slate-300">04 /</span> COMMERCIAL QUOTATION & NEGOTIATION
+                  </h2>
+                  {rfq.status !== "ACCEPTED" && rfq.status !== "REJECTED" && rfq.status !== "CLOSED" && rfq.status !== "CANCELLED" && (
+                    <button
+                      type="button"
+                      onClick={() => setShowRevisionForm((prev) => !prev)}
+                      className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      {showRevisionForm ? "CANCEL REVISION" : "REVISE QUOTATION →"}
+                    </button>
+                  )}
+                </div>
 
-                <div className="border-l-[3px] border-teal-500 bg-slate-50/50 p-6 md:p-8">
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-slate-200 pb-4 mb-6">
-                    <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">
-                        QUOTATION TRANSMITTED
-                      </span>
-                      <h3 className="text-lg font-bold text-slate-900">
-                        Revision {quotation.quotationVersion}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-6">
-                    <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">UNIT PRICE</span>
-                      <span className="font-mono text-lg font-bold text-[#0A192F]">
-                        {quotation.currency} {quotation.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">MOQ</span>
-                      <span className="font-mono text-sm font-bold text-slate-800">
-                        {quotation.minimumOrderQuantity != null ? `${quotation.minimumOrderQuantity.toLocaleString()} ${rfq.unit.toUpperCase()}` : "STANDARD"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">LEAD TIME</span>
-                      <span className="font-mono text-sm font-bold text-slate-800">
-                        {quotation.leadTimeDays != null ? `${quotation.leadTimeDays} DAYS` : "STANDARD"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">VALID UNTIL</span>
-                      <span className="font-mono text-sm font-bold text-slate-800">
-                        {new Date(quotation.validityDate).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* QUOTATION DOCUMENTS */}
-                  <div className="mt-8 pt-8 border-t border-slate-200">
-                    <GenericDocumentManager
-                      title="Quotation Attachments"
-                      description="Technical specifications, certifications, and commercial terms to attach."
-                      ownerType="QUOTATION"
-                      ownerId={quotation.id}
-                      canUpload={true}
-                      canDelete={true}
-                      allowedCategories={[
-                        { value: "COA", label: "Certificate of Analysis (COA)" },
-                        { value: "MSDS", label: "Material Safety Data Sheet (MSDS)" },
-                        { value: "TECHNICAL_SPECIFICATION", label: "Technical Specification (TDS)" },
-                        { value: "CERTIFICATION", label: "Certification" }
-                      ]}
-                      emptyMessage="No documents attached to this quotation."
+                {/* Optional Revision Form toggle */}
+                {showRevisionForm && rfq.status !== "CLOSED" && rfq.status !== "CANCELLED" && (
+                  <div className="mb-8 p-6 bg-slate-50 border border-blue-200 rounded-2xl">
+                    <h3 className="text-sm font-bold text-slate-900 mb-4">Transmit Revised Quotation</h3>
+                    <QuotationForm
+                      rfqId={rfq.id}
+                      onSuccess={(newQuote) => {
+                        toast.success("Revised quotation transmitted.");
+                        setShowRevisionForm(false);
+                        loadRfq();
+                      }}
                     />
                   </div>
+                )}
 
-                </div>
+                {/* BUYER COUNTER OFFER CARD */}
+                {latestQuotation.actorType === "BUYER" && rfq.status !== "ACCEPTED" && rfq.status !== "REJECTED" && (
+                  <div className="mb-8 border-l-4 border-amber-500 bg-amber-50/60 p-6 rounded-r-2xl border border-amber-200">
+                    <div className="flex items-center justify-between border-b border-amber-200/80 pb-3 mb-4">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 block mb-0.5">
+                          ACTION REQUIRED — BUYER COUNTER OFFER RECEIVED
+                        </span>
+                        <h3 className="text-lg font-bold text-slate-900">
+                          Revision {latestQuotation.quotationVersion} (Buyer Counter Offer)
+                        </h3>
+                      </div>
+                      <span className="font-mono text-xs font-bold text-slate-500">
+                        {new Date(latestQuotation.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PROPOSED PRICE</span>
+                        <span className="font-mono text-lg font-bold text-amber-900">
+                          {latestQuotation.currency} {latestQuotation.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PROPOSED MOQ</span>
+                        <span className="font-mono text-sm font-bold text-slate-800">
+                          {latestQuotation.minimumOrderQuantity != null ? `${latestQuotation.minimumOrderQuantity.toLocaleString()} ${rfq.unit.toUpperCase()}` : "STANDARD"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PROPOSED LEAD TIME</span>
+                        <span className="font-mono text-sm font-bold text-slate-800">
+                          {latestQuotation.leadTimeDays != null ? `${latestQuotation.leadTimeDays} DAYS` : "STANDARD"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">PACKAGING</span>
+                        <span className="text-xs font-bold text-slate-800 truncate block">
+                          {latestQuotation.packagingDetails || "STANDARD"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {latestQuotation.commercialMessage && (
+                      <div className="p-3.5 bg-white/80 border border-amber-200 rounded-xl mb-4">
+                        <span className="block text-[9px] font-bold uppercase tracking-widest text-amber-800 mb-1">
+                          BUYER COMMERCIAL MESSAGE
+                        </span>
+                        <p className="text-xs font-mono text-slate-800 italic">
+                          "{latestQuotation.commercialMessage}"
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowRevisionForm(true)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs"
+                      >
+                        REVISE / COUNTER →
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* CURRENT TRANSMITTED QUOTATION CARD */}
+                {latestQuotation.actorType !== "BUYER" && (
+                  <div className="border-l-[3px] border-teal-500 bg-slate-50/50 p-6 md:p-8">
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-slate-200 pb-4 mb-6">
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-teal-600 mb-1">
+                          QUOTATION TRANSMITTED
+                        </span>
+                        <h3 className="text-lg font-bold text-slate-900">
+                          Revision {latestQuotation.quotationVersion} (Current)
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-6">
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">UNIT PRICE</span>
+                        <span className="font-mono text-lg font-bold text-[#0A192F]">
+                          {latestQuotation.currency} {latestQuotation.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">MOQ</span>
+                        <span className="font-mono text-sm font-bold text-slate-800">
+                          {latestQuotation.minimumOrderQuantity != null ? `${latestQuotation.minimumOrderQuantity.toLocaleString()} ${rfq.unit.toUpperCase()}` : "STANDARD"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">LEAD TIME</span>
+                        <span className="font-mono text-sm font-bold text-slate-800">
+                          {latestQuotation.leadTimeDays != null ? `${latestQuotation.leadTimeDays} DAYS` : "STANDARD"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">VALID UNTIL</span>
+                        <span className="font-mono text-sm font-bold text-slate-800">
+                          {new Date(latestQuotation.validityDate).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* QUOTATION DOCUMENTS */}
+                    <div className="mt-8 pt-8 border-t border-slate-200">
+                      <GenericDocumentManager
+                        title="Quotation Attachments"
+                        description="Technical specifications, certifications, and commercial terms to attach."
+                        ownerType="QUOTATION"
+                        ownerId={latestQuotation.id}
+                        canUpload={true}
+                        canDelete={true}
+                        allowedCategories={[
+                          { value: "COA", label: "Certificate of Analysis (COA)" },
+                          { value: "MSDS", label: "Material Safety Data Sheet (MSDS)" },
+                          { value: "TECHNICAL_SPECIFICATION", label: "Technical Specification (TDS)" },
+                          { value: "CERTIFICATION", label: "Certification" }
+                        ]}
+                        emptyMessage="No documents attached to this quotation."
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* NEGOTIATION REVISION HISTORY */}
+                {quotations.length > 1 && (
+                  <div className="mt-8">
+                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 border-b border-slate-100 pb-2">
+                      NEGOTIATION REVISION HISTORY
+                    </h3>
+                    <div className="space-y-4">
+                      {quotations.slice(1).map((rev) => (
+                        <div key={rev.id} className="border border-slate-200 p-4 opacity-80 rounded-xl bg-slate-50/30">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-700">
+                                Revision {rev.quotationVersion}
+                              </span>
+                              <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                                rev.actorType === 'BUYER' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+                              }`}>
+                                {rev.actorType === 'BUYER' ? 'BUYER COUNTER' : 'SUPPLIER QUOTE'}
+                              </span>
+                            </div>
+                            <span className="font-mono text-[10px] text-slate-400">
+                              {new Date(rev.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div>
+                              <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">UNIT PRICE</span>
+                              <span className="font-mono text-sm font-bold text-slate-600">{rev.currency} {rev.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">MOQ</span>
+                              <span className="font-mono text-sm text-slate-600">{rev.minimumOrderQuantity?.toLocaleString() || "—"}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">LEAD TIME</span>
+                              <span className="font-mono text-sm text-slate-600">{rev.leadTimeDays ? `${rev.leadTimeDays}d` : "—"}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">VALID UNTIL</span>
+                              <span className="font-mono text-sm text-slate-600">{new Date(rev.validityDate).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}</span>
+                            </div>
+                          </div>
+                          {(rev.commercialMessage || rev.commercialNotes) && (
+                            <div className="mt-2.5 pt-2 border-t border-slate-100 text-xs font-mono text-slate-600 italic">
+                              "{rev.commercialMessage || rev.commercialNotes}"
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
               </section>
             ) : rfq.status !== "CLOSED" && rfq.status !== "CANCELLED" ? (
-              <QuotationForm rfqId={rfq.id} onSuccess={(q) => setQuotation(q)} />
+              <QuotationForm rfqId={rfq.id} onSuccess={(q) => setQuotations([q])} />
             ) : null}
 
           </div>
@@ -302,7 +489,7 @@ export default function SupplierRfqDetailPage() {
                   SUPPLIER RESPONSE
                 </span>
                 
-                {quotation || effectiveStatus === "QUOTED" || effectiveStatus === "ACCEPTED" ? (
+                {quotations.length > 0 || effectiveStatus === "QUOTED" || effectiveStatus === "ACCEPTED" ? (
                   <div className="bg-slate-50 p-5 border border-slate-200">
                     <span className={`block text-[10px] font-bold uppercase tracking-widest mb-1 ${getSemanticStatusClass(effectiveStatus)}`}>
                       {effectiveStatus}
@@ -345,18 +532,21 @@ export default function SupplierRfqDetailPage() {
                 </span>
                 
                 <div className="border-l border-slate-200 ml-1.5 space-y-6 pt-2">
-                  {quotation && (
+                  {quotations.length > 0 && (
                     <div className="relative pl-5">
                       <div className="absolute w-2 h-2 rounded-full bg-blue-600 -left-[4.5px] top-1" />
                       <p className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F]">QUOTATION SUBMITTED</p>
                       <p className="font-mono text-[10px] text-slate-500 mt-0.5">
-                        {new Date(quotation.createdAt || new Date()).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
+                        {new Date(quotations[quotations.length - 1].createdAt || new Date()).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
                       </p>
+                      {quotations.length > 1 && (
+                        <p className="text-[9px] font-bold text-blue-600 mt-0.5">{quotations.length} REVISIONS</p>
+                      )}
                     </div>
                   )}
 
                   <div className="relative pl-5">
-                    <div className={`absolute w-2 h-2 rounded-full -left-[4.5px] top-1 ${!quotation ? "bg-orange-500" : "bg-slate-300"}`} />
+                    <div className={`absolute w-2 h-2 rounded-full -left-[4.5px] top-1 ${quotations.length === 0 ? "bg-orange-500" : "bg-slate-300"}`} />
                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700">RFQ RECEIVED</p>
                     <p className="font-mono text-[10px] text-slate-500 mt-0.5">
                       {new Date(rfq.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}

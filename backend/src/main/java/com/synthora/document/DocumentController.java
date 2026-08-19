@@ -40,6 +40,13 @@ public class DocumentController {
                 .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
     }
 
+    private User getOptionalAuthenticatedUser(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return null;
+        }
+        return userRepository.findByEmail(authentication.getName()).orElse(null);
+    }
+
     @PostMapping(consumes = {"multipart/form-data"})
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentResponse uploadDocument(
@@ -57,7 +64,7 @@ public class DocumentController {
 
     @GetMapping("/{id}")
     public DocumentResponse getDocument(@PathVariable UUID id, Authentication authentication) {
-        User user = getAuthenticatedUser(authentication);
+        User user = getOptionalAuthenticatedUser(authentication);
         
         DocumentResponse doc = documentService.getDocument(id);
         
@@ -70,7 +77,7 @@ public class DocumentController {
 
     @GetMapping("/{id}/download")
     public ResponseEntity<Resource> downloadDocument(@PathVariable UUID id, Authentication authentication) {
-        User user = getAuthenticatedUser(authentication);
+        User user = getOptionalAuthenticatedUser(authentication);
         
         DocumentResponse doc = documentService.getDocument(id);
         
@@ -83,6 +90,9 @@ public class DocumentController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(doc.getMimeType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getOriginalFileName().replace("\"", "\\\"") + "\"")
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-cache, no-store, must-revalidate")
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .header("X-Content-Type-Options", "nosniff")
                 .body(resource);
     }
 
@@ -92,7 +102,7 @@ public class DocumentController {
             @RequestParam UUID ownerId,
             Authentication authentication) {
         
-        User user = getAuthenticatedUser(authentication);
+        User user = getOptionalAuthenticatedUser(authentication);
         
         if (!documentAuthorizationService.canAccessDocument(ownerType, ownerId, user)) {
             throw new AccessDeniedException("Not authorized to view documents for this owner");

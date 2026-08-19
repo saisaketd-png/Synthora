@@ -27,6 +27,12 @@ public record PurchaseOrderResponse(
         OrderStatus status,
         LocalDateTime placedAt,
         LocalDateTime confirmedAt,
+        LocalDateTime processingAt,
+        LocalDateTime shippedAt,
+        LocalDateTime deliveredAt,
+        LocalDateTime rejectedAt,
+        String rejectionReason,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}
+

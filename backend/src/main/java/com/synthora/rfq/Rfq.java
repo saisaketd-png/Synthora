@@ -13,11 +13,23 @@ public class Rfq {
     @Id
     private UUID id;
 
+    @Column(name = "sourcing_request_id")
+    private UUID sourcingRequestId;
+
+    @Column(name = "sourcing_request_reference", length = 30)
+    private String sourcingRequestReference;
+
     @Column(name = "buyer_id", nullable = false)
     private UUID buyerId;
 
     @Column(name = "product_id", nullable = false)
     private UUID productId;
+
+    @Column(name = "master_product_id")
+    private UUID masterProductId;
+
+    @Column(name = "supplier_offering_id")
+    private UUID supplierOfferingId;
 
     @Column(name = "supplier_id", nullable = false)
     private Long supplierId;
@@ -34,6 +46,9 @@ public class Rfq {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private RfqStatus status;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 
     @Column(name = "accepted_quotation_id")
     private UUID acceptedQuotationId;
@@ -70,6 +85,22 @@ public class Rfq {
         this.id = id;
     }
 
+    public UUID getSourcingRequestId() {
+        return sourcingRequestId;
+    }
+
+    public void setSourcingRequestId(UUID sourcingRequestId) {
+        this.sourcingRequestId = sourcingRequestId;
+    }
+
+    public String getSourcingRequestReference() {
+        return sourcingRequestReference;
+    }
+
+    public void setSourcingRequestReference(String sourcingRequestReference) {
+        this.sourcingRequestReference = sourcingRequestReference;
+    }
+
     public UUID getBuyerId() {
         return buyerId;
     }
@@ -84,6 +115,22 @@ public class Rfq {
 
     public void setProductId(UUID productId) {
         this.productId = productId;
+    }
+
+    public UUID getMasterProductId() {
+        return masterProductId;
+    }
+
+    public void setMasterProductId(UUID masterProductId) {
+        this.masterProductId = masterProductId;
+    }
+
+    public UUID getSupplierOfferingId() {
+        return supplierOfferingId;
+    }
+
+    public void setSupplierOfferingId(UUID supplierOfferingId) {
+        this.supplierOfferingId = supplierOfferingId;
     }
 
     public Long getSupplierId() {
@@ -124,6 +171,14 @@ public class Rfq {
 
     public void setStatus(RfqStatus status) {
         this.status = status;
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
     }
 
     public UUID getAcceptedQuotationId() {

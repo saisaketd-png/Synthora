@@ -5,18 +5,22 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getBuyerOrder } from "@/features/order/api/getBuyerOrder";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
-import { ShipmentResponse, getShipment } from "@/features/order/api/fulfillment";
+import { ShipmentResponse, getShipment, confirmReceiptBuyer } from "@/features/order/api/fulfillment";
 import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
+import { getSupplierPublicProfile } from "@/features/suppliers/api";
+import { useToast } from "@/shared/context/ToastContext";
 
 export default function BuyerOrderDetailPage() {
   const params = useParams();
   const orderId = params?.id as string;
 
   const [order, setOrder] = useState<PurchaseOrderResponse | null>(null);
+  const [supplierName, setSupplierName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [shipment, setShipment] = useState<ShipmentResponse | null>(null);
+  const toast = useToast();
   const [shipmentLoading, setShipmentLoading] = useState(false);
 
   useEffect(() => {
@@ -27,6 +31,11 @@ export default function BuyerOrderDetailPage() {
         setError(null);
         const data = await getBuyerOrder(orderId);
         setOrder(data);
+
+        // Resolve supplier name non-blocking
+        getSupplierPublicProfile(data.supplierId)
+          .then((s) => { if (s?.name) setSupplierName(s.name); })
+          .catch(() => {});
 
         if (data.status === "SHIPPED" || data.status === "DELIVERED") {
           loadShipment(data.id);
@@ -53,11 +62,27 @@ export default function BuyerOrderDetailPage() {
     loadOrder();
   }, [orderId]);
 
+  const handleConfirmReceipt = async () => {
+    if (!order) return;
+    try {
+      setActionLoading(true);
+      const updated = await confirmReceiptBuyer(order.id);
+      setOrder(updated);
+      toast.success("Delivery confirmed. Purchase order closed.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to confirm receipt";
+      toast.error(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getSemanticStatusClass = (status: string) => {
     switch (status) {
       case "CONFIRMED": return "text-teal-600";
       case "PLACED": return "text-orange-500";
       case "CANCELLED": return "text-red-700";
+      case "REJECTED": return "text-red-600";
       case "PROCESSING": return "text-blue-600";
       case "SHIPPED": return "text-indigo-600";
       case "DELIVERED": return "text-green-600";
@@ -150,7 +175,7 @@ export default function BuyerOrderDetailPage() {
           <div className="flex-1 lg:border-r border-slate-200 lg:pr-6">
             <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">SUPPLIER</span>
             <span className="text-sm font-semibold text-[#0A192F] truncate block">
-              {`Supplier #${order.supplierId}`}
+              {supplierName || `Supplier #${order.supplierId}`}
             </span>
           </div>
           <div className="flex-1 lg:border-r border-slate-200 lg:pr-6">
@@ -249,7 +274,7 @@ export default function BuyerOrderDetailPage() {
               <div className="border-l-[2px] border-slate-200 pl-6 py-2">
                 <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">SUPPLIER RECORD</span>
                 <p className="text-2xl font-bold text-[#0A192F] mb-1">
-                  {`Supplier #${order.supplierId}`}
+                  {supplierName || `Supplier #${order.supplierId}`}
                 </p>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600">
                   VERIFIED COMMERCIAL PARTNER
@@ -345,13 +370,56 @@ export default function BuyerOrderDetailPage() {
                         </span>
                       </div>
                     </div>
+
+                    {order.status === "SHIPPED" && (
+                      <div className="border-t border-slate-200 pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-indigo-50/50 p-4 -mx-2">
+                        <div>
+                          <span className="block text-[10px] font-bold uppercase tracking-widest text-indigo-700 mb-1">
+                            ACTION REQUIRED ON RECEIPT
+                          </span>
+                          <p className="text-xs font-medium text-slate-700">
+                            Once this shipment has arrived at your receiving facility and verified, confirm receipt to complete the procurement order.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleConfirmReceipt}
+                          disabled={actionLoading}
+                          className="shrink-0 px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors shadow-sm disabled:opacity-50"
+                        >
+                          {actionLoading ? "CONFIRMING..." : "CONFIRM RECEIPT"}
+                        </button>
+                      </div>
+                    )}
+
                     {order.status === "DELIVERED" && (
                       <div className="border-t border-slate-200 pt-4 mt-4">
                         <span className="block text-[10px] font-bold uppercase tracking-widest text-green-600 mb-1">
-                          DELIVERED
+                          DELIVERED & COMPLETED
                         </span>
                         <p className="text-sm font-medium text-slate-600">
-                          The supplier has marked this shipment as successfully delivered.
+                          This shipment has been received and verified. The purchase order fulfillment lifecycle is complete.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {order.status === "REJECTED" && (
+                  <div className="border-l-4 border-red-600 bg-red-50 p-6 -m-2">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-red-600 mb-1">
+                      ORDER REJECTED BY SUPPLIER
+                    </span>
+                    <p className="text-sm font-bold text-slate-900 mb-2">
+                      The supplier was unable to fulfill this purchase order and rejected it prior to fulfillment operations.
+                    </p>
+                    {order.rejectionReason && (
+                      <div className="bg-white border border-red-200 p-4 mt-3">
+                        <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                          REJECTION REASON
+                        </span>
+                        <p className="text-xs font-mono text-slate-800 italic">
+                          "{order.rejectionReason}"
                         </p>
                       </div>
                     )}
@@ -445,18 +513,58 @@ export default function BuyerOrderDetailPage() {
                 
                 <div className="relative border-l border-slate-200 ml-1 space-y-8 pb-4">
                   
+                  {order.deliveredAt && (
+                    <div className="relative pl-6">
+                      <div className="absolute w-2 h-2 rounded-full bg-green-500 -left-[4.5px] top-1.5" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-green-700">ORDER DELIVERED</p>
+                      <p className="font-mono text-[10px] text-slate-500 mt-1">
+                        {new Date(order.deliveredAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
+                      </p>
+                    </div>
+                  )}
+
+                  {order.shippedAt && (
+                    <div className="relative pl-6">
+                      <div className="absolute w-2 h-2 rounded-full bg-indigo-500 -left-[4.5px] top-1.5" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-700">ORDER SHIPPED</p>
+                      <p className="font-mono text-[10px] text-slate-500 mt-1">
+                        {new Date(order.shippedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
+                      </p>
+                    </div>
+                  )}
+
+                  {order.processingAt && (
+                    <div className="relative pl-6">
+                      <div className="absolute w-2 h-2 rounded-full bg-blue-500 -left-[4.5px] top-1.5" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-blue-700">PROCESSING STARTED</p>
+                      <p className="font-mono text-[10px] text-slate-500 mt-1">
+                        {new Date(order.processingAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
+                      </p>
+                    </div>
+                  )}
+
+                  {order.rejectedAt && (
+                    <div className="relative pl-6">
+                      <div className="absolute w-2 h-2 rounded-full bg-red-600 -left-[4.5px] top-1.5" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-red-600">ORDER REJECTED</p>
+                      <p className="font-mono text-[10px] text-slate-500 mt-1">
+                        {new Date(order.rejectedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
+                      </p>
+                    </div>
+                  )}
+
                   {order.confirmedAt && (
                     <div className="relative pl-6">
                       <div className="absolute w-2 h-2 rounded-full bg-teal-500 -left-[4.5px] top-1.5" />
                       <p className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F]">ORDER CONFIRMED</p>
                       <p className="font-mono text-[10px] text-slate-500 mt-1">
-                        {new Date(order.confirmedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
+                        {new Date(order.confirmedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase()}
                       </p>
                     </div>
                   )}
                   
                   <div className="relative pl-6">
-                    <div className={`absolute w-2 h-2 rounded-full -left-[4.5px] top-1.5 ${!order.confirmedAt ? "bg-orange-500" : "bg-slate-300"}`} />
+                    <div className={`absolute w-2 h-2 rounded-full -left-[4.5px] top-1.5 ${!order.confirmedAt && !order.rejectedAt ? "bg-orange-500" : "bg-slate-300"}`} />
                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700">PURCHASE ORDER ISSUED</p>
                     <p className="font-mono text-[10px] text-slate-500 mt-1">
                       {new Date(order.placedAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}

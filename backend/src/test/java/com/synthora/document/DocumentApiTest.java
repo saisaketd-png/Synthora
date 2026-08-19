@@ -112,7 +112,7 @@ public class DocumentApiTest {
                 "file",
                 "test.pdf",
                 "application/pdf",
-                "dummy pdf content".getBytes()
+                "%PDF-1.4 valid test pdf content".getBytes()
         );
 
         UUID ownerId = testProduct.getId();
@@ -142,7 +142,7 @@ public class DocumentApiTest {
 
     @Test
     public void testRejectsMissingRequiredFields() throws Exception {
-        MockMultipartFile file = new MockMultipartFile("file", "test.pdf", "application/pdf", "data".getBytes());
+        MockMultipartFile file = new MockMultipartFile("file", "test.pdf", "application/pdf", "%PDF-1.4 valid data".getBytes());
 
         mockMvc.perform(multipart("/api/v1/documents")
                 .file(file)
@@ -166,7 +166,7 @@ public class DocumentApiTest {
                 .param("category", "COA")
                 .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value(containsString("Unsupported document type")));
+                .andExpect(jsonPath("$.error").value(containsString("Unsupported file type")));
     }
 
     @Test
@@ -182,13 +182,13 @@ public class DocumentApiTest {
                 .param("category", "COA")
                 .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value(containsString("Unsupported document type")));
+                .andExpect(jsonPath("$.error").value(containsString("Unsupported file type")));
     }
 
     @Test
     public void testPathTraversalFilenameIsNormalized() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
-                "file", "../../../etc/passwd", "application/pdf", "content".getBytes()
+                "file", "../../../etc/passwd.pdf", "application/pdf", "%PDF-1.4 test passwd content".getBytes()
         );
 
         mockMvc.perform(multipart("/api/v1/documents")
@@ -198,7 +198,7 @@ public class DocumentApiTest {
                 .param("category", "COA")
                 .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.originalFileName").value("passwd")); // directory traversal stripped
+                .andExpect(jsonPath("$.originalFileName").value("passwd.pdf")); // directory traversal stripped
     }
 
     @Test
@@ -280,10 +280,10 @@ public class DocumentApiTest {
     @Test
     public void testUnauthenticatedRequestsRejected() throws Exception {
         mockMvc.perform(get("/api/v1/documents/" + UUID.randomUUID()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
                 
         mockMvc.perform(delete("/api/v1/documents/" + UUID.randomUUID()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     private Document createTestDocument() {

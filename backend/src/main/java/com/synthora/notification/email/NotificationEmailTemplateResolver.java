@@ -44,6 +44,10 @@ public class NotificationEmailTemplateResolver {
             case PURCHASE_ORDER -> appBaseUrl + "/dashboard/orders/" + entityId;
             case SHIPMENT -> appBaseUrl + "/dashboard/orders/" + entityId;
             case DOCUMENT -> appBaseUrl + "/dashboard/documents";
+            case PRODUCT_REQUEST -> appBaseUrl + "/dashboard/supplier/products";
+            case MASTER_PRODUCT -> appBaseUrl + "/products/" + entityId;
+            case SUPPLIER_OFFERING -> appBaseUrl + "/dashboard/admin/catalog/offerings/" + entityId;
+            case SUPPLIER -> appBaseUrl + "/dashboard/admin/catalog/verification/" + entityId;
         };
     }
 
@@ -59,6 +63,10 @@ public class NotificationEmailTemplateResolver {
             case PURCHASE_ORDER -> "View Purchase Order";
             case SHIPMENT -> "Track Shipment";
             case DOCUMENT -> "View Document";
+            case PRODUCT_REQUEST -> "View Request Status";
+            case MASTER_PRODUCT -> "View Master Product";
+            case SUPPLIER_OFFERING -> "View Supplier Offering";
+            case SUPPLIER -> "View Supplier Profile";
         };
     }
 

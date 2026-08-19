@@ -9,6 +9,7 @@ interface QuotationComparisonProps {
   rfqStatus: string;
   rfqId: string;
   onDecisionSuccess?: () => void;
+  onOpenCounterOffer?: () => void;
 }
 
 export function QuotationComparison({
@@ -16,6 +17,7 @@ export function QuotationComparison({
   rfqStatus,
   rfqId,
   onDecisionSuccess,
+  onOpenCounterOffer,
 }: QuotationComparisonProps) {
   const [modalMode, setModalMode] = useState<"accept" | "reject" | null>(null);
   const [notes, setNotes] = useState("");
@@ -27,17 +29,21 @@ export function QuotationComparison({
       <section className="mb-16">
         <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
           <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
-            03 / Commercial Quotation
+            03 / COMMERCIAL NEGOTIATION
           </h2>
+          <p className="text-[11px] text-slate-500 mt-0.5">Quotation & Counter-Offer History</p>
         </div>
-        <div className="py-6 border-b border-slate-200">
-          <p className="text-xs font-mono text-slate-500 uppercase">NO QUOTATIONS RECEIVED YET.</p>
+        <div className="py-8 border-b border-slate-200 text-center bg-slate-50/50 rounded-xl">
+          <p className="text-xs font-mono text-slate-500 uppercase tracking-wider">
+            NO QUOTATIONS OR COUNTER OFFERS TRANSMITTED YET.
+          </p>
         </div>
       </section>
     );
   }
 
   const latestQuotation = quotations[0];
+  const canBuyerAct = (rfqStatus === "QUOTED" || rfqStatus === "COUNTERED") && latestQuotation.actorType !== "BUYER";
 
   async function handleConfirmDecision() {
     if (!modalMode) return;
@@ -65,125 +71,253 @@ export function QuotationComparison({
     }
   }
 
+  const formatActionLabel = (action?: string | null) => {
+    switch (action) {
+      case "COUNTER_OFFER":
+        return "COUNTER OFFER";
+      case "REVISED_QUOTATION":
+        return "REVISED QUOTATION";
+      case "INITIAL_QUOTATION":
+      default:
+        return "INITIAL QUOTATION";
+    }
+  };
+
+  const getStatusDisplayLabel = () => {
+    switch (rfqStatus) {
+      case "ACCEPTED":
+        return "Quotation Accepted";
+      case "REJECTED":
+        return "Quotation Rejected";
+      case "COUNTERED":
+        return latestQuotation.actorType === "BUYER"
+          ? "Awaiting Supplier Response"
+          : "Counter Offer Transmitted";
+      case "QUOTED":
+        return latestQuotation.actorType === "BUYER"
+          ? "Awaiting Supplier Response"
+          : "Awaiting Buyer Decision";
+      default:
+        return rfqStatus;
+    }
+  };
+
   return (
     <section className="mb-16 relative">
-      <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
-          03 / Commercial Quotation
-        </h2>
+      {/* Header */}
+      <div className="border-b-[2px] border-[#0A192F] pb-3 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
+            03 / COMMERCIAL NEGOTIATION
+          </h2>
+          <p className="text-[11px] text-slate-500 mt-0.5">Quotation & Counter-Offer History</p>
+        </div>
+        <span className="text-[10px] font-mono font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md border border-slate-200">
+          {quotations.length} REVISION{quotations.length > 1 ? "S" : ""} LOGGED
+        </span>
       </div>
 
-      <div className="flex flex-col">
-        {/* Table Header */}
-        <div className="hidden md:flex items-center py-2 border-b border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          <div className="w-[10%]">Revision</div>
-          <div className="w-[15%]">Unit Price</div>
-          <div className="w-[15%]">MOQ</div>
-          <div className="w-[15%]">Lead Time</div>
-          <div className="w-[15%]">Validity</div>
-          <div className="w-[15%]">Status</div>
-          <div className="w-[15%] text-right">Action</div>
+      {/* NEGOTIATION STATUS SUMMARY CARD */}
+      <div className="mb-10 bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 border-b border-slate-800 pb-2">
+          NEGOTIATION SUMMARY
         </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div>
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+              CURRENT OFFER
+            </span>
+            <span className="font-mono text-xl font-bold text-teal-400">
+              {latestQuotation.currency} {latestQuotation.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+            </span>
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+              MOQ
+            </span>
+            <span className="font-mono text-sm font-bold text-slate-200">
+              {latestQuotation.minimumOrderQuantity != null ? `${latestQuotation.minimumOrderQuantity.toLocaleString()} units` : "Standard"}
+            </span>
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+              LEAD TIME
+            </span>
+            <span className="font-mono text-sm font-bold text-slate-200">
+              {latestQuotation.leadTimeDays != null ? `${latestQuotation.leadTimeDays} DAYS` : "Standard"}
+            </span>
+          </div>
+          <div>
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+              STATUS
+            </span>
+            <span className="inline-block text-xs font-bold px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
+              {getStatusDisplayLabel()}
+            </span>
+          </div>
+        </div>
+      </div>
 
-        {/* Rows */}
+      {/* VERTICAL NEGOTIATION TIMELINE */}
+      <div className="space-y-6 relative">
         {quotations.map((q, idx) => {
           const isLatest = idx === 0;
+          const isBuyerActor = q.actorType === "BUYER";
+
           return (
-            <div 
-              key={q.id} 
-              className={`group flex flex-col md:flex-row md:items-center py-4 border-b ${isLatest ? 'border-slate-300 bg-slate-50/50' : 'border-slate-100'} hover:bg-slate-50 transition-colors`}
-            >
-              <div className="w-full md:w-[10%] mb-2 md:mb-0">
-                <span className="md:hidden text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Revision</span>
-                <span className={`font-mono text-xs ${isLatest ? 'font-bold text-[#0A192F]' : 'text-slate-500'}`}>
-                  REV-{q.quotationVersion.toString().padStart(2, '0')}
-                </span>
-              </div>
-              
-              <div className="w-full md:w-[15%] mb-2 md:mb-0">
-                <span className="md:hidden text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Unit Price</span>
-                <span className={`font-mono text-[13px] ${isLatest ? 'font-bold text-[#0A192F]' : 'text-slate-600'}`}>
-                  {q.currency} {q.unitPrice.toFixed(2)}
-                </span>
-              </div>
-              
-              <div className="w-full md:w-[15%] mb-2 md:mb-0">
-                <span className="md:hidden text-[10px] uppercase font-bold text-slate-400 block mb-0.5">MOQ</span>
-                <span className="font-mono text-xs text-slate-700">
-                  {q.minimumOrderQuantity != null ? `${q.minimumOrderQuantity.toLocaleString()} units` : "—"}
-                </span>
-              </div>
+            <React.Fragment key={q.id}>
+              {/* Connector Arrow between revisions */}
+              {idx > 0 && (
+                <div className="flex justify-center my-2">
+                  <div className="flex flex-col items-center gap-0.5 text-slate-300">
+                    <div className="w-0.5 h-4 bg-slate-300" />
+                    <span className="text-xs font-bold">↓</span>
+                  </div>
+                </div>
+              )}
 
-              <div className="w-full md:w-[15%] mb-2 md:mb-0">
-                <span className="md:hidden text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Lead Time</span>
-                <span className="font-mono text-xs text-slate-700">
-                  {q.leadTimeDays != null ? `${q.leadTimeDays} DAYS` : "—"}
-                </span>
-              </div>
+              {/* Revision Timeline Card */}
+              <div
+                className={`rounded-2xl border transition-all p-6 ${
+                  isLatest
+                    ? "border-teal-500/80 bg-white shadow-lg ring-1 ring-teal-500/30"
+                    : "border-slate-200 bg-slate-50/60 opacity-85"
+                }`}
+              >
+                {/* Revision Header */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
+                  <div className="flex items-center gap-2.5">
+                    {/* Actor Badge */}
+                    <span
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-md border uppercase tracking-wider ${
+                        isBuyerActor
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-purple-50 text-purple-700 border-purple-200"
+                      }`}
+                    >
+                      {isBuyerActor ? "BUYER" : "SUPPLIER"}
+                    </span>
 
-              <div className="w-full md:w-[15%] mb-2 md:mb-0">
-                <span className="md:hidden text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Validity</span>
-                <span className="font-mono text-xs text-slate-700">
-                  {q.validityDate}
-                </span>
-              </div>
-              
-              <div className="w-full md:w-[15%] mb-3 md:mb-0">
-                <span className="md:hidden text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Status</span>
-                {isLatest ? (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F]">CURRENT</span>
-                ) : (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">SUPERSEDED</span>
+                    {/* Version & Action */}
+                    <span className="font-mono text-sm font-bold text-slate-900">
+                      V{q.quotationVersion} · {formatActionLabel(q.actionType)}
+                    </span>
+
+                    {/* Latest Badge */}
+                    {isLatest ? (
+                      <span className="text-[9px] font-bold bg-teal-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+                        CURRENT / LATEST
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded uppercase tracking-wider">
+                        SUPERSEDED
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Timestamp */}
+                  <span className="font-mono text-xs text-slate-500">
+                    {new Date(q.createdAt).toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    }).toUpperCase()}
+                  </span>
+                </div>
+
+                {/* Commercial Content Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                      UNIT PRICE
+                    </span>
+                    <span className={`font-mono text-lg ${isLatest ? "font-bold text-[#0A192F]" : "font-medium text-slate-700"}`}>
+                      {q.currency} {q.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                      MOQ
+                    </span>
+                    <span className="font-mono text-sm font-bold text-slate-800">
+                      {q.minimumOrderQuantity != null ? `${q.minimumOrderQuantity.toLocaleString()} units` : "Standard"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                      LEAD TIME
+                    </span>
+                    <span className="font-mono text-sm font-bold text-slate-800">
+                      {q.leadTimeDays != null ? `${q.leadTimeDays} DAYS` : "Standard"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                      PACKAGING
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 truncate block">
+                      {q.packagingDetails || "Standard"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Commercial Message / Notes */}
+                {(q.commercialMessage || q.commercialNotes) && (
+                  <div className="mt-4 pt-3 border-t border-slate-100 bg-slate-50 p-3 rounded-xl">
+                    <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                      {isBuyerActor ? "BUYER MESSAGE" : "COMMERCIAL NOTES"}
+                    </span>
+                    <p className="text-xs font-mono text-slate-700 italic">
+                      "{q.commercialMessage || q.commercialNotes}"
+                    </p>
+                  </div>
                 )}
-              </div>
 
-              <div className="w-full md:w-[15%] md:text-right">
-                {isLatest && rfqStatus === "QUOTED" && (
-                  <div className="flex items-center md:justify-end gap-4">
+                {/* Actions for Latest Revision */}
+                {isLatest && canBuyerAct && (
+                  <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-end gap-3">
                     <button
+                      type="button"
                       onClick={() => {
                         setDecisionError(null);
                         setModalMode("accept");
                       }}
-                      className="text-[10px] font-bold uppercase tracking-widest text-teal-600 hover:text-teal-800 transition-colors"
+                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs"
                     >
-                      ACCEPT →
+                      ACCEPT QUOTATION →
                     </button>
+                    {onOpenCounterOffer && (
+                      <button
+                        type="button"
+                        onClick={onOpenCounterOffer}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs"
+                      >
+                        COUNTER OFFER
+                      </button>
+                    )}
                     <button
+                      type="button"
                       onClick={() => {
                         setDecisionError(null);
                         setModalMode("reject");
                       }}
-                      className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-800 transition-colors"
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors"
                     >
-                      REJECT
+                      REJECT QUOTATION
                     </button>
                   </div>
                 )}
-                
-                {isLatest && rfqStatus === "ACCEPTED" && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">ACCEPTED</span>
-                )}
-                {isLatest && rfqStatus === "REJECTED" && (
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">REJECTED</span>
-                )}
               </div>
-            </div>
+            </React.Fragment>
           );
         })}
       </div>
 
-      {latestQuotation.commercialNotes && (
-        <div className="mt-6 pt-4 border-t border-slate-200">
-          <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Commercial Notes (Latest Rev)</span>
-          <p className="text-xs text-slate-700 leading-relaxed font-mono">
-            {latestQuotation.commercialNotes}
-          </p>
-        </div>
-      )}
-
       {/* QUOTATION DOCUMENTS */}
-      <div className="mt-8 border-t border-slate-200 pt-8">
+      <div className="mt-12 border-t border-slate-200 pt-8">
         <GenericDocumentManager
           title="Quotation Documents"
           description="Technical specifications, certifications, and quotation attachments."
@@ -198,7 +332,7 @@ export function QuotationComparison({
       {/* CONFIRMATION DECISION MODAL */}
       {modalMode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="bg-white max-w-md w-full p-8 border border-slate-300 shadow-2xl">
+          <div className="bg-white max-w-md w-full p-8 rounded-2xl border border-slate-300 shadow-2xl">
             <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
               <h3 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
                 {modalMode === "accept"
@@ -206,57 +340,55 @@ export function QuotationComparison({
                   : `Reject Revision ${latestQuotation.quotationVersion}`}
               </h3>
             </div>
-            
-            <p className="text-sm font-medium text-slate-600 leading-relaxed mb-6">
-              {modalMode === "accept"
-                ? `You are accepting commercial terms of ${latestQuotation.currency} ${latestQuotation.unitPrice.toFixed(2)}/unit. This transitions the RFQ to ACCEPTED and permits PO generation.`
-                : `You are permanently rejecting this quotation. The RFQ will be transitioned to REJECTED.`}
-            </p>
 
             {decisionError && (
-              <div className="mb-6 border-l-2 border-orange-500 pl-3">
-                <span className="block text-[10px] font-bold uppercase tracking-widest text-orange-600">Error</span>
-                <span className="text-xs font-mono text-slate-700 mt-1 block">{decisionError}</span>
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg">
+                {decisionError}
               </div>
             )}
 
-            <div className="mb-8">
-              <label htmlFor="decision-notes" className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
-                {modalMode === "accept" ? "Internal Acceptance Notes" : "Rejection Rationale"}
+            <p className="text-xs text-slate-600 mb-4">
+              {modalMode === "accept"
+                ? "Are you sure you want to accept this quotation? This will lock commercial terms and enable Purchase Order creation."
+                : "Are you sure you want to reject this quotation? The supplier will be notified."}
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                Optional Notes / Reason
               </label>
               <textarea
-                id="decision-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Optional documentation..."
                 rows={3}
-                className="w-full text-xs font-mono border border-slate-300 p-3 outline-none focus:border-[#0A192F] bg-slate-50"
+                placeholder="Enter any additional notes..."
+                className="w-full p-3 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-6">
+            <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
-                disabled={submitting}
                 onClick={() => {
                   setModalMode(null);
                   setDecisionError(null);
                 }}
-                className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-800 transition-colors"
+                disabled={submitting}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
               >
                 CANCEL
               </button>
               <button
                 type="button"
-                disabled={submitting}
                 onClick={handleConfirmDecision}
-                className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                disabled={submitting}
+                className={`px-4 py-2 text-xs font-bold text-white rounded-xl transition-colors shadow-xs ${
                   modalMode === "accept"
-                    ? "text-teal-600 hover:text-teal-800"
-                    : "text-[#0A192F] hover:text-slate-700"
+                    ? "bg-teal-600 hover:bg-teal-700"
+                    : "bg-red-600 hover:bg-red-700"
                 }`}
               >
-                {submitting ? "PROCESSING..." : modalMode === "accept" ? "CONFIRM ACCEPTANCE →" : "CONFIRM REJECTION →"}
+                {submitting ? "PROCESSING..." : modalMode === "accept" ? "CONFIRM ACCEPTANCE" : "CONFIRM REJECTION"}
               </button>
             </div>
           </div>

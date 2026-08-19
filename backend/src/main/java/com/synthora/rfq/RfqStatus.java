@@ -4,8 +4,10 @@ public enum RfqStatus {
     PENDING,
     CONTACTED,
     QUOTED,
+    COUNTERED,
     ACCEPTED,
     REJECTED,
     CLOSED,
-    CANCELLED
+    CANCELLED,
+    EXPIRED
 }

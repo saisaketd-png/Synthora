@@ -23,6 +23,9 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "product_code", unique = true, length = 50)
+    private String productCode;
+
     @Column(length = 2000)
     private String description;
 
@@ -35,6 +38,10 @@ public class Product {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProductCategory category;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private java.util.List<ProductImage> images = new java.util.ArrayList<>();
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -187,5 +194,18 @@ public class Product {
     public String getAvailabilityStatus() { return availabilityStatus; }
     public void setAvailabilityStatus(String availabilityStatus) { this.availabilityStatus = availabilityStatus; }
 
+    public String getProductCode() { return productCode; }
+    public void setProductCode(String productCode) { this.productCode = productCode; }
 
+    public java.util.List<ProductImage> getImages() { return images; }
+    public void setImages(java.util.List<ProductImage> images) { this.images = images; }
+
+    @PrePersist
+    protected void onCreate() {
+        if (productCode == null || productCode.isBlank()) {
+            String prefix = category != null ? category.name() : "SYN";
+            if (prefix.length() > 3) prefix = prefix.substring(0, 3);
+            productCode = prefix + "-" + (100000 + (int)(Math.random() * 900000));
+        }
+    }
 }

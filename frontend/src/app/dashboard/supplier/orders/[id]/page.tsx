@@ -7,15 +7,18 @@ import { getSupplierOrders } from "@/features/order/api/getSupplierOrders";
 import { confirmOrder } from "@/features/order/api/confirmOrder";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
 import { ShipOrderModal } from "@/features/order/components/ShipOrderModal";
+import { RejectOrderModal } from "@/features/order/components/RejectOrderModal";
 import { 
   ShipmentResponse, 
   ShipOrderRequest, 
   getShipment, 
   startProcessingSupplierOrder, 
   shipSupplierOrder, 
-  markOrderDeliveredSupplier 
+  markOrderDeliveredSupplier,
+  rejectSupplierOrder 
 } from "@/features/order/api/fulfillment";
 import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
+import { useToast } from "@/shared/context/ToastContext";
 
 export default function SupplierOrderDetailPage() {
   const params = useParams();
@@ -31,6 +34,8 @@ export default function SupplierOrderDetailPage() {
   const [shipmentLoading, setShipmentLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showShipModal, setShowShipModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const toast = useToast();
 
   const loadOrder = async () => {
     if (!orderId) return;
@@ -76,8 +81,10 @@ export default function SupplierOrderDetailPage() {
       setConfirming(true);
       const updated = await confirmOrder(order.id);
       setOrder(updated);
+      toast.success("Purchase order confirmed.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to confirm order");
+      const msg = err instanceof Error ? err.message : "Failed to confirm order";
+      toast.error(msg);
     } finally {
       setConfirming(false);
     }
@@ -89,8 +96,26 @@ export default function SupplierOrderDetailPage() {
       setActionLoading(true);
       const updated = await startProcessingSupplierOrder(order.id);
       setOrder(updated);
+      toast.success("Order moved to active processing.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to start processing");
+      const msg = err instanceof Error ? err.message : "Failed to start processing";
+      toast.error(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectOrder = async (reason: string) => {
+    if (!order) return;
+    try {
+      setActionLoading(true);
+      const updated = await rejectSupplierOrder(order.id, reason);
+      setOrder(updated);
+      setShowRejectModal(false);
+      toast.success("Order rejected.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reject order");
+      throw err;
     } finally {
       setActionLoading(false);
     }
@@ -104,8 +129,10 @@ export default function SupplierOrderDetailPage() {
       setOrder(updated);
       await loadShipment(order.id);
       setShowShipModal(false);
+      toast.success("Order marked as shipped. Tracking details recorded.");
     } catch (err) {
-      throw err; // Passed up to modal
+      toast.error(err instanceof Error ? err.message : "Failed to ship order");
+      throw err;
     } finally {
       setActionLoading(false);
     }
@@ -117,8 +144,10 @@ export default function SupplierOrderDetailPage() {
       setActionLoading(true);
       const updated = await markOrderDeliveredSupplier(order.id);
       setOrder(updated);
+      toast.success("Order marked as delivered.");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to mark delivered");
+      const msg = err instanceof Error ? err.message : "Failed to mark delivered";
+      toast.error(msg);
     } finally {
       setActionLoading(false);
     }
@@ -221,7 +250,7 @@ export default function SupplierOrderDetailPage() {
         </div>
 
         {/* =========================================
-            3. ACTION REQUIRED (CONFIRMATION BLOCK)
+            3. ACTION / FULFILLMENT CONTROL BLOCK
             ========================================= */}
         {order.status === "PLACED" && (
           <section className="mb-12 border-l-[3px] border-orange-500 bg-orange-50/30 p-6 md:p-8">
@@ -231,17 +260,124 @@ export default function SupplierOrderDetailPage() {
                   ACTION REQUIRED
                 </span>
                 <p className="text-sm font-medium text-slate-800">
-                  Confirm this purchase order to acknowledge the procurement commitment and lock the fulfillment schedule.
+                  Confirm this purchase order to acknowledge the procurement commitment and lock the fulfillment schedule, or reject if unable to fulfill.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowRejectModal(true)}
+                  disabled={confirming || actionLoading}
+                  className="px-4 py-3 bg-white border border-red-300 hover:border-red-600 text-red-600 text-[11px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                >
+                  REJECT ORDER
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={confirming || actionLoading}
+                  className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                >
+                  {confirming ? "CONFIRMING..." : "CONFIRM PURCHASE ORDER"}
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {order.status === "CONFIRMED" && (
+          <section className="mb-12 border-l-[3px] border-teal-500 bg-teal-50/30 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-teal-700 mb-2">
+                  CONFIRMED & READY FOR PROCESSING
+                </span>
+                <p className="text-sm font-medium text-slate-800">
+                  Begin manufacturing, compounding, or lot reservation to move this purchase order to active processing.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowRejectModal(true)}
+                  disabled={actionLoading}
+                  className="px-4 py-3 bg-white border border-red-300 hover:border-red-600 text-red-600 text-[11px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                >
+                  REJECT ORDER
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStartProcessing}
+                  disabled={actionLoading}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                >
+                  {actionLoading ? "STARTING..." : "START PROCESSING"}
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {order.status === "PROCESSING" && (
+          <section className="mb-12 border-l-[3px] border-blue-500 bg-blue-50/30 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-blue-700 mb-2">
+                  ACTIVE FULFILLMENT / READY TO SHIP
+                </span>
+                <p className="text-sm font-medium text-slate-800">
+                  Dispatch material lot and record logistics carrier and tracking metadata.
                 </p>
               </div>
               <button
-                onClick={handleConfirm}
-                disabled={confirming}
-                className="shrink-0 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:opacity-50"
+                type="button"
+                onClick={() => setShowShipModal(true)}
+                disabled={actionLoading}
+                className="shrink-0 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
               >
-                {confirming ? "CONFIRMING..." : "CONFIRM PURCHASE ORDER"}
+                MARK AS SHIPPED
               </button>
             </div>
+          </section>
+        )}
+
+        {order.status === "SHIPPED" && (
+          <section className="mb-12 border-l-[3px] border-indigo-500 bg-indigo-50/30 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-indigo-700 mb-2">
+                  DISPATCHED / IN TRANSIT
+                </span>
+                <p className="text-sm font-medium text-slate-800">
+                  Material has been dispatched. You can mark as delivered or await buyer receipt confirmation.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleMarkDelivered}
+                disabled={actionLoading}
+                className="shrink-0 px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+              >
+                {actionLoading ? "UPDATING..." : "MARK AS DELIVERED"}
+              </button>
+            </div>
+          </section>
+        )}
+
+        {order.status === "REJECTED" && (
+          <section className="mb-12 border-l-[3px] border-red-600 bg-red-50 p-6 md:p-8">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-red-600 mb-2">
+              PURCHASE ORDER REJECTED
+            </span>
+            <p className="text-sm font-bold text-slate-900 mb-2">
+              This order was rejected before fulfillment operations began.
+            </p>
+            {order.rejectionReason && (
+              <div className="bg-white border border-red-200 p-4 mt-2">
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">REASON</span>
+                <p className="text-xs font-mono text-slate-800 italic">"{order.rejectionReason}"</p>
+              </div>
+            )}
           </section>
         )}
 
@@ -267,12 +403,6 @@ export default function SupplierOrderDetailPage() {
                 <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">QUANTITY</span>
                 <span className="font-mono text-lg font-bold text-[#0A192F]">
                   {order.quantity.toLocaleString()} {order.unit.toUpperCase()}
-                </span>
-              </div>
-              <div>
-                <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">INTERNAL PRODUCT ID</span>
-                <span className="font-mono text-sm font-medium text-slate-700">
-                  {order.productId}
                 </span>
               </div>
             </div>
@@ -460,6 +590,22 @@ export default function SupplierOrderDetailPage() {
         </footer>
 
       </div>
+
+      {showShipModal && (
+        <ShipOrderModal
+          orderId={order.id}
+          poNumber={order.poNumber}
+          onClose={() => setShowShipModal(false)}
+          onSubmit={handleShipOrder}
+        />
+      )}
+
+      <RejectOrderModal
+        isOpen={showRejectModal}
+        onClose={() => setShowRejectModal(false)}
+        onConfirm={handleRejectOrder}
+        poNumber={order.poNumber}
+      />
     </div>
   );
 }

@@ -48,4 +48,9 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
      * Used internally for "mark all as read" bulk operations in Phase 2F.3.
      */
     java.util.List<Notification> findByRecipientIdAndReadFalse(UUID recipientId);
+
+    /**
+     * Retrieves all notifications for a recipient ordered by creation date desc.
+     */
+    java.util.List<Notification> findByRecipientIdOrderByCreatedAtDesc(UUID recipientId);
 }

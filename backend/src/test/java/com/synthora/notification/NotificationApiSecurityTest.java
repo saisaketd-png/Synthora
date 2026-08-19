@@ -75,7 +75,7 @@ public class NotificationApiSecurityTest {
     @Test
     public void testGetNotifications_Unauthenticated_Rejected() throws Exception {
         mockMvc.perform(get("/api/v1/notifications"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

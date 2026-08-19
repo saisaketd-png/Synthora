@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import { Navbar } from "@/features/home/components/Navbar";
 import { Footer } from "@/features/home/components/Footer";
 import { ShieldCheck, MapPin, Clock, Award, Building2, Factory, FileCheck, ExternalLink } from "lucide-react";
@@ -5,6 +6,54 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupplierPublicProfile, getSupplierProducts } from "@/features/suppliers/api";
 import { SupplierProductCatalog } from "@/features/suppliers/components/SupplierProductCatalog";
+
+export const dynamic = "force-dynamic";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+
+export async function generateMetadata(props: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
+  try {
+    const supplier = await getSupplierPublicProfile(params.id);
+    if (!supplier) {
+      return {
+        title: "Supplier Profile | Synthora",
+        robots: { index: false, follow: true },
+      };
+    }
+    const title = `${supplier.name} | Verified Chemical Manufacturer | Synthora`;
+    const description =
+      supplier.aboutCompany ||
+      `Source chemical compounds, APIs, and specialty raw materials from verified supplier ${supplier.name} on Synthora.`;
+
+    return {
+      title,
+      description,
+      alternates: {
+        canonical: `${SITE_URL}/suppliers/${params.id}`,
+      },
+      openGraph: {
+        title,
+        description,
+        url: `${SITE_URL}/suppliers/${params.id}`,
+        siteName: "Synthora",
+        type: "profile",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+    };
+  } catch {
+    return {
+      title: "Supplier Profile | Synthora",
+      robots: { index: false, follow: true },
+    };
+  }
+}
 
 export default async function SupplierProfilePage(props: { 
   params: Promise<{ id: string }>,
@@ -25,12 +74,28 @@ export default async function SupplierProfilePage(props: {
     return notFound();
   }
 
-  // Handle certifications (split by comma if needed, or if it's JSON array format, etc)
-  // Assuming it's a comma separated string for now.
+  // Schema.org Organization JSON-LD
+  const supplierJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: supplier.name,
+    description: supplier.aboutCompany || `Verified chemical supplier ${supplier.name} on Synthora.`,
+    url: `${SITE_URL}/suppliers/${params.id}`,
+    location: supplier.countryName ? {
+      "@type": "Place",
+      name: supplier.countryName,
+    } : undefined,
+  };
+
   const certList = supplier.certifications ? supplier.certifications.split(",").map(c => c.trim()) : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased">
+      {/* Inject Supplier Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(supplierJsonLd) }}
+      />
       <Navbar />
 
       <main className="flex-1 py-12">

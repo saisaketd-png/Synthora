@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service for administrative supplier moderation: verification, export readiness,
@@ -43,16 +44,22 @@ public class AdminSupplierService {
     private final UserRepository userRepository;
     private final SupplierIdentityResolver supplierIdentityResolver;
     private final AuditService auditService;
+    private final com.synthora.seller.SupplierVerificationAuditRepository verificationAuditRepository;
+    private final com.synthora.notification.NotificationService notificationService;
 
     public AdminSupplierService(
             SupplierRepository supplierRepository,
             UserRepository userRepository,
             SupplierIdentityResolver supplierIdentityResolver,
-            AuditService auditService) {
+            AuditService auditService,
+            com.synthora.seller.SupplierVerificationAuditRepository verificationAuditRepository,
+            com.synthora.notification.NotificationService notificationService) {
         this.supplierRepository = supplierRepository;
         this.userRepository = userRepository;
         this.supplierIdentityResolver = supplierIdentityResolver;
         this.auditService = auditService;
+        this.verificationAuditRepository = verificationAuditRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -199,6 +206,63 @@ public class AdminSupplierService {
                 : ("Verified: " + oldVerified + " -> " + request.verified());
 
         auditService.record(authentication, action, AuditTargetType.SUPPLIER, id.toString(), details, servletRequest);
+
+        return toResponse(saved);
+    }
+
+    public AdminSupplierResponse transitionSupplierVerification(
+            Long id,
+            com.synthora.seller.SupplierVerificationStatus newStatus,
+            String notes,
+            Authentication authentication) {
+
+        User admin = resolveAdminActor(authentication);
+        Supplier supplier = supplierRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + id));
+
+        com.synthora.seller.SupplierVerificationStatus prevStatus = supplier.getVerificationStatus() != null
+                ? supplier.getVerificationStatus()
+                : com.synthora.seller.SupplierVerificationStatus.PENDING;
+
+        if (prevStatus == newStatus) {
+            throw new IllegalArgumentException("Supplier verification is already in status " + newStatus);
+        }
+
+        supplier.setVerificationStatus(newStatus);
+        supplier.setVerificationNotes(notes != null ? notes.trim() : null);
+        supplier.setVerificationUpdatedAt(java.time.LocalDateTime.now());
+
+        // Update boolean flag to match state machine
+        if (newStatus == com.synthora.seller.SupplierVerificationStatus.VERIFIED) {
+            supplier.setVerified(true);
+        } else if (newStatus == com.synthora.seller.SupplierVerificationStatus.REJECTED || newStatus == com.synthora.seller.SupplierVerificationStatus.SUSPENDED) {
+            supplier.setVerified(false);
+        }
+
+        Supplier saved = supplierRepository.save(supplier);
+
+        // Record audit entry
+        com.synthora.seller.SupplierVerificationAudit audit = new com.synthora.seller.SupplierVerificationAudit(
+                saved.getId(),
+                admin.getId(),
+                admin.getName(),
+                prevStatus,
+                newStatus,
+                notes
+        );
+        verificationAuditRepository.save(audit);
+
+        // Send notification to supplier user if present
+        if (saved.getUser() != null) {
+            notificationService.createNotification(
+                    saved.getUser().getId(),
+                    com.synthora.notification.NotificationType.PRODUCT_REQUEST_APPROVED,
+                    "Supplier Verification Status Update",
+                    "Your supplier verification status has been updated to: " + newStatus.name() + (notes != null ? ". Notes: " + notes : ""),
+                    com.synthora.notification.NotificationEntityType.PRODUCT_REQUEST,
+                    UUID.nameUUIDFromBytes(saved.getId().toString().getBytes())
+            );
+        }
 
         return toResponse(saved);
     }

@@ -169,7 +169,7 @@ public class NotificationEventIntegrationTest {
         assertEquals(buyerUser.getId(), n.getRecipientId());
         assertEquals("New Quotation Received", n.getTitle());
         assertEquals(NotificationEntityType.QUOTATION, n.getEntityType());
-        assertEquals(quote.id(), n.getEntityId());
+        assertEquals(rfq.id(), n.getEntityId());
     }
 
     @Test
@@ -193,7 +193,7 @@ public class NotificationEventIntegrationTest {
         assertEquals(supplierUser.getId(), latest.getRecipientId());
         assertEquals("Quotation Accepted", latest.getTitle());
         assertEquals(NotificationEntityType.QUOTATION, latest.getEntityType());
-        assertEquals(quote.id(), latest.getEntityId());
+        assertEquals(rfq.id(), latest.getEntityId());
     }
 
     @Test
@@ -281,7 +281,7 @@ public class NotificationEventIntegrationTest {
         RfqResponse rfq = rfqService.createRfq(rfqReq, buyerAuth);
 
         MockMultipartFile file = new MockMultipartFile(
-                "file", "tech-spec.pdf", "application/pdf", "Dummy PDF content".getBytes());
+                "file", "tech-spec.pdf", "application/pdf", "%PDF-1.4 spec content".getBytes());
 
         DocumentUploadRequest docReq = new DocumentUploadRequest();
         docReq.setOwnerType(DocumentOwnerType.RFQ);

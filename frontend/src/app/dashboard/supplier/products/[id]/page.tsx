@@ -7,6 +7,7 @@ import { ChevronLeft, AlertCircle } from "lucide-react";
 import { ProductForm } from "@/features/products/components/ProductForm";
 import { ProductDocuments } from "@/features/products/components/ProductDocuments";
 import { ProductSupplierPanel } from "@/features/products/components/ProductSupplierPanel";
+import { ProductImageManager } from "@/features/products/components/ProductImageManager";
 import { updateProduct, getProductDetail } from "@/features/products/api/manageProducts";
 import { Product, UpdateProductRequest } from "@/features/products/types/product";
 import { getAuthUser } from "@/features/auth/api/auth";
@@ -25,10 +26,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setIsLoading(true);
       setAccessError(null);
       const data = await getProductDetail(params.id);
-      
-      // The backend ProductController securely enforces ownership on PUT requests.
-      // We don't need a client-side ownership check here.
-      
       setProduct(data);
     } catch (err: any) {
       if (err.message?.includes("404")) {
@@ -99,7 +96,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           <ChevronLeft className="w-4 h-4 mr-1" />
           Back to Register
         </Link>
-        <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Edit Product</h1>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Edit Product</h1>
+          {product?.productCode && (
+            <span className="px-3 py-1 bg-slate-900 text-teal-300 font-mono text-xs font-bold rounded-md shadow-xs">
+              CODE: {product.productCode}
+            </span>
+          )}
+        </div>
         <p className="text-sm text-slate-500 mt-1">
           Update specifications and commercial terms for {product?.name}.
         </p>
@@ -112,6 +116,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         </div>
       )}
 
+      {/* 01. PRODUCT SPECIFICATIONS FORM */}
       {product && (
         <ProductForm
           initialData={{
@@ -138,10 +143,17 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         />
       )}
 
+      {/* 02. PRODUCT IMAGES */}
+      {product && (
+        <ProductImageManager productId={params.id} />
+      )}
+
+      {/* 03. COMPLIANCE & QUALITY DOCUMENTS */}
       {product && (
         <ProductDocuments productId={params.id} isSeller={true} />
       )}
 
+      {/* 04. MULTI-SUPPLIER OFFERING PANEL */}
       {product && (
         <ProductSupplierPanel productId={params.id} />
       )}

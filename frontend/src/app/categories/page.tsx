@@ -1,8 +1,24 @@
+import { Metadata } from "next";
 import { Navbar } from "@/features/home/components/Navbar";
 import { Footer } from "@/features/home/components/Footer";
 import { CategoryGrid } from "@/features/home/components/CategoryGrid";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Chemical Categories & Classifications | Synthora",
+  description: "Browse pharmaceutical APIs, intermediates, specialty chemicals, and solvents categorized for global enterprise procurement.",
+  alternates: {
+    canonical: "/categories",
+  },
+  openGraph: {
+    title: "Chemical Categories & Classifications | Synthora",
+    description: "Browse pharmaceutical APIs, intermediates, specialty chemicals, and solvents categorized for global enterprise procurement.",
+    url: "https://synthora.com/categories",
+    siteName: "Synthora",
+    type: "website",
+  },
+};
 
 export default function CategoriesPage() {
   return (

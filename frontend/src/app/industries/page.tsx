@@ -1,8 +1,31 @@
+import { Metadata } from "next";
 import { Navbar } from "@/features/home/components/Navbar";
 import { Footer } from "@/features/home/components/Footer";
 import { IndustryGrid } from "@/features/home/components/IndustryGrid";
 
 export const dynamic = "force-dynamic";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+
+export const metadata: Metadata = {
+  title: "Industries Served | Chemical & Pharma Sourcing | Synthora",
+  description: "Explore enterprise chemical procurement solutions across Active Pharmaceutical Ingredients (APIs), specialty polymers, agrochemicals, and fine intermediates.",
+  alternates: {
+    canonical: `${SITE_URL}/industries`,
+  },
+  openGraph: {
+    title: "Industries Served | Synthora",
+    description: "Enterprise chemical procurement solutions tailored for specialized manufacturing sectors.",
+    url: `${SITE_URL}/industries`,
+    siteName: "Synthora",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Industries Served | Synthora",
+    description: "Enterprise chemical procurement solutions tailored for specialized manufacturing sectors.",
+  },
+};
 
 export default function IndustriesPage() {
   return (

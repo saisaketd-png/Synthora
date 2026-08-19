@@ -61,7 +61,7 @@ public class ProductSecurityTest {
 
     @BeforeEach
     public void setup() {
-        jdbcTemplate.execute("DELETE FROM shipments; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM users;");
+        jdbcTemplate.execute("DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM documents; DELETE FROM shipments; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM users;");
 
         buyer = new User();
         buyer.setEmail("buyer@synthora.com");

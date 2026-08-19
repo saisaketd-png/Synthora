@@ -7,6 +7,21 @@ import { SupplierProfileForm } from "@/features/suppliers/components/SupplierPro
 import { SectionHeader } from "@/shared/components/SectionHeader";
 import { AlertCircle } from "lucide-react";
 
+const EMPTY_PROFILE: SellerProfile = {
+  id: "",
+  companyName: "",
+  gstNumber: null,
+  address: null,
+  city: null,
+  state: null,
+  country: "India",
+  website: null,
+  certifications: null,
+  aboutCompany: null,
+  createdAt: "",
+  updatedAt: "",
+};
+
 export default function SupplierProfilePage() {
   const [profile, setProfile] = useState<SellerProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +32,7 @@ export default function SupplierProfilePage() {
       setLoading(true);
       setError(null);
       const data = await getMySellerProfile();
-      setProfile(data);
+      setProfile(data ?? EMPTY_PROFILE);
     } catch (err: any) {
       setError(err.message || "Failed to load profile. Please try again.");
     } finally {
@@ -45,15 +60,11 @@ export default function SupplierProfilePage() {
         <div className="flex justify-center p-12">
           <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : profile ? (
+      ) : (
         <SupplierProfileForm
-          initialProfile={profile}
+          initialProfile={profile ?? EMPTY_PROFILE}
           onSuccess={(updated) => setProfile(updated)}
         />
-      ) : (
-        <div className="p-8 text-center bg-white border border-slate-200 rounded-sm">
-          <p className="text-slate-500 text-sm">No profile data found.</p>
-        </div>
       )}
     </div>
   );

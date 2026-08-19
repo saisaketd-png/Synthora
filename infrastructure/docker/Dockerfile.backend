@@ -1,0 +1,16 @@
+# Multi-stage Dockerfile for Synthora Spring Boot Backend
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+WORKDIR /app
+COPY backend/pom.xml .
+COPY backend/src ./src
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+RUN addgroup -S synthora && adduser -S synthora -G synthora
+USER synthora:synthora
+
+COPY --from=build /app/target/synthora-backend-*.jar app.jar
+EXPOSE 8085
+
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

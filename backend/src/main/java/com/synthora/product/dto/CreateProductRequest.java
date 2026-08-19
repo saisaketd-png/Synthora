@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 public record CreateProductRequest(
 
         @NotBlank(message = "Product name is required")
+        @Size(max = 255, message = "Product name must not exceed 255 characters")
         String name,
 
         @Size(max = 2000, message = "Description too long")
@@ -15,6 +16,7 @@ public record CreateProductRequest(
 
         @NotNull(message = "Price is required")
         @DecimalMin(value = "0.01", message = "Price must be greater than 0")
+        @DecimalMax(value = "999999999.99", message = "Price is too large")
         BigDecimal price,
 
         @NotNull(message = "Category is required")
@@ -22,6 +24,7 @@ public record CreateProductRequest(
 
         @NotNull(message = "Stock is required")
         @Min(value = 0, message = "Stock cannot be negative")
+        @Max(value = 1000000000, message = "Stock exceeds maximum permitted quantity")
         Integer stock,
 
         @Size(max = 100, message = "CAS number too long")
@@ -37,13 +40,15 @@ public record CreateProductRequest(
         @Size(max = 100, message = "Grade description too long")
         String grade,
 
-        @Min(value = 0, message = "MOQ cannot be negative")
+        @DecimalMin(value = "0.0", message = "MOQ cannot be negative")
+        @DecimalMax(value = "999999999.99", message = "MOQ is too large")
         BigDecimal moqKg,
 
         @Size(max = 150, message = "Packaging description too long")
         String packaging,
 
         @Min(value = 0, message = "Lead time cannot be negative")
+        @Max(value = 3650, message = "Lead time must not exceed 3650 days")
         Integer leadTimeDays,
 
         Boolean coaAvailable,

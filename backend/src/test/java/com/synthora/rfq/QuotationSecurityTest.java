@@ -1,20 +1,38 @@
 package com.synthora.rfq;
 
+import com.synthora.identity.User;
+import com.synthora.identity.UserRepository;
+import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
+import com.synthora.order.PurchaseOrderRepository;
+import com.synthora.order.ShipmentRepository;
+import com.synthora.product.Product;
+import com.synthora.product.ProductRepository;
+import com.synthora.product.Supplier;
+import com.synthora.product.SupplierRepository;
+import com.synthora.rfq.quotation.Quotation;
+import com.synthora.rfq.quotation.QuotationRepository;
 import com.synthora.security.JwtService;
+import com.synthora.seller.SellerProfileRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.UUID;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -28,46 +46,46 @@ public class QuotationSecurityTest {
     private JwtService jwtService;
 
     @Autowired
-    private com.synthora.identity.UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    private com.synthora.rfq.RfqRepository rfqRepository;
+    private RfqRepository rfqRepository;
 
     @Autowired
-    private com.synthora.rfq.quotation.QuotationRepository quotationRepository;
+    private QuotationRepository quotationRepository;
 
     @Autowired
-    private com.synthora.product.SupplierRepository supplierRepository;
+    private SupplierRepository supplierRepository;
 
     @Autowired
-    private com.synthora.order.PurchaseOrderRepository purchaseOrderRepository;
+    private PurchaseOrderRepository purchaseOrderRepository;
 
     @Autowired
-    private com.synthora.order.ShipmentRepository shipmentRepository;
+    private ShipmentRepository shipmentRepository;
 
     @Autowired
-    private com.synthora.product.ProductRepository productRepository;
+    private ProductRepository productRepository;
 
     @Autowired
-    private com.synthora.seller.SellerProfileRepository sellerProfileRepository;
+    private SellerProfileRepository sellerProfileRepository;
 
-    @org.junit.jupiter.api.BeforeEach
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
     public void setup() {
-        shipmentRepository.deleteAll();
-        purchaseOrderRepository.deleteAll();
-        quotationRepository.deleteAll();
-        rfqRepository.deleteAll();
-        productRepository.deleteAll();
-        supplierRepository.deleteAll();
-        sellerProfileRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
     }
 
     @Test
     public void testSupplierEndpoints() throws Exception {
-        com.synthora.identity.User user = new com.synthora.identity.User();
+        User user = new User();
         user.setEmail("unregistered_seller@synthora.com");
-        user.setRole(com.synthora.identity.UserRole.SUPPLIER);
+        user.setName("Unregistered Seller");
+        user.setPasswordHash("hash123");
+        user.setRole(UserRole.SUPPLIER);
+        user.setStatus(UserStatus.ACTIVE);
+        user = userRepository.save(user);
         String token = jwtService.generateToken(user);
         
         // GET 1
@@ -92,20 +110,22 @@ public class QuotationSecurityTest {
     @Test
     public void testBuyerQuotationOwnershipAndOrdering() throws Exception {
         // 1. Create Buyer 1
-        com.synthora.identity.User buyer1 = new com.synthora.identity.User();
+        User buyer1 = new User();
         buyer1.setEmail("buyer1@synthora.com");
         buyer1.setName("Buyer One");
         buyer1.setPasswordHash("hash123");
-        buyer1.setRole(com.synthora.identity.UserRole.USER);
+        buyer1.setRole(UserRole.USER);
+        buyer1.setStatus(UserStatus.ACTIVE);
         buyer1 = userRepository.save(buyer1);
         String buyer1Token = jwtService.generateToken(buyer1);
 
         // 2. Create Buyer 2
-        com.synthora.identity.User buyer2 = new com.synthora.identity.User();
+        User buyer2 = new User();
         buyer2.setEmail("buyer2@synthora.com");
         buyer2.setName("Buyer Two");
         buyer2.setPasswordHash("hash123");
-        buyer2.setRole(com.synthora.identity.UserRole.USER);
+        buyer2.setRole(UserRole.USER);
+        buyer2.setStatus(UserStatus.ACTIVE);
         buyer2 = userRepository.save(buyer2);
         String buyer2Token = jwtService.generateToken(buyer2);
 
@@ -114,7 +134,7 @@ public class QuotationSecurityTest {
         rfq1.setBuyerId(buyer1.getId());
         rfq1.setProductId(UUID.randomUUID());
         rfq1.setSupplierId(100L);
-        rfq1.setQuantity(new java.math.BigDecimal("500"));
+        rfq1.setQuantity(new BigDecimal("500"));
         rfq1.setUnit("kg");
         rfq1 = rfqRepository.save(rfq1);
 
@@ -123,37 +143,37 @@ public class QuotationSecurityTest {
         rfqEmpty.setBuyerId(buyer1.getId());
         rfqEmpty.setProductId(UUID.randomUUID());
         rfqEmpty.setSupplierId(100L);
-        rfqEmpty.setQuantity(new java.math.BigDecimal("200"));
+        rfqEmpty.setQuantity(new BigDecimal("200"));
         rfqEmpty.setUnit("kg");
         rfqEmpty = rfqRepository.save(rfqEmpty);
 
         // 5. Add quotations to RFQ 1 (v1 and v2)
-        com.synthora.rfq.quotation.Quotation q1 = new com.synthora.rfq.quotation.Quotation();
+        Quotation q1 = new Quotation();
         q1.setRfq(rfq1);
         q1.setQuotationVersion(1);
-        q1.setUnitPrice(new java.math.BigDecimal("150.0000"));
+        q1.setUnitPrice(new BigDecimal("150.0000"));
         q1.setCurrency("USD");
-        q1.setValidityDate(java.time.LocalDate.of(2026, 12, 31));
+        q1.setValidityDate(LocalDate.of(2026, 12, 31));
         quotationRepository.save(q1);
 
-        com.synthora.rfq.quotation.Quotation q2 = new com.synthora.rfq.quotation.Quotation();
+        Quotation q2 = new Quotation();
         q2.setRfq(rfq1);
         q2.setQuotationVersion(2);
-        q2.setUnitPrice(new java.math.BigDecimal("140.0000"));
+        q2.setUnitPrice(new BigDecimal("140.0000"));
         q2.setCurrency("USD");
-        q2.setValidityDate(java.time.LocalDate.of(2026, 12, 31));
+        q2.setValidityDate(LocalDate.of(2026, 12, 31));
         quotationRepository.save(q2);
 
-        // Test 1: Unauthenticated request -> 401/403
+        // Test 1: Unauthenticated request -> 401
         mockMvc.perform(get("/api/v1/rfqs/" + rfq1.getId() + "/quotations"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         // Test 2: Buyer 1 owns RFQ 1 -> 200 with versions ordered 2, 1
         mockMvc.perform(get("/api/v1/rfqs/" + rfq1.getId() + "/quotations")
                 .header("Authorization", "Bearer " + buyer1Token))
                 .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$[0].quotationVersion").value(2))
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$[1].quotationVersion").value(1));
+                .andExpect(jsonPath("$[0].quotationVersion").value(2))
+                .andExpect(jsonPath("$[1].quotationVersion").value(1));
 
         // Test 3: Buyer 2 requests Buyer 1's RFQ -> 404
         mockMvc.perform(get("/api/v1/rfqs/" + rfq1.getId() + "/quotations")
@@ -169,6 +189,6 @@ public class QuotationSecurityTest {
         mockMvc.perform(get("/api/v1/rfqs/" + rfqEmpty.getId() + "/quotations")
                 .header("Authorization", "Bearer " + buyer1Token))
                 .andExpect(status().isOk())
-                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.length()").value(0));
     }
 }

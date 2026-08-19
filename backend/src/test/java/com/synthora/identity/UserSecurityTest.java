@@ -162,12 +162,12 @@ public class UserSecurityTest {
     @Test
     public void testUnauthenticatedCannotAccessProtectedEndpoints() throws Exception {
         mockMvc.perform(get("/api/v1/users"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/api/v1/users/" + buyerUser.getId()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/api/v1/users/me"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

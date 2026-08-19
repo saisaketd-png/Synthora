@@ -1,21 +1,27 @@
 package com.synthora.config;
 
 import com.synthora.security.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.http.HttpMethod;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -23,6 +29,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${synthora.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -34,54 +43,69 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\":\"Unauthorized\",\"message\":\"Authentication required to access this resource\"}");
+        };
+    }
 
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write("{\"error\":\"Forbidden\",\"message\":\"Access denied\"}");
+        };
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:3000")
-        );
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
 
-        configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        );
-
-        configuration.setAllowedHeaders(
-                List.of("*")
-        );
-
+        configuration.setAllowedOrigins(origins.isEmpty() ? List.of("http://localhost:3000") : origins);
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http) throws Exception {
-
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
-
                 .csrf(csrf -> csrf.disable())
-
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler())
+                )
+                .headers(headers -> headers
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .frameOptions(frame -> frame.deny())
+                        .referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .permissionsPolicy(perm -> perm.policy("camera=(), microphone=(), geolocation=()"))
+                )
                 .authorizeHttpRequests(auth -> auth
-
-                        // -----------------------------
-                        // Public authentication
-                        // -----------------------------
+                        // Public authentication & docs & public endpoints
                         .requestMatchers(
+                                "/api/v1/public/**",
                                 "/api/v1/auth/register",
+                                "/api/v1/auth/register/**",
                                 "/api/v1/auth/login",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
@@ -90,23 +114,21 @@ public class SecurityConfig {
                                 "/actuator/info"
                         ).permitAll()
 
-                        // -----------------------------
-                        // Public product browsing
-                        // -----------------------------
+                        // Public product browsing & public document list
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/api/v1/public/**",
                                 "/api/v1/products",
                                 "/api/v1/products/**",
                                 "/api/v1/categories",
                                 "/api/v1/categories/**",
                                 "/api/v1/countries",
                                 "/api/v1/suppliers",
-                                "/api/v1/suppliers/**"
+                                "/api/v1/suppliers/**",
+                                "/api/v1/documents"
                         ).permitAll()
 
-                        // -----------------------------
                         // Buyer RFQ operations
-                        // -----------------------------
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/rfqs/my",
@@ -121,9 +143,7 @@ public class SecurityConfig {
                                 "/api/v1/rfqs/*/quotations/*/reject"
                         ).authenticated()
 
-                        // -----------------------------
                         // Supplier RFQ inbox
-                        // -----------------------------
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/v1/rfqs/supplier",
@@ -135,20 +155,15 @@ public class SecurityConfig {
                                 "/api/v1/rfqs/supplier/*/quotations"
                         ).authenticated()
 
-                        // -----------------------------
                         // Purchase Orders
-                        // -----------------------------
                         .requestMatchers(
                                 "/api/v1/orders",
                                 "/api/v1/orders/**"
                         ).authenticated()
 
-                        // -----------------------------
                         // Everything else
-                        // -----------------------------
                         .anyRequest().authenticated()
                 )
-
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

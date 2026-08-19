@@ -67,6 +67,15 @@ public class PurchaseOrderController {
         return purchaseOrderService.confirmSupplierOrder(orderId, authentication);
     }
 
+    @PostMapping("/supplier/{orderId}/reject")
+    @PreAuthorize("hasRole('SUPPLIER')")
+    public PurchaseOrderResponse rejectSupplierOrder(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody com.synthora.order.dto.RejectPurchaseOrderRequest request,
+            Authentication authentication) {
+        return purchaseOrderService.rejectSupplierOrder(orderId, request, authentication);
+    }
+
     @GetMapping("/rfq/{rfqId}")
     @PreAuthorize("hasRole('BUYER') or hasRole('USER') or hasRole('SUPPLIER')")
     public PurchaseOrderResponse getOrderByRfqId(
@@ -106,5 +115,13 @@ public class PurchaseOrderController {
             @PathVariable UUID orderId,
             Authentication authentication) {
         return purchaseOrderService.markOrderDeliveredSupplier(orderId, authentication);
+    }
+
+    @PostMapping("/{orderId}/receive")
+    @PreAuthorize("hasRole('BUYER') or hasRole('USER')")
+    public PurchaseOrderResponse confirmReceiptOrder(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        return purchaseOrderService.confirmReceiptBuyerOrder(orderId, authentication);
     }
 }

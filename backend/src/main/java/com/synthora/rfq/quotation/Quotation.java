@@ -45,6 +45,15 @@ public class Quotation {
     @Column(name = "commercial_notes", columnDefinition = "TEXT")
     private String commercialNotes;
 
+    @Column(name = "actor_type", nullable = false, length = 20)
+    private String actorType = "SUPPLIER";
+
+    @Column(name = "action_type", nullable = false, length = 30)
+    private String actionType = "INITIAL_QUOTATION";
+
+    @Column(name = "commercial_message", columnDefinition = "TEXT")
+    private String commercialMessage;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -55,6 +64,12 @@ public class Quotation {
         }
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (actorType == null) {
+            actorType = "SUPPLIER";
+        }
+        if (actionType == null) {
+            actionType = "INITIAL_QUOTATION";
         }
     }
 
@@ -136,6 +151,30 @@ public class Quotation {
 
     public void setCommercialNotes(String commercialNotes) {
         this.commercialNotes = commercialNotes;
+    }
+
+    public String getActorType() {
+        return actorType;
+    }
+
+    public void setActorType(String actorType) {
+        this.actorType = actorType;
+    }
+
+    public String getActionType() {
+        return actionType;
+    }
+
+    public void setActionType(String actionType) {
+        this.actionType = actionType;
+    }
+
+    public String getCommercialMessage() {
+        return commercialMessage;
+    }
+
+    public void setCommercialMessage(String commercialMessage) {
+        this.commercialMessage = commercialMessage;
     }
 
     public LocalDateTime getCreatedAt() {

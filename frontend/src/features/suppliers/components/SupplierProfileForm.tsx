@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import { SellerProfile, UpdateSellerProfileRequest } from "../types";
 import { updateMySellerProfile } from "../api";
-import { Save, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Save, AlertCircle } from "lucide-react";
+import { useToast } from "@/shared/context/ToastContext";
 
 export function SupplierProfileForm({
   initialProfile,
@@ -24,9 +25,9 @@ export function SupplierProfileForm({
     aboutCompany: initialProfile.aboutCompany || "",
   });
 
+  const toast = useToast();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -37,14 +38,15 @@ export function SupplierProfileForm({
     e.preventDefault();
     setSaving(true);
     setError(null);
-    setSuccess(false);
 
     try {
       const updated = await updateMySellerProfile(formData);
-      setSuccess(true);
+      toast.success("Company profile saved successfully.");
       onSuccess(updated);
     } catch (err: any) {
-      setError(err.message || "An error occurred while saving the profile.");
+      const msg = err.message || "An error occurred while saving the profile.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -79,13 +81,6 @@ export function SupplierProfileForm({
         <div className="p-4 bg-red-50 text-red-700 text-sm flex items-start gap-3 rounded-sm border border-red-200">
           <AlertCircle className="w-5 h-5 shrink-0" />
           <p>{error}</p>
-        </div>
-      )}
-
-      {success && (
-        <div className="p-4 bg-emerald-50 text-emerald-700 text-sm flex items-start gap-3 rounded-sm border border-emerald-200">
-          <CheckCircle2 className="w-5 h-5 shrink-0" />
-          <p>Profile updated successfully.</p>
         </div>
       )}
 

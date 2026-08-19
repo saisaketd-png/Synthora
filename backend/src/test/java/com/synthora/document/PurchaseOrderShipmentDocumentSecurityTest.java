@@ -184,7 +184,7 @@ public class PurchaseOrderShipmentDocumentSecurityTest {
     }
 
     private MockMultipartFile createMockFile() {
-        return new MockMultipartFile("file", "test.pdf", "application/pdf", "dummy content".getBytes());
+        return new MockMultipartFile("file", "test.pdf", "application/pdf", "%PDF-1.4 valid test pdf content".getBytes());
     }
 
     // --- PURCHASE ORDER Document Tests ---

@@ -16,6 +16,40 @@ public record QuotationResponse(
         LocalDate validityDate,
         String packagingDetails,
         String commercialNotes,
+        String actorType,
+        String actionType,
+        String commercialMessage,
         LocalDateTime createdAt
 ) {
+    // Overloaded constructor for backward compatibility
+    public QuotationResponse(
+            UUID id,
+            UUID rfqId,
+            Integer quotationVersion,
+            BigDecimal unitPrice,
+            String currency,
+            BigDecimal minimumOrderQuantity,
+            Integer leadTimeDays,
+            LocalDate validityDate,
+            String packagingDetails,
+            String commercialNotes,
+            LocalDateTime createdAt
+    ) {
+        this(
+                id,
+                rfqId,
+                quotationVersion,
+                unitPrice,
+                currency,
+                minimumOrderQuantity,
+                leadTimeDays,
+                validityDate,
+                packagingDetails,
+                commercialNotes,
+                "SUPPLIER",
+                "INITIAL_QUOTATION",
+                null,
+                createdAt
+        );
+    }
 }

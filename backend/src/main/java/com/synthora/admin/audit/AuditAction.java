@@ -25,7 +25,20 @@ public enum AuditAction {
     // Document governance
     DOCUMENT_DELETED,
 
+    // Master Catalog governance
+    PRODUCT_REQUEST_APPROVED,
+    PRODUCT_REQUEST_REJECTED,
+    MASTER_PRODUCT_CREATED,
+    MASTER_PRODUCT_UPDATED,
+    MASTER_PRODUCT_DEACTIVATED,
+    MASTER_PRODUCT_MERGED,
+
     // Transaction oversight & administration
     RFQ_STATUS_CHANGED,
-    ORDER_CANCELLED
+    ORDER_CANCELLED,
+    PO_CONFIRMED,
+    PO_PROCESSING_STARTED,
+    PO_SHIPPED,
+    PO_DELIVERED,
+    PO_REJECTED
 }

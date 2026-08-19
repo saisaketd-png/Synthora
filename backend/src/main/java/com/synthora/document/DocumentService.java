@@ -9,7 +9,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -25,32 +24,20 @@ public class DocumentService {
     private final StorageService storageService;
     private final ProductService productService;
     private final ApplicationEventPublisher eventPublisher;
+    private final FileSecurityValidator fileSecurityValidator;
     private final long maxFileSize;
-
-    private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "text/csv",
-            "image/png",
-            "image/jpeg"
-    );
-
-    private static final Set<String> REJECTED_EXTENSIONS = Set.of(
-            ".exe", ".bat", ".cmd", ".sh", ".ps1", ".jar", ".class"
-    );
 
     public DocumentService(DocumentRepository documentRepository,
                            StorageService storageService,
                            ProductService productService,
                            ApplicationEventPublisher eventPublisher,
+                           FileSecurityValidator fileSecurityValidator,
                            @Value("${synthora.documents.max-file-size:10485760}") long maxFileSize) {
         this.documentRepository = documentRepository;
         this.storageService = storageService;
         this.productService = productService;
         this.eventPublisher = eventPublisher;
+        this.fileSecurityValidator = fileSecurityValidator;
         this.maxFileSize = maxFileSize;
     }
 
@@ -58,7 +45,7 @@ public class DocumentService {
     public DocumentResponse uploadDocument(DocumentUploadRequest request, UUID uploadedBy) {
         MultipartFile file = request.getFile();
         
-        if (request.getOwnerType() == DocumentOwnerType.PRODUCT) {
+        if (request.getOwnerType() == DocumentOwnerType.PRODUCT || request.getOwnerType() == DocumentOwnerType.MASTER_PRODUCT || request.getOwnerType() == DocumentOwnerType.SUPPLIER_OFFERING) {
             Set<DocumentCategory> allowedProductCategories = Set.of(
                 DocumentCategory.COA,
                 DocumentCategory.MSDS,
@@ -66,7 +53,15 @@ public class DocumentService {
                 DocumentCategory.CERTIFICATION
             );
             if (!allowedProductCategories.contains(request.getCategory())) {
-                throw new IllegalArgumentException("Invalid category for PRODUCT");
+                throw new IllegalArgumentException("Invalid category for " + request.getOwnerType());
+            }
+        } else if (request.getOwnerType() == DocumentOwnerType.SUPPLIER) {
+            Set<DocumentCategory> allowedSupplierCategories = Set.of(
+                DocumentCategory.CERTIFICATION,
+                DocumentCategory.TECHNICAL_SPECIFICATION
+            );
+            if (!allowedSupplierCategories.contains(request.getCategory())) {
+                throw new IllegalArgumentException("Invalid category for SUPPLIER");
             }
         } else if (request.getOwnerType() == DocumentOwnerType.RFQ) {
             Set<DocumentCategory> allowedRfqCategories = Set.of(
@@ -107,11 +102,10 @@ public class DocumentService {
             }
         }
         
-        validateFile(file);
+        // Deep binary inspection & signature validation
+        FileSecurityValidator.ValidatedFileInfo validated = fileSecurityValidator.validate(file, maxFileSize);
         
-        String originalFileName = normalizeFileName(file.getOriginalFilename());
-        String extension = getExtension(originalFileName);
-        String storageKey = "documents/" + UUID.randomUUID().toString() + extension;
+        String storageKey = "documents/" + UUID.randomUUID() + validated.safeExtension();
         
         // 1. Store physical file
         try {
@@ -125,10 +119,10 @@ public class DocumentService {
         doc.setOwnerType(request.getOwnerType());
         doc.setOwnerId(request.getOwnerId());
         doc.setCategory(request.getCategory());
-        doc.setOriginalFileName(originalFileName);
+        doc.setOriginalFileName(validated.safeOriginalFilename());
         doc.setStorageKey(storageKey);
-        doc.setMimeType(file.getContentType());
-        doc.setFileSize(file.getSize());
+        doc.setMimeType(validated.validatedMimeType());
+        doc.setFileSize(validated.fileSize());
         doc.setUploadedBy(uploadedBy);
         
         try {
@@ -136,7 +130,7 @@ public class DocumentService {
         } catch (Exception ex) {
             // Rollback storage if database fails
             storageService.delete(storageKey);
-            throw ex; // Let global handler or transaction manage it
+            throw ex;
         }
 
         if (doc.getOwnerType() == DocumentOwnerType.PRODUCT) {
@@ -191,71 +185,16 @@ public class DocumentService {
                 storageService.delete(doc.getStorageKey());
             }
         } catch (Exception e) {
-            // The prompt says: "If storage deletion fails: do not silently delete database metadata - return an appropriate server error"
-            // However, because we are in @Transactional, throwing an exception here will rollback the database delete.
-            // This satisfies the requirement "do not leave the system believing a file was deleted when storage deletion failed"
             throw new IllegalStateException("Failed to delete physical file", e);
         }
-    }
-
-    private void validateFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File cannot be empty");
-        }
-        
-        if (file.getSize() > maxFileSize) {
-            throw new IllegalArgumentException("Document exceeds maximum allowed size of " + (maxFileSize / 1048576) + " MB");
-        }
-
-        String mimeType = file.getContentType();
-        if (!ALLOWED_MIME_TYPES.contains(mimeType)) {
-            throw new IllegalArgumentException("Unsupported document type");
-        }
-
-        String originalName = file.getOriginalFilename();
-        if (StringUtils.hasText(originalName)) {
-            String lowerName = originalName.toLowerCase();
-            if (REJECTED_EXTENSIONS.stream().anyMatch(lowerName::endsWith)) {
-                throw new IllegalArgumentException("Unsupported document type");
-            }
-        }
-    }
-
-    private String normalizeFileName(String filename) {
-        if (!StringUtils.hasText(filename)) {
-            return "unknown_file";
-        }
-        
-        // Strip path components
-        String normalized = StringUtils.cleanPath(filename);
-        if (normalized.contains("/")) {
-            normalized = normalized.substring(normalized.lastIndexOf("/") + 1);
-        }
-        
-        // Remove control characters
-        normalized = normalized.replaceAll("[\\p{Cntrl}]", "");
-        
-        if (normalized.length() > 255) {
-            normalized = normalized.substring(normalized.length() - 255);
-        }
-        
-        if (!StringUtils.hasText(normalized)) {
-            return "unknown_file";
-        }
-        
-        return normalized;
-    }
-
-    private String getExtension(String filename) {
-        if (filename == null || !filename.contains(".")) {
-            return "";
-        }
-        return filename.substring(filename.lastIndexOf("."));
     }
 
     public Resource downloadDocument(UUID id) {
         Document document = documentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        if (!storageService.exists(document.getStorageKey())) {
+            throw new ResourceNotFoundException("Document file not found on storage");
+        }
         return storageService.loadAsResource(document.getStorageKey());
     }
 }

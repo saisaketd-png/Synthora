@@ -29,12 +29,20 @@ public class SellerProfileService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     public SellerProfileResponse getMyProfile(Authentication authentication) {
 
         User user = getCurrentUser(authentication);
 
         SellerProfile profile = sellerProfileRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Seller profile not found"));
+                .orElseGet(() -> {
+                    Supplier supplier = supplierRepository.findByUser(user).orElse(null);
+                    SellerProfile newProfile = new SellerProfile();
+                    newProfile.setUser(user);
+                    newProfile.setCompanyName(supplier != null && supplier.getName() != null ? supplier.getName() : (user.getName() != null ? user.getName() : "Company"));
+                    newProfile.setCountry(supplier != null && supplier.getCountryName() != null ? supplier.getCountryName() : "India");
+                    return sellerProfileRepository.save(newProfile);
+                });
 
         return mapToResponse(profile);
     }

@@ -7,6 +7,7 @@ import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserStatus;
 import com.synthora.product.dto.CreateProductRequest;
 import com.synthora.product.dto.ProductDetailResponse;
+import com.synthora.product.dto.ProductImageResponse;
 import com.synthora.product.dto.ProductResponse;
 import com.synthora.product.dto.ProductSupplierResponse;
 import com.synthora.product.dto.UpdateProductRequest;
@@ -32,13 +33,19 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final ProductSupplierRepository productSupplierRepository;
+    private final ProductCodeGenerator productCodeGenerator;
+    private final ProductImageRepository productImageRepository;
 
     public ProductService(ProductRepository productRepository,
                           UserRepository userRepository,
-                          ProductSupplierRepository productSupplierRepository) {
+                          ProductSupplierRepository productSupplierRepository,
+                          ProductCodeGenerator productCodeGenerator,
+                          ProductImageRepository productImageRepository) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.productSupplierRepository = productSupplierRepository;
+        this.productCodeGenerator = productCodeGenerator;
+        this.productImageRepository = productImageRepository;
     }
 
     public ProductResponse createProduct(CreateProductRequest request,
@@ -51,6 +58,7 @@ public class ProductService {
 
         Product product = new Product();
         product.setName(request.name());
+        product.setProductCode(productCodeGenerator.generateProductCode(request.category()));
         product.setDescription(request.description());
         product.setPrice(request.price());
         product.setStock(request.stock());
@@ -100,15 +108,73 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-        if (isHiddenOrDiscontinued(product)) {
+        if (isHiddenOrDiscontinued(product) || product.getSeller() == null ||
+                product.getSeller().getStatus() == UserStatus.SUSPENDED ||
+                product.getSeller().getDeletedAt() != null) {
             throw new ResourceNotFoundException("Product not found");
         }
 
+        return toDetailResponse(product);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductDetailResponse getProductDetailByIdOrCode(String idOrCode) {
+        if (idOrCode == null || idOrCode.isBlank()) {
+            throw new ResourceNotFoundException("Product not found");
+        }
+
+        Product product = null;
+        try {
+            UUID uuid = UUID.fromString(idOrCode.trim());
+            product = productRepository.findById(uuid).orElse(null);
+        } catch (IllegalArgumentException ignored) {
+            // Not a UUID, lookup by product code
+        }
+
+        if (product == null) {
+            product = productRepository.findByProductCodeIgnoreCase(idOrCode.trim())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        }
+
+        if (isHiddenOrDiscontinued(product) || product.getSeller() == null ||
+                product.getSeller().getStatus() == UserStatus.SUSPENDED ||
+                product.getSeller().getDeletedAt() != null) {
+            throw new ResourceNotFoundException("Product not found");
+        }
+
+        return toDetailResponse(product);
+    }
+
+    private ProductDetailResponse toDetailResponse(Product product) {
+        List<ProductImageResponse> imageResponses = productImageRepository.findByProductIdOrderByDisplayOrderAsc(product.getId())
+                .stream()
+                .map(img -> new ProductImageResponse(
+                        img.getId(),
+                        product.getId(),
+                        img.getFileName(),
+                        img.getContentType(),
+                        img.getFileSize(),
+                        img.getIsPrimary(),
+                        img.getDisplayOrder(),
+                        "/api/v1/products/" + product.getId() + "/images/" + img.getId() + "/content",
+                        img.getCreatedAt()
+                ))
+                .toList();
+
+        String primaryImageUrl = imageResponses.stream()
+                .filter(img -> Boolean.TRUE.equals(img.isPrimary()))
+                .map(ProductImageResponse::imageUrl)
+                .findFirst()
+                .orElse(!imageResponses.isEmpty() ? imageResponses.get(0).imageUrl() : null);
+
         return new ProductDetailResponse(
                 product.getId(),
+                product.getProductCode(),
                 product.getName(),
                 product.getDescription(),
                 product.getCategory(),
+                primaryImageUrl,
+                imageResponses,
 
                 product.getCasNumber(),
                 product.getMolecularFormula(),
@@ -221,6 +287,52 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    private static final java.util.Set<String> ALLOWED_PRODUCT_SORT_FIELDS = java.util.Set.of(
+            "name", "price", "stock", "createdAt", "updatedAt", "category", "leadTimeDays", "purity", "moqKg", "productCode"
+    );
+
+    private Pageable createBoundedPageable(int page, int size, String sortField, String sortDir) {
+        int boundedPage = Math.max(0, page);
+        int boundedSize = Math.min(Math.max(1, size), 100);
+
+        String cleanSortField = (sortField != null && ALLOWED_PRODUCT_SORT_FIELDS.contains(sortField.trim()))
+                ? sortField.trim()
+                : "createdAt";
+
+        Sort.Direction direction = (sortDir != null && sortDir.equalsIgnoreCase("asc"))
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+
+        return PageRequest.of(boundedPage, boundedSize, Sort.by(direction, cleanSortField).and(Sort.by(Sort.Direction.DESC, "id")));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> searchCatalogProducts(
+            String search,
+            List<ProductCategory> categories,
+            String casNumber,
+            BigDecimal purityMin,
+            BigDecimal purityMax,
+            BigDecimal moqMin,
+            BigDecimal moqMax,
+            Boolean inStock,
+            Boolean coaAvailable,
+            Boolean msdsAvailable,
+            Boolean exportReady,
+            String availabilityStatus,
+            int page,
+            int size,
+            String sortField,
+            String sortDir
+    ) {
+        Pageable pageable = createBoundedPageable(page, size, sortField, sortDir);
+        Specification<Product> spec = ProductSpecification.buildCatalogSpec(
+                search, categories, casNumber, purityMin, purityMax, moqMin, moqMax,
+                inStock, coaAvailable, msdsAvailable, exportReady, availabilityStatus
+        );
+        return productRepository.findAll(spec, pageable).map(this::toResponse);
+    }
+
     @Transactional(readOnly = true)
     public Page<ProductResponse> getProducts(
             int page,
@@ -228,11 +340,7 @@ public class ProductService {
             String sortField,
             String sortDir) {
 
-        Sort sort = sortDir.equalsIgnoreCase("desc")
-                ? Sort.by(sortField).descending()
-                : Sort.by(sortField).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = createBoundedPageable(page, size, sortField, sortDir);
 
         return productRepository.findAll(publicVisibilitySpec(), pageable)
                 .map(this::toResponse);
@@ -246,14 +354,21 @@ public class ProductService {
             String sortField,
             String sortDir) {
 
-        Sort sort = sortDir.equalsIgnoreCase("desc")
-                ? Sort.by(sortField).descending()
-                : Sort.by(sortField).ascending();
+        Pageable pageable = createBoundedPageable(page, size, sortField, sortDir);
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        if (keyword == null || keyword.isBlank()) {
+            return productRepository.findAll(publicVisibilitySpec(), pageable)
+                    .map(this::toResponse);
+        }
 
+        String safeKeyword = keyword.trim();
+        if (safeKeyword.length() > 100) {
+            safeKeyword = safeKeyword.substring(0, 100);
+        }
+
+        final String searchPattern = "%" + safeKeyword.toLowerCase() + "%";
         Specification<Product> spec = publicVisibilitySpec().and((root, cq, cb) ->
-                cb.like(cb.lower(root.get("name")), "%" + keyword.toLowerCase() + "%")
+                cb.like(cb.lower(root.get("name")), searchPattern)
         );
 
         return productRepository.findAll(spec, pageable)
@@ -270,11 +385,7 @@ public class ProductService {
             String sortField,
             String sortDir) {
 
-        Sort sort = sortDir.equalsIgnoreCase("desc")
-                ? Sort.by(sortField).descending()
-                : Sort.by(sortField).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = createBoundedPageable(page, size, sortField, sortDir);
 
         Specification<Product> spec = publicVisibilitySpec().and((root, cq, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -296,11 +407,7 @@ public class ProductService {
             String sortField,
             String sortDir) {
 
-        Sort sort = sortDir.equalsIgnoreCase("desc")
-                ? Sort.by(sortField).descending()
-                : Sort.by(sortField).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = createBoundedPageable(page, size, sortField, sortDir);
 
         Specification<Product> spec = publicVisibilitySpec().and((root, cq, cb) ->
                 cb.equal(root.get("category"), category)
@@ -323,11 +430,7 @@ public class ProductService {
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Sort sort = sortDir.equalsIgnoreCase("desc")
-                ? Sort.by(sortField).descending()
-                : Sort.by(sortField).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable = createBoundedPageable(page, size, sortField, sortDir);
 
         return productRepository.findBySellerId(currentUser.getId(), pageable)
                 .map(this::toResponse);
@@ -364,10 +467,16 @@ public class ProductService {
     }
 
     private ProductResponse toResponse(Product product) {
+        String primaryImageUrl = productImageRepository.findByProductIdAndIsPrimaryTrue(product.getId())
+                .map(img -> "/api/v1/products/" + product.getId() + "/images/" + img.getId() + "/content")
+                .orElse(null);
+
         return new ProductResponse(
                 product.getId(),
+                product.getProductCode(),
                 product.getName(),
                 product.getDescription(),
+                primaryImageUrl,
 
                 // Commercial
                 product.getPrice(),

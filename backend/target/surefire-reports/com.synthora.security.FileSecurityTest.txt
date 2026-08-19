@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.synthora.security.FileSecurityTest
+-------------------------------------------------------------------------------
+Tests run: 36, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.99 s -- in com.synthora.security.FileSecurityTest

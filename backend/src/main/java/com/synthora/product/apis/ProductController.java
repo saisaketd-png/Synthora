@@ -6,6 +6,8 @@ import com.synthora.product.dto.ProductSupplierResponse;
 import com.synthora.product.dto.ProductResponse;
 import org.springframework.data.domain.Page;
 
+import com.synthora.product.ProductCategory;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,19 +29,50 @@ public class ProductController {
         this.productService = productService;
     }
 
-    @GetMapping("/{id}/detail")
-    public ProductDetailResponse getProductDetail(@PathVariable UUID id) {
-        return productService.getProductDetail(id);
+    @GetMapping("/{idOrCode}/detail")
+    public ProductDetailResponse getProductDetail(@PathVariable String idOrCode) {
+        return productService.getProductDetailByIdOrCode(idOrCode);
     }
     
     @GetMapping
     public Page<ProductResponse> getProducts(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) List<ProductCategory> category,
+            @RequestParam(required = false) String casNumber,
+            @RequestParam(required = false) BigDecimal purityMin,
+            @RequestParam(required = false) BigDecimal purityMax,
+            @RequestParam(required = false) BigDecimal moqMin,
+            @RequestParam(required = false) BigDecimal moqMax,
+            @RequestParam(required = false) Boolean inStock,
+            @RequestParam(required = false) Boolean coa,
+            @RequestParam(required = false) Boolean msds,
+            @RequestParam(required = false) Boolean exportReady,
+            @RequestParam(required = false) String availability,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortField,
             @RequestParam(defaultValue = "desc") String sortDir
     ) {
-        return productService.getProducts(page, size, sortField, sortDir);
+        String effectiveSearch = search != null ? search : keyword;
+        return productService.searchCatalogProducts(
+                effectiveSearch,
+                category,
+                casNumber,
+                purityMin,
+                purityMax,
+                moqMin,
+                moqMax,
+                inStock,
+                coa,
+                msds,
+                exportReady,
+                availability,
+                page,
+                size,
+                sortField,
+                sortDir
+        );
     }
     
     @GetMapping("/{id}/suppliers")

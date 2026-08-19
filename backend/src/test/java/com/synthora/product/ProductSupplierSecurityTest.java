@@ -62,6 +62,9 @@ public class ProductSupplierSecurityTest {
     public void setup() {
         jdbcTemplate.execute(
             "UPDATE rfqs SET accepted_quotation_id = NULL; " +
+            "DELETE FROM governance_audit_logs; " +
+            "DELETE FROM audit_logs; " +
+            "DELETE FROM notifications; " +
             "DELETE FROM shipments; " +
             "DELETE FROM purchase_orders; " +
             "DELETE FROM quotations; " +
@@ -416,7 +419,7 @@ public class ProductSupplierSecurityTest {
         mockMvc.perform(post("/api/v1/products/" + product.getId() + "/supplier-offering")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/api/v1/products/" + product.getId() + "/supplier-offering"))
                 .andExpect(status().isForbidden());
@@ -424,10 +427,10 @@ public class ProductSupplierSecurityTest {
         mockMvc.perform(put("/api/v1/products/" + product.getId() + "/supplier-offering")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(delete("/api/v1/products/" + product.getId() + "/supplier-offering"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         mockMvc.perform(get("/api/v1/suppliers/me/product-offerings"))
                 .andExpect(status().isForbidden());

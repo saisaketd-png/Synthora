@@ -15,6 +15,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.synthora.identity.User;
+import com.synthora.identity.UserRepository;
+import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
+
 @Service
 @Transactional
 public class NotificationService {
@@ -22,9 +27,11 @@ public class NotificationService {
     private static final Logger log = LoggerFactory.getLogger(NotificationService.class);
 
     private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -55,6 +62,51 @@ public class NotificationService {
         Notification saved = notificationRepository.save(notification);
         log.debug("Created notification {} for recipient {}", saved.getId(), recipientId);
         return saved;
+    }
+
+    /**
+     * Persists a notification for all active admin users.
+     */
+    public void notifyAdmins(
+            NotificationType type,
+            String title,
+            String message,
+            NotificationEntityType entityType,
+            UUID entityId) {
+        List<User> admins = userRepository.findByRoleAndStatusAndDeletedAtIsNull(UserRole.ADMIN, UserStatus.ACTIVE);
+        for (User admin : admins) {
+            createNotification(admin.getId(), type, title, message, entityType, entityId);
+        }
+    }
+
+    public Notification notifyUser(
+            UUID userId,
+            NotificationType type,
+            String title,
+            String message,
+            NotificationEntityType entityType,
+            UUID entityId) {
+        return createNotification(userId, type, title, message, entityType, entityId);
+    }
+
+    public Notification notifyBuyer(
+            UUID buyerUserId,
+            NotificationType type,
+            String title,
+            String message,
+            NotificationEntityType entityType,
+            UUID entityId) {
+        return createNotification(buyerUserId, type, title, message, entityType, entityId);
+    }
+
+    public Notification notifySupplier(
+            UUID supplierUserId,
+            NotificationType type,
+            String title,
+            String message,
+            NotificationEntityType entityType,
+            UUID entityId) {
+        return createNotification(supplierUserId, type, title, message, entityType, entityId);
     }
 
     /**

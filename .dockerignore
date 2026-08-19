@@ -1,0 +1,15 @@
+.git
+.gitignore
+.idea
+.vscode
+.planning
+.agents
+.next
+node_modules
+target
+build
+dist
+storage
+*.log
+*.zip
+*.md

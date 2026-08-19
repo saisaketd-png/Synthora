@@ -1,6 +1,7 @@
 package com.synthora.identity.api;
 
 import com.synthora.identity.dto.RegisterRequest;
+import com.synthora.identity.dto.SupplierRegisterRequest;
 import com.synthora.identity.dto.UserResponse;
 import com.synthora.identity.dto.LoginRequest;
 import com.synthora.identity.dto.LoginResponse;
@@ -22,13 +23,13 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-public ResponseEntity<UserResponse> getCurrentUser(
-        Authentication authentication) {
+    public ResponseEntity<UserResponse> getCurrentUser(
+            Authentication authentication) {
 
-    UserResponse response = userService.getCurrentUser(authentication);
+        UserResponse response = userService.getCurrentUser(authentication);
 
-    return ResponseEntity.ok(response);
-}
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> register(
@@ -40,11 +41,30 @@ public ResponseEntity<UserResponse> getCurrentUser(
                 .status(HttpStatus.CREATED)
                 .body(response);
     }
-    @PostMapping("/login")
-public ResponseEntity<LoginResponse> login(
-        @Valid @RequestBody LoginRequest request) {
 
-    LoginResponse response = userService.login(request);
-    return ResponseEntity.ok(response);
+    @PostMapping("/register/supplier")
+    public ResponseEntity<LoginResponse> registerSupplier(
+            @Valid @RequestBody SupplierRegisterRequest request) {
+
+        LoginResponse response = userService.registerSupplier(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
+    }
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @Valid @RequestBody LoginRequest request,
+            jakarta.servlet.http.HttpServletRequest servletRequest) {
+
+        String ip = servletRequest.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isBlank()) {
+            ip = servletRequest.getRemoteAddr();
+        } else if (ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
         }
+
+        LoginResponse response = userService.login(request, ip);
+        return ResponseEntity.ok(response);
+    }
 }

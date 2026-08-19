@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { CreateQuotationRequest, QuotationResponse, submitQuotation } from "../api/submitQuotation";
+import { useToast } from "@/shared/context/ToastContext";
 
 interface QuotationFormProps {
   rfqId: string;
@@ -11,7 +12,7 @@ interface QuotationFormProps {
 export const QuotationForm: React.FC<QuotationFormProps> = ({ rfqId, onSuccess }) => {
   const [formData, setFormData] = useState<Partial<CreateQuotationRequest>>({
     unitPrice: undefined,
-    currency: "USD",
+    currency: "INR",
     minimumOrderQuantity: undefined,
     leadTimeDays: undefined,
     validityDate: "",
@@ -19,6 +20,7 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({ rfqId, onSuccess }
     commercialNotes: "",
   });
 
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,9 +52,12 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({ rfqId, onSuccess }
       }
 
       const response = await submitQuotation(rfqId, formData as CreateQuotationRequest);
+      toast.success("Quotation submitted successfully.");
       onSuccess(response);
     } catch (err: any) {
-      setError(err.message || "Failed to submit quotation. Please try again.");
+      const msg = err.message || "Failed to submit quotation. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -96,16 +101,22 @@ export const QuotationForm: React.FC<QuotationFormProps> = ({ rfqId, onSuccess }
               <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
                 CURRENCY *
               </label>
-              <input
-                type="text"
+              <select
                 name="currency"
                 required
-                maxLength={10}
-                value={formData.currency || ""}
+                value={formData.currency || "INR"}
                 onChange={handleChange}
-                placeholder="USD"
-                className="w-full bg-transparent font-mono text-xl font-bold text-[#0A192F] placeholder:text-slate-300 focus:outline-none focus:border-b focus:border-blue-600 transition-colors py-1 uppercase"
-              />
+                className="w-full bg-transparent font-mono text-xl font-bold text-[#0A192F] focus:outline-none focus:border-b focus:border-blue-600 transition-colors py-1 cursor-pointer"
+              >
+                <option value="INR">INR — Indian Rupee</option>
+                <option value="USD">USD — US Dollar</option>
+                <option value="EUR">EUR — Euro</option>
+                <option value="GBP">GBP — British Pound</option>
+                <option value="AED">AED — UAE Dirham</option>
+                <option value="SGD">SGD — Singapore Dollar</option>
+                <option value="JPY">JPY — Japanese Yen</option>
+                <option value="CNY">CNY — Chinese Yuan</option>
+              </select>
             </div>
           </div>
 

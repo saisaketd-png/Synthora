@@ -31,5 +31,17 @@ public enum NotificationEntityType {
     SHIPMENT,
 
     /** A document — navigation depends on document's ownerType */
-    DOCUMENT
+    DOCUMENT,
+
+    /** A product request submitted by a supplier */
+    PRODUCT_REQUEST,
+
+    /** A canonical master product */
+    MASTER_PRODUCT,
+
+    /** A supplier offering — maps to /dashboard/admin/catalog/offerings/{entityId} */
+    SUPPLIER_OFFERING,
+
+    /** A supplier profile/verification — maps to /dashboard/admin/catalog/verification/{entityId} */
+    SUPPLIER
 }

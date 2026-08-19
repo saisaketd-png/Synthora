@@ -1,0 +1,42 @@
+package com.synthora.product.verification.dto;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
+public record SupplierOfferingGovernanceWorkspaceDto(
+        UUID offeringId,
+        UUID masterProductId,
+        String masterProductName,
+        String masterProductCode,
+        String casNumber,
+        String molecularFormula,
+        String masterProductCategory,
+        String masterProductStatus,
+        Long supplierId,
+        String supplierName,
+        String supplierLegalName,
+        String supplierVerificationStatus,
+        String supplierBusinessType,
+        BigDecimal price,
+        String currency,
+        BigDecimal purity,
+        String grade,
+        BigDecimal moqKg,
+        String packaging,
+        Integer stock,
+        Integer leadTimeDays,
+        Boolean coaAvailable,
+        Boolean msdsAvailable,
+        Boolean exportReady,
+        String availabilityStatus,
+        String moderationStatus,
+        String offeringVerificationStatus,
+        int completenessPercentage,
+        SupplierOfferingCompletenessDto completenessDetails,
+        List<OfferingVerificationItemDto> checklist,
+        List<OfferingAuditDto> auditHistory,
+        String adminRequestNotes,
+        String supplierResponseNotes,
+        String moderationNotes
+) {}

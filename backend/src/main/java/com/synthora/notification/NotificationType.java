@@ -1,75 +1,80 @@
 package com.synthora.notification;
 
-/**
- * Enumeration of notification types supported in Phase 2F.
- * <p>
- * Only types that map directly to verified domain events (Phase 2F.1 audit)
- * are listed here. Deferred and unsupported types are explicitly excluded.
- * </p>
- *
- * Verified domain events → types:
- * <ul>
- *   <li>RfqService.createRfq()                      → RFQ_SUBMITTED</li>
- *   <li>RfqService.submitQuotation()                 → QUOTATION_SUBMITTED</li>
- *   <li>RfqService.acceptQuotation()                 → QUOTATION_ACCEPTED</li>
- *   <li>RfqService.rejectQuotation()                 → QUOTATION_REJECTED</li>
- *   <li>PurchaseOrderService.createPurchaseOrder()   → PO_ISSUED</li>
- *   <li>PurchaseOrderService.confirmSupplierOrder()  → PO_CONFIRMED</li>
- *   <li>PurchaseOrderService.startProcessing()       → ORDER_PROCESSING_STARTED</li>
- *   <li>PurchaseOrderService.shipSupplierOrder()     → ORDER_SHIPPED</li>
- *   <li>PurchaseOrderService.markOrderDelivered()    → ORDER_DELIVERED</li>
- *   <li>DocumentService.uploadDocument()             → DOCUMENT_UPLOADED</li>
- * </ul>
- */
 public enum NotificationType {
 
-    // -----------------------------------------------------------------------
     // RFQ
-    // -----------------------------------------------------------------------
-
-    /** A buyer submitted a new RFQ. Recipient: targeted supplier. */
+    RFQ_CREATED,
     RFQ_SUBMITTED,
+    RFQ_RECEIVED,
+    RFQ_CANCELLED,
+    RFQ_EXPIRED,
+    RFQ_UPDATED,
+    RFQ_CLOSED,
 
-    // -----------------------------------------------------------------------
     // Quotation
-    // -----------------------------------------------------------------------
-
-    /** A supplier submitted a quotation on an RFQ. Recipient: buyer. */
     QUOTATION_SUBMITTED,
-
-    /** A buyer accepted a supplier's quotation. Recipient: supplier. */
+    QUOTATION_UPDATED,
+    QUOTATION_REVISED,
     QUOTATION_ACCEPTED,
-
-    /** A buyer rejected a supplier's quotation. Recipient: supplier. */
     QUOTATION_REJECTED,
 
-    // -----------------------------------------------------------------------
+    // Negotiation
+    COUNTER_OFFER_RECEIVED,
+    COUNTER_OFFER_ACCEPTED,
+    COUNTER_OFFER_REJECTED,
+
     // Purchase Order
-    // -----------------------------------------------------------------------
-
-    /** A buyer issued a Purchase Order. Recipient: supplier. */
+    PURCHASE_ORDER_CREATED,
     PO_ISSUED,
-
-    /** A supplier confirmed a Purchase Order. Recipient: buyer. */
     PO_CONFIRMED,
+    PO_REJECTED,
+    PURCHASE_ORDER_CONFIRMED,
+    PURCHASE_ORDER_PROCESSING,
+    PURCHASE_ORDER_SHIPPED,
+    PURCHASE_ORDER_DELIVERED,
+    PURCHASE_ORDER_CANCELLED,
 
-    // -----------------------------------------------------------------------
     // Fulfillment
-    // -----------------------------------------------------------------------
-
-    /** A supplier started processing an order. Recipient: buyer. */
     ORDER_PROCESSING_STARTED,
-
-    /** A supplier created a shipment for an order. Recipient: buyer. */
     ORDER_SHIPPED,
-
-    /** A supplier marked an order as delivered. Recipient: buyer. */
     ORDER_DELIVERED,
+    ORDER_RECEIPT_CONFIRMED,
 
-    // -----------------------------------------------------------------------
     // Documents
-    // -----------------------------------------------------------------------
+    DOCUMENT_UPLOADED,
+    DOCUMENT_VERIFICATION_REQUIRED,
+    DOCUMENT_REJECTED,
+    DOCUMENT_EXPIRED,
 
-    /** A document was uploaded against a domain entity. Recipient: counterparty. */
-    DOCUMENT_UPLOADED
+    // Master Catalog Governance
+    PRODUCT_REQUEST_SUBMITTED,
+    PRODUCT_INFO_RESPONDED,
+    PRODUCT_REQUEST_APPROVED,
+    PRODUCT_REQUEST_REJECTED,
+    PRODUCT_REQUEST_INFORMATION_REQUIRED,
+
+    MASTER_PRODUCT_CREATED,
+    MASTER_PRODUCT_UPDATED,
+    MASTER_PRODUCT_DEACTIVATED,
+    MASTER_PRODUCT_MERGED,
+
+    // Supplier Verification
+    SUPPLIER_VERIFICATION_STARTED,
+    SUPPLIER_VERIFICATION_SUBMITTED,
+    SUPPLIER_INFORMATION_REQUIRED,
+    VERIFICATION_INFO_REQUESTED,
+    SUPPLIER_VERIFIED,
+    SUPPLIER_REJECTED,
+    SUPPLIER_SUSPENDED,
+
+    // Supplier Offering
+    SUPPLIER_OFFERING_SUBMITTED,
+    SUPPLIER_OFFERING_UPDATED,
+    SUPPLIER_OFFERING_INFORMATION_REQUIRED,
+    SUPPLIER_OFFERING_APPROVED,
+    SUPPLIER_OFFERING_FLAGGED,
+    SUPPLIER_OFFERING_REJECTED,
+    SUPPLIER_OFFERING_SUSPENDED,
+    SUPPLIER_OFFERING_DEACTIVATED,
+    SUPPLIER_OFFERING_MODERATED
 }

@@ -6,11 +6,16 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import java.util.List;
+
 public record ProductDetailResponse(
         UUID id,
+        String productCode,
         String name,
         String description,
         ProductCategory category,
+        String primaryImageUrl,
+        List<ProductImageResponse> images,
 
         // Technical
         String casNumber,

@@ -1,8 +1,31 @@
+import { Metadata } from "next";
 import { Navbar } from "@/features/home/components/Navbar";
 import { Footer } from "@/features/home/components/Footer";
 import { ResourcesSection } from "@/features/home/components/ResourcesSection";
 
 export const dynamic = "force-dynamic";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+
+export const metadata: Metadata = {
+  title: "Compliance & Technical Resources | B2B Procurement | Synthora",
+  description: "Access regulatory compliance guides, COA/MSDS verification handbooks, export manuals, and chemical sourcing resources.",
+  alternates: {
+    canonical: `${SITE_URL}/resources`,
+  },
+  openGraph: {
+    title: "Compliance & Technical Resources | Synthora",
+    description: "Access regulatory compliance guides, COA/MSDS verification handbooks, and chemical sourcing resources.",
+    url: `${SITE_URL}/resources`,
+    siteName: "Synthora",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Compliance & Technical Resources | Synthora",
+    description: "Access regulatory compliance guides, COA/MSDS verification handbooks, and chemical sourcing resources.",
+  },
+};
 
 export default function ResourcesPage() {
   return (

@@ -2,226 +2,216 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Edit, Trash2, AlertCircle } from "lucide-react";
-import { getMyProducts, deleteProduct } from "@/features/products/api/manageProducts";
-import { Product, ProductPage } from "@/features/products/types/product";
-import { EnterpriseTable, Column } from "@/shared/components/EnterpriseTable";
+import { useSearchParams } from "next/navigation";
+import { Plus, Edit, Trash2, AlertCircle, Eye, FileText, Image as ImageIcon, ShieldCheck, Clock, CheckCircle2 } from "lucide-react";
+import { getMySupplierOfferings, deactivateSupplierOffering, SupplierOffering } from "@/features/supplier-products/api/masterCatalogApi";
 import { SectionHeader } from "@/shared/components/SectionHeader";
-import { ProductPagination } from "@/features/products/components/ProductPagination";
 
 export default function SupplierProductsPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const page = parseInt(searchParams.get("page") || "0", 10);
-
-  const [productPage, setProductPage] = useState<ProductPage | null>(null);
+  const [offerings, setOfferings] = useState<SupplierOffering[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const loadProducts = useCallback(async () => {
+  const loadOfferings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getMyProducts(page, 20, "createdAt", "desc");
-      setProductPage(data);
+      const offeringsData = await getMySupplierOfferings();
+      setOfferings(offeringsData);
     } catch (err: any) {
-      setError(err.message || "Failed to load products. Please try again.");
+      setError(err.message || "Failed to load supplier offerings. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, []);
 
   useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+    loadOfferings();
+  }, [loadOfferings]);
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("DELETE PRODUCT?\n\nThis will permanently remove the product from your supplier catalog.")) {
+  const handleDeactivate = async (id: string) => {
+    if (!window.confirm("Deactivate this commercial offering?\n\nIt will be hidden from the public chemical catalog.")) {
       return;
     }
-    
     try {
-      setDeleteLoading(id);
-      await deleteProduct(id);
-      await loadProducts();
+      setActionLoading(id);
+      await deactivateSupplierOffering(id);
+      await loadOfferings();
     } catch (err: any) {
-      alert("Failed to delete product: " + (err.message || "Unknown error"));
+      alert("Failed to deactivate offering: " + (err.message || "Unknown error"));
     } finally {
-      setDeleteLoading(null);
+      setActionLoading(null);
     }
   };
 
-  const columns: Column<Product>[] = [
-    {
-      header: "Product",
-      cell: (p) => (
-        <div>
-          <div className="font-bold text-slate-900">{p.name}</div>
-          <div className="text-[11px] text-slate-500 max-w-[200px] truncate">{p.description}</div>
-        </div>
-      ),
-    },
-    {
-      header: "CAS",
-      accessorKey: "casNumber",
-      cell: (p) => p.casNumber ? <span className="font-mono text-slate-600">{p.casNumber}</span> : "-",
-    },
-    {
-      header: "Purity",
-      cell: (p) => p.purity != null ? `${p.purity}%` : "-",
-    },
-    {
-      header: "Stock",
-      cell: (p) => (
-        <span className={`font-bold ${p.stock > 0 ? 'text-slate-900' : 'text-rose-600'}`}>
-          {p.stock} {p.packaging ? <span className="text-slate-400 font-normal">({p.packaging})</span> : ""}
-        </span>
-      ),
-    },
-    {
-      header: "MOQ",
-      cell: (p) => p.moqKg != null ? `${p.moqKg} kg` : "-",
-    },
-    {
-      header: "Price",
-      cell: (p) => p.price != null ? `$${p.price.toFixed(2)}` : "-",
-    },
-    {
-      header: "Lead Time",
-      cell: (p) => p.leadTimeDays != null ? `${p.leadTimeDays} days` : "-",
-    },
-    {
-      header: "Status",
-      cell: (p) => (
-        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-          p.availabilityStatus === 'IN_STOCK' ? 'bg-emerald-50 text-emerald-700' :
-          p.availabilityStatus === 'OUT_OF_STOCK' ? 'bg-rose-50 text-rose-700' :
-          p.availabilityStatus === 'MADE_TO_ORDER' ? 'bg-blue-50 text-blue-700' :
-          'bg-slate-100 text-slate-700'
-        }`}>
-          {p.availabilityStatus ? p.availabilityStatus.replace(/_/g, ' ') : 'UNKNOWN'}
-        </span>
-      ),
-    },
-    {
-      header: "Action",
-      cell: (p) => (
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/dashboard/supplier/products/${p.id}`}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-            title="Edit Product"
-          >
-            <Edit className="w-4 h-4" />
-          </Link>
-          <button
-            onClick={() => handleDelete(p.id)}
-            disabled={deleteLoading === p.id}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
-            title="Delete Product"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <SectionHeader
-          title="Product Catalog"
-          subtitle="Manage your enterprise inventory and commercial specifications"
-        />
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <SectionHeader
+            title="Product Inventory & Offerings"
+            subtitle="Manage your active commercial chemical offerings, pricing, stock, and catalog listings"
+          />
+        </div>
         <Link
           href="/dashboard/supplier/products/new"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold shadow-sm transition-colors w-full sm:w-auto"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
-          Add Product
+          Add Chemical Offering
         </Link>
       </div>
 
       {error ? (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3 text-rose-800">
+        <div className="p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3 text-rose-800 text-xs font-medium">
           <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div className="text-sm font-medium">{error}</div>
+          <div>{error}</div>
         </div>
       ) : loading ? (
         <div className="flex justify-center p-12">
-          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : (
-        <>
-          <div className="hidden lg:block">
-            <EnterpriseTable
-              columns={columns}
-              data={productPage?.content || []}
-              keyExtractor={(p) => p.id}
-              emptyTitle="NO PRODUCTS LISTED"
-              emptyDescription="No products have been added to your supplier catalog yet."
-            />
-          </div>
-          
-          <div className="block lg:hidden space-y-4">
-            {(!productPage?.content || productPage.content.length === 0) ? (
-              <div className="text-center p-8 bg-white rounded-xl border border-slate-200">
-                <p className="text-slate-900 font-bold mb-2">NO PRODUCTS LISTED</p>
-                <p className="text-sm text-slate-500 mb-6">No products have been added to your supplier catalog yet.</p>
-              </div>
-            ) : (
-              productPage.content.map(p => (
-                <div key={p.id} className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="font-bold text-slate-900">{p.name}</div>
-                      <div className="text-xs text-slate-500 font-mono mt-0.5">{p.casNumber || 'No CAS'}</div>
+      ) : offerings.length > 0 ? (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+            {offerings.map((off) => {
+              const modStatus = off.moderationStatus || "PENDING_REVIEW";
+              const isApproved = modStatus === "APPROVED";
+              const isPending = modStatus === "PENDING_REVIEW";
+              const isFlagged = modStatus === "FLAGGED";
+
+              return (
+                <div
+                  key={off.id}
+                  className="bg-white p-6 rounded-3xl border border-slate-200 shadow-2xs hover:border-blue-300 transition-all space-y-4"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <strong className="text-lg font-extrabold text-slate-900">{off.masterProductName}</strong>
+                        <span className="px-2.5 py-0.5 bg-slate-900 text-white font-mono text-[10px] font-bold rounded-lg uppercase">
+                          {off.masterProductCode}
+                        </span>
+                        {off.category && (
+                          <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-extrabold rounded-lg uppercase">
+                            {off.category.replace("_", " ")}
+                          </span>
+                        )}
+                        <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase flex items-center gap-1 ${
+                          isApproved ? "bg-emerald-50 text-emerald-800 border border-emerald-200" :
+                          isPending ? "bg-amber-50 text-amber-800 border border-amber-200" :
+                          isFlagged ? "bg-purple-50 text-purple-800 border border-purple-200" :
+                          "bg-rose-50 text-rose-800 border border-rose-200"
+                        }`}>
+                          {isApproved && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                          {isPending && <Clock className="w-3 h-3 text-amber-600" />}
+                          Catalog Status: {modStatus.replace("_", " ")}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 font-mono">
+                        CAS Number: <strong className="text-slate-700">{off.casNumber || "N/A"}</strong>
+                        {off.molecularFormula && (
+                          <span className="ml-4">Formula: <strong className="text-slate-700">{off.molecularFormula}</strong></span>
+                        )}
+                      </div>
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      p.availabilityStatus === 'IN_STOCK' ? 'bg-emerald-50 text-emerald-700' :
-                      p.availabilityStatus === 'OUT_OF_STOCK' ? 'bg-rose-50 text-rose-700' :
-                      'bg-slate-100 text-slate-700'
-                    }`}>
-                      {p.availabilityStatus ? p.availabilityStatus.replace(/_/g, ' ') : 'UNKNOWN'}
-                    </span>
+
+                    <div className="text-right shrink-0">
+                      <div className="text-xl font-extrabold text-slate-900 font-mono">
+                        {off.currency} {off.price?.toLocaleString()} <span className="text-xs text-slate-400 font-normal">/ kg</span>
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase ${off.stock > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {off.stock > 0 ? `In Stock (${off.stock} kg)` : "Out of Stock"}
+                      </span>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-500">Stock: <span className="font-bold text-slate-900">{p.stock}</span></span>
-                    <span className="text-slate-500">Price: <span className="font-bold text-slate-900">${p.price?.toFixed(2) || '0.00'}</span></span>
+
+                  {/* Commercial Specifications Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 text-xs font-medium bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Purity</span>
+                      <strong className="text-slate-900">{off.purity ? `${off.purity}%` : "N/A"}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Grade</span>
+                      <strong className="text-slate-900">{off.grade || "N/A"}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">MOQ</span>
+                      <strong className="text-slate-900">{off.moqKg ? `${off.moqKg} kg` : "N/A"}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Lead Time</span>
+                      <strong className="text-slate-900">{off.leadTimeDays ? `${off.leadTimeDays} Days` : "N/A"}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">COA Status</span>
+                      <strong className={off.coaAvailable ? "text-emerald-700" : "text-slate-400"}>
+                        {off.coaAvailable ? "Available" : "Not Provided"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">MSDS Status</span>
+                      <strong className={off.msdsAvailable ? "text-emerald-700" : "text-slate-400"}>
+                        {off.msdsAvailable ? "Available" : "Not Provided"}
+                      </strong>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+
+                  {off.moderationNotes && (
+                    <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900">
+                      <strong className="font-bold block">Governance Note:</strong>
+                      <span>{off.moderationNotes}</span>
+                    </div>
+                  )}
+
+                  {/* Role-Correct Action Controls */}
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100 text-xs font-bold">
                     <Link
-                      href={`/dashboard/supplier/products/${p.id}`}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-bold"
+                      href={`/products/${off.masterProductId}`}
+                      className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors inline-flex items-center gap-1.5"
                     >
-                      <Edit className="w-3.5 h-3.5" /> Edit
+                      <Eye className="w-3.5 h-3.5" /> View Public Listing
+                    </Link>
+                    <Link
+                      href={`/dashboard/supplier/products/${off.id}`}
+                      className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <Edit className="w-3.5 h-3.5" /> Edit Offering
                     </Link>
                     <button
-                      onClick={() => handleDelete(p.id)}
-                      disabled={deleteLoading === p.id}
-                      className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg bg-rose-50 text-rose-600 text-xs font-bold disabled:opacity-50"
+                      type="button"
+                      disabled={actionLoading === off.id}
+                      onClick={() => handleDeactivate(off.id)}
+                      className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl transition-colors inline-flex items-center gap-1.5 disabled:opacity-50"
                     >
-                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                      <Trash2 className="w-3.5 h-3.5" /> Deactivate
                     </button>
                   </div>
                 </div>
-              ))
-            )}
+              );
+            })}
           </div>
-
-          {productPage && productPage.totalElements > 0 && (
-            <ProductPagination
-              queryParams={{ page }}
-              totalElements={productPage.totalElements}
-              currentCount={productPage.content.length}
-            />
-          )}
-        </>
+        </div>
+      ) : (
+        <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-slate-200 space-y-4">
+          <ShieldCheck className="w-10 h-10 text-slate-300 mx-auto" />
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900">NO CHEMICAL OFFERINGS LISTED</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              You have not listed any commercial offerings on Synthora&apos;s Master Catalog yet. Attach an offering to start receiving buyer RFQs.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/supplier/products/new"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Your First Offering
+          </Link>
+        </div>
       )}
     </div>
   );

@@ -78,7 +78,7 @@ public class ProductDocumentSecurityTest {
     @Test
     public void testValidProductDocumentUploadUpdatesAvailability() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
-                "file", "test.pdf", "application/pdf", "dummy pdf content".getBytes()
+                "file", "test.pdf", "application/pdf", "%PDF-1.4 valid test pdf content".getBytes()
         );
 
         mockMvc.perform(multipart("/api/v1/documents")
@@ -96,7 +96,7 @@ public class ProductDocumentSecurityTest {
     @Test
     public void testInvalidProductCategoryRejected() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
-                "file", "test.pdf", "application/pdf", "dummy pdf content".getBytes()
+                "file", "test.pdf", "application/pdf", "%PDF-1.4 valid test pdf content".getBytes()
         );
 
         mockMvc.perform(multipart("/api/v1/documents")
@@ -112,7 +112,7 @@ public class ProductDocumentSecurityTest {
     public void testDeletingLastDocumentUpdatesAvailability() throws Exception {
         // Upload COA
         MockMultipartFile file = new MockMultipartFile(
-                "file", "test.pdf", "application/pdf", "dummy pdf content".getBytes()
+                "file", "test.pdf", "application/pdf", "%PDF-1.4 valid test pdf content".getBytes()
         );
 
         String responseJson = mockMvc.perform(multipart("/api/v1/documents")
@@ -152,7 +152,7 @@ public class ProductDocumentSecurityTest {
         String hackerToken = jwtService.generateToken(otherSupplier);
 
         MockMultipartFile file = new MockMultipartFile(
-                "file", "test.pdf", "application/pdf", "dummy pdf content".getBytes()
+                "file", "test.pdf", "application/pdf", "%PDF-1.4 valid test pdf content".getBytes()
         );
 
         mockMvc.perform(multipart("/api/v1/documents")

@@ -149,9 +149,9 @@ public class AdminSupplierControllerIntegrationTest {
                         .header("Authorization", "Bearer " + supplierToken))
                 .andExpect(status().isForbidden());
 
-        // Unauthenticated gets 403/401
+        // Unauthenticated gets 401
         mockMvc.perform(get("/api/v1/admin/suppliers"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

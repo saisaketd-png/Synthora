@@ -3,6 +3,7 @@ package com.synthora.rfq.apis;
 import com.synthora.rfq.RfqService;
 import com.synthora.rfq.dto.CreateRfqRequest;
 import com.synthora.rfq.dto.RfqResponse;
+import com.synthora.rfq.dto.SourcingRequestResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,7 @@ public class RfqController {
     }
 
     // =========================
-    // BUYER RFQs
+    // BUYER RFQs & SOURCING REQUESTS
     // =========================
 
     @GetMapping("/my")
@@ -31,6 +32,21 @@ public class RfqController {
             Authentication authentication) {
 
         return rfqService.getMyRfqs(authentication);
+    }
+
+    @GetMapping("/sourcing-requests")
+    public List<SourcingRequestResponse> getSourcingRequests(
+            Authentication authentication) {
+
+        return rfqService.getSourcingRequests(authentication);
+    }
+
+    @GetMapping("/sourcing-requests/{sourcingRequestId}")
+    public SourcingRequestResponse getSourcingRequestDetail(
+            @PathVariable UUID sourcingRequestId,
+            Authentication authentication) {
+
+        return rfqService.getSourcingRequestDetail(sourcingRequestId, authentication);
     }
 
     @GetMapping("/{rfqId}")
@@ -47,6 +63,34 @@ public class RfqController {
             Authentication authentication) {
 
         return rfqService.getBuyerQuotations(rfqId, authentication);
+    }
+
+    @PostMapping("/{rfqId}/counter-offer")
+    @ResponseStatus(HttpStatus.CREATED)
+    public com.synthora.rfq.dto.QuotationResponse submitCounterOffer(
+            @PathVariable UUID rfqId,
+            @Valid @RequestBody com.synthora.rfq.dto.CreateCounterOfferRequest request,
+            Authentication authentication) {
+
+        return rfqService.submitCounterOffer(rfqId, request, authentication);
+    }
+
+    @PostMapping("/{rfqId}/cancel")
+    public RfqResponse cancelRfq(
+            @PathVariable UUID rfqId,
+            @RequestParam(required = false) String reason,
+            Authentication authentication) {
+
+        return rfqService.cancelRfq(rfqId, reason, authentication);
+    }
+
+    @PostMapping("/sourcing-requests/{sourcingRequestId}/cancel")
+    public SourcingRequestResponse cancelSourcingRequest(
+            @PathVariable UUID sourcingRequestId,
+            @RequestParam(required = false) String reason,
+            Authentication authentication) {
+
+        return rfqService.cancelSourcingRequest(sourcingRequestId, reason, authentication);
     }
 
     @PostMapping("/{rfqId}/quotations/{quotationId}/accept")
@@ -108,5 +152,14 @@ public class RfqController {
             Authentication authentication) {
 
         return rfqService.submitQuotation(rfqId, request, authentication);
+    }
+
+    @PreAuthorize("hasRole('SUPPLIER')")
+    @GetMapping("/supplier/{rfqId}/quotations")
+    public List<com.synthora.rfq.dto.QuotationResponse> getSupplierQuotations(
+            @PathVariable UUID rfqId,
+            Authentication authentication) {
+
+        return rfqService.getSupplierQuotations(rfqId, authentication);
     }
 }

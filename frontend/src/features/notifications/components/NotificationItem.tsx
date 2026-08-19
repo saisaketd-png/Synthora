@@ -30,6 +30,10 @@ function getNotificationIcon(type: NotificationType) {
       return <FileText className="w-4 h-4 text-blue-600" />;
     case "QUOTATION_SUBMITTED":
       return <FileCheck className="w-4 h-4 text-emerald-600" />;
+    case "QUOTATION_REVISED":
+      return <FileCheck className="w-4 h-4 text-purple-600" />;
+    case "COUNTER_OFFER_RECEIVED":
+      return <Clock className="w-4 h-4 text-amber-600" />;
     case "QUOTATION_ACCEPTED":
       return <CheckCircle className="w-4 h-4 text-teal-600" />;
     case "QUOTATION_REJECTED":

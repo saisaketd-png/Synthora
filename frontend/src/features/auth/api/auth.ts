@@ -44,6 +44,72 @@ export async function login(
   return response.json();
 }
 
+export type RegisterBuyerRequest = {
+  name: string;
+  email: string;
+  phone?: string;
+  password: string;
+};
+
+export type RegisterSupplierRequest = {
+  name: string;
+  email: string;
+  password: string;
+  companyName: string;
+  country: string;
+  countryCode?: string;
+  phone?: string;
+  city?: string;
+  website?: string;
+  aboutCompany?: string;
+};
+
+export async function registerBuyer(
+  data: RegisterBuyerRequest
+): Promise<{ id: string; name: string; email: string; role: string }> {
+  const response = await fetch(`${API_URL}/api/v1/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let errorMessage = "Registration failed";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error || errorData.message || errorMessage;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function registerSupplier(
+  data: RegisterSupplierRequest
+): Promise<LoginResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/register/supplier`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let errorMessage = "Supplier registration failed";
+    try {
+      const errorData = await response.json();
+      errorMessage = errorData.error || errorData.message || errorMessage;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
 export function getAuthUser(): AuthUser | null {
   if (typeof window === "undefined") return null;
   const token = localStorage.getItem("synthora_token");
@@ -82,5 +148,16 @@ export function logout(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem("synthora_token");
     window.dispatchEvent(new Event("auth-changed"));
+  }
+}
+
+export function handleUnauthorized(redirectUrl?: string): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("synthora_token");
+    window.dispatchEvent(new Event("auth-changed"));
+    const target = redirectUrl
+      ? `/login?expired=true&redirect=${encodeURIComponent(redirectUrl)}`
+      : `/login?expired=true`;
+    window.location.href = target;
   }
 }

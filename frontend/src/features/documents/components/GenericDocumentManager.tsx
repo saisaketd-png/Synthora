@@ -163,15 +163,13 @@ export function GenericDocumentManager({
         )}
       </div>
 
-      {error && (
-        <div className="mx-6 mt-4 p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3 text-rose-800">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div className="text-sm font-medium">{error}</div>
-        </div>
-      )}
-
       <div className="p-0">
-        {isLoading ? (
+        {error ? (
+          <div className="mx-6 my-6 p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3 text-rose-800">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div className="text-sm font-medium">{error}</div>
+          </div>
+        ) : isLoading ? (
           <div className="flex justify-center p-12">
             <Loader2 className="w-6 h-6 text-slate-300 animate-spin" />
           </div>

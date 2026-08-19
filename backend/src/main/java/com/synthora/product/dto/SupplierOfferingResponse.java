@@ -1,0 +1,33 @@
+package com.synthora.product.dto;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+public record SupplierOfferingResponse(
+        UUID id,
+        UUID masterProductId,
+        String masterProductCode,
+        String masterProductName,
+        String casNumber,
+        String molecularFormula,
+        String category,
+        Long supplierId,
+        String supplierName,
+        BigDecimal price,
+        String currency,
+        Integer stock,
+        BigDecimal purity,
+        String grade,
+        BigDecimal moqKg,
+        String packaging,
+        Integer leadTimeDays,
+        Boolean coaAvailable,
+        Boolean msdsAvailable,
+        Boolean exportReady,
+        String availabilityStatus,
+        String moderationStatus,
+        String moderationNotes,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) {}

@@ -3,7 +3,7 @@ package com.synthora.product;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import com.synthora.identity.User;
-
+import com.synthora.seller.SupplierVerificationStatus;
 
 @Entity
 @Table(name = "suppliers")
@@ -14,12 +14,61 @@ public class Supplier {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "user_id")
-private User user;
+    @JoinColumn(name = "user_id")
+    private User user;
 
     private String name;
 
     private String slug;
+
+    @Column(name = "legal_name")
+    private String legalName;
+
+    @Column(name = "trade_name")
+    private String tradeName;
+
+    @Column(name = "business_type")
+    private String businessType = "MANUFACTURER";
+
+    @Column(name = "registered_address", columnDefinition = "TEXT")
+    private String registeredAddress;
+
+    @Column(name = "state_province")
+    private String stateProvince;
+
+    private String city;
+
+    @Column(name = "postal_code")
+    private String postalCode;
+
+    @Column(name = "business_email")
+    private String businessEmail;
+
+    @Column(name = "business_phone")
+    private String businessPhone;
+
+    private String website;
+
+    @Column(name = "tax_vat_number")
+    private String taxVatNumber;
+
+    @Column(name = "company_registration_number")
+    private String companyRegistrationNumber;
+
+    @Column(name = "business_description", columnDefinition = "TEXT")
+    private String businessDescription;
+
+    @Column(name = "countries_served", columnDefinition = "TEXT")
+    private String countriesServed;
+
+    @Column(name = "primary_categories", columnDefinition = "TEXT")
+    private String primaryCategories;
+
+    @Column(name = "admin_request_info_notes", columnDefinition = "TEXT")
+    private String adminRequestInfoNotes;
+
+    @Column(name = "supplier_response_notes", columnDefinition = "TEXT")
+    private String supplierResponseNotes;
 
     @Column(name = "country_code")
     private String countryCode;
@@ -44,32 +93,80 @@ private User user;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    public Long getId() { return id; }
-    public String getName() { return name; }
-    public String getSlug() { return slug; }
-    public String getCountryCode() { return countryCode; }
-    public String getCountryName() { return countryName; }
-    public String getLogoUrl() { return logoUrl; }
-    public Boolean getVerified() { return verified; }
-    public Integer getYearsInBusiness() { return yearsInBusiness; }
-    public Integer getResponseRate() { return responseRate; }
-    public Boolean getExportReady() { return exportReady; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setName(String name) { this.name = name; }
-    public void setSlug(String slug) { this.slug = slug; }
-    public void setCountryCode(String countryCode) { this.countryCode = countryCode; }
-    public void setCountryName(String countryName) { this.countryName = countryName; }
-    public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
-    public void setVerified(Boolean verified) { this.verified = verified; }
-    public void setYearsInBusiness(Integer yearsInBusiness) { this.yearsInBusiness = yearsInBusiness; }
-    public void setResponseRate(Integer responseRate) { this.responseRate = responseRate; }
-    public void setExportReady(Boolean exportReady) { this.exportReady = exportReady; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    public User getUser() {
-    return user;
-}
+    @Enumerated(EnumType.STRING)
+    @Column(name = "verification_status")
+    private SupplierVerificationStatus verificationStatus = SupplierVerificationStatus.PENDING;
 
-public void setUser(User user) {
-    this.user = user;
-}   
+    @Column(name = "verification_notes", columnDefinition = "TEXT")
+    private String verificationNotes;
+
+    @Column(name = "verification_updated_at")
+    private LocalDateTime verificationUpdatedAt;
+
+    public SupplierVerificationStatus getVerificationStatus() { return verificationStatus; }
+    public void setVerificationStatus(SupplierVerificationStatus verificationStatus) { this.verificationStatus = verificationStatus; }
+    public String getVerificationNotes() { return verificationNotes; }
+    public void setVerificationNotes(String verificationNotes) { this.verificationNotes = verificationNotes; }
+    public LocalDateTime getVerificationUpdatedAt() { return verificationUpdatedAt; }
+    public void setVerificationUpdatedAt(LocalDateTime verificationUpdatedAt) { this.verificationUpdatedAt = verificationUpdatedAt; }
+
+    public Long getId() { return id; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getSlug() { return slug; }
+    public void setSlug(String slug) { this.slug = slug; }
+
+    public String getLegalName() { return legalName; }
+    public void setLegalName(String legalName) { this.legalName = legalName; }
+    public String getTradeName() { return tradeName; }
+    public void setTradeName(String tradeName) { this.tradeName = tradeName; }
+    public String getBusinessType() { return businessType; }
+    public void setBusinessType(String businessType) { this.businessType = businessType; }
+    public String getRegisteredAddress() { return registeredAddress; }
+    public void setRegisteredAddress(String registeredAddress) { this.registeredAddress = registeredAddress; }
+    public String getStateProvince() { return stateProvince; }
+    public void setStateProvince(String stateProvince) { this.stateProvince = stateProvince; }
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+    public String getPostalCode() { return postalCode; }
+    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+    public String getBusinessEmail() { return businessEmail; }
+    public void setBusinessEmail(String businessEmail) { this.businessEmail = businessEmail; }
+    public String getBusinessPhone() { return businessPhone; }
+    public void setBusinessPhone(String businessPhone) { this.businessPhone = businessPhone; }
+    public String getWebsite() { return website; }
+    public void setWebsite(String website) { this.website = website; }
+    public String getTaxVatNumber() { return taxVatNumber; }
+    public void setTaxVatNumber(String taxVatNumber) { this.taxVatNumber = taxVatNumber; }
+    public String getCompanyRegistrationNumber() { return companyRegistrationNumber; }
+    public void setCompanyRegistrationNumber(String companyRegistrationNumber) { this.companyRegistrationNumber = companyRegistrationNumber; }
+    public String getBusinessDescription() { return businessDescription; }
+    public void setBusinessDescription(String businessDescription) { this.businessDescription = businessDescription; }
+    public String getCountriesServed() { return countriesServed; }
+    public void setCountriesServed(String countriesServed) { this.countriesServed = countriesServed; }
+    public String getPrimaryCategories() { return primaryCategories; }
+    public void setPrimaryCategories(String primaryCategories) { this.primaryCategories = primaryCategories; }
+    public String getAdminRequestInfoNotes() { return adminRequestInfoNotes; }
+    public void setAdminRequestInfoNotes(String adminRequestInfoNotes) { this.adminRequestInfoNotes = adminRequestInfoNotes; }
+    public String getSupplierResponseNotes() { return supplierResponseNotes; }
+    public void setSupplierResponseNotes(String supplierResponseNotes) { this.supplierResponseNotes = supplierResponseNotes; }
+
+    public String getCountryCode() { return countryCode; }
+    public void setCountryCode(String countryCode) { this.countryCode = countryCode; }
+    public String getCountryName() { return countryName; }
+    public void setCountryName(String countryName) { this.countryName = countryName; }
+    public String getLogoUrl() { return logoUrl; }
+    public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public Boolean getVerified() { return verified; }
+    public void setVerified(Boolean verified) { this.verified = verified; }
+    public Integer getYearsInBusiness() { return yearsInBusiness; }
+    public void setYearsInBusiness(Integer yearsInBusiness) { this.yearsInBusiness = yearsInBusiness; }
+    public Integer getResponseRate() { return responseRate; }
+    public void setResponseRate(Integer responseRate) { this.responseRate = responseRate; }
+    public Boolean getExportReady() { return exportReady; }
+    public void setExportReady(Boolean exportReady) { this.exportReady = exportReady; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

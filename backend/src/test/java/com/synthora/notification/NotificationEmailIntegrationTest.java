@@ -242,7 +242,7 @@ public class NotificationEmailIntegrationTest {
 
         reset(emailService);
 
-        MockMultipartFile file = new MockMultipartFile("file", "spec.pdf", "application/pdf", "Content".getBytes());
+        MockMultipartFile file = new MockMultipartFile("file", "spec.pdf", "application/pdf", "%PDF-1.4 spec content".getBytes());
         DocumentUploadRequest docReq = new DocumentUploadRequest();
         docReq.setOwnerType(DocumentOwnerType.RFQ);
         docReq.setOwnerId(rfq.id());

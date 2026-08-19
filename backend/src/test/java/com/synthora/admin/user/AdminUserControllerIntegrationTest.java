@@ -130,9 +130,9 @@ public class AdminUserControllerIntegrationTest {
                         .header("Authorization", "Bearer " + supplierToken))
                 .andExpect(status().isForbidden());
 
-        // Unauthenticated gets 401 or 403
+        // Unauthenticated gets 401
         mockMvc.perform(get("/api/v1/admin/users"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -152,7 +152,7 @@ public class AdminUserControllerIntegrationTest {
     @Test
     public void testSuspendAndActivate_AuthEnforcement() throws Exception {
         // 1. Suspend buyer
-        UpdateUserStatusRequest suspendReq = new UpdateUserStatusRequest(UserStatus.SUSPENDED, "Suspended for testing");
+        UpdateUserStatusRequest suspendReq = new UpdateUserStatusRequest(UserStatus.SUSPENDED, "Suspicious activity detected");
         mockMvc.perform(put("/api/v1/admin/users/" + buyerUser.getId() + "/status")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -160,13 +160,13 @@ public class AdminUserControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUSPENDED"));
 
-        // 2. Buyer attempts login -> Rejected
+        // 2. Buyer attempts login -> Rejected with generic error
         LoginRequest loginReq = new LoginRequest(buyerUser.getEmail(), "Password123!");
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Account is suspended")));
+                .andExpect(jsonPath("$.error", containsString("Invalid email or password")));
 
         // 3. Reactivate buyer
         UpdateUserStatusRequest activateReq = new UpdateUserStatusRequest(UserStatus.ACTIVE, "Reinstated");
@@ -215,6 +215,6 @@ public class AdminUserControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Account has been deactivated")));
+                .andExpect(jsonPath("$.error", containsString("Invalid email or password")));
     }
 }

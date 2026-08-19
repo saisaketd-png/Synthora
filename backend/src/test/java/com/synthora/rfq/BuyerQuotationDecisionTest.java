@@ -284,9 +284,9 @@ public class BuyerQuotationDecisionTest {
         Rfq rfq = createRfq(buyer1, RfqStatus.QUOTED);
         Quotation q = createQuotation(rfq, 1, new BigDecimal("100"));
 
-        // Unauthenticated -> 401/403
+        // Unauthenticated -> 401
         mockMvc.perform(post("/api/v1/rfqs/" + rfq.getId() + "/quotations/" + q.getId() + "/accept"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
 
         // Supplier JWT -> 404 (because supplier is not the buyer owner of this RFQ)
         mockMvc.perform(post("/api/v1/rfqs/" + rfq.getId() + "/quotations/" + q.getId() + "/accept")

@@ -1,26 +1,39 @@
 package com.synthora.security;
 
+import com.synthora.identity.User;
+import com.synthora.identity.UserRepository;
+import com.synthora.identity.UserStatus;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * Filter that validates JWT authentication tokens and enforces active account status.
+ * Rejects requests from suspended, deleted, or nonexistent users even if their token signature is valid.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    public JwtAuthenticationFilter(JwtService jwtService) {
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
+
+    public JwtAuthenticationFilter(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -38,19 +51,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        if (jwtService.isTokenValid(token)) {
+        try {
+            if (jwtService.isTokenValid(token)) {
+                String email = jwtService.extractEmail(token);
 
-            String email = jwtService.extractEmail(token);
-            String role = jwtService.extractRole(token);
+                if (email != null && !email.isBlank()) {
+                    Optional<User> userOpt = userRepository.findByEmail(email);
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                    );
+                    if (userOpt.isPresent()) {
+                        User user = userOpt.get();
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        // Active Account Validation (Phase 2H.2)
+                        // 1. Account must not be soft-deleted
+                        // 2. Account must not be suspended
+                        if (user.getDeletedAt() == null && user.getStatus() != UserStatus.SUSPENDED) {
+                            UsernamePasswordAuthenticationToken authentication =
+                                    new UsernamePasswordAuthenticationToken(
+                                            user.getEmail(),
+                                            null,
+                                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                                    );
+
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                        } else {
+                            log.warn("Blocked request with valid JWT for inactive user: {} (Status: {}, Deleted: {})",
+                                    email, user.getStatus(), user.getDeletedAt() != null);
+                            SecurityContextHolder.clearContext();
+                        }
+                    } else {
+                        log.warn("Blocked request with valid JWT for nonexistent user: {}", email);
+                        SecurityContextHolder.clearContext();
+                    }
+                }
+            } else {
+                SecurityContextHolder.clearContext();
+            }
+        } catch (Exception ex) {
+            log.debug("JWT processing failed: {}", ex.getMessage());
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

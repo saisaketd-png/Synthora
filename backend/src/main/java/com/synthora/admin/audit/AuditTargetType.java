@@ -8,6 +8,8 @@ public enum AuditTargetType {
     SUPPLIER,
     SELLER_PROFILE,
     PRODUCT,
+    MASTER_PRODUCT,
+    PRODUCT_REQUEST,
     PRODUCT_SUPPLIER,
     DOCUMENT,
     RFQ,

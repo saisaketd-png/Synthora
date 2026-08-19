@@ -8,10 +8,10 @@ export function ProductEmptyState() {
         <FlaskConical className="w-8 h-8 text-slate-300" />
       </div>
       <h3 className="text-xl font-bold text-[#0A192F] mb-2">
-        No suppliers found
+        CHEMICALS CURRENTLY BEING ONBOARDED
       </h3>
       <p className="text-[15px] text-slate-500 max-w-md mx-auto mb-8">
-        We couldn't find any suppliers matching your exact search criteria. However, our procurement desk can source this for you.
+        No active approved supplier offerings match your criteria. Our global procurement team is continuously onboarding verified chemical manufacturers.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10 w-full max-w-lg px-4">
         <Link

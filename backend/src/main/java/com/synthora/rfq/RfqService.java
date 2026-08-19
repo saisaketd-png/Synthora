@@ -3,26 +3,17 @@ package com.synthora.rfq;
 import com.synthora.common.ResourceNotFoundException;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
-import com.synthora.product.Product;
-import com.synthora.product.ProductRepository;
-import com.synthora.product.Supplier;
-import com.synthora.product.SupplierRepository;
-import com.synthora.rfq.dto.CreateRfqRequest;
-import com.synthora.rfq.dto.RfqResponse;
-import com.synthora.notification.events.QuotationAcceptedEvent;
-import com.synthora.notification.events.QuotationRejectedEvent;
-import com.synthora.notification.events.QuotationSubmittedEvent;
-import com.synthora.notification.events.RfqSubmittedEvent;
+import com.synthora.product.*;
+import com.synthora.rfq.dto.*;
+import com.synthora.rfq.sourcing.*;
+import com.synthora.notification.events.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,24 +21,33 @@ import java.util.stream.Collectors;
 public class RfqService {
 
     private final RfqRepository rfqRepository;
+    private final SourcingRequestRepository sourcingRequestRepository;
     private final UserRepository userRepository;
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
+    private final MasterProductRepository masterProductRepository;
+    private final SupplierOfferingRepository supplierOfferingRepository;
     private final com.synthora.rfq.quotation.QuotationRepository quotationRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public RfqService(
             RfqRepository rfqRepository,
+            SourcingRequestRepository sourcingRequestRepository,
             UserRepository userRepository,
             SupplierRepository supplierRepository,
             ProductRepository productRepository,
+            MasterProductRepository masterProductRepository,
+            SupplierOfferingRepository supplierOfferingRepository,
             com.synthora.rfq.quotation.QuotationRepository quotationRepository,
             ApplicationEventPublisher eventPublisher) {
 
         this.rfqRepository = rfqRepository;
+        this.sourcingRequestRepository = sourcingRequestRepository;
         this.userRepository = userRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
+        this.masterProductRepository = masterProductRepository;
+        this.supplierOfferingRepository = supplierOfferingRepository;
         this.quotationRepository = quotationRepository;
         this.eventPublisher = eventPublisher;
     }
@@ -69,16 +69,30 @@ public class RfqService {
                 .map(Supplier::getName)
                 .orElse("Supplier #" + rfq.getSupplierId());
 
-        String finalProductName = productName != null ? productName : productRepository.findById(rfq.getProductId())
-                .map(Product::getName)
-                .orElse("Specialty Chemical Product");
+        String finalProductName = productName;
+        if (finalProductName == null) {
+            if (rfq.getMasterProductId() != null) {
+                finalProductName = masterProductRepository.findById(rfq.getMasterProductId())
+                        .map(MasterProduct::getName)
+                        .orElse(null);
+            }
+            if (finalProductName == null) {
+                finalProductName = productRepository.findById(rfq.getProductId())
+                        .map(Product::getName)
+                        .orElse("Specialty Chemical Product");
+            }
+        }
 
         return new RfqResponse(
                 rfq.getId(),
                 rfqRef,
+                rfq.getSourcingRequestId(),
+                rfq.getSourcingRequestReference(),
                 rfq.getBuyerId(),
                 finalBuyerName,
                 rfq.getProductId(),
+                rfq.getMasterProductId(),
+                rfq.getSupplierOfferingId(),
                 finalProductName,
                 rfq.getSupplierId(),
                 finalSupplierName,
@@ -86,8 +100,22 @@ public class RfqService {
                 rfq.getUnit(),
                 rfq.getMessage(),
                 rfq.getStatus(),
+                rfq.getExpiresAt(),
                 rfq.getCreatedAt()
         );
+    }
+
+    private void validateRfqActive(Rfq rfq, String actionDesc) {
+        if (rfq.getStatus() == RfqStatus.ACCEPTED || rfq.getStatus() == RfqStatus.REJECTED || rfq.getStatus() == RfqStatus.CLOSED || rfq.getStatus() == RfqStatus.CANCELLED || rfq.getStatus() == RfqStatus.EXPIRED) {
+            throw new IllegalStateException("Cannot " + actionDesc + " for RFQ in status: " + rfq.getStatus());
+        }
+
+        if (rfq.getExpiresAt() != null && LocalDateTime.now().isAfter(rfq.getExpiresAt())) {
+            rfq.setStatus(RfqStatus.EXPIRED);
+            rfqRepository.save(rfq);
+            eventPublisher.publishEvent(new RfqExpiredEvent(rfq.getId(), rfq.getBuyerId(), rfq.getSupplierId()));
+            throw new IllegalStateException("RFQ has expired on " + rfq.getExpiresAt());
+        }
     }
 
     public RfqResponse createRfq(
@@ -99,23 +127,92 @@ public class RfqService {
         User buyer = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Rfq rfq = new Rfq();
-        rfq.setBuyerId(buyer.getId());
-        rfq.setProductId(request.productId());
-        rfq.setSupplierId(request.supplierId());
-        rfq.setQuantity(request.quantity());
-        rfq.setUnit(request.unit());
-        rfq.setMessage(request.message());
+        UUID targetMasterProductId = request.masterProductId();
+        UUID targetOfferingId = request.supplierOfferingId();
 
-        Rfq saved = rfqRepository.save(rfq);
+        // 1. Supplier Offering & Identity Spoofing Validation
+        if (targetOfferingId != null) {
+            SupplierOffering offering = supplierOfferingRepository.findById(targetOfferingId)
+                    .orElseThrow(() -> new ResourceNotFoundException("SupplierOffering not found: " + targetOfferingId));
 
-        eventPublisher.publishEvent(new RfqSubmittedEvent(
-                saved.getId(),
-                saved.getBuyerId(),
-                saved.getSupplierId()
-        ));
+            if (!"ACTIVE".equalsIgnoreCase(offering.getAvailabilityStatus()) && !"AVAILABLE".equalsIgnoreCase(offering.getAvailabilityStatus())) {
+                throw new IllegalStateException("Cannot create RFQ for inactive SupplierOffering: " + targetOfferingId);
+            }
 
-        return buildSingleRfqResponse(saved, buyer.getName(), null, null);
+            if (!"APPROVED".equalsIgnoreCase(offering.getModerationStatus())) {
+                throw new IllegalStateException("Cannot create RFQ for unapproved SupplierOffering: " + targetOfferingId);
+            }
+
+            // Zero-Trust Spoofing Check
+            if (!offering.getSupplier().getId().equals(request.supplierId())) {
+                throw new IllegalArgumentException("Supplier ID " + request.supplierId() + " does not match SupplierOffering owner ID " + offering.getSupplier().getId());
+            }
+
+            if (targetMasterProductId != null && offering.getMasterProduct() != null && !offering.getMasterProduct().getId().equals(targetMasterProductId)) {
+                throw new IllegalArgumentException("MasterProduct ID " + targetMasterProductId + " does not match SupplierOffering MasterProduct ID " + offering.getMasterProduct().getId());
+            }
+
+            if (targetMasterProductId == null && offering.getMasterProduct() != null) {
+                targetMasterProductId = offering.getMasterProduct().getId();
+            }
+        }
+
+        // 2. Multi-Supplier Sourcing Resolution
+        List<Long> targetSuppliers = new ArrayList<>();
+        if (request.targetSupplierIds() != null && !request.targetSupplierIds().isEmpty()) {
+            targetSuppliers.addAll(request.targetSupplierIds());
+        } else if (request.supplierId() != null) {
+            targetSuppliers.add(request.supplierId());
+        } else {
+            throw new IllegalArgumentException("At least one supplier ID must be provided for RFQ sourcing.");
+        }
+
+        LocalDateTime expiresAt = request.expiryDays() != null
+                ? LocalDateTime.now().plusDays(request.expiryDays())
+                : null;
+
+        // 3. Instantiate Parent SourcingRequest
+        SourcingRequest sourcingRequest = new SourcingRequest();
+        sourcingRequest.setBuyerId(buyer.getId());
+        sourcingRequest.setMasterProductId(targetMasterProductId);
+        sourcingRequest.setProductId(request.productId());
+        sourcingRequest.setTargetQuantity(request.quantity());
+        sourcingRequest.setUnit(request.unit());
+        sourcingRequest.setStatus(SourcingRequestStatus.OPEN);
+        sourcingRequest.setExpiresAt(expiresAt);
+        sourcingRequest.setNotes(request.message());
+        SourcingRequest savedSourcingReq = sourcingRequestRepository.save(sourcingRequest);
+
+        List<Rfq> createdRfqs = new ArrayList<>();
+        for (Long sId : targetSuppliers) {
+            Supplier supp = supplierRepository.findById(sId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + sId));
+
+            Rfq rfq = new Rfq();
+            rfq.setSourcingRequestId(savedSourcingReq.getId());
+            rfq.setSourcingRequestReference(savedSourcingReq.getSourcingRequestReference());
+            rfq.setBuyerId(buyer.getId());
+            rfq.setProductId(request.productId());
+            rfq.setMasterProductId(targetMasterProductId);
+            rfq.setSupplierOfferingId(targetOfferingId);
+            rfq.setSupplierId(supp.getId());
+            rfq.setQuantity(request.quantity());
+            rfq.setUnit(request.unit());
+            rfq.setMessage(request.message());
+            rfq.setExpiresAt(expiresAt);
+
+            Rfq saved = rfqRepository.save(rfq);
+            createdRfqs.add(saved);
+
+            eventPublisher.publishEvent(new RfqSubmittedEvent(
+                    saved.getId(),
+                    saved.getBuyerId(),
+                    saved.getSupplierId()
+            ));
+        }
+
+        Rfq primaryRfq = createdRfqs.get(0);
+        return buildSingleRfqResponse(primaryRfq, buyer.getName(), null, null);
     }
 
     public List<RfqResponse> getMyRfqs(Authentication authentication) {
@@ -146,9 +243,13 @@ public class RfqService {
             return new RfqResponse(
                     rfq.getId(),
                     rfqRef,
+                    rfq.getSourcingRequestId(),
+                    rfq.getSourcingRequestReference(),
                     rfq.getBuyerId(),
                     buyer.getName(),
                     rfq.getProductId(),
+                    rfq.getMasterProductId(),
+                    rfq.getSupplierOfferingId(),
                     prodName,
                     rfq.getSupplierId(),
                     suppName,
@@ -156,6 +257,7 @@ public class RfqService {
                     rfq.getUnit(),
                     rfq.getMessage(),
                     rfq.getStatus(),
+                    rfq.getExpiresAt(),
                     rfq.getCreatedAt()
             );
         }).toList();
@@ -176,6 +278,97 @@ public class RfqService {
         ).orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
 
         return buildSingleRfqResponse(rfq, buyer.getName(), null, null);
+    }
+
+    public List<SourcingRequestResponse> getSourcingRequests(Authentication authentication) {
+        String email = authentication.getName();
+
+        User buyer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        List<SourcingRequest> sourcingRequests = sourcingRequestRepository.findByBuyerIdOrderByCreatedAtDesc(buyer.getId());
+        if (sourcingRequests.isEmpty()) {
+            return List.of();
+        }
+
+        List<RfqResponse> buyerRfqs = getMyRfqs(authentication);
+        Map<UUID, List<RfqResponse>> rfqMap = buyerRfqs.stream()
+                .filter(r -> r.sourcingRequestId() != null)
+                .collect(Collectors.groupingBy(RfqResponse::sourcingRequestId));
+
+        return sourcingRequests.stream().map(sr -> {
+            List<RfqResponse> participations = rfqMap.getOrDefault(sr.getId(), List.of());
+            String prodName = "Chemical Sourcing Request";
+            if (sr.getMasterProductId() != null) {
+                prodName = masterProductRepository.findById(sr.getMasterProductId())
+                        .map(MasterProduct::getName)
+                        .orElse(prodName);
+            } else if (sr.getProductId() != null) {
+                prodName = productRepository.findById(sr.getProductId())
+                        .map(Product::getName)
+                        .orElse(prodName);
+            }
+
+            return new SourcingRequestResponse(
+                    sr.getId(),
+                    sr.getSourcingRequestReference(),
+                    sr.getBuyerId(),
+                    buyer.getName(),
+                    sr.getMasterProductId(),
+                    sr.getProductId(),
+                    prodName,
+                    sr.getTargetQuantity(),
+                    sr.getUnit(),
+                    sr.getStatus(),
+                    sr.getExpiresAt(),
+                    sr.getNotes(),
+                    sr.getCreatedAt(),
+                    participations
+            );
+        }).toList();
+    }
+
+    public SourcingRequestResponse getSourcingRequestDetail(UUID sourcingRequestId, Authentication authentication) {
+        String email = authentication.getName();
+
+        User buyer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        SourcingRequest sr = sourcingRequestRepository.findByIdAndBuyerId(sourcingRequestId, buyer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("SourcingRequest not found: " + sourcingRequestId));
+
+        List<RfqResponse> buyerRfqs = getMyRfqs(authentication);
+        List<RfqResponse> participations = buyerRfqs.stream()
+                .filter(r -> sr.getId().equals(r.sourcingRequestId()))
+                .toList();
+
+        String prodName = "Chemical Sourcing Request";
+        if (sr.getMasterProductId() != null) {
+            prodName = masterProductRepository.findById(sr.getMasterProductId())
+                    .map(MasterProduct::getName)
+                    .orElse(prodName);
+        } else if (sr.getProductId() != null) {
+            prodName = productRepository.findById(sr.getProductId())
+                    .map(Product::getName)
+                    .orElse(prodName);
+        }
+
+        return new SourcingRequestResponse(
+                sr.getId(),
+                sr.getSourcingRequestReference(),
+                sr.getBuyerId(),
+                buyer.getName(),
+                sr.getMasterProductId(),
+                sr.getProductId(),
+                prodName,
+                sr.getTargetQuantity(),
+                sr.getUnit(),
+                sr.getStatus(),
+                sr.getExpiresAt(),
+                sr.getNotes(),
+                sr.getCreatedAt(),
+                participations
+        );
     }
 
     public List<RfqResponse> getSupplierRfqs(Authentication authentication) {
@@ -209,9 +402,13 @@ public class RfqService {
             return new RfqResponse(
                     rfq.getId(),
                     rfqRef,
+                    rfq.getSourcingRequestId(),
+                    rfq.getSourcingRequestReference(),
                     rfq.getBuyerId(),
                     bName,
                     rfq.getProductId(),
+                    rfq.getMasterProductId(),
+                    rfq.getSupplierOfferingId(),
                     prodName,
                     rfq.getSupplierId(),
                     supplier.getName(),
@@ -219,6 +416,7 @@ public class RfqService {
                     rfq.getUnit(),
                     rfq.getMessage(),
                     rfq.getStatus(),
+                    rfq.getExpiresAt(),
                     rfq.getCreatedAt()
             );
         }).toList();
@@ -240,7 +438,86 @@ public class RfqService {
         return buildSingleRfqResponse(rfq, null, supplier.getName(), null);
     }
 
-    public com.synthora.rfq.dto.QuotationResponse submitQuotation(UUID rfqId, com.synthora.rfq.dto.CreateQuotationRequest request, Authentication authentication) {
+    public RfqResponse cancelRfq(UUID rfqId, String reason, Authentication authentication) {
+        String email = authentication.getName();
+        User buyer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Rfq rfq = rfqRepository.findByIdAndBuyerIdForUpdate(rfqId, buyer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
+
+        if (rfq.getStatus() == RfqStatus.ACCEPTED || rfq.getStatus() == RfqStatus.CLOSED) {
+            throw new IllegalStateException("Cannot cancel RFQ in status: " + rfq.getStatus());
+        }
+
+        rfq.setStatus(RfqStatus.CANCELLED);
+        Rfq saved = rfqRepository.save(rfq);
+
+        eventPublisher.publishEvent(new RfqCancelledEvent(
+                saved.getId(),
+                saved.getBuyerId(),
+                saved.getSupplierId(),
+                reason
+        ));
+
+        return buildSingleRfqResponse(saved, buyer.getName(), null, null);
+    }
+
+    public SourcingRequestResponse cancelSourcingRequest(UUID sourcingRequestId, String reason, Authentication authentication) {
+        String email = authentication.getName();
+        User buyer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        SourcingRequest sr = sourcingRequestRepository.findByIdAndBuyerId(sourcingRequestId, buyer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("SourcingRequest not found: " + sourcingRequestId));
+
+        sr.setStatus(SourcingRequestStatus.CANCELLED);
+        sourcingRequestRepository.save(sr);
+
+        List<Rfq> childRfqs = rfqRepository.findByBuyerIdOrderByCreatedAtDesc(buyer.getId())
+                .stream()
+                .filter(r -> sr.getId().equals(r.getSourcingRequestId()))
+                .toList();
+
+        for (Rfq rfq : childRfqs) {
+            if (rfq.getStatus() != RfqStatus.ACCEPTED && rfq.getStatus() != RfqStatus.CLOSED && rfq.getStatus() != RfqStatus.CANCELLED) {
+                rfq.setStatus(RfqStatus.CANCELLED);
+                Rfq saved = rfqRepository.save(rfq);
+                eventPublisher.publishEvent(new RfqCancelledEvent(
+                        saved.getId(),
+                        saved.getBuyerId(),
+                        saved.getSupplierId(),
+                        reason
+                ));
+            }
+        }
+
+        return getSourcingRequestDetail(sourcingRequestId, authentication);
+    }
+
+    private com.synthora.rfq.dto.QuotationResponse mapToQuotationResponse(com.synthora.rfq.quotation.Quotation q) {
+        return new com.synthora.rfq.dto.QuotationResponse(
+                q.getId(),
+                q.getRfq().getId(),
+                q.getQuotationVersion(),
+                q.getUnitPrice(),
+                q.getCurrency(),
+                q.getMinimumOrderQuantity(),
+                q.getLeadTimeDays(),
+                q.getValidityDate(),
+                q.getPackagingDetails(),
+                q.getCommercialNotes(),
+                q.getActorType(),
+                q.getActionType(),
+                q.getCommercialMessage(),
+                q.getCreatedAt()
+        );
+    }
+
+    public com.synthora.rfq.dto.QuotationResponse submitQuotation(
+            UUID rfqId,
+            com.synthora.rfq.dto.CreateQuotationRequest request,
+            Authentication authentication) {
 
         String email = authentication.getName();
         User supplierUser = userRepository.findByEmail(email)
@@ -252,9 +529,7 @@ public class RfqService {
         Rfq rfq = rfqRepository.findByIdAndSupplierIdForUpdate(rfqId, supplier.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
 
-        if (rfq.getStatus() == RfqStatus.ACCEPTED || rfq.getStatus() == RfqStatus.REJECTED || rfq.getStatus() == RfqStatus.CLOSED || rfq.getStatus() == RfqStatus.CANCELLED) {
-            throw new IllegalStateException("Cannot submit quotation for RFQ in status: " + rfq.getStatus());
-        }
+        validateRfqActive(rfq, "submit quotation");
 
         Integer maxVersion = quotationRepository.findMaxQuotationVersionByRfqId(rfq.getId());
         Integer nextVersion = (maxVersion == null ? 0 : maxVersion) + 1;
@@ -269,13 +544,14 @@ public class RfqService {
         quotation.setValidityDate(request.validityDate());
         quotation.setPackagingDetails(request.packagingDetails());
         quotation.setCommercialNotes(request.commercialNotes());
+        quotation.setActorType("SUPPLIER");
+        quotation.setActionType(nextVersion == 1 ? "INITIAL_QUOTATION" : "REVISED_QUOTATION");
+        quotation.setCommercialMessage(request.commercialNotes());
 
         com.synthora.rfq.quotation.Quotation saved = quotationRepository.save(quotation);
 
-        if (rfq.getStatus() == RfqStatus.PENDING || rfq.getStatus() == RfqStatus.CONTACTED) {
-            rfq.setStatus(RfqStatus.QUOTED);
-            rfqRepository.save(rfq);
-        }
+        rfq.setStatus(RfqStatus.QUOTED);
+        rfqRepository.save(rfq);
 
         eventPublisher.publishEvent(new QuotationSubmittedEvent(
                 saved.getId(),
@@ -284,19 +560,70 @@ public class RfqService {
                 rfq.getSupplierId()
         ));
 
-        return new com.synthora.rfq.dto.QuotationResponse(
+        return mapToQuotationResponse(saved);
+    }
+
+    public com.synthora.rfq.dto.QuotationResponse submitCounterOffer(
+            UUID rfqId,
+            com.synthora.rfq.dto.CreateCounterOfferRequest request,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+        User buyer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Rfq rfq = rfqRepository.findByIdAndBuyerIdForUpdate(rfqId, buyer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
+
+        validateRfqActive(rfq, "submit counter offer");
+
+        if (rfq.getStatus() != RfqStatus.QUOTED && rfq.getStatus() != RfqStatus.COUNTERED) {
+            throw new IllegalStateException("Cannot submit counter offer for RFQ in status: " + rfq.getStatus());
+        }
+
+        Integer maxVersion = quotationRepository.findMaxQuotationVersionByRfqId(rfq.getId());
+        if (maxVersion == null || maxVersion == 0) {
+            throw new IllegalStateException("Cannot submit counter offer when no prior quotation exists.");
+        }
+
+        com.synthora.rfq.quotation.Quotation latestQuote = quotationRepository.findByRfqIdOrderByQuotationVersionDesc(rfq.getId())
+                .stream().findFirst().orElse(null);
+
+        java.time.LocalDate validityDate = (latestQuote != null && latestQuote.getValidityDate() != null)
+                ? latestQuote.getValidityDate()
+                : java.time.LocalDate.now().plusDays(30);
+
+        Integer nextVersion = maxVersion + 1;
+
+        com.synthora.rfq.quotation.Quotation counterQuotation = new com.synthora.rfq.quotation.Quotation();
+        counterQuotation.setRfq(rfq);
+        counterQuotation.setQuotationVersion(nextVersion);
+        counterQuotation.setUnitPrice(request.unitPrice());
+        counterQuotation.setCurrency(request.currency());
+        counterQuotation.setMinimumOrderQuantity(request.minimumOrderQuantity());
+        counterQuotation.setLeadTimeDays(request.leadTimeDays());
+        counterQuotation.setValidityDate(validityDate);
+        counterQuotation.setPackagingDetails(request.packagingDetails());
+        counterQuotation.setCommercialNotes(request.commercialMessage());
+        counterQuotation.setActorType("BUYER");
+        counterQuotation.setActionType("COUNTER_OFFER");
+        counterQuotation.setCommercialMessage(request.commercialMessage());
+
+        com.synthora.rfq.quotation.Quotation saved = quotationRepository.save(counterQuotation);
+
+        rfq.setStatus(RfqStatus.COUNTERED);
+        rfqRepository.save(rfq);
+
+        eventPublisher.publishEvent(new com.synthora.notification.events.CounterOfferSubmittedEvent(
                 saved.getId(),
-                saved.getRfq().getId(),
-                saved.getQuotationVersion(),
+                rfq.getId(),
+                rfq.getBuyerId(),
+                rfq.getSupplierId(),
                 saved.getUnitPrice(),
-                saved.getCurrency(),
-                saved.getMinimumOrderQuantity(),
-                saved.getLeadTimeDays(),
-                saved.getValidityDate(),
-                saved.getPackagingDetails(),
-                saved.getCommercialNotes(),
-                saved.getCreatedAt()
-        );
+                saved.getCurrency()
+        ));
+
+        return mapToQuotationResponse(saved);
     }
 
     public List<com.synthora.rfq.dto.QuotationResponse> getBuyerQuotations(UUID rfqId, Authentication authentication) {
@@ -310,19 +637,7 @@ public class RfqService {
 
         return quotationRepository.findByRfqIdOrderByQuotationVersionDesc(rfq.getId())
                 .stream()
-                .map(q -> new com.synthora.rfq.dto.QuotationResponse(
-                        q.getId(),
-                        q.getRfq().getId(),
-                        q.getQuotationVersion(),
-                        q.getUnitPrice(),
-                        q.getCurrency(),
-                        q.getMinimumOrderQuantity(),
-                        q.getLeadTimeDays(),
-                        q.getValidityDate(),
-                        q.getPackagingDetails(),
-                        q.getCommercialNotes(),
-                        q.getCreatedAt()
-                ))
+                .map(this::mapToQuotationResponse)
                 .toList();
     }
 
@@ -339,7 +654,9 @@ public class RfqService {
         Rfq rfq = rfqRepository.findByIdAndBuyerIdForUpdate(rfqId, buyer.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
 
-        if (rfq.getStatus() != RfqStatus.QUOTED) {
+        validateRfqActive(rfq, "accept quotation");
+
+        if (rfq.getStatus() != RfqStatus.QUOTED && rfq.getStatus() != RfqStatus.COUNTERED) {
             throw new IllegalStateException("Cannot accept quotation for RFQ in status: " + rfq.getStatus());
         }
 
@@ -354,6 +671,14 @@ public class RfqService {
         rfq.setStatus(RfqStatus.ACCEPTED);
         rfq.setAcceptedQuotationId(quotation.getId());
         rfqRepository.save(rfq);
+
+        // Update SourcingRequest status to COMPLETED if all or any accepted
+        if (rfq.getSourcingRequestId() != null) {
+            sourcingRequestRepository.findById(rfq.getSourcingRequestId()).ifPresent(sr -> {
+                sr.setStatus(SourcingRequestStatus.COMPLETED);
+                sourcingRequestRepository.save(sr);
+            });
+        }
 
         eventPublisher.publishEvent(new QuotationAcceptedEvent(
                 quotation.getId(),
@@ -385,7 +710,9 @@ public class RfqService {
         Rfq rfq = rfqRepository.findByIdAndBuyerIdForUpdate(rfqId, buyer.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
 
-        if (rfq.getStatus() != RfqStatus.QUOTED) {
+        validateRfqActive(rfq, "reject quotation");
+
+        if (rfq.getStatus() != RfqStatus.QUOTED && rfq.getStatus() != RfqStatus.COUNTERED) {
             throw new IllegalStateException("Cannot reject quotation for RFQ in status: " + rfq.getStatus());
         }
 
@@ -415,5 +742,23 @@ public class RfqService {
                 "REJECTED",
                 java.time.LocalDateTime.now()
         );
+    }
+
+    public List<com.synthora.rfq.dto.QuotationResponse> getSupplierQuotations(UUID rfqId, Authentication authentication) {
+
+        String email = authentication.getName();
+        User supplierUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Supplier supplier = supplierRepository.findByUser(supplierUser)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
+
+        Rfq rfq = rfqRepository.findByIdAndSupplierId(rfqId, supplier.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
+
+        return quotationRepository.findByRfqIdOrderByQuotationVersionDesc(rfq.getId())
+                .stream()
+                .map(this::mapToQuotationResponse)
+                .toList();
     }
 }

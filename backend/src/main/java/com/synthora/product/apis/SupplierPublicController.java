@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +45,26 @@ public class SupplierPublicController {
         this.productRepository = productRepository;
     }
 
+    private static final java.util.Set<String> ALLOWED_SUPPLIER_SORT_FIELDS = java.util.Set.of(
+            "name", "countryName", "yearsInBusiness", "responseRate", "createdAt", "id"
+    );
+
+    private Pageable sanitizePageable(Pageable pageable, String defaultSort) {
+        int page = Math.max(0, pageable.getPageNumber());
+        int size = Math.min(Math.max(1, pageable.getPageSize()), 100);
+        Sort sort = pageable.getSort();
+        List<Sort.Order> safeOrders = new ArrayList<>();
+        for (Sort.Order order : sort) {
+            if (ALLOWED_SUPPLIER_SORT_FIELDS.contains(order.getProperty())) {
+                safeOrders.add(order);
+            }
+        }
+        if (safeOrders.isEmpty()) {
+            safeOrders.add(new Sort.Order(Sort.Direction.ASC, defaultSort));
+        }
+        return org.springframework.data.domain.PageRequest.of(page, size, Sort.by(safeOrders));
+    }
+
     @GetMapping
     public ResponseEntity<Page<SupplierPublicResponse>> listPublicSuppliers(
             @RequestParam(required = false) String search,
@@ -52,9 +73,11 @@ public class SupplierPublicController {
             @RequestParam(required = false) Boolean exportReady,
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
 
+        Pageable safePageable = sanitizePageable(pageable, "name");
+
         Page<Supplier> supplierPage = supplierRepository.findAll(
                 SupplierSpecification.searchAndFilter(search, country, verified, exportReady),
-                pageable
+                safePageable
         );
 
         List<User> users = supplierPage.getContent().stream()
@@ -103,6 +126,10 @@ public class SupplierPublicController {
         );
     }
 
+    private static final java.util.Set<String> ALLOWED_PRODUCT_SORT_FIELDS = java.util.Set.of(
+            "name", "price", "stock", "createdAt", "updatedAt", "category", "leadTimeDays", "purity", "moqKg"
+    );
+
     @GetMapping("/{id}/products")
     public ResponseEntity<Page<SupplierProductPublicResponse>> getSupplierProducts(
             @PathVariable Long id,
@@ -111,13 +138,27 @@ public class SupplierPublicController {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found"));
 
+        int page = Math.max(0, pageable.getPageNumber());
+        int size = Math.min(Math.max(1, pageable.getPageSize()), 100);
+        Sort sort = pageable.getSort();
+        List<Sort.Order> safeOrders = new ArrayList<>();
+        for (Sort.Order order : sort) {
+            if (ALLOWED_PRODUCT_SORT_FIELDS.contains(order.getProperty())) {
+                safeOrders.add(order);
+            }
+        }
+        if (safeOrders.isEmpty()) {
+            safeOrders.add(new Sort.Order(Sort.Direction.DESC, "createdAt"));
+        }
+        Pageable safePageable = org.springframework.data.domain.PageRequest.of(page, size, Sort.by(safeOrders));
+
         if (supplier.getUser() == null ||
                 supplier.getUser().getStatus() == com.synthora.identity.UserStatus.SUSPENDED ||
                 supplier.getUser().getDeletedAt() != null) {
-            return ResponseEntity.ok(Page.empty(pageable));
+            return ResponseEntity.ok(Page.empty(safePageable));
         }
 
-        Page<Product> products = productRepository.findBySellerId(supplier.getUser().getId(), pageable);
+        Page<Product> products = productRepository.findBySellerId(supplier.getUser().getId(), safePageable);
         
         Page<SupplierProductPublicResponse> responsePage = products
             .map(product -> {

@@ -13,5 +13,9 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     Optional<User> findByEmail(String email);
 
     long countByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status);
+
+    java.util.List<User> findByRoleAndStatusAndDeletedAtIsNull(UserRole role, UserStatus status);
+
+    java.util.List<User> findByRole(UserRole role);
 }
 

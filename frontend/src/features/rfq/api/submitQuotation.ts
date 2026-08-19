@@ -21,6 +21,9 @@ export interface QuotationResponse {
   validityDate: string;
   packagingDetails: string | null;
   commercialNotes: string | null;
+  actorType?: string | null;
+  actionType?: string | null;
+  commercialMessage?: string | null;
   createdAt: string;
 }
 

@@ -234,12 +234,48 @@ public class PurchaseOrderService {
         }
 
         order.setStatus(OrderStatus.PROCESSING);
+        order.setProcessingAt(LocalDateTime.now());
         PurchaseOrder updated = purchaseOrderRepository.save(order);
 
         eventPublisher.publishEvent(new OrderProcessingStartedEvent(
                 updated.getId(),
                 updated.getBuyerId(),
                 updated.getSupplierId()
+        ));
+
+        return mapToResponse(updated);
+    }
+
+    public PurchaseOrderResponse rejectSupplierOrder(UUID orderId, com.synthora.order.dto.RejectPurchaseOrderRequest request, Authentication authentication) {
+        if (request == null || request.reason() == null || request.reason().trim().length() < 5) {
+            throw new IllegalArgumentException("Rejection reason must be at least 5 characters");
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Supplier supplier = supplierRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
+
+        PurchaseOrder order = purchaseOrderRepository.findByIdAndSupplierId(orderId, supplier.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.PLACED && order.getStatus() != OrderStatus.CONFIRMED) {
+            throw new IllegalStateException("Cannot reject order in status: " + order.getStatus() + ". Rejection is only allowed prior to fulfillment.");
+        }
+
+        order.setStatus(OrderStatus.REJECTED);
+        order.setRejectedAt(LocalDateTime.now());
+        order.setRejectionReason(request.reason().trim());
+
+        PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        eventPublisher.publishEvent(new PurchaseOrderRejectedEvent(
+                updated.getId(),
+                updated.getBuyerId(),
+                updated.getSupplierId(),
+                updated.getRejectionReason()
         ));
 
         return mapToResponse(updated);
@@ -271,15 +307,17 @@ public class PurchaseOrderService {
             throw new IllegalStateException("A shipment already exists for this order");
         }
 
+        LocalDateTime shippedTime = LocalDateTime.now();
         Shipment shipment = new Shipment();
         shipment.setPurchaseOrder(order);
         shipment.setCarrier(carrier.trim());
         shipment.setTrackingNumber(trackingNumber.trim());
         shipment.setEstimatedDeliveryDate(estimatedDeliveryDate);
-        shipment.setShippedAt(LocalDateTime.now());
+        shipment.setShippedAt(shippedTime);
         Shipment savedShipment = shipmentRepository.save(shipment);
 
         order.setStatus(OrderStatus.SHIPPED);
+        order.setShippedAt(shippedTime);
         PurchaseOrder updated = purchaseOrderRepository.save(order);
 
         eventPublisher.publishEvent(new OrderShippedEvent(
@@ -287,6 +325,31 @@ public class PurchaseOrderService {
                 updated.getBuyerId(),
                 updated.getSupplierId(),
                 savedShipment.getId()
+        ));
+
+        return mapToResponse(updated);
+    }
+
+    public PurchaseOrderResponse confirmReceiptBuyerOrder(UUID orderId, Authentication authentication) {
+        String email = authentication.getName();
+        User buyer = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        PurchaseOrder order = purchaseOrderRepository.findByIdAndBuyerId(orderId, buyer.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            throw new IllegalStateException("Cannot confirm receipt for order in status: " + order.getStatus() + ". Order must be SHIPPED.");
+        }
+
+        order.setStatus(OrderStatus.DELIVERED);
+        order.setDeliveredAt(LocalDateTime.now());
+        PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        eventPublisher.publishEvent(new OrderReceiptConfirmedEvent(
+                updated.getId(),
+                updated.getBuyerId(),
+                updated.getSupplierId()
         ));
 
         return mapToResponse(updated);
@@ -312,6 +375,7 @@ public class PurchaseOrderService {
         }
 
         order.setStatus(OrderStatus.DELIVERED);
+        order.setDeliveredAt(LocalDateTime.now());
         PurchaseOrder updated = purchaseOrderRepository.save(order);
 
         eventPublisher.publishEvent(new OrderDeliveredEvent(
@@ -395,6 +459,11 @@ public class PurchaseOrderService {
                 po.getStatus(),
                 po.getPlacedAt(),
                 po.getConfirmedAt(),
+                po.getProcessingAt(),
+                po.getShippedAt(),
+                po.getDeliveredAt(),
+                po.getRejectedAt(),
+                po.getRejectionReason(),
                 po.getCreatedAt(),
                 po.getUpdatedAt()
         );

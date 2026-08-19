@@ -71,6 +71,52 @@ public class NotificationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onRfqCancelled(RfqCancelledEvent event) {
+        try {
+            UUID recipientId = resolveSupplierUserId(event.supplierId());
+            if (recipientId != null) {
+                Notification n = notificationService.createNotification(
+                        recipientId,
+                        NotificationType.RFQ_CANCELLED,
+                        "RFQ Cancelled",
+                        "The buyer has cancelled this request for quotation.",
+                        NotificationEntityType.RFQ,
+                        event.rfqId()
+                );
+                if (n != null) {
+                    emailNotificationService.sendNotificationEmail(n);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to process RfqCancelledEvent for RFQ {}", event.rfqId(), e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onRfqExpired(RfqExpiredEvent event) {
+        try {
+            UUID recipientId = resolveSupplierUserId(event.supplierId());
+            if (recipientId != null) {
+                Notification n = notificationService.createNotification(
+                        recipientId,
+                        NotificationType.RFQ_EXPIRED,
+                        "RFQ Expired",
+                        "This request for quotation has expired.",
+                        NotificationEntityType.RFQ,
+                        event.rfqId()
+                );
+                if (n != null) {
+                    emailNotificationService.sendNotificationEmail(n);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to process RfqExpiredEvent for RFQ {}", event.rfqId(), e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onRfqSubmitted(RfqSubmittedEvent event) {
         try {
             UUID recipientId = resolveSupplierUserId(event.supplierId());
@@ -96,15 +142,51 @@ public class NotificationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onCounterOfferSubmitted(com.synthora.notification.events.CounterOfferSubmittedEvent event) {
+        try {
+            UUID recipientId = resolveSupplierUserId(event.supplierId());
+            if (recipientId != null) {
+                String message = String.format("Buyer submitted a counter offer (%s %.2f).", event.currency(), event.unitPrice());
+                Notification n = notificationService.createNotification(
+                        recipientId,
+                        NotificationType.COUNTER_OFFER_RECEIVED,
+                        "Buyer Counter Offer Received",
+                        message,
+                        NotificationEntityType.RFQ,
+                        event.rfqId()
+                );
+                if (n != null) {
+                    emailNotificationService.sendNotificationEmail(n);
+                }
+            } else {
+                log.warn("Could not resolve supplier User for supplier ID {}", event.supplierId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to process CounterOfferSubmittedEvent for RFQ {}", event.rfqId(), e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onQuotationSubmitted(QuotationSubmittedEvent event) {
         try {
+            boolean isRevision = false;
+            if (event.quotationId() != null) {
+                isRevision = quotationRepository.findById(event.quotationId())
+                        .map(q -> q.getQuotationVersion() > 1)
+                        .orElse(false);
+            }
+            String title = isRevision ? "Supplier Submitted a Revised Quotation" : "New Quotation Received";
+            String message = isRevision ? "Supplier has submitted a revised quotation for your RFQ." : "A supplier has submitted a quotation for your RFQ.";
+            NotificationType type = isRevision ? NotificationType.QUOTATION_REVISED : NotificationType.QUOTATION_SUBMITTED;
+
             Notification n = notificationService.createNotification(
                     event.buyerId(),
-                    NotificationType.QUOTATION_SUBMITTED,
-                    "New Quotation Received",
-                    "A supplier has submitted a quotation for your RFQ.",
+                    type,
+                    title,
+                    message,
                     NotificationEntityType.QUOTATION,
-                    event.quotationId()
+                    event.rfqId()
             );
             if (n != null) {
                 emailNotificationService.sendNotificationEmail(n);
@@ -126,7 +208,7 @@ public class NotificationEventListener {
                         "Quotation Accepted",
                         "Your quotation has been accepted by the buyer.",
                         NotificationEntityType.QUOTATION,
-                        event.quotationId()
+                        event.rfqId()
                 );
                 if (n != null) {
                     emailNotificationService.sendNotificationEmail(n);
@@ -151,7 +233,7 @@ public class NotificationEventListener {
                         "Quotation Rejected",
                         "Your quotation has been rejected by the buyer.",
                         NotificationEntityType.QUOTATION,
-                        event.quotationId()
+                        event.rfqId()
                 );
                 if (n != null) {
                     emailNotificationService.sendNotificationEmail(n);
@@ -273,6 +355,55 @@ public class NotificationEventListener {
             }
         } catch (Exception e) {
             log.error("Failed to process OrderDeliveredEvent for PO {}", event.purchaseOrderId(), e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onPurchaseOrderRejected(PurchaseOrderRejectedEvent event) {
+        try {
+            String message = "Your purchase order has been rejected by the supplier.";
+            if (event.reason() != null && !event.reason().isBlank()) {
+                message = "Your purchase order has been rejected by the supplier. Reason: " + event.reason().trim();
+            }
+            Notification n = notificationService.createNotification(
+                    event.buyerId(),
+                    NotificationType.PO_REJECTED,
+                    "Purchase Order Rejected",
+                    message,
+                    NotificationEntityType.PURCHASE_ORDER,
+                    event.purchaseOrderId()
+            );
+            if (n != null) {
+                emailNotificationService.sendNotificationEmail(n);
+            }
+        } catch (Exception e) {
+            log.error("Failed to process PurchaseOrderRejectedEvent for PO {}", event.purchaseOrderId(), e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onOrderReceiptConfirmed(OrderReceiptConfirmedEvent event) {
+        try {
+            UUID recipientId = resolveSupplierUserId(event.supplierId());
+            if (recipientId != null) {
+                Notification n = notificationService.createNotification(
+                        recipientId,
+                        NotificationType.ORDER_RECEIPT_CONFIRMED,
+                        "Order Receipt Confirmed",
+                        "The buyer has confirmed receipt of the purchase order.",
+                        NotificationEntityType.PURCHASE_ORDER,
+                        event.purchaseOrderId()
+                );
+                if (n != null) {
+                    emailNotificationService.sendNotificationEmail(n);
+                }
+            } else {
+                log.warn("Could not resolve supplier User for supplier ID {}", event.supplierId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to process OrderReceiptConfirmedEvent for PO {}", event.purchaseOrderId(), e);
         }
     }
 

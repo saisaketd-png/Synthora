@@ -11,9 +11,26 @@ import { ChevronRight, ChevronLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+
 export const metadata: Metadata = {
-  title: "Supplier Directory | Synthora",
+  title: "Supplier Directory | Verified Chemical Manufacturers | Synthora",
   description: "Discover verified chemical manufacturers, request audits, and streamline your onboarding process with our audited supplier network.",
+  alternates: {
+    canonical: `${SITE_URL}/suppliers`,
+  },
+  openGraph: {
+    title: "Verified Chemical Suppliers Directory | Synthora",
+    description: "Discover verified chemical manufacturers and audited suppliers on Synthora.",
+    url: `${SITE_URL}/suppliers`,
+    siteName: "Synthora",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Verified Chemical Suppliers Directory | Synthora",
+    description: "Discover verified chemical manufacturers and audited suppliers on Synthora.",
+  },
 };
 
 export default async function SuppliersPage(props: {

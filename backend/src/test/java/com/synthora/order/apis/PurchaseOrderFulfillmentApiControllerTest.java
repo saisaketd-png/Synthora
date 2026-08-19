@@ -269,7 +269,7 @@ public class PurchaseOrderFulfillmentApiControllerTest {
                 
         // Unauthenticated
         mockMvc.perform(post("/api/v1/orders/supplier/{id}/process", purchaseOrderA.getId()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

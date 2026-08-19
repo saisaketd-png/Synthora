@@ -17,11 +17,26 @@ export interface SupplierSummary {
   responseRate?: number;
 }
 
+export interface ProductImage {
+  id: string;
+  productId: string;
+  fileName: string;
+  contentType: string;
+  fileSize: number;
+  isPrimary: boolean;
+  displayOrder: number;
+  imageUrl: string;
+  createdAt: string;
+}
+
 export interface Product {
   id: string;
+  productCode?: string;
   slug?: string;
   name: string;
   description: string;
+  primaryImageUrl?: string;
+  images?: ProductImage[];
   price: number;
   stock: number;
   category: ProductCategory;
@@ -68,12 +83,21 @@ export interface ProductQueryParams {
   size?: number;
   search?: string;
   category?: string;
+  casNumber?: string;
   country?: string;
   verified?: boolean;
   purityMin?: string;
   purityMax?: string;
+  moqMin?: string;
+  moqMax?: string;
+  inStock?: boolean;
+  coa?: boolean;
+  msds?: boolean;
+  exportReady?: boolean;
   availability?: string;
   sort?: string;
+  sortField?: string;
+  sortDir?: string;
 }
 
 export interface ProductSearchSupplier {
