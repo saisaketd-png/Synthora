@@ -50,7 +50,7 @@ function RegisterForm() {
       if (redirectParam && redirectParam.startsWith("/")) {
         router.push(redirectParam);
       } else {
-        router.push("/dashboard/buyer");
+        router.push("/products");
       }
     } catch (err: unknown) {
       if (err instanceof Error) {

@@ -13,9 +13,13 @@ import com.synthora.order.PurchaseOrder;
 import com.synthora.order.PurchaseOrderRepository;
 import com.synthora.order.Shipment;
 import com.synthora.order.ShipmentRepository;
+import com.synthora.product.MasterProduct;
+import com.synthora.product.MasterProductRepository;
 import com.synthora.product.Product;
 import com.synthora.product.ProductRepository;
 import com.synthora.product.Supplier;
+import com.synthora.product.SupplierOffering;
+import com.synthora.product.SupplierOfferingRepository;
 import com.synthora.product.SupplierRepository;
 import com.synthora.rfq.Rfq;
 import com.synthora.rfq.RfqRepository;
@@ -54,6 +58,8 @@ public class AdminTransactionService {
     private final UserRepository userRepository;
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
+    private final MasterProductRepository masterProductRepository;
+    private final SupplierOfferingRepository supplierOfferingRepository;
     private final AuditService auditService;
 
     public AdminTransactionService(
@@ -64,6 +70,8 @@ public class AdminTransactionService {
             UserRepository userRepository,
             SupplierRepository supplierRepository,
             ProductRepository productRepository,
+            MasterProductRepository masterProductRepository,
+            SupplierOfferingRepository supplierOfferingRepository,
             AuditService auditService) {
         this.rfqRepository = rfqRepository;
         this.quotationRepository = quotationRepository;
@@ -72,6 +80,8 @@ public class AdminTransactionService {
         this.userRepository = userRepository;
         this.supplierRepository = supplierRepository;
         this.productRepository = productRepository;
+        this.masterProductRepository = masterProductRepository;
+        this.supplierOfferingRepository = supplierOfferingRepository;
         this.auditService = auditService;
     }
 
@@ -110,13 +120,18 @@ public class AdminTransactionService {
                 predicates.add(cb.equal(root.get("supplierId"), supplierId));
             }
             if (productId != null) {
-                predicates.add(cb.equal(root.get("productId"), productId));
+                predicates.add(cb.or(
+                        cb.equal(root.get("productId"), productId),
+                        cb.equal(root.get("masterProductId"), productId),
+                        cb.equal(root.get("supplierOfferingId"), productId)
+                ));
             }
             if (query != null && !query.trim().isEmpty()) {
                 String pattern = "%" + query.trim().toLowerCase() + "%";
                 Predicate msgMatch = cb.like(cb.lower(root.get("message")), pattern);
                 Predicate unitMatch = cb.like(cb.lower(root.get("unit")), pattern);
-                predicates.add(cb.or(msgMatch, unitMatch));
+                Predicate refMatch = cb.like(cb.lower(root.get("sourcingRequestReference")), pattern);
+                predicates.add(cb.or(msgMatch, unitMatch, refMatch));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
@@ -138,17 +153,27 @@ public class AdminTransactionService {
                 .map(this::toQuotationSummary)
                 .toList();
 
-        String buyerName = userRepository.findById(rfq.getBuyerId()).map(User::getName).orElse(null);
-        String buyerEmail = userRepository.findById(rfq.getBuyerId()).map(User::getEmail).orElse(null);
-        String supplierName = supplierRepository.findById(rfq.getSupplierId()).map(Supplier::getName).orElse(null);
-        String productName = productRepository.findById(rfq.getProductId()).map(Product::getName).orElse(null);
+        String buyerName = rfq.getBuyerId() != null
+                ? userRepository.findById(rfq.getBuyerId()).map(User::getName).orElse(null)
+                : null;
+        String buyerEmail = rfq.getBuyerId() != null
+                ? userRepository.findById(rfq.getBuyerId()).map(User::getEmail).orElse(null)
+                : null;
+        String supplierName = rfq.getSupplierId() != null
+                ? supplierRepository.findById(rfq.getSupplierId()).map(Supplier::getName).orElse(null)
+                : null;
+        String productName = resolveProductName(rfq);
+
+        UUID effectiveProductId = rfq.getMasterProductId() != null
+                ? rfq.getMasterProductId()
+                : (rfq.getProductId() != null ? rfq.getProductId() : rfq.getSupplierOfferingId());
 
         return new AdminRfqDetailResponse(
                 rfq.getId(),
                 rfq.getBuyerId(),
                 buyerName,
                 buyerEmail,
-                rfq.getProductId(),
+                effectiveProductId,
                 productName,
                 rfq.getSupplierId(),
                 supplierName,
@@ -277,9 +302,15 @@ public class AdminTransactionService {
                 .map(this::toShipmentSummary)
                 .orElse(null);
 
-        String buyerName = userRepository.findById(po.getBuyerId()).map(User::getName).orElse(null);
-        String buyerEmail = userRepository.findById(po.getBuyerId()).map(User::getEmail).orElse(null);
-        String supplierName = supplierRepository.findById(po.getSupplierId()).map(Supplier::getName).orElse(null);
+        String buyerName = po.getBuyerId() != null
+                ? userRepository.findById(po.getBuyerId()).map(User::getName).orElse(null)
+                : null;
+        String buyerEmail = po.getBuyerId() != null
+                ? userRepository.findById(po.getBuyerId()).map(User::getEmail).orElse(null)
+                : null;
+        String supplierName = po.getSupplierId() != null
+                ? supplierRepository.findById(po.getSupplierId()).map(Supplier::getName).orElse(null)
+                : null;
 
         return new AdminPurchaseOrderDetailResponse(
                 po.getId(),
@@ -367,18 +398,52 @@ public class AdminTransactionService {
         return admin;
     }
 
+    private String resolveProductName(Rfq rfq) {
+        if (rfq.getMasterProductId() != null) {
+            Optional<MasterProduct> mp = masterProductRepository.findById(rfq.getMasterProductId());
+            if (mp.isPresent()) {
+                return mp.get().getName();
+            }
+        }
+        if (rfq.getSupplierOfferingId() != null) {
+            Optional<SupplierOffering> offering = supplierOfferingRepository.findById(rfq.getSupplierOfferingId());
+            if (offering.isPresent()) {
+                if (offering.get().getMasterProduct() != null) {
+                    return offering.get().getMasterProduct().getName();
+                }
+            }
+        }
+        if (rfq.getProductId() != null) {
+            Optional<Product> prod = productRepository.findById(rfq.getProductId());
+            if (prod.isPresent()) {
+                return prod.get().getName();
+            }
+        }
+        return "Specialty Chemical Compound";
+    }
+
     private AdminRfqResponse toRfqResponse(Rfq rfq) {
-        String buyerName = userRepository.findById(rfq.getBuyerId()).map(User::getName).orElse(null);
-        String buyerEmail = userRepository.findById(rfq.getBuyerId()).map(User::getEmail).orElse(null);
-        String supplierName = supplierRepository.findById(rfq.getSupplierId()).map(Supplier::getName).orElse(null);
-        String productName = productRepository.findById(rfq.getProductId()).map(Product::getName).orElse(null);
+        String buyerName = rfq.getBuyerId() != null
+                ? userRepository.findById(rfq.getBuyerId()).map(User::getName).orElse(null)
+                : null;
+        String buyerEmail = rfq.getBuyerId() != null
+                ? userRepository.findById(rfq.getBuyerId()).map(User::getEmail).orElse(null)
+                : null;
+        String supplierName = rfq.getSupplierId() != null
+                ? supplierRepository.findById(rfq.getSupplierId()).map(Supplier::getName).orElse(null)
+                : null;
+        String productName = resolveProductName(rfq);
+
+        UUID effectiveProductId = rfq.getMasterProductId() != null
+                ? rfq.getMasterProductId()
+                : (rfq.getProductId() != null ? rfq.getProductId() : rfq.getSupplierOfferingId());
 
         return new AdminRfqResponse(
                 rfq.getId(),
                 rfq.getBuyerId(),
                 buyerName,
                 buyerEmail,
-                rfq.getProductId(),
+                effectiveProductId,
                 productName,
                 rfq.getSupplierId(),
                 supplierName,
@@ -408,9 +473,15 @@ public class AdminTransactionService {
     }
 
     private AdminPurchaseOrderResponse toOrderResponse(PurchaseOrder po) {
-        String buyerName = userRepository.findById(po.getBuyerId()).map(User::getName).orElse(null);
-        String buyerEmail = userRepository.findById(po.getBuyerId()).map(User::getEmail).orElse(null);
-        String supplierName = supplierRepository.findById(po.getSupplierId()).map(Supplier::getName).orElse(null);
+        String buyerName = po.getBuyerId() != null
+                ? userRepository.findById(po.getBuyerId()).map(User::getName).orElse(null)
+                : null;
+        String buyerEmail = po.getBuyerId() != null
+                ? userRepository.findById(po.getBuyerId()).map(User::getEmail).orElse(null)
+                : null;
+        String supplierName = po.getSupplierId() != null
+                ? supplierRepository.findById(po.getSupplierId()).map(Supplier::getName).orElse(null)
+                : null;
 
         return new AdminPurchaseOrderResponse(
                 po.getId(),

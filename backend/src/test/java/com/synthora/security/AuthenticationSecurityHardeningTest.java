@@ -314,4 +314,29 @@ public class AuthenticationSecurityHardeningTest {
                 .andExpect(status().isTooManyRequests())
                 .andExpect(jsonPath("$.message", containsString("Too many failed login attempts")));
     }
+
+    @Test
+    @DisplayName("Failed attempts on different accounts on shared IP do not cause premature false-positive lockout")
+    public void testSharedIpMultiAccountRateLimitIsolation() throws Exception {
+        String sharedIp = "10.0.0.50";
+
+        // User A fails 2 times
+        String userA = "user_a_" + UUID.randomUUID() + "@synthora.com";
+        for (int i = 0; i < 2; i++) {
+            mockMvc.perform(post("/api/v1/auth/login")
+                            .header("X-Forwarded-For", sharedIp)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(new LoginRequest(userA, "BadPass"))))
+                    .andExpect(status().isBadRequest());
+        }
+
+        // User B on the same IP must NOT be blocked on their 1st attempt
+        String userB = "user_b_" + UUID.randomUUID() + "@synthora.com";
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .header("X-Forwarded-For", sharedIp)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new LoginRequest(userB, "BadPass"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("Invalid email or password")));
+    }
 }

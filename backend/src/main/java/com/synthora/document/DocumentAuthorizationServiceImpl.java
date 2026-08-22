@@ -130,7 +130,7 @@ public class DocumentAuthorizationServiceImpl implements DocumentAuthorizationSe
     }
 
     private Long getSupplierId(User user) {
-        if (user == null || UserRole.SUPPLIER != user.getRole()) {
+        if (user == null) {
             return null;
         }
         return supplierRepository.findByUser(user)
@@ -203,7 +203,7 @@ public class DocumentAuthorizationServiceImpl implements DocumentAuthorizationSe
         }
         Rfq rfq = rfqOpt.get();
 
-        if (rfq.getBuyerId().equals(authenticatedUser.getId())) {
+        if (rfq.getBuyerId() != null && rfq.getBuyerId().equals(authenticatedUser.getId())) {
             return true;
         }
 
@@ -253,7 +253,16 @@ public class DocumentAuthorizationServiceImpl implements DocumentAuthorizationSe
         if (rfqOpt.isEmpty()) {
             return false;
         }
-        return rfqOpt.get().getBuyerId().equals(authenticatedUser.getId());
+        Rfq rfq = rfqOpt.get();
+
+        // Buyer who created the RFQ can upload documents
+        if (rfq.getBuyerId() != null && rfq.getBuyerId().equals(authenticatedUser.getId())) {
+            return true;
+        }
+
+        // Supplier participating in this RFQ can upload documents
+        Long supplierId = getSupplierId(authenticatedUser);
+        return supplierId != null && supplierId.equals(rfq.getSupplierId());
     }
 
     private boolean canUploadQuotation(UUID quotationId, User authenticatedUser) {

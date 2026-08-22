@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.synthora.security.FileSecurityTest" time="9.527" tests="36" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.synthora.security.FileSecurityTest" time="9.56" tests="36" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="25"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -17,7 +17,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-25.0.2\bin"/>
-    <property name="sun.java.command" value="C:\Users\saisa\AppData\Local\Temp\surefire14074567858015162339\surefirebooter-20260822224127480_3.jar C:\Users\saisa\AppData\Local\Temp\surefire14074567858015162339 2026-08-22T22-41-27_357-jvmRun1 surefire-20260822224127480_1tmp surefire_0-20260822224127480_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\saisa\AppData\Local\Temp\surefire6869333935528519391\surefirebooter-20260823015211304_3.jar C:\Users\saisa\AppData\Local\Temp\surefire6869333935528519391 2026-08-23T01-52-11_174-jvmRun1 surefire-20260823015211304_1tmp surefire_0-20260823015211304_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="D:\Saisaket\Synthora\backend\target\test-classes;D:\Saisaket\Synthora\backend\target\classes;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.4.1\spring-boot-starter-web-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter\3.4.1\spring-boot-starter-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot\3.4.1\spring-boot-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.4.1\spring-boot-autoconfigure-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.4.1\spring-boot-starter-logging-3.4.1.jar;C:\Users\saisa\.m2\repository\ch\qos\logback\logback-classic\1.5.12\logback-classic-1.5.12.jar;C:\Users\saisa\.m2\repository\ch\qos\logback\logback-core\1.5.12\logback-core-1.5.12.jar;C:\Users\saisa\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.24.3\log4j-to-slf4j-2.24.3.jar;C:\Users\saisa\.m2\repository\org\apache\logging\log4j\log4j-api\2.24.3\log4j-api-2.24.3.jar;C:\Users\saisa\.m2\repository\org\slf4j\jul-to-slf4j\2.0.16\jul-to-slf4j-2.0.16.jar;C:\Users\saisa\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\saisa\.m2\repository\org\yaml\snakeyaml\2.3\snakeyaml-2.3.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.4.1\spring-boot-starter-json-3.4.1.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.18.2\jackson-datatype-jdk8-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.18.2\jackson-module-parameter-names-2.18.2.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.4.1\spring-boot-starter-tomcat-3.4.1.jar;C:\Users\saisa\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.34\tomcat-embed-core-10.1.34.jar;C:\Users\saisa\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.34\tomcat-embed-websocket-10.1.34.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-web\6.2.1\spring-web-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-beans\6.2.1\spring-beans-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-webmvc\6.2.1\spring-webmvc-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-context\6.2.1\spring-context-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-expression\6.2.1\spring-expression-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.4.1\spring-boot-starter-data-jpa-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.4.1\spring-boot-starter-jdbc-3.4.1.jar;C:\Users\saisa\.m2\repository\com\zaxxer\HikariCP\5.1.0\HikariCP-5.1.0.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-jdbc\6.2.1\spring-jdbc-6.2.1.jar;C:\Users\saisa\.m2\repository\org\hibernate\orm\hibernate-core\6.6.4.Final\hibernate-core-6.6.4.Final.jar;C:\Users\saisa\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\saisa\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\saisa\.m2\repository\org\jboss\logging\jboss-logging\3.6.1.Final\jboss-logging-3.6.1.Final.jar;C:\Users\saisa\.m2\repository\org\hibernate\common\hibernate-commons-annotations\7.0.3.Final\hibernate-commons-annotations-7.0.3.Final.jar;C:\Users\saisa\.m2\repository\io\smallrye\jandex\3.2.0\jandex-3.2.0.jar;C:\Users\saisa\.m2\repository\com\fasterxml\classmate\1.7.0\classmate-1.7.0.jar;C:\Users\saisa\.m2\repository\net\bytebuddy\byte-buddy\1.15.11\byte-buddy-1.15.11.jar;C:\Users\saisa\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.5\jaxb-runtime-4.0.5.jar;C:\Users\saisa\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.5\jaxb-core-4.0.5.jar;C:\Users\saisa\.m2\repository\org\glassfish\jaxb\txw2\4.0.5\txw2-4.0.5.jar;C:\Users\saisa\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\saisa\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\saisa\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\saisa\.m2\repository\org\springframework\data\spring-data-jpa\3.4.1\spring-data-jpa-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\data\spring-data-commons\3.4.1\spring-data-commons-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-orm\6.2.1\spring-orm-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-tx\6.2.1\spring-tx-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-aspects\6.2.1\spring-aspects-6.2.1.jar;C:\Users\saisa\.m2\repository\org\aspectj\aspectjweaver\1.9.22.1\aspectjweaver-1.9.22.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.4.1\spring-boot-starter-security-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-aop\6.2.1\spring-aop-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-config\6.4.2\spring-security-config-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-web\6.4.2\spring-security-web-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.4.1\spring-boot-starter-validation-3.4.1.jar;C:\Users\saisa\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.34\tomcat-embed-el-10.1.34.jar;C:\Users\saisa\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.2.Final\hibernate-validator-8.0.2.Final.jar;C:\Users\saisa\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.4.1\spring-boot-starter-actuator-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.4.1\spring-boot-actuator-autoconfigure-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-actuator\3.4.1\spring-boot-actuator-3.4.1.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-observation\1.14.2\micrometer-observation-1.14.2.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-commons\1.14.2\micrometer-commons-1.14.2.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-jakarta9\1.14.2\micrometer-jakarta9-1.14.2.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-core\1.14.2\micrometer-core-1.14.2.jar;C:\Users\saisa\.m2\repository\org\hdrhistogram\HdrHistogram\2.2.2\HdrHistogram-2.2.2.jar;C:\Users\saisa\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-mail\3.4.1\spring-boot-starter-mail-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-context-support\6.2.1\spring-context-support-6.2.1.jar;C:\Users\saisa\.m2\repository\org\eclipse\angus\jakarta.mail\2.0.3\jakarta.mail-2.0.3.jar;C:\Users\saisa\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\saisa\.m2\repository\org\eclipse\angus\angus-activation\2.0.2\angus-activation-2.0.2.jar;C:\Users\saisa\.m2\repository\org\postgresql\postgresql\42.7.4\postgresql-42.7.4.jar;C:\Users\saisa\.m2\repository\org\checkerframework\checker-qual\3.42.0\checker-qual-3.42.0.jar;C:\Users\saisa\.m2\repository\org\flywaydb\flyway-core\10.20.1\flyway-core-10.20.1.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.18.2\jackson-dataformat-toml-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.18.2\jackson-core-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.18.2\jackson-datatype-jsr310-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.18.2\jackson-annotations-2.18.2.jar;C:\Users\saisa\.m2\repository\org\flywaydb\flyway-database-postgresql\10.20.1\flyway-database-postgresql-10.20.1.jar;C:\Users\saisa\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.8.3\springdoc-openapi-starter-webmvc-ui-2.8.3.jar;C:\Users\saisa\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.8.3\springdoc-openapi-starter-webmvc-api-2.8.3.jar;C:\Users\saisa\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.8.3\springdoc-openapi-starter-common-2.8.3.jar;C:\Users\saisa\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.27\swagger-core-jakarta-2.2.27.jar;C:\Users\saisa\.m2\repository\org\apache\commons\commons-lang3\3.17.0\commons-lang3-3.17.0.jar;C:\Users\saisa\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.27\swagger-annotations-jakarta-2.2.27.jar;C:\Users\saisa\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.27\swagger-models-jakarta-2.2.27.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.18.2\jackson-dataformat-yaml-2.18.2.jar;C:\Users\saisa\.m2\repository\org\webjars\swagger-ui\5.18.2\swagger-ui-5.18.2.jar;C:\Users\saisa\.m2\repository\org\webjars\webjars-locator-lite\1.0.1\webjars-locator-lite-1.0.1.jar;C:\Users\saisa\.m2\repository\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;C:\Users\saisa\.m2\repository\org\projectlombok\lombok\1.18.36\lombok-1.18.36.jar;C:\Users\saisa\.m2\repository\org\mapstruct\mapstruct\1.6.3\mapstruct-1.6.3.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.4.1\spring-boot-starter-test-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-test\3.4.1\spring-boot-test-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.4.1\spring-boot-test-autoconfigure-3.4.1.jar;C:\Users\saisa\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\saisa\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\saisa\.m2\repository\net\minidev\json-smart\2.5.1\json-smart-2.5.1.jar;C:\Users\saisa\.m2\repository\net\minidev\accessors-smart\2.5.1\accessors-smart-2.5.1.jar;C:\Users\saisa\.m2\repository\org\ow2\asm\asm\9.6\asm-9.6.jar;C:\Users\saisa\.m2\repository\org\assertj\assertj-core\3.26.3\assertj-core-3.26.3.jar;C:\Users\saisa\.m2\repository\org\awaitility\awaitility\4.2.2\awaitility-4.2.2.jar;C:\Users\saisa\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter\5.11.4\junit-jupiter-5.11.4.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.11.4\junit-jupiter-api-5.11.4.jar;C:\Users\saisa\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\saisa\.m2\repository\org\junit\platform\junit-platform-commons\1.11.4\junit-platform-commons-1.11.4.jar;C:\Users\saisa\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.11.4\junit-jupiter-params-5.11.4.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.11.4\junit-jupiter-engine-5.11.4.jar;C:\Users\saisa\.m2\repository\org\junit\platform\junit-platform-engine\1.11.4\junit-platform-engine-1.11.4.jar;C:\Users\saisa\.m2\repository\org\mockito\mockito-core\5.14.2\mockito-core-5.14.2.jar;C:\Users\saisa\.m2\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar;C:\Users\saisa\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\saisa\.m2\repository\org\mockito\mockito-junit-jupiter\5.14.2\mockito-junit-jupiter-5.14.2.jar;C:\Users\saisa\.m2\repository\org\skyscreamer\jsonassert\1.5.3\jsonassert-1.5.3.jar;C:\Users\saisa\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-core\6.2.1\spring-core-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-jcl\6.2.1\spring-jcl-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-test\6.2.1\spring-test-6.2.1.jar;C:\Users\saisa\.m2\repository\org\xmlunit\xmlunit-core\2.10.0\xmlunit-core-2.10.0.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-test\6.4.2\spring-security-test-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-core\6.4.2\spring-security-core-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-crypto\6.4.2\spring-security-crypto-6.4.2.jar;C:\Users\saisa\.m2\repository\io\jsonwebtoken\jjwt-api\0.12.6\jjwt-api-0.12.6.jar;C:\Users\saisa\.m2\repository\io\jsonwebtoken\jjwt-impl\0.12.6\jjwt-impl-0.12.6.jar;C:\Users\saisa\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.12.6\jjwt-jackson-0.12.6.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.18.2\jackson-databind-2.18.2.jar;C:\Users\saisa\.m2\repository\org\apache\tika\tika-core\2.9.2\tika-core-2.9.2.jar;C:\Users\saisa\.m2\repository\org\slf4j\slf4j-api\2.0.16\slf4j-api-2.0.16.jar;C:\Users\saisa\.m2\repository\commons-io\commons-io\2.15.1\commons-io-2.15.1.jar;C:\Users\saisa\.m2\repository\com\h2database\h2\2.3.232\h2-2.3.232.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -34,7 +34,7 @@
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="FILE_LOG_CHARSET" value="UTF-8"/>
     <property name="java.awt.headless" value="true"/>
-    <property name="surefire.real.class.path" value="C:\Users\saisa\AppData\Local\Temp\surefire14074567858015162339\surefirebooter-20260822224127480_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\saisa\AppData\Local\Temp\surefire6869333935528519391\surefirebooter-20260823015211304_3.jar"/>
     <property name="user.script" value=""/>
     <property name="polyglot.engine.WarnInterpreterOnly" value="false"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
@@ -54,7 +54,7 @@
     <property name="user.dir" value="D:\Saisaket\Synthora\backend"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="PID" value="8960"/>
+    <property name="PID" value="35500"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
     <property name="native.encoding" value="Cp1252"/>
@@ -68,173 +68,173 @@
     <property name="java.class.version" value="69.0"/>
     <property name="LOGGED_APPLICATION_NAME" value="[synthora] "/>
   </properties>
-  <testcase name="testElfBinaryRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.262">
-    <system-out><![CDATA[2026-08-22T22:42:19.405+05:30  INFO 8960 --- [synthora] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.synthora.security.FileSecurityTest]: FileSecurityTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-22T22:42:19.407+05:30  INFO 8960 --- [synthora] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.synthora.SynthoraApplication for test class com.synthora.security.FileSecurityTest
-2026-08-22T22:42:19.668+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=1ms requestId=c220dce5-1947-4e4f-9d8b-a4bfba9ff038
+  <testcase name="testElfBinaryRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.26">
+    <system-out><![CDATA[2026-08-23T01:53:05.060+05:30  INFO 35500 --- [synthora] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.synthora.security.FileSecurityTest]: FileSecurityTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-23T01:53:05.061+05:30  INFO 35500 --- [synthora] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.synthora.SynthoraApplication for test class com.synthora.security.FileSecurityTest
+2026-08-23T01:53:05.322+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=49613ecb-1cc0-4d8c-b1f8-e74f0033a268
 ]]></system-out>
   </testcase>
-  <testcase name="testValidPngAccepted" classname="com.synthora.security.FileSecurityTest" time="0.264">
-    <system-out><![CDATA[2026-08-22T22:42:19.933+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=c29bb75b-2aba-4126-8968-f9eb7468c932
+  <testcase name="testValidPngAccepted" classname="com.synthora.security.FileSecurityTest" time="0.266">
+    <system-out><![CDATA[2026-08-23T01:53:05.588+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=6ms requestId=3630a3ef-272d-429e-95db-cbc0e72a1148
 ]]></system-out>
   </testcase>
-  <testcase name="testDeletePurgesDatabaseAndDisk" classname="com.synthora.security.FileSecurityTest" time="0.267">
-    <system-out><![CDATA[2026-08-22T22:42:20.195+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=5ms requestId=1de827eb-cad2-4434-8edb-7d85783c2b37
-2026-08-22T22:42:20.198+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=DELETE uri=/api/v1/documents/cbc3b4cd-59fa-4c11-a578-4ab10d390088 status=204 duration=2ms requestId=62c12bb4-6c16-42aa-80f3-5be7042fdcf2
+  <testcase name="testDeletePurgesDatabaseAndDisk" classname="com.synthora.security.FileSecurityTest" time="0.274">
+    <system-out><![CDATA[2026-08-23T01:53:05.857+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=fa1310aa-80b2-4bdf-bb19-4110572bdb90
+2026-08-23T01:53:05.861+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=DELETE uri=/api/v1/documents/b4436667-1c04-4f50-bf48-1724f23560c5 status=204 duration=3ms requestId=5cfd2bf7-9da2-4d16-a772-52529d6bcdf0
 ]]></system-out>
   </testcase>
-  <testcase name="testExecutableRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.258">
-    <system-out><![CDATA[2026-08-22T22:42:20.457+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=1ms requestId=6342b3b2-45e3-40e2-9547-117ddeb24990
+  <testcase name="testExecutableRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.261">
+    <system-out><![CDATA[2026-08-23T01:53:06.125+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=33adced6-93ce-4727-a1f3-a267849e35d5
 ]]></system-out>
   </testcase>
   <testcase name="testMissingPhysicalFileReturnsControlled404" classname="com.synthora.security.FileSecurityTest" time="0.266">
-    <system-out><![CDATA[2026-08-22T22:42:20.721+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=8cb9c2fe-5c73-4fa3-9514-0ed07acdf5dc
-2026-08-22T22:42:20.724+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/924438ce-fef1-4699-89c2-c7ee750f273d/download status=404 duration=1ms requestId=ba751d3f-8c7d-4ffc-a6ae-cf044186098f
+    <system-out><![CDATA[2026-08-23T01:53:06.388+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=78cfed41-dadb-4099-92eb-3a05bae40352
+2026-08-23T01:53:06.391+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/1afd567b-6deb-4493-83cc-be7951699235/download status=404 duration=1ms requestId=727d6b5b-7682-448e-8140-0ae78a8b293d
 ]]></system-out>
   </testcase>
-  <testcase name="testBuyerBCannotDownloadBuyerADocument" classname="com.synthora.security.FileSecurityTest" time="0.267">
-    <system-out><![CDATA[2026-08-22T22:42:20.989+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification d9c536a1-020c-4d7d-82a3-3312095cae15 for recipient 75d36cb5-1e15-435a-8e72-fbbc3b016437
-2026-08-22T22:42:20.989+05:30 DEBUG 8960 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
-2026-08-22T22:42:20.989+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=3ce4ad1b-3b1c-42c7-923b-19df57ca5700
-2026-08-22T22:42:20.992+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/127000e2-ad7c-45b0-b859-d010fffb0573/download status=403 duration=1ms requestId=6d1a7a15-8235-4026-ae3d-eef5a7f1776f
+  <testcase name="testBuyerBCannotDownloadBuyerADocument" classname="com.synthora.security.FileSecurityTest" time="0.265">
+    <system-out><![CDATA[2026-08-23T01:53:06.653+05:30 DEBUG 35500 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification ea0a947c-2684-4da6-98ba-2aa19d6039d5 for recipient 505dc25a-9d9b-4623-a09a-b8eac959fef6
+2026-08-23T01:53:06.654+05:30 DEBUG 35500 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
+2026-08-23T01:53:06.654+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=58c656cf-427e-4101-a26f-ed186a6ac50e
+2026-08-23T01:53:06.656+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/486a9a6d-6459-45fc-9f7c-8f833b95c192/download status=403 duration=1ms requestId=226d99b0-0d1e-48a7-b90a-62287a3d072e
 ]]></system-out>
   </testcase>
-  <testcase name="testValidJpegAccepted" classname="com.synthora.security.FileSecurityTest" time="0.264">
-    <system-out><![CDATA[2026-08-22T22:42:21.256+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=c9018208-a8cf-4358-b226-62f455d43e72
+  <testcase name="testValidJpegAccepted" classname="com.synthora.security.FileSecurityTest" time="0.265">
+    <system-out><![CDATA[2026-08-23T01:53:06.921+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=2ms requestId=a64dbf48-56c1-4f76-9b11-64ef3e12c95f
 ]]></system-out>
   </testcase>
-  <testcase name="testBuyerACanUploadAndDownloadOwnRfqDoc" classname="com.synthora.security.FileSecurityTest" time="0.269">
-    <system-out><![CDATA[2026-08-22T22:42:21.521+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 65a6f2d9-2e6d-4b40-9795-f52f2e06c754 for recipient 4c0e23b3-639a-48df-8edd-70ef077004bd
-2026-08-22T22:42:21.522+05:30 DEBUG 8960 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
-2026-08-22T22:42:21.522+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=0c6e0dc9-c4ab-4b6e-8076-dbbdbb2cd325
-2026-08-22T22:42:21.526+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/7b54d019-3f0c-4263-b0d2-cab2d5e13391/download status=200 duration=2ms requestId=d32884e6-58f4-47c3-8fbe-30f6c3cb446c
+  <testcase name="testBuyerACanUploadAndDownloadOwnRfqDoc" classname="com.synthora.security.FileSecurityTest" time="0.272">
+    <system-out><![CDATA[2026-08-23T01:53:07.189+05:30 DEBUG 35500 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification f018dd97-c5ff-4ae7-9512-c1039875e029 for recipient 2d12cee0-addd-4053-bee4-93843e4351ec
+2026-08-23T01:53:07.190+05:30 DEBUG 35500 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
+2026-08-23T01:53:07.190+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=7ms requestId=5a10e7bb-6d72-430f-b706-674c9c08df45
+2026-08-23T01:53:07.193+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/c85870ae-9f89-4df5-a3a4-c518faf32de0/download status=200 duration=3ms requestId=ae3c15c3-d814-40f3-9704-c7171cd2a3cc
 ]]></system-out>
   </testcase>
-  <testcase name="testDoubleEncodedTraversalSanitized" classname="com.synthora.security.FileSecurityTest" time="0.262">
-    <system-out><![CDATA[2026-08-22T22:42:21.789+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=33a4b71e-c68b-4019-a448-5c17bfc663de
+  <testcase name="testDoubleEncodedTraversalSanitized" classname="com.synthora.security.FileSecurityTest" time="0.263">
+    <system-out><![CDATA[2026-08-23T01:53:07.456+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=2ms requestId=1d7ef910-3995-4410-9c26-a74c07018d0c
 ]]></system-out>
   </testcase>
-  <testcase name="testNonexistentDocumentDownloadReturns404" classname="com.synthora.security.FileSecurityTest" time="0.263">
-    <system-out><![CDATA[2026-08-22T22:42:22.053+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/4a99346f-45f8-40bf-a173-34bcdbcd8446/download status=404 duration=1ms requestId=83f57042-f577-40b5-ac03-f1e740b73a70
+  <testcase name="testNonexistentDocumentDownloadReturns404" classname="com.synthora.security.FileSecurityTest" time="0.26">
+    <system-out><![CDATA[2026-08-23T01:53:07.717+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/ae0aa857-42a0-4c38-a214-ff51b06dd584/download status=404 duration=1ms requestId=acf2a63a-e63d-4b56-a81a-35e6e16612b2
 ]]></system-out>
   </testcase>
-  <testcase name="testUnrelatedSupplierCannotDownloadRfqDoc" classname="com.synthora.security.FileSecurityTest" time="0.267">
-    <system-out><![CDATA[2026-08-22T22:42:22.317+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 98b58d0e-b875-46a8-bd82-2a5fb5e267a0 for recipient 3f94e0fa-ca1a-4e68-a4cb-23dc3c8085bc
-2026-08-22T22:42:22.317+05:30 DEBUG 8960 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
-2026-08-22T22:42:22.318+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=f59b9b41-7c55-44de-9158-a2faa58d4c7b
-2026-08-22T22:42:22.320+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/e1d82155-6d71-400a-a866-0b12d66e04e9/download status=403 duration=1ms requestId=47c85b1e-4ea3-4214-89a0-344fae3c8985
+  <testcase name="testUnrelatedSupplierCannotDownloadRfqDoc" classname="com.synthora.security.FileSecurityTest" time="0.268">
+    <system-out><![CDATA[2026-08-23T01:53:07.982+05:30 DEBUG 35500 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 88e98e69-09d7-46d2-ae64-1fe8e37a90b3 for recipient 1de579dd-b624-45f5-aa71-fa2a656e1372
+2026-08-23T01:53:07.983+05:30 DEBUG 35500 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
+2026-08-23T01:53:07.983+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=81461e47-3e72-4d8c-addb-e77304966cc0
+2026-08-23T01:53:07.985+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/377a2efa-f59d-4bb1-8810-8fa971da1ec5/download status=403 duration=1ms requestId=8840b254-5f00-41e8-8777-00058753d70c
 ]]></system-out>
   </testcase>
-  <testcase name="testValidDocxAccepted" classname="com.synthora.security.FileSecurityTest" time="0.259">
-    <system-out><![CDATA[2026-08-22T22:42:22.580+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=29744589-d267-4783-9a81-5ef9107be835
+  <testcase name="testValidDocxAccepted" classname="com.synthora.security.FileSecurityTest" time="0.264">
+    <system-out><![CDATA[2026-08-23T01:53:08.248+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=2082ba01-5e86-493e-a7dd-fb3b794af71a
 ]]></system-out>
   </testcase>
-  <testcase name="testUnauthorizedDeleteRejected" classname="com.synthora.security.FileSecurityTest" time="0.264">
-    <system-out><![CDATA[2026-08-22T22:42:22.841+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 1dca6f3e-8468-423f-ae63-8df1f384ad63 for recipient 141f25e4-1c19-42db-b50d-dd61ba90e7f9
-2026-08-22T22:42:22.841+05:30 DEBUG 8960 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
-2026-08-22T22:42:22.841+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=ed978199-edd1-4225-a2d9-7702bbc63250
-2026-08-22T22:42:22.844+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=DELETE uri=/api/v1/documents/ac3370fa-39ec-4624-837d-539e06fc5782 status=403 duration=1ms requestId=0e761010-734f-4afc-9fb9-51142c523035
+  <testcase name="testUnauthorizedDeleteRejected" classname="com.synthora.security.FileSecurityTest" time="0.267">
+    <system-out><![CDATA[2026-08-23T01:53:08.512+05:30 DEBUG 35500 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification d196b2a7-1fe7-44ce-92fd-b98602152e80 for recipient 06e02b27-1e05-48c5-94bd-226de98a7651
+2026-08-23T01:53:08.513+05:30 DEBUG 35500 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
+2026-08-23T01:53:08.513+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=1ff37e55-5937-4d48-8dab-6a5f71de2ee1
+2026-08-23T01:53:08.516+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=DELETE uri=/api/v1/documents/c4f2d7d1-e101-43cf-8d4f-eb7752bd429d status=403 duration=2ms requestId=65ecdf5b-00f3-413c-8315-337c313a01b8
 ]]></system-out>
   </testcase>
-  <testcase name="testExtremelyLongFilenameBounded" classname="com.synthora.security.FileSecurityTest" time="0.265">
-    <system-out><![CDATA[2026-08-22T22:42:23.108+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=c8a61b9f-f932-47d8-93eb-cddbf2878c4f
+  <testcase name="testExtremelyLongFilenameBounded" classname="com.synthora.security.FileSecurityTest" time="0.262">
+    <system-out><![CDATA[2026-08-23T01:53:08.778+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=2ms requestId=a3cf86ce-8725-44f9-afc8-ed49a036a953
 ]]></system-out>
   </testcase>
-  <testcase name="testValidXlsxAccepted" classname="com.synthora.security.FileSecurityTest" time="0.267">
-    <system-out><![CDATA[2026-08-22T22:42:23.375+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=7249e21b-3929-467c-9ccc-fe1197607ebf
+  <testcase name="testValidXlsxAccepted" classname="com.synthora.security.FileSecurityTest" time="0.262">
+    <system-out><![CDATA[2026-08-23T01:53:09.041+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=2e9dcef4-cdb5-4b52-a759-ee4c5d2d0a07
 ]]></system-out>
   </testcase>
-  <testcase name="testUnixPathTraversalSanitized" classname="com.synthora.security.FileSecurityTest" time="0.266">
-    <system-out><![CDATA[2026-08-22T22:42:23.641+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=7ms requestId=0be5d562-e83b-4431-a13d-747d2ac52b81
+  <testcase name="testUnixPathTraversalSanitized" classname="com.synthora.security.FileSecurityTest" time="0.27">
+    <system-out><![CDATA[2026-08-23T01:53:09.312+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=6ms requestId=708d852e-d18d-4d83-a99c-65d47ffd4d75
 ]]></system-out>
   </testcase>
-  <testcase name="testJavaScriptRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.268">
-    <system-out><![CDATA[2026-08-22T22:42:23.909+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=a082d62c-8f6b-47cc-9799-5b7b2f0a41ac
+  <testcase name="testJavaScriptRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.265">
+    <system-out><![CDATA[2026-08-23T01:53:09.576+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=3ms requestId=479a0234-0abd-4928-81af-fd97d4d2efce
 ]]></system-out>
   </testcase>
-  <testcase name="testDownloadDeletedDocumentReturns404" classname="com.synthora.security.FileSecurityTest" time="0.269">
-    <system-out><![CDATA[2026-08-22T22:42:24.175+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=c9745656-bda2-4695-92c7-62a556b96685
-2026-08-22T22:42:24.178+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=DELETE uri=/api/v1/documents/1fd59124-c293-4e8a-9adc-d5e2ffc99b72 status=204 duration=2ms requestId=8f072ccd-fbed-40ae-8fe1-21e681168949
-2026-08-22T22:42:24.179+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/1fd59124-c293-4e8a-9adc-d5e2ffc99b72/download status=404 duration=0ms requestId=82e93122-1c93-45bd-95eb-08456fb6f15a
+  <testcase name="testDownloadDeletedDocumentReturns404" classname="com.synthora.security.FileSecurityTest" time="0.271">
+    <system-out><![CDATA[2026-08-23T01:53:09.842+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=5ms requestId=9302064c-2efb-4244-b58c-2d017e326544
+2026-08-23T01:53:09.845+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=DELETE uri=/api/v1/documents/4e663743-8fec-4327-9df0-7ee21ac76e07 status=204 duration=2ms requestId=b4c84b1a-435d-41f9-b6ab-4fde54a0d238
+2026-08-23T01:53:09.848+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/4e663743-8fec-4327-9df0-7ee21ac76e07/download status=404 duration=1ms requestId=f6b814b0-e242-4b0b-ad94-f1861ceebdba
 ]]></system-out>
   </testcase>
-  <testcase name="testWindowsReservedNameSanitized" classname="com.synthora.security.FileSecurityTest" time="0.261">
-    <system-out><![CDATA[2026-08-22T22:42:24.440+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=899e74ca-f438-46b5-a437-1d62175436d3
+  <testcase name="testWindowsReservedNameSanitized" classname="com.synthora.security.FileSecurityTest" time="0.259">
+    <system-out><![CDATA[2026-08-23T01:53:10.107+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=e047ae49-1500-4980-94d3-a564693d2003
 ]]></system-out>
   </testcase>
-  <testcase name="testHtmlRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.262">
-    <system-out><![CDATA[2026-08-22T22:42:24.703+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=a27f849b-d1b5-4125-a8ca-48452776752e
+  <testcase name="testHtmlRenamedToPdfRejected" classname="com.synthora.security.FileSecurityTest" time="0.26">
+    <system-out><![CDATA[2026-08-23T01:53:10.367+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=b7167249-c982-4420-b538-e7f01e7a7c1d
 ]]></system-out>
   </testcase>
-  <testcase name="testDoubleExtensionScriptRejected" classname="com.synthora.security.FileSecurityTest" time="0.262">
-    <system-out><![CDATA[2026-08-22T22:42:24.964+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=ecd073e5-d8bb-4444-849b-96362b5d5357
+  <testcase name="testDoubleExtensionScriptRejected" classname="com.synthora.security.FileSecurityTest" time="0.259">
+    <system-out><![CDATA[2026-08-23T01:53:10.626+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=1ms requestId=9c995090-11c4-40bb-a1ac-c598b55a529b
 ]]></system-out>
   </testcase>
-  <testcase name="testEmptyFileUploadRejected" classname="com.synthora.security.FileSecurityTest" time="0.265">
-    <system-out><![CDATA[2026-08-22T22:42:25.231+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=1ms requestId=e82996ee-d391-497e-b259-955641c2c1c7
+  <testcase name="testEmptyFileUploadRejected" classname="com.synthora.security.FileSecurityTest" time="0.26">
+    <system-out><![CDATA[2026-08-23T01:53:10.885+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=270f2f89-f4f3-4071-afb1-977ceef065cb
 ]]></system-out>
   </testcase>
-  <testcase name="testWindowsPathTraversalSanitized" classname="com.synthora.security.FileSecurityTest" time="0.262">
-    <system-out><![CDATA[2026-08-22T22:42:25.493+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=349945d0-bf98-46e4-8206-f22704fcc5c8
+  <testcase name="testWindowsPathTraversalSanitized" classname="com.synthora.security.FileSecurityTest" time="0.264">
+    <system-out><![CDATA[2026-08-23T01:53:11.149+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=7ms requestId=282bc023-171c-4b9c-9fb0-cf442f92fbf8
 ]]></system-out>
   </testcase>
-  <testcase name="testValidOleDocAccepted" classname="com.synthora.security.FileSecurityTest" time="0.258">
-    <system-out><![CDATA[2026-08-22T22:42:25.752+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=2ms requestId=55cd63cf-7dd9-4946-8d0d-89b7d13352b5
+  <testcase name="testValidOleDocAccepted" classname="com.synthora.security.FileSecurityTest" time="0.263">
+    <system-out><![CDATA[2026-08-23T01:53:11.413+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=ec884563-1bb5-4ed8-bfd3-580dd5351fb1
 ]]></system-out>
   </testcase>
-  <testcase name="testUnauthenticatedDownloadRejected" classname="com.synthora.security.FileSecurityTest" time="0.262">
-    <system-out><![CDATA[2026-08-22T22:42:26.012+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification a0009868-154f-4d54-98d9-67a3e7bb4a68 for recipient 71fc0090-de7a-403c-9744-dd09346da1b0
-2026-08-22T22:42:26.013+05:30 DEBUG 8960 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
-2026-08-22T22:42:26.013+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=8be8674c-0367-46cd-82a8-a82c91acc366
-2026-08-22T22:42:26.014+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/d1d44e5d-8c96-4e34-9422-d95d359a6014/download status=403 duration=1ms requestId=34780666-a29b-4172-acc8-4dafcce8fe39
+  <testcase name="testUnauthenticatedDownloadRejected" classname="com.synthora.security.FileSecurityTest" time="0.266">
+    <system-out><![CDATA[2026-08-23T01:53:11.676+05:30 DEBUG 35500 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 4dff6e51-ef0d-4a2a-aef9-59419b006d08 for recipient b0ad7b15-7eb5-4b76-8805-bb6568cf90d1
+2026-08-23T01:53:11.677+05:30 DEBUG 35500 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
+2026-08-23T01:53:11.678+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=7ms requestId=16f36c4a-b3d4-4ee5-acf6-287eea19420d
+2026-08-23T01:53:11.679+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/ed217ea0-9899-48bc-9a93-4184da75dc18/download status=403 duration=0ms requestId=4892c083-a679-4036-bc88-7db22da138b2
 ]]></system-out>
   </testcase>
   <testcase name="testAdminCanDownloadAnyDocument" classname="com.synthora.security.FileSecurityTest" time="0.268">
-    <system-out><![CDATA[2026-08-22T22:42:26.280+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=c514ad82-9b64-443d-a106-8e812bd1c03f
-2026-08-22T22:42:26.283+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/744ef8ed-72d7-45c4-9e21-f91592f644c3/download status=200 duration=2ms requestId=26f4dd54-dc3f-4b86-bff9-756b725b7616
+    <system-out><![CDATA[2026-08-23T01:53:11.944+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=95611d6f-371e-4ed2-abca-b2cb61597ffc
+2026-08-23T01:53:11.947+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/43688b04-81d9-441b-a8ea-48d6d82a0b1a/download status=200 duration=1ms requestId=eef71ad5-e9b0-43cd-ad34-dcfc54ca3266
 ]]></system-out>
   </testcase>
-  <testcase name="testTextRenamedToJpgRejected" classname="com.synthora.security.FileSecurityTest" time="0.261">
-    <system-out><![CDATA[2026-08-22T22:42:26.545+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=3ms requestId=43ef443f-f3c4-4dd1-adad-f1bf924ea46b
+  <testcase name="testTextRenamedToJpgRejected" classname="com.synthora.security.FileSecurityTest" time="0.266">
+    <system-out><![CDATA[2026-08-23T01:53:12.213+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=6ef236d2-033e-4c42-9ac0-e71d15601f73
 ]]></system-out>
   </testcase>
-  <testcase name="testSvgUploadRejected" classname="com.synthora.security.FileSecurityTest" time="0.263">
-    <system-out><![CDATA[2026-08-22T22:42:26.808+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=1ms requestId=13a6db04-5ab4-445b-8735-4ab7987022f8
+  <testcase name="testSvgUploadRejected" classname="com.synthora.security.FileSecurityTest" time="0.262">
+    <system-out><![CDATA[2026-08-23T01:53:12.475+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=1ms requestId=5bc6e7cd-b206-4e9a-9031-5856a9d74b77
 ]]></system-out>
   </testcase>
-  <testcase name="testAssignedSupplierCanDownloadRfqDoc" classname="com.synthora.security.FileSecurityTest" time="0.266">
-    <system-out><![CDATA[2026-08-22T22:42:27.071+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification a3ce4c54-e02c-422b-83fc-f38ec6e72ace for recipient 5df60c60-6054-4873-bbd7-03270b7aba3d
-2026-08-22T22:42:27.072+05:30 DEBUG 8960 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
-2026-08-22T22:42:27.072+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=c796afc0-e777-4862-8ec8-a5ad12a696a8
-2026-08-22T22:42:27.075+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/eadedf66-ceef-48bc-8f73-b6a73ce5f229/download status=200 duration=2ms requestId=83513d41-b250-4385-ae35-ce0f1b1ddc0d
+  <testcase name="testAssignedSupplierCanDownloadRfqDoc" classname="com.synthora.security.FileSecurityTest" time="0.269">
+    <system-out><![CDATA[2026-08-23T01:53:12.741+05:30 DEBUG 35500 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification bc4814a4-8169-40fb-a4ed-2cca5d1c4249 for recipient a7a98355-2d37-4685-97cc-d14f8b99380c
+2026-08-23T01:53:12.742+05:30 DEBUG 35500 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_a_filesec@synthora.com with subject '[Synthora] New Document Uploaded'
+2026-08-23T01:53:12.742+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=50bf8936-8302-4f0a-8a7f-1dbf5ab53c01
+2026-08-23T01:53:12.745+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/d51d8969-4109-4a89-a141-b5f49fa8fc77/download status=200 duration=2ms requestId=f31e08d0-0d7e-4c74-babe-f2d3d969897e
 ]]></system-out>
   </testcase>
-  <testcase name="testFilenameWithControlCharsSanitized" classname="com.synthora.security.FileSecurityTest" time="0.269">
-    <system-out><![CDATA[2026-08-22T22:42:27.343+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=91ac9804-379f-4df4-813f-f5e1013ed8a8
+  <testcase name="testFilenameWithControlCharsSanitized" classname="com.synthora.security.FileSecurityTest" time="0.294">
+    <system-out><![CDATA[2026-08-23T01:53:13.040+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=b0c1a1c2-c0b4-4c6e-8e77-aeda6b289488
 ]]></system-out>
   </testcase>
-  <testcase name="testNullByteInFilenameSanitized" classname="com.synthora.security.FileSecurityTest" time="0.263">
-    <system-out><![CDATA[2026-08-22T22:42:27.606+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=d4ee7fa2-ab16-44e8-85d1-12f7515eb6ef
+  <testcase name="testNullByteInFilenameSanitized" classname="com.synthora.security.FileSecurityTest" time="0.264">
+    <system-out><![CDATA[2026-08-23T01:53:13.304+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=2ms requestId=1d4834dd-e4b9-4623-b2a0-39310df86459
 ]]></system-out>
   </testcase>
-  <testcase name="testPhysicalStorageKeyServerGenerated" classname="com.synthora.security.FileSecurityTest" time="0.266">
-    <system-out><![CDATA[2026-08-22T22:42:27.872+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=7ms requestId=5edda2b7-f85b-4eae-a278-218904aa8338
+  <testcase name="testPhysicalStorageKeyServerGenerated" classname="com.synthora.security.FileSecurityTest" time="0.263">
+    <system-out><![CDATA[2026-08-23T01:53:13.567+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=4ms requestId=b60dee91-22f4-4839-8ba8-c6ac0f804dac
 ]]></system-out>
   </testcase>
-  <testcase name="testCsvWithNullBytesRejected" classname="com.synthora.security.FileSecurityTest" time="0.269">
-    <system-out><![CDATA[2026-08-22T22:42:28.141+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=5eef775a-e0e4-4325-bdeb-2255360035ca
+  <testcase name="testCsvWithNullBytesRejected" classname="com.synthora.security.FileSecurityTest" time="0.261">
+    <system-out><![CDATA[2026-08-23T01:53:13.829+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=85fbc9ad-b03b-471d-a62c-22d5629535f7
 ]]></system-out>
   </testcase>
   <testcase name="testValidPdfAccepted" classname="com.synthora.security.FileSecurityTest" time="0.261">
-    <system-out><![CDATA[2026-08-22T22:42:28.403+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=1d4b412e-1cdb-4a69-b181-45db4b16675e
+    <system-out><![CDATA[2026-08-23T01:53:14.089+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=2ms requestId=859950bc-714a-4948-9536-4363211cd3b9
 ]]></system-out>
   </testcase>
   <testcase name="testValidCsvAccepted" classname="com.synthora.security.FileSecurityTest" time="0.263">
-    <system-out><![CDATA[2026-08-22T22:42:28.667+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=ee74d0d2-6d9c-4511-8067-e8eba3e7dc79
+    <system-out><![CDATA[2026-08-23T01:53:14.354+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=44ec1f29-4470-461f-b7ad-ebbbf0bacfd2
 ]]></system-out>
   </testcase>
-  <testcase name="testDoubleExtensionExecutableRejected" classname="com.synthora.security.FileSecurityTest" time="0.264">
-    <system-out><![CDATA[2026-08-22T22:42:28.930+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=2ms requestId=f864996f-41a1-4378-b711-4877247a53a7
+  <testcase name="testDoubleExtensionExecutableRejected" classname="com.synthora.security.FileSecurityTest" time="0.263">
+    <system-out><![CDATA[2026-08-23T01:53:14.617+05:30  INFO 35500 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=400 duration=1ms requestId=a738b862-51a9-4062-9186-6133e2bb22b2
 ]]></system-out>
   </testcase>
 </testsuite>

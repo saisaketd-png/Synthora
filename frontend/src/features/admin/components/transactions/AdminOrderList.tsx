@@ -96,7 +96,7 @@ export function AdminOrderList({
               {order.poNumber}
             </p>
             <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-              {order.productName || `Product ID: ${order.productId.substring(0, 8)}...`}
+              {order.productName || (order.productId ? `Product ID: ${order.productId.substring(0, 8)}...` : order.poNumber || "—")}
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export function AdminOrderList({
       cell: (order) => (
         <div className="text-xs font-medium text-slate-800">
           <p className="font-bold text-slate-900">{order.buyerName || "Buyer"}</p>
-          <span className="text-[11px] text-slate-400">{order.buyerEmail || `ID: ${order.buyerId.substring(0, 8)}...`}</span>
+          <span className="text-[11px] text-slate-400">{order.buyerEmail || (order.buyerId ? `ID: ${order.buyerId.substring(0, 8)}...` : "—")}</span>
         </div>
       ),
     },

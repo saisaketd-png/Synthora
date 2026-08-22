@@ -35,17 +35,23 @@ public class ProductService {
     private final ProductSupplierRepository productSupplierRepository;
     private final ProductCodeGenerator productCodeGenerator;
     private final ProductImageRepository productImageRepository;
+    private final MasterProductRepository masterProductRepository;
+    private final SupplierOfferingRepository supplierOfferingRepository;
 
     public ProductService(ProductRepository productRepository,
                           UserRepository userRepository,
                           ProductSupplierRepository productSupplierRepository,
                           ProductCodeGenerator productCodeGenerator,
-                          ProductImageRepository productImageRepository) {
+                          ProductImageRepository productImageRepository,
+                          MasterProductRepository masterProductRepository,
+                          SupplierOfferingRepository supplierOfferingRepository) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.productSupplierRepository = productSupplierRepository;
         this.productCodeGenerator = productCodeGenerator;
         this.productImageRepository = productImageRepository;
+        this.masterProductRepository = masterProductRepository;
+        this.supplierOfferingRepository = supplierOfferingRepository;
     }
 
     public ProductResponse createProduct(CreateProductRequest request,
@@ -124,25 +130,115 @@ public class ProductService {
         }
 
         Product product = null;
+        UUID uuid = null;
         try {
-            UUID uuid = UUID.fromString(idOrCode.trim());
+            uuid = UUID.fromString(idOrCode.trim());
             product = productRepository.findById(uuid).orElse(null);
         } catch (IllegalArgumentException ignored) {
             // Not a UUID, lookup by product code
         }
 
         if (product == null) {
-            product = productRepository.findByProductCodeIgnoreCase(idOrCode.trim())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+            product = productRepository.findByProductCodeIgnoreCase(idOrCode.trim()).orElse(null);
         }
 
-        if (isHiddenOrDiscontinued(product) || product.getSeller() == null ||
-                product.getSeller().getStatus() == UserStatus.SUSPENDED ||
-                product.getSeller().getDeletedAt() != null) {
-            throw new ResourceNotFoundException("Product not found");
+        if (product != null) {
+            if (isHiddenOrDiscontinued(product) || product.getSeller() == null ||
+                    product.getSeller().getStatus() == UserStatus.SUSPENDED ||
+                    product.getSeller().getDeletedAt() != null) {
+                throw new ResourceNotFoundException("Product not found");
+            }
+            return toDetailResponse(product);
         }
 
-        return toDetailResponse(product);
+        // Check MasterProduct
+        if (uuid != null) {
+            var masterProductOpt = masterProductRepository.findById(uuid);
+            if (masterProductOpt.isPresent()) {
+                MasterProduct mp = masterProductOpt.get();
+                return toMasterProductDetailResponse(mp);
+            }
+
+            var offeringOpt = supplierOfferingRepository.findById(uuid);
+            if (offeringOpt.isPresent()) {
+                SupplierOffering offering = offeringOpt.get();
+                return toOfferingDetailResponse(offering);
+            }
+        } else {
+            var masterProductOpt = masterProductRepository.findByMasterProductCodeIgnoreCase(idOrCode.trim());
+            if (masterProductOpt.isPresent()) {
+                MasterProduct mp = masterProductOpt.get();
+                return toMasterProductDetailResponse(mp);
+            }
+        }
+
+        throw new ResourceNotFoundException("Product not found");
+    }
+
+    private ProductDetailResponse toMasterProductDetailResponse(MasterProduct mp) {
+        return new ProductDetailResponse(
+                mp.getId(),
+                mp.getMasterProductCode(),
+                mp.getName(),
+                mp.getDescription(),
+                mp.getCategory(),
+                null,
+                List.of(),
+                mp.getCasNumber(),
+                mp.getMolecularFormula(),
+                new BigDecimal("99.0"),
+                "IP / BP / USP Standard",
+                null,
+                null,
+                new BigDecimal("100.00"),
+                "Standard Industrial Drums / Packaging",
+                14,
+                "AVAILABLE",
+                true,
+                true,
+                true,
+                null,
+                "Synthora Verified Master Catalog",
+                mp.getCreatedAt(),
+                mp.getUpdatedAt()
+        );
+    }
+
+    private ProductDetailResponse toOfferingDetailResponse(SupplierOffering offering) {
+        MasterProduct mp = offering.getMasterProduct();
+        String name = mp != null ? mp.getName() : "Specialty Chemical Raw Material";
+        String cas = mp != null ? mp.getCasNumber() : null;
+        String formula = mp != null ? mp.getMolecularFormula() : null;
+        ProductCategory cat = mp != null ? mp.getCategory() : ProductCategory.SPECIALTY_CHEMICAL;
+        String sellerName = offering.getSupplier() != null ? offering.getSupplier().getName() : "Verified Supplier";
+        UUID sellerId = (offering.getSupplier() != null && offering.getSupplier().getUser() != null) ? offering.getSupplier().getUser().getId() : null;
+
+        return new ProductDetailResponse(
+                offering.getId(),
+                mp != null ? mp.getMasterProductCode() : "OFFERING",
+                name,
+                mp != null ? mp.getDescription() : null,
+                cat,
+                null,
+                List.of(),
+                cas,
+                formula,
+                offering.getPurity(),
+                offering.getGrade(),
+                offering.getPrice(),
+                offering.getStock(),
+                offering.getMoqKg(),
+                offering.getPackaging() != null ? offering.getPackaging() : "Standard Drum Container",
+                offering.getLeadTimeDays(),
+                offering.getAvailabilityStatus(),
+                offering.getCoaAvailable(),
+                offering.getMsdsAvailable(),
+                offering.getExportReady(),
+                sellerId,
+                sellerName,
+                offering.getCreatedAt(),
+                offering.getUpdatedAt()
+        );
     }
 
     private ProductDetailResponse toDetailResponse(Product product) {

@@ -61,6 +61,12 @@ public class AdminTransactionControllerIntegrationTest {
     private ProductRepository productRepository;
 
     @Autowired
+    private com.synthora.product.MasterProductRepository masterProductRepository;
+
+    @Autowired
+    private com.synthora.product.SupplierOfferingRepository supplierOfferingRepository;
+
+    @Autowired
     private RfqRepository rfqRepository;
 
     @Autowired
@@ -252,5 +258,71 @@ public class AdminTransactionControllerIntegrationTest {
 
         assertEquals(1, auditLogRepository.findByTargetTypeAndTargetIdOrderByCreatedAtDesc(AuditTargetType.PURCHASE_ORDER, po.getId().toString()).size());
         assertEquals(AuditAction.ORDER_CANCELLED, auditLogRepository.findAll().get(0).getAction());
+    }
+
+    @Test
+    public void testGetRfqs_WithMasterProductAndNullProductId_DoesNotReturn500() throws Exception {
+        com.synthora.product.MasterProduct mp = new com.synthora.product.MasterProduct();
+        mp.setName("Paracetamol Active Pharmaceutical Ingredient");
+        mp.setMasterProductCode("API-MP-99001");
+        mp.setCasNumber("103-90-2");
+        mp.setCategory(ProductCategory.API);
+        mp.setStatus("ACTIVE");
+        mp = masterProductRepository.save(mp);
+
+        Rfq modernRfq = new Rfq();
+        modernRfq.setBuyerId(buyerUser.getId());
+        modernRfq.setMasterProductId(mp.getId());
+        modernRfq.setProductId(null); // Explicit null productId
+        modernRfq.setSupplierId(supplier.getId());
+        modernRfq.setQuantity(new BigDecimal("500.00"));
+        modernRfq.setUnit("KG");
+        modernRfq.setMessage("High purity API required");
+        modernRfq.setStatus(RfqStatus.PENDING);
+        modernRfq = rfqRepository.save(modernRfq);
+
+        mockMvc.perform(get("/api/v1/admin/transactions/rfqs")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(2)))
+                .andExpect(jsonPath("$.content[0].productName").value("Paracetamol Active Pharmaceutical Ingredient"));
+
+        // Detail endpoint also succeeds
+        mockMvc.perform(get("/api/v1/admin/transactions/rfqs/" + modernRfq.getId())
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(modernRfq.getId().toString()))
+                .andExpect(jsonPath("$.productName").value("Paracetamol Active Pharmaceutical Ingredient"));
+    }
+
+    @Test
+    public void testGetRfqs_WithNullProductAndNullSupplier_ReturnsSafeFallback() throws Exception {
+        Rfq fallbackRfq = new Rfq();
+        fallbackRfq.setBuyerId(buyerUser.getId());
+        fallbackRfq.setMasterProductId(null);
+        fallbackRfq.setProductId(null);
+        fallbackRfq.setSupplierOfferingId(null);
+        fallbackRfq.setSupplierId(supplier.getId());
+        fallbackRfq.setQuantity(new BigDecimal("100.00"));
+        fallbackRfq.setUnit("KG");
+        fallbackRfq.setMessage("General chemical inquiry");
+        fallbackRfq.setStatus(RfqStatus.PENDING);
+        fallbackRfq = rfqRepository.save(fallbackRfq);
+
+        mockMvc.perform(get("/api/v1/admin/transactions/rfqs")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].productName").value("Specialty Chemical Compound"));
+    }
+
+    @Test
+    public void testGetRfqs_FilterByStatusAndSearch() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/transactions/rfqs")
+                        .param("status", "PENDING")
+                        .param("query", "urgent")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].id").value(rfq.getId().toString()));
     }
 }

@@ -162,4 +162,26 @@ public class RfqController {
 
         return rfqService.getSupplierQuotations(rfqId, authentication);
     }
+
+    @PreAuthorize("hasRole('SUPPLIER')")
+    @PostMapping("/supplier/{rfqId}/quotations/{quotationId}/accept")
+    public com.synthora.rfq.dto.QuotationDecisionResponse acceptSupplierCounterOffer(
+            @PathVariable UUID rfqId,
+            @PathVariable UUID quotationId,
+            @RequestBody(required = false) com.synthora.rfq.dto.AcceptQuotationRequest request,
+            Authentication authentication) {
+
+        return rfqService.acceptSupplierCounterOffer(rfqId, quotationId, request, authentication);
+    }
+
+    @PreAuthorize("hasRole('SUPPLIER')")
+    @PostMapping("/supplier/{rfqId}/quotations/{quotationId}/reject")
+    public com.synthora.rfq.dto.QuotationDecisionResponse rejectSupplierCounterOffer(
+            @PathVariable UUID rfqId,
+            @PathVariable UUID quotationId,
+            @RequestBody(required = false) com.synthora.rfq.dto.RejectQuotationRequest request,
+            Authentication authentication) {
+
+        return rfqService.rejectSupplierCounterOffer(rfqId, quotationId, request, authentication);
+    }
 }

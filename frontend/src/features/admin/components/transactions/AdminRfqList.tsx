@@ -96,7 +96,7 @@ export function AdminRfqList({
               {rfq.productName || "Product Inquiry"}
             </p>
             <p className="text-[11px] text-slate-400 font-mono mt-0.5">
-              ID: {rfq.id.substring(0, 13)}...
+              {rfq.rfqReference || (rfq.id ? `RFQ-${rfq.id.substring(0, 8).toUpperCase()}` : "—")}
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export function AdminRfqList({
       cell: (rfq) => (
         <div className="text-xs font-medium text-slate-800">
           <p className="font-bold text-slate-900">{rfq.buyerName || "Buyer"}</p>
-          <span className="text-[11px] text-slate-400">{rfq.buyerEmail || `ID: ${rfq.buyerId.substring(0, 8)}...`}</span>
+          <span className="text-[11px] text-slate-400">{rfq.buyerEmail || (rfq.buyerId ? `ID: ${rfq.buyerId.substring(0, 8)}...` : "—")}</span>
         </div>
       ),
     },

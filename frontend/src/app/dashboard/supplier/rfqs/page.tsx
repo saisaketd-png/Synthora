@@ -3,11 +3,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, RefreshCw, ArrowRight, Package } from "lucide-react";
+import { Search, RefreshCw, ArrowRight, Package, AlertCircle } from "lucide-react";
 import { getSupplierRfqs, SupplierRfq } from "@/features/rfq/api/getSupplierRfqs";
 import { StatusBadge, Button, SkeletonLoader } from "@/shared/components/ui/SynthoraUI";
 
-type StatusFilter = "ALL" | "PENDING" | "QUOTED" | "ACCEPTED" | "REJECTED";
+type StatusFilter = "ALL" | "PENDING" | "COUNTERED" | "QUOTED" | "ACCEPTED" | "REJECTED";
 type SortOption = "DATE_DESC" | "DATE_ASC" | "QTY_DESC" | "QTY_ASC";
 
 export default function SupplierRfqsPage() {
@@ -40,6 +40,7 @@ export default function SupplierRfqsPage() {
 
   const totalCount = rfqs.length;
   const pendingCount = useMemo(() => rfqs.filter((r) => r.status === "PENDING" || r.status === "CONTACTED").length, [rfqs]);
+  const counteredCount = useMemo(() => rfqs.filter((r) => r.status === "COUNTERED").length, [rfqs]);
   const quotedCount = useMemo(() => rfqs.filter((r) => r.status === "QUOTED").length, [rfqs]);
   const acceptedCount = useMemo(() => rfqs.filter((r) => r.status === "ACCEPTED").length, [rfqs]);
   const rejectedCount = useMemo(() => rfqs.filter((r) => r.status === "REJECTED").length, [rfqs]);
@@ -48,6 +49,7 @@ export default function SupplierRfqsPage() {
     return rfqs
       .filter((rfq) => {
         if (statusFilter === "PENDING" && rfq.status !== "PENDING" && rfq.status !== "CONTACTED") return false;
+        if (statusFilter === "COUNTERED" && rfq.status !== "COUNTERED") return false;
         if (statusFilter === "QUOTED" && rfq.status !== "QUOTED") return false;
         if (statusFilter === "ACCEPTED" && rfq.status !== "ACCEPTED") return false;
         if (statusFilter === "REJECTED" && rfq.status !== "REJECTED") return false;
@@ -55,9 +57,12 @@ export default function SupplierRfqsPage() {
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
           const matchesRef = (rfq.rfqReference || "").toLowerCase().includes(q);
-          const matchesId = rfq.id.toLowerCase().includes(q);
-          const matchesProduct = (rfq.productName || "").toLowerCase().includes(q) || rfq.productId.toLowerCase().includes(q);
-          const matchesBuyer = (rfq.buyerName || "").toLowerCase().includes(q) || String(rfq.buyerId).includes(q);
+          const matchesId = (rfq.id || "").toLowerCase().includes(q);
+          const matchesProduct =
+            (rfq.productName || "").toLowerCase().includes(q) ||
+            (rfq.productId ? rfq.productId.toLowerCase().includes(q) : false) ||
+            (rfq.masterProductId ? rfq.masterProductId.toLowerCase().includes(q) : false);
+          const matchesBuyer = (rfq.buyerName || "").toLowerCase().includes(q) || String(rfq.buyerId || "").includes(q);
           return matchesRef || matchesId || matchesProduct || matchesBuyer;
         }
 
@@ -87,6 +92,14 @@ export default function SupplierRfqsPage() {
       badgeVariant: pendingCount > 0 ? "warning" : undefined,
       active: statusFilter === "PENDING",
       onClick: () => setStatusFilter("PENDING"),
+    },
+    {
+      label: "Counter-Offers",
+      value: counteredCount,
+      subtext: counteredCount > 0 ? "Action required" : "None pending",
+      badgeVariant: counteredCount > 0 ? "warning" : undefined,
+      active: statusFilter === "COUNTERED",
+      onClick: () => setStatusFilter("COUNTERED"),
     },
     {
       label: "Quoted",
@@ -120,14 +133,16 @@ export default function SupplierRfqsPage() {
             RFQ Inquiries
           </h1>
           <p className="text-sm text-[#5E6C84] mt-1">
-            Review incoming chemical sourcing requests, prepare quotations, and manage buyer commitments.
+            Review incoming chemical sourcing requests, respond to buyer counter-offers, and manage procurement commitments.
           </p>
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
-          <span className="text-xs font-mono font-bold px-2.5 py-1 bg-white text-[#091E42] border border-[#DFE1E6] rounded">
-            {pendingCount > 0 ? `${pendingCount} awaiting quote` : "0 pending inquiries"}
-          </span>
+          {counteredCount > 0 && (
+            <span className="text-xs font-mono font-bold px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded animate-pulse">
+              {counteredCount} counter-offer{counteredCount > 1 ? "s" : ""} received
+            </span>
+          )}
           <button
             type="button"
             onClick={loadRfqs}
@@ -146,7 +161,7 @@ export default function SupplierRfqsPage() {
           <SkeletonLoader lines={2} />
         </div>
       ) : (
-        <div className="bg-white border border-[#DFE1E6] rounded-lg grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#DFE1E6] overflow-hidden">
+        <div className="bg-white border border-[#DFE1E6] rounded-lg grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-y sm:divide-y-0 sm:divide-x divide-[#DFE1E6] overflow-hidden">
           {summaryMetrics.map((m, idx) => (
             <button
               key={idx}
@@ -192,17 +207,23 @@ export default function SupplierRfqsPage() {
           {/* Filters & Sorting */}
           <div className="flex items-center gap-3 overflow-x-auto">
             <div className="flex items-center gap-1 bg-[#EBECF0] p-0.5 rounded border border-[#DFE1E6]">
-              {(["ALL", "PENDING", "QUOTED", "ACCEPTED", "REJECTED"] as StatusFilter[]).map((f) => (
+              {(["ALL", "PENDING", "COUNTERED", "QUOTED", "ACCEPTED", "REJECTED"] as StatusFilter[]).map((f) => (
                 <button
                   key={f}
                   onClick={() => setStatusFilter(f)}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors whitespace-nowrap ${
                     statusFilter === f
                       ? "bg-white text-[#091E42] shadow-2xs font-bold"
                       : "text-[#5E6C84] hover:text-[#091E42]"
                   }`}
                 >
-                  {f === "ALL" ? "All" : f === "PENDING" ? "Awaiting Quote" : f.charAt(0) + f.slice(1).toLowerCase()}
+                  {f === "ALL"
+                    ? "All"
+                    : f === "PENDING"
+                    ? "Awaiting Quote"
+                    : f === "COUNTERED"
+                    ? "Counter-Offers"
+                    : f.charAt(0) + f.slice(1).toLowerCase()}
                 </button>
               ))}
             </div>
@@ -258,21 +279,24 @@ export default function SupplierRfqsPage() {
               <tbody className="divide-y divide-[#DFE1E6] text-xs">
                 {filteredRfqs.map((rfq) => {
                   const isPending = rfq.status === "PENDING" || rfq.status === "CONTACTED";
+                  const isCountered = rfq.status === "COUNTERED";
                   return (
                     <tr
                       key={rfq.id}
                       onClick={() => router.push(`/dashboard/supplier/rfqs/${rfq.id}`)}
-                      className="hover:bg-[#FAFBFC] transition-colors cursor-pointer group"
+                      className={`hover:bg-[#FAFBFC] transition-colors cursor-pointer group ${
+                        isCountered ? "bg-amber-50/30" : ""
+                      }`}
                     >
                       <td className="py-3.5 px-4 font-mono font-bold text-[#091E42]">
-                        {rfq.rfqReference || rfq.id.slice(0, 8)}
+                        {rfq.rfqReference || (rfq.id ? `RFQ-${rfq.id.slice(0, 8).toUpperCase()}` : "—")}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="font-bold text-[#091E42] group-hover:text-[#0052CC] block truncate">
-                          {rfq.productName || "Chemical Product"}
+                          {rfq.productName || "Chemical Compound"}
                         </span>
                         <span className="text-[10px] font-mono text-[#5E6C84]">
-                          ID: {rfq.productId.slice(0, 8)}
+                          {rfq.productId ? `ID: ${rfq.productId.slice(0, 8)}` : rfq.masterProductId ? `MP: ${rfq.masterProductId.slice(0, 8)}` : rfq.rfqReference || `RFQ #${rfq.id.slice(0, 8)}`}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-[#172B4D]">
@@ -294,10 +318,14 @@ export default function SupplierRfqsPage() {
                       <td className="py-3.5 px-4 text-right">
                         <span
                           className={`text-xs font-semibold inline-flex items-center gap-1 ${
-                            isPending ? "text-[#0052CC] font-bold" : "text-[#5E6C84] group-hover:text-[#0052CC]"
+                            isCountered
+                              ? "text-amber-800 font-bold bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300"
+                              : isPending
+                              ? "text-[#0052CC] font-bold"
+                              : "text-[#5E6C84] group-hover:text-[#0052CC]"
                           }`}
                         >
-                          <span>{isPending ? "Respond" : "View"}</span>
+                          <span>{isCountered ? "Review Counter-Offer" : isPending ? "Respond" : "View"}</span>
                           <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                         </span>
                       </td>

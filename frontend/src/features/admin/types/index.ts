@@ -131,10 +131,12 @@ export type OrderStatus =
 
 export interface AdminRfqResponse {
   id: string;
+  rfqReference?: string | null;
   buyerId: string;
   buyerName?: string | null;
   buyerEmail?: string | null;
-  productId: string;
+  productId?: string | null;
+  masterProductId?: string | null;
   productName?: string | null;
   supplierId: number;
   supplierName?: string | null;

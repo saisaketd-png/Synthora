@@ -289,6 +289,7 @@ com\synthora\seller\api\SellerProfileController.class
 com\synthora\product\verification\dto\VerifyOfferingItemRequest.class
 com\synthora\admin\user\dto\UpdateUserStatusRequest.class
 com\synthora\product\apis\MasterProductImageController.class
+com\synthora\notification\NotificationStreamService.class
 com\synthora\product\ProductImageService$ImageContentResult.class
 com\synthora\notification\events\OrderShippedEvent.class
 com\synthora\product\SupplierOfferingService.class

@@ -28,10 +28,15 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final NotificationStreamService notificationStreamService;
 
-    public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
+    public NotificationService(
+            NotificationRepository notificationRepository,
+            UserRepository userRepository,
+            NotificationStreamService notificationStreamService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
+        this.notificationStreamService = notificationStreamService;
     }
 
     /**
@@ -61,6 +66,14 @@ public class NotificationService {
 
         Notification saved = notificationRepository.save(notification);
         log.debug("Created notification {} for recipient {}", saved.getId(), recipientId);
+
+        try {
+            long unreadCount = notificationRepository.countByRecipientIdAndReadFalse(recipientId);
+            notificationStreamService.sendNotification(recipientId, NotificationResponse.from(saved), unreadCount);
+        } catch (Exception e) {
+            log.debug("Failed to push real-time notification stream event: {}", e.getMessage());
+        }
+
         return saved;
     }
 

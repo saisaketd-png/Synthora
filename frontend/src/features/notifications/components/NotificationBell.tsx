@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import {
   getNotifications,
-  getUnreadCount,
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from "../api/notifications";
 import { NotificationResponse } from "../types/notification";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { resolveNotificationRoute } from "../utils/navigation";
+import { useUnreadNotificationCount } from "../hooks/useUnreadNotificationCount";
 
 interface NotificationBellProps {
   isSupplier: boolean;
@@ -19,53 +19,26 @@ interface NotificationBellProps {
 
 export function NotificationBell({ isSupplier }: NotificationBellProps) {
   const router = useRouter();
-  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const { unreadCount, refreshUnreadCount } = useUnreadNotificationCount();
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
   const [recentNotifications, setRecentNotifications] = useState<NotificationResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-
-  // Fetch unread count
-  const refreshUnreadCount = useCallback(async () => {
-    try {
-      const count = await getUnreadCount();
-      setUnreadCount(count);
-    } catch {
-      // Quietly ignore network/auth errors to keep UI resilient
-    }
-  }, []);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch recent notifications when dropdown opens
   const fetchRecent = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await getNotifications(0, 5);
+      const data = await getNotifications(0, 6);
       setRecentNotifications(data.content || []);
-    } catch {
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load notifications");
       setRecentNotifications([]);
     } finally {
       setLoading(false);
     }
   }, []);
-
-  // Initial load + lightweight polling (45s) + custom event synchronization
-  useEffect(() => {
-    refreshUnreadCount();
-
-    const interval = setInterval(() => {
-      refreshUnreadCount();
-    }, 45000);
-
-    const handleUpdate = () => {
-      refreshUnreadCount();
-    };
-
-    window.addEventListener("notifications-updated", handleUpdate);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("notifications-updated", handleUpdate);
-    };
-  }, [refreshUnreadCount]);
 
   const handleToggleDropdown = () => {
     if (!dropdownOpen) {
@@ -77,11 +50,9 @@ export function NotificationBell({ isSupplier }: NotificationBellProps) {
   };
 
   const handleNotificationSelect = async (notification: NotificationResponse) => {
-    // If unread, mark it as read immediately
     if (!notification.read) {
       try {
         await markNotificationAsRead(notification.id);
-        setUnreadCount((prev) => Math.max(0, prev - 1));
         setRecentNotifications((prev) =>
           prev.map((n) =>
             n.id === notification.id ? { ...n, read: true, readAt: new Date().toISOString() } : n
@@ -95,7 +66,6 @@ export function NotificationBell({ isSupplier }: NotificationBellProps) {
 
     setDropdownOpen(false);
 
-    // Route if target exists
     const targetRoute = resolveNotificationRoute(notification, isSupplier);
     if (targetRoute) {
       router.push(targetRoute);
@@ -105,7 +75,6 @@ export function NotificationBell({ isSupplier }: NotificationBellProps) {
   const handleMarkAllAsRead = async () => {
     try {
       await markAllNotificationsAsRead();
-      setUnreadCount(0);
       setRecentNotifications((prev) =>
         prev.map((n) => ({ ...n, read: true, readAt: new Date().toISOString() }))
       );
@@ -120,22 +89,23 @@ export function NotificationBell({ isSupplier }: NotificationBellProps) {
       <button
         type="button"
         onClick={handleToggleDropdown}
-        aria-label={`Notifications (${unreadCount} unread)`}
+        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
         aria-haspopup="dialog"
         aria-expanded={dropdownOpen}
-        className={`relative h-[38px] w-[38px] rounded-lg border border-[#DFE1E6] bg-white hover:bg-[#FAFBFC] flex items-center justify-center transition-all text-[#5E6C84] hover:text-[#091E42] shadow-2xs ${
-          dropdownOpen ? "bg-[#EBECF0] text-[#091E42] border-[#C1C7D0]" : ""
+        className={`relative h-[38px] w-[38px] rounded-lg border transition-all flex items-center justify-center cursor-pointer ${
+          dropdownOpen
+            ? "bg-[#EBECF0] text-[#091E42] border-[#C1C7D0]"
+            : "bg-white hover:bg-[#FAFBFC] border-[#DFE1E6] text-[#5E6C84] hover:text-[#091E42] shadow-2xs"
         }`}
       >
         <Bell className="w-4 h-4" />
 
+        {/* Clean, subtle unread indicator dot (counter is in sidebar) */}
         {unreadCount > 0 && (
           <span
-            className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-extrabold text-white bg-[#DE350B] rounded-full border border-white shadow-xs"
+            className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#0052CC] ring-2 ring-white"
             aria-hidden="true"
-          >
-            {unreadCount > 99 ? "99+" : unreadCount}
-          </span>
+          />
         )}
       </button>
 
@@ -144,9 +114,11 @@ export function NotificationBell({ isSupplier }: NotificationBellProps) {
           notifications={recentNotifications}
           unreadCount={unreadCount}
           loading={loading}
+          error={error}
           isSupplier={isSupplier}
           onNotificationSelect={handleNotificationSelect}
           onMarkAllAsRead={handleMarkAllAsRead}
+          onRetry={fetchRecent}
           onClose={() => setDropdownOpen(false)}
         />
       )}

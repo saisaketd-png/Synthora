@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { useUnreadNotificationCount } from "@/features/notifications/hooks/useUnreadNotificationCount";
 import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
 interface NavSection {
@@ -51,6 +52,7 @@ export default function DashboardLayout({
   const [user, setUser] = useState<AuthUser | null>(null);
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { unreadCount } = useUnreadNotificationCount();
 
   useEffect(() => {
     setMounted(true);
@@ -148,7 +150,7 @@ export default function DashboardLayout({
       title: "COMMUNICATION",
       items: [
         {
-          name: "System Alerts",
+          name: "Notifications",
           href: "/dashboard/notifications",
           icon: Bell,
         },
@@ -202,7 +204,7 @@ export default function DashboardLayout({
       title: "COMMUNICATION",
       items: [
         {
-          name: "Supplier Alerts",
+          name: "Notifications",
           href: "/dashboard/notifications",
           icon: Bell,
         },
@@ -263,13 +265,18 @@ export default function DashboardLayout({
       ],
     },
     {
-      title: "SYSTEM",
+      title: "COMMUNICATION",
       items: [
         {
-          name: "Platform Alerts",
+          name: "Notifications",
           href: "/dashboard/notifications",
           icon: Bell,
         },
+      ],
+    },
+    {
+      title: "SYSTEM",
+      items: [
         {
           name: "Audit Logs",
           href: "/dashboard/admin/activity",
@@ -302,7 +309,7 @@ export default function DashboardLayout({
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 text-[#5E6C84] hover:bg-[#F4F5F7] rounded-lg focus:outline-none"
+            className="lg:hidden p-2 text-[#5E6C84] hover:bg-[#F4F5F7] rounded-lg focus:outline-none cursor-pointer"
             aria-label="Toggle Sidebar Navigation"
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -347,8 +354,9 @@ export default function DashboardLayout({
 
             <button
               onClick={handleSignOut}
-              className="p-1.5 text-[#5E6C84] hover:text-[#DE350B] hover:bg-[#FFEBE6] rounded-lg transition-colors"
+              className="p-1.5 text-[#5E6C84] hover:text-[#DE350B] hover:bg-[#FFEBE6] rounded-lg transition-colors cursor-pointer"
               title="Sign Out"
+              aria-label="Sign Out"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -378,22 +386,28 @@ export default function DashboardLayout({
             {navSections.map((section, sIdx) => (
               <div key={sIdx} className="space-y-1">
                 {section.title && (
-                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1 font-mono">
                     {section.title}
                   </span>
                 )}
                 <div className="space-y-0.5">
                   {section.items.map((item) => {
                     const Icon = item.icon;
+                    const isNotificationItem = item.href === "/dashboard/notifications";
                     const isActive = item.exact
                       ? pathname === item.href
                       : pathname.startsWith(item.href) && item.href !== "/dashboard" && item.href !== "/dashboard/admin";
+
+                    const itemAriaLabel = isNotificationItem && unreadCount > 0
+                      ? `${item.name}, ${unreadCount} unread`
+                      : item.name;
 
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
                         onClick={() => setSidebarOpen(false)}
+                        aria-label={itemAriaLabel}
                         className={`group flex items-center justify-between px-3 h-9.5 rounded-lg text-xs sm:text-[13px] transition-colors ${
                           isActive
                             ? "bg-[#EBECF0] text-[#091E42] font-bold border-l-[3px] border-[#0052CC]"
@@ -409,7 +423,18 @@ export default function DashboardLayout({
                           <span className="truncate">{item.name}</span>
                         </div>
 
-                        {item.badge && (
+                        {/* Unread Counter Badge (Exclusively rendered on Notifications nav item) */}
+                        {isNotificationItem && unreadCount > 0 ? (
+                          <span
+                            className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold font-mono rounded-full transition-colors ${
+                              isActive
+                                ? "bg-[#0052CC] text-white"
+                                : "bg-[#DFE1E6] text-[#091E42] group-hover:bg-[#C1C7D0]"
+                            }`}
+                          >
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                          </span>
+                        ) : item.badge ? (
                           <span
                             className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase ${
                               isActive
@@ -419,7 +444,7 @@ export default function DashboardLayout({
                           >
                             {item.badge}
                           </span>
-                        )}
+                        ) : null}
                       </Link>
                     );
                   })}

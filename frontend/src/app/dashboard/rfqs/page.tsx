@@ -3,10 +3,23 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import {
+  Search,
+  Plus,
+  ArrowRight,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  Building2,
+  ChevronRight,
+  Filter,
+  PackageCheck,
+  TrendingUp,
+} from "lucide-react";
 import { getBuyerRfqs, BuyerRfq } from "@/features/rfq/api/getBuyerRfqs";
 
-type StatusFilter = "ALL" | "QUOTED" | "PENDING" | "ACCEPTED" | "REJECTED";
+type StatusFilter = "ALL" | "QUOTED" | "PENDING" | "COUNTERED" | "ACCEPTED" | "REJECTED" | "CLOSED";
 type SortOption = "DATE_DESC" | "DATE_ASC" | "QTY_DESC" | "QTY_ASC";
 
 export default function BuyerRfqsPage() {
@@ -39,63 +52,121 @@ export default function BuyerRfqsPage() {
 
   const totalCount = rfqs.length;
   const quotedCount = useMemo(() => rfqs.filter((r) => r.status === "QUOTED").length, [rfqs]);
-  const pendingCount = useMemo(() => rfqs.filter((r) => r.status === "PENDING" || r.status === "CONTACTED").length, [rfqs]);
+  const pendingCount = useMemo(
+    () => rfqs.filter((r) => r.status === "PENDING" || r.status === "CONTACTED").length,
+    [rfqs]
+  );
+  const counteredCount = useMemo(() => rfqs.filter((r) => r.status === "COUNTERED").length, [rfqs]);
   const acceptedCount = useMemo(() => rfqs.filter((r) => r.status === "ACCEPTED").length, [rfqs]);
   const rejectedCount = useMemo(() => rfqs.filter((r) => r.status === "REJECTED").length, [rfqs]);
-  const activeCount = quotedCount + pendingCount + acceptedCount;
+  const closedCount = useMemo(
+    () => rfqs.filter((r) => r.status === "CLOSED" || r.status === "CANCELLED").length,
+    [rfqs]
+  );
+  const activeCount = quotedCount + pendingCount + counteredCount + acceptedCount;
 
   const filteredRfqs = useMemo(() => {
     return rfqs
       .filter((rfq) => {
         if (statusFilter === "QUOTED" && rfq.status !== "QUOTED") return false;
-        if (statusFilter === "PENDING" && rfq.status !== "PENDING" && rfq.status !== "CONTACTED") return false;
+        if (statusFilter === "PENDING" && rfq.status !== "PENDING" && rfq.status !== "CONTACTED")
+          return false;
+        if (statusFilter === "COUNTERED" && rfq.status !== "COUNTERED") return false;
         if (statusFilter === "ACCEPTED" && rfq.status !== "ACCEPTED") return false;
         if (statusFilter === "REJECTED" && rfq.status !== "REJECTED") return false;
+        if (statusFilter === "CLOSED" && rfq.status !== "CLOSED" && rfq.status !== "CANCELLED")
+          return false;
 
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
           const matchesRef = (rfq.rfqReference || "").toLowerCase().includes(q);
-          const matchesId = rfq.id.toLowerCase().includes(q);
-          const matchesProduct = (rfq.productName || "").toLowerCase().includes(q) || rfq.productId.toLowerCase().includes(q);
-          const matchesSupplier = (rfq.supplierName || "").toLowerCase().includes(q) || String(rfq.supplierId).includes(q);
+          const matchesId = (rfq.id || "").toLowerCase().includes(q);
+          const matchesProduct =
+            (rfq.productName || "").toLowerCase().includes(q) ||
+            (rfq.productId ? rfq.productId.toLowerCase().includes(q) : false) ||
+            (rfq.masterProductId ? rfq.masterProductId.toLowerCase().includes(q) : false);
+          const matchesSupplier =
+            (rfq.supplierName || "").toLowerCase().includes(q) ||
+            String(rfq.supplierId || "").includes(q);
           return matchesRef || matchesId || matchesProduct || matchesSupplier;
         }
 
         return true;
       })
       .sort((a, b) => {
-        if (sortBy === "DATE_DESC") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        if (sortBy === "DATE_ASC") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        if (sortBy === "DATE_DESC")
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        if (sortBy === "DATE_ASC")
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         if (sortBy === "QTY_DESC") return b.quantity - a.quantity;
         if (sortBy === "QTY_ASC") return a.quantity - b.quantity;
         return 0;
       });
   }, [rfqs, statusFilter, searchQuery, sortBy]);
 
-  const getSemanticStatusClass = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "ACCEPTED": return "text-teal-600";
-      case "QUOTED": return "text-blue-600";
+      case "ACCEPTED":
+        return {
+          label: "ACCEPTED",
+          classes: "bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]",
+          hint: "Ready to issue formal purchase order",
+        };
+      case "QUOTED":
+        return {
+          label: "QUOTED",
+          classes: "bg-[#DEEBFF] text-[#0747A6] border-[#B3D4FF]",
+          hint: "Supplier quotation awaiting your decision",
+        };
+      case "COUNTERED":
+        return {
+          label: "COUNTER OFFER",
+          classes: "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]",
+          hint: "Counter offer in negotiation",
+        };
       case "PENDING":
-      case "CONTACTED": return "text-orange-500";
-      case "REJECTED": return "text-red-600";
+      case "CONTACTED":
+        return {
+          label: "AWAITING RESPONSE",
+          classes: "bg-[#FAFBFC] text-[#526581] border-[#E2E8F0]",
+          hint: "Supplier preparing commercial proposal",
+        };
+      case "REJECTED":
+        return {
+          label: "DECLINED",
+          classes: "bg-rose-50 text-rose-700 border-rose-200",
+          hint: "Proposal declined",
+        };
       case "CLOSED":
-      case "CANCELLED": return "text-slate-500";
-      default: return "text-slate-600";
+      case "CANCELLED":
+        return {
+          label: "CLOSED",
+          classes: "bg-slate-100 text-slate-600 border-slate-200",
+          hint: "Negotiation archived",
+        };
+      default:
+        return {
+          label: status,
+          classes: "bg-slate-100 text-slate-700 border-slate-200",
+          hint: "",
+        };
     }
   };
 
-  const currentDateStr = new Date().toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).toUpperCase();
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime())
+      ? dateStr
+      : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  };
 
   if (loading) {
     return (
-      <div className="p-8 max-w-[1440px] mx-auto min-h-[50vh] flex items-center justify-center">
-        <span className="text-[11px] font-mono text-slate-400 uppercase tracking-widest">
-          LOADING REGISTER...
+      <div className="max-w-[1440px] mx-auto p-8 min-h-[60vh] flex flex-col items-center justify-center space-y-3">
+        <div className="w-8 h-8 border-2 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs font-mono font-medium text-[#526581] uppercase tracking-wider">
+          Loading Sourcing Workspace...
         </span>
       </div>
     );
@@ -103,303 +174,289 @@ export default function BuyerRfqsPage() {
 
   if (error) {
     return (
-      <div className="p-8 max-w-[1440px] mx-auto">
-        <div className="border-l-[3px] border-orange-500 pl-4 py-1">
-          <p className="text-[11px] font-bold text-orange-600 uppercase tracking-widest">System Error</p>
-          <p className="text-sm font-mono text-slate-700 mt-2">{error}</p>
-          <button
-            onClick={loadRfqs}
-            className="mt-4 text-[10px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
-          >
-            RETRY FETCH →
-          </button>
+      <div className="max-w-[1440px] mx-auto p-6 lg:p-8">
+        <div className="bg-white border border-[#E2E8F0] rounded-xl p-8 text-center space-y-3 shadow-2xs">
+          <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
+          <h2 className="text-base font-bold text-[#0B1B33]">Unable to Load RFQs</h2>
+          <p className="text-xs text-[#526581] max-w-md mx-auto">{error}</p>
+          <div className="pt-2 flex justify-center gap-3">
+            <button
+              onClick={loadRfqs}
+              className="px-4 py-2 bg-[#0052CC] text-white text-xs font-semibold rounded-lg hover:bg-[#0747A6] transition-colors cursor-pointer"
+            >
+              Retry Fetch
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900 pb-24">
-      <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-10">
-
-        {/* =========================================
-            1. EDITORIAL HEADER
-            ========================================= */}
-        <header className="border-t-[3px] border-[#0A192F] pt-6 mb-12">
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
-            <div className="max-w-3xl">
-              <span className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-4">
-                PROCUREMENT / RFQ REGISTER
-              </span>
-              <h1 className="text-3xl lg:text-4xl font-bold text-[#0A192F] tracking-tight mb-3">
-                My RFQs
-              </h1>
-              <p className="text-sm font-medium text-slate-600 leading-relaxed uppercase tracking-wider">
-                Chemical sourcing requests currently under procurement review.
-              </p>
-              
-              <div className="mt-8">
-                <Link
-                  href="/products"
-                  className="inline-block text-[11px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
-                >
-                  REQUEST NEW RFQ →
-                </Link>
-              </div>
-            </div>
-            
-            <div className="shrink-0 flex flex-col md:items-end gap-1 border-l-2 md:border-l-0 md:border-r-2 border-[#0A192F] pl-4 md:pl-0 md:pr-4 py-1">
-              <span className="text-sm font-mono font-bold text-[#0A192F] tracking-tight">{currentDateStr}</span>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mt-1">
-                BUYER OPERATIONS
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-teal-600 mt-2">
-                {String(activeCount).padStart(2, '0')} ACTIVE
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* =========================================
-            2. PROCUREMENT INDEX (Replaces KPI Cards)
-            ========================================= */}
-        <section className="mb-12 border-b border-slate-200 pb-8">
-          <div className="flex flex-wrap items-baseline gap-x-12 gap-y-6">
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-3xl font-semibold text-[#0A192F] tracking-tighter">
-                {String(totalCount).padStart(2, '0')}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 max-w-[80px] leading-tight">
-                TOTAL RFQs
-              </span>
-            </div>
-            
-            <div className="hidden sm:block w-[1px] h-8 bg-slate-200 self-center" />
-            
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-3xl font-semibold text-blue-600 tracking-tighter">
-                {String(quotedCount).padStart(2, '0')}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 max-w-[80px] leading-tight">
-                QUOTED
-              </span>
-            </div>
-            
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-3xl font-semibold text-orange-500 tracking-tighter">
-                {String(pendingCount).padStart(2, '0')}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 max-w-[100px] leading-tight">
-                AWAITING RESPONSE
-              </span>
-            </div>
-
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-3xl font-semibold text-teal-600 tracking-tighter">
-                {String(acceptedCount).padStart(2, '0')}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 max-w-[80px] leading-tight">
-                ACCEPTED
-              </span>
-            </div>
-
-            <div className="flex items-baseline gap-3">
-              <span className="font-mono text-3xl font-semibold text-red-600 tracking-tighter">
-                {String(rejectedCount).padStart(2, '0')}
-              </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 max-w-[80px] leading-tight">
-                REJECTED
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================
-            3. CONTROL BAR (Search & Filters)
-            ========================================= */}
-        <section className="mb-10">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200 pb-2">
-            
-            {/* SEARCH */}
-            <div className="relative w-full lg:max-w-sm mb-4 lg:mb-0">
-              <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                RFQ SEARCH
-              </span>
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-0 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Reference, chemical or supplier..."
-                  className="w-full pl-6 pr-0 py-1 text-xs font-mono border-b border-slate-300 focus:outline-none focus:border-[#0A192F] transition-colors placeholder:font-sans placeholder:text-slate-400 bg-transparent"
-                />
-              </div>
-            </div>
-
-            {/* FILTERS & SORT */}
-            <div className="flex flex-col sm:flex-row sm:items-end gap-8">
-              <div>
-                <span className="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                  FILTERS
-                </span>
-                <div className="flex items-center gap-6 overflow-x-auto pb-1">
-                  {(["ALL", "QUOTED", "PENDING", "ACCEPTED", "REJECTED"] as StatusFilter[]).map((filter) => {
-                    const isActive = statusFilter === filter;
-                    const count = filter === "ALL" ? totalCount : 
-                                 filter === "QUOTED" ? quotedCount :
-                                 filter === "PENDING" ? pendingCount :
-                                 filter === "ACCEPTED" ? acceptedCount : rejectedCount;
-                    return (
-                      <button
-                        key={filter}
-                        onClick={() => setStatusFilter(filter)}
-                        className={`text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${
-                          isActive 
-                            ? "text-[#0A192F] border-b-2 border-[#0A192F] pb-[2px]" 
-                            : "text-slate-500 hover:text-slate-800 pb-[4px]"
-                        }`}
-                      >
-                        {filter} {String(count).padStart(2, '0')}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <span className="hidden sm:block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
-                  SORT
-                </span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="text-[10px] font-bold uppercase tracking-widest text-[#0A192F] bg-transparent focus:outline-none cursor-pointer pb-1 border-b border-transparent hover:border-slate-300 transition-colors"
-                >
-                  <option value="DATE_DESC">NEWEST FIRST</option>
-                  <option value="DATE_ASC">OLDEST FIRST</option>
-                  <option value="QTY_DESC">HIGHEST QUANTITY</option>
-                  <option value="QTY_ASC">LOWEST QUANTITY</option>
-                </select>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* =========================================
-            4. RFQ REGISTER (Data Table)
-            ========================================= */}
-        <section>
-          <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
-              RFQ Register
-            </h2>
+    <div className="max-w-[1440px] mx-auto space-y-6 pb-24 text-[#0B1B33]">
+      {/* ========================================================================= */}
+      {/* 1. COMPACT PAGE HEADER & METRICS                                          */}
+      {/* ========================================================================= */}
+      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-2xs">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block font-mono">
+              PROCUREMENT / RFQ REGISTER
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B1B33] tracking-tight">
+              My Sourcing RFQs
+            </h1>
+            <p className="text-xs text-[#526581]">
+              Manage active chemical sourcing requests, supplier quotations and procurement negotiations.
+            </p>
           </div>
 
-          {rfqs.length === 0 ? (
-            <div className="py-12 border-b border-slate-200">
-              <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                NO ACTIVE PROCUREMENT REQUESTS
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href="/rfq"
+              className="h-10 px-4.5 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shadow-2xs"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create New RFQ</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Structured Metric Strip */}
+        <div className="mt-5 pt-4 border-t border-[#E2E8F0] grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+          <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+              Total RFQs
+            </span>
+            <strong className="text-lg font-bold text-[#0B1B33] block mt-0.5 font-mono">
+              {totalCount}
+            </strong>
+          </div>
+
+          <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+              Active Inquiries
+            </span>
+            <strong className="text-lg font-bold text-[#0052CC] block mt-0.5 font-mono">
+              {activeCount}
+            </strong>
+          </div>
+
+          <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+              Awaiting Decision
+            </span>
+            <strong className="text-lg font-bold text-[#974F0C] block mt-0.5 font-mono">
+              {quotedCount}
+            </strong>
+          </div>
+
+          <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+              Accepted / Ready PO
+            </span>
+            <strong className="text-lg font-bold text-[#006644] block mt-0.5 font-mono">
+              {acceptedCount}
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 2. HORIZONTAL STATUS SUMMARY TABS                                         */}
+      {/* ========================================================================= */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {[
+          { key: "ALL", label: "All RFQs", count: totalCount },
+          { key: "QUOTED", label: "Quoted", count: quotedCount },
+          { key: "PENDING", label: "Awaiting Response", count: pendingCount },
+          { key: "COUNTERED", label: "Counter Offer", count: counteredCount },
+          { key: "ACCEPTED", label: "Accepted", count: acceptedCount },
+          { key: "REJECTED", label: "Rejected", count: rejectedCount },
+          { key: "CLOSED", label: "Closed", count: closedCount },
+        ].map((tab) => {
+          const isActive = statusFilter === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setStatusFilter(tab.key as StatusFilter)}
+              className={`px-3 py-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer text-xs ${
+                isActive
+                  ? "bg-[#0052CC] text-white shadow-2xs"
+                  : "bg-white border border-[#E2E8F0] text-[#526581] hover:bg-[#FAFBFC] hover:text-[#0B1B33]"
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded font-mono font-bold ${
+                  isActive ? "bg-white/20 text-white" : "bg-[#F4F5F7] text-[#0B1B33]"
+                }`}
+              >
+                {tab.count}
               </span>
-              <p className="text-sm font-medium text-slate-600 mb-6">
-                There are currently no RFQs associated with this buyer account.
-              </p>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 3. TOOLBAR: SEARCH & SORT                                                 */}
+      {/* ========================================================================= */}
+      <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="w-4 h-4 text-[#8993A4] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by RFQ reference, chemical, or supplier..."
+            className="w-full pl-9 pr-4 py-2 text-xs bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg text-[#0B1B33] placeholder:text-[#8993A4] focus:outline-none focus:border-[#0052CC]"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <span className="text-[11px] text-[#64748B] font-bold uppercase tracking-wider">
+            Sort:
+          </span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="px-3 py-1.5 text-xs bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg font-medium text-[#0B1B33] focus:outline-none focus:border-[#0052CC] cursor-pointer"
+          >
+            <option value="DATE_DESC">Newest First</option>
+            <option value="DATE_ASC">Oldest First</option>
+            <option value="QTY_DESC">Highest Quantity</option>
+            <option value="QTY_ASC">Lowest Quantity</option>
+          </select>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 4. PREMIUM PROCUREMENT LIST                                               */}
+      {/* ========================================================================= */}
+      <div className="space-y-3">
+        {rfqs.length === 0 ? (
+          <div className="bg-white border border-[#E2E8F0] rounded-xl p-12 text-center space-y-3 shadow-2xs">
+            <FileText className="w-10 h-10 text-[#8993A4] mx-auto" />
+            <h3 className="text-sm font-bold text-[#0B1B33]">No RFQs Found</h3>
+            <p className="text-xs text-[#526581] max-w-sm mx-auto">
+              You have not submitted any chemical sourcing requests yet. Browse the catalog to request quotations.
+            </p>
+            <div className="pt-2">
               <Link
                 href="/products"
-                className="inline-block text-[11px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0052CC] text-white text-xs font-semibold rounded-lg hover:bg-[#0747A6] transition-colors"
               >
-                REQUEST NEW RFQ →
+                <span>Browse Chemical Catalog</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-          ) : filteredRfqs.length === 0 ? (
-            <div className="py-12 border-b border-slate-200">
-              <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                NO MATCHING RECORDS
-              </span>
-              <p className="text-sm font-medium text-slate-600 mb-6">
-                No procurement requests match your current search and filter criteria.
-              </p>
-              <button
-                onClick={() => { setSearchQuery(""); setStatusFilter("ALL"); }}
-                className="inline-block text-[11px] font-bold uppercase tracking-widest text-[#0A192F] hover:text-blue-600 transition-colors"
+          </div>
+        ) : filteredRfqs.length === 0 ? (
+          <div className="bg-white border border-[#E2E8F0] rounded-xl p-10 text-center space-y-3 shadow-2xs">
+            <Filter className="w-8 h-8 text-[#8993A4] mx-auto" />
+            <h3 className="text-sm font-bold text-[#0B1B33]">No Matching RFQs</h3>
+            <p className="text-xs text-[#526581]">
+              No sourcing requests match your search and filter criteria.
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setStatusFilter("ALL");
+              }}
+              className="text-xs font-semibold text-[#0052CC] hover:underline cursor-pointer"
+            >
+              Reset Filters
+            </button>
+          </div>
+        ) : (
+          filteredRfqs.map((rfq) => {
+            const badge = getStatusBadge(rfq.status);
+            const rfqRef = rfq.rfqReference || `RFQ-${rfq.id.substring(0, 8).toUpperCase()}`;
+
+            return (
+              <div
+                key={rfq.id}
+                onClick={() => router.push(`/dashboard/rfqs/${rfq.id}`)}
+                className="bg-white border border-[#E2E8F0] hover:border-[#B3D4FF] rounded-xl p-5 shadow-2xs transition-all hover:shadow-xs cursor-pointer group"
               >
-                CLEAR FILTERS →
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col">
-              {/* Desktop Header Row */}
-              <div className="hidden lg:flex items-center py-2 border-b border-slate-200 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <div className="w-[15%]">RFQ Reference</div>
-                <div className="w-[20%]">Product / Chemical</div>
-                <div className="w-[20%]">Supplier</div>
-                <div className="w-[12%] text-right">Quantity</div>
-                <div className="w-[10%] text-center">Status</div>
-                <div className="w-[11%]">Created</div>
-                <div className="w-[12%] text-right">Action</div>
-              </div>
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  {/* Left: Identity & Compound */}
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-[#0052CC] group-hover:underline">
+                        {rfqRef}
+                      </span>
+                      <span className="text-[#E2E8F0]">•</span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase font-mono ${badge.classes}`}
+                      >
+                        {badge.label}
+                      </span>
+                      {badge.hint && (
+                        <span className="text-[11px] text-[#526581] hidden sm:inline">
+                          — {badge.hint}
+                        </span>
+                      )}
+                    </div>
 
-              {/* Data Rows */}
-              {filteredRfqs.map((rfq) => (
-                <div
-                  key={rfq.id}
-                  onClick={() => router.push(`/dashboard/rfqs/${rfq.id}`)}
-                  className="group flex flex-col lg:flex-row lg:items-center py-5 border-b border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  <div className="w-full lg:w-[15%] mb-2 lg:mb-0">
-                    <span className="lg:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-0.5">RFQ Reference</span>
-                    <span className="font-mono text-[13px] font-semibold text-[#0A192F] group-hover:text-blue-600 transition-colors">
-                      {rfq.rfqReference || `RFQ-${rfq.id.substring(0, 8).toUpperCase()}`}
-                    </span>
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <h2 className="text-base font-bold text-[#0B1B33] group-hover:text-[#0052CC] transition-colors truncate">
+                        {rfq.productName || "Specialty Chemical Raw Material"}
+                      </h2>
+                    </div>
+
+                    <p className="text-xs text-[#526581] flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-[#8993A4]" />
+                      <span>
+                        Supplier: <strong className="text-[#0B1B33]">{rfq.supplierName || `Supplier #${rfq.supplierId}`}</strong>
+                      </span>
+                    </p>
                   </div>
 
-                  <div className="w-full lg:w-[20%] mb-2 lg:mb-0 pr-4">
-                    <span className="lg:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-0.5">Product / Chemical</span>
-                    <span className="text-[13px] font-bold text-slate-900 block truncate">
-                      {rfq.productName || "Specialty Chemical Raw Material"}
-                    </span>
+                  {/* Middle: Volume & Dates */}
+                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 text-xs shrink-0 lg:w-72 border-t lg:border-t-0 lg:border-l border-[#E2E8F0] pt-3 lg:pt-0 lg:pl-6">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                        Quantity
+                      </span>
+                      <strong className="text-sm font-bold text-[#0B1B33] block mt-0.5">
+                        {rfq.quantity.toLocaleString()} {rfq.unit.toUpperCase()}
+                      </strong>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                        Submitted
+                      </span>
+                      <span className="text-xs text-[#526581] block mt-0.5">
+                        {formatDate(rfq.createdAt)}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="w-full lg:w-[20%] mb-3 lg:mb-0 pr-4">
-                    <span className="lg:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-0.5">Supplier</span>
-                    <span className="text-xs font-medium text-slate-800 block truncate">
-                      {rfq.supplierName || `Supplier #${rfq.supplierId}`}
-                    </span>
-                  </div>
-
-                  <div className="w-full lg:w-[12%] lg:text-right mb-3 lg:mb-0 pr-0 lg:pr-4">
-                    <span className="lg:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-0.5">Quantity</span>
-                    <span className="font-mono text-[13px] text-slate-900">
-                      {rfq.quantity.toLocaleString()} {rfq.unit.toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div className="w-full lg:w-[10%] lg:text-center mb-3 lg:mb-0">
-                    <span className="lg:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-0.5">Status</span>
-                    <span className={`text-[10px] font-bold uppercase tracking-widest ${getSemanticStatusClass(rfq.status)}`}>
-                      {rfq.status}
-                    </span>
-                  </div>
-
-                  <div className="w-full lg:w-[11%] mb-3 lg:mb-0">
-                    <span className="lg:hidden text-[10px] font-bold uppercase tracking-widest text-slate-400 block mb-0.5">Created</span>
-                    <span className="font-mono text-xs text-slate-700">
-                      {new Date(rfq.createdAt).toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div className="w-full lg:w-[12%] lg:text-right">
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-blue-600 group-hover:text-blue-800 transition-colors">
-                      OPEN DOSSIER →
-                    </span>
+                  {/* Right: Primary Call to Action */}
+                  <div className="flex items-center justify-end shrink-0 pt-2 lg:pt-0">
+                    {rfq.status === "ACCEPTED" ? (
+                      <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#E3FCEF] text-[#006644] text-xs font-bold uppercase tracking-wider rounded-lg border border-[#ABF5D1] group-hover:bg-[#00875A] group-hover:text-white transition-colors">
+                        <span>Issue PO →</span>
+                      </span>
+                    ) : rfq.status === "QUOTED" ? (
+                      <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#DEEBFF] text-[#0747A6] text-xs font-bold uppercase tracking-wider rounded-lg border border-[#B3D4FF] group-hover:bg-[#0052CC] group-hover:text-white transition-colors">
+                        <span>Review Quote →</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#0052CC] group-hover:underline">
+                        <span>View RFQ</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

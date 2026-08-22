@@ -170,6 +170,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       "UNDER_REVIEW",
       "INFORMATION_REQUIRED",
       "QUOTED",
+      "COUNTERED",
+      "COUNTER_OFFER_RECEIVED",
       "PROCESSING",
       "SHIPPED",
       "CONTACTED",

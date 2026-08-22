@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import {
-  Lock,
   DollarSign,
   Package,
   CheckCircle2,
@@ -13,13 +12,16 @@ import {
   FileText,
   Trash2,
   Star,
-  Info,
   ShieldCheck,
+  FlaskConical,
+  Clock,
+  Send,
+  RefreshCw,
+  Eye,
+  Check,
 } from "lucide-react";
 import { MasterProduct, CreateSupplierOfferingPayload } from "../api/masterCatalogApi";
 import {
-  uploadOfferingImage,
-  uploadOfferingDocument,
   OfferingDocumentCategory,
 } from "../api/offeringMediaApi";
 
@@ -53,38 +55,38 @@ export function SupplierOfferingForm({
   onBack,
   isLoading = false,
 }: SupplierOfferingFormProps) {
+  // Commercial parameters
   const [price, setPrice] = useState<string>("");
   const [currency, setCurrency] = useState<string>("INR");
   const [stock, setStock] = useState<string>("100");
-  const [purity, setPurity] = useState<string>("");
+  const [purity, setPurity] = useState<string>("99.5");
   const [grade, setGrade] = useState<string>("USP");
   const [moqKg, setMoqKg] = useState<string>("25");
-  const [packaging, setPackaging] = useState<string>("Standard Drum");
+  const [packaging, setPackaging] = useState<string>("Standard Drum (25kg)");
   const [leadTimeDays, setLeadTimeDays] = useState<string>("7");
+  const [availabilityStatus, setAvailabilityStatus] = useState<string>("AVAILABLE");
 
-  // Independent Compliance Declarations (Explicitly default to false for new offerings)
+  // Independent Compliance Declarations (Manually controlled)
   const [coaAvailable, setCoaAvailable] = useState<boolean>(false);
   const [msdsAvailable, setMsdsAvailable] = useState<boolean>(false);
   const [exportReady, setExportReady] = useState<boolean>(false);
-
-  const [availabilityStatus, setAvailabilityStatus] = useState<string>("AVAILABLE");
 
   // Staged Media & Documents
   const [stagedImages, setStagedImages] = useState<StagedImage[]>([]);
   const [stagedDocuments, setStagedDocuments] = useState<StagedDocument[]>([]);
   const [selectedDocCategory, setSelectedDocCategory] = useState<OfferingDocumentCategory>("COA");
 
+  // Errors & Warnings
   const [error, setError] = useState<string | null>(null);
-  const [mediaWarning, setMediaWarning] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle Image Files Selection
+  // Handle Image Selection
   const handleImageFilesSelected = (files: FileList | null) => {
     if (!files) return;
     setError(null);
-    setMediaWarning(null);
 
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
@@ -140,11 +142,10 @@ export function SupplierOfferingForm({
     );
   };
 
-  // Handle Document Files Selection
+  // Handle Document Selection
   const handleDocFilesSelected = (files: FileList | null) => {
     if (!files) return;
     setError(null);
-    setMediaWarning(null);
 
     const maxSizeBytes = 15 * 1024 * 1024; // 15 MB
     const newDocs: StagedDocument[] = [];
@@ -181,25 +182,51 @@ export function SupplierOfferingForm({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    const parsedPrice = parseFloat(price);
+    const parsedStock = parseInt(stock, 10);
+    const parsedPurity = purity ? parseFloat(purity) : null;
+    const parsedMoq = moqKg ? parseFloat(moqKg) : null;
+    const parsedLeadTime = leadTimeDays ? parseInt(leadTimeDays, 10) : null;
+
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      errors.price = "Price must be a positive number greater than 0.";
+    }
+
+    if (isNaN(parsedStock) || parsedStock < 0) {
+      errors.stock = "Available stock must be 0 or greater.";
+    }
+
+    if (parsedPurity !== null && (isNaN(parsedPurity) || parsedPurity <= 0 || parsedPurity > 100)) {
+      errors.purity = "Purity percentage must be between 0.1% and 100.0%.";
+    }
+
+    if (parsedMoq !== null && (isNaN(parsedMoq) || parsedMoq <= 0)) {
+      errors.moq = "Minimum Order Quantity must be greater than 0.";
+    }
+
+    if (parsedLeadTime !== null && (isNaN(parsedLeadTime) || parsedLeadTime < 0)) {
+      errors.leadTime = "Lead time days cannot be negative.";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setMediaWarning(null);
+
+    if (!validateForm()) {
+      setError("Please resolve the highlighted field errors before submitting.");
+      return;
+    }
 
     const parsedPrice = parseFloat(price);
     const parsedStock = parseInt(stock, 10);
 
-    if (isNaN(parsedPrice) || parsedPrice <= 0) {
-      setError("Please enter a valid price greater than 0.");
-      return;
-    }
-    if (isNaN(parsedStock) || parsedStock < 0) {
-      setError("Please enter a valid stock quantity (0 or greater).");
-      return;
-    }
-
     try {
-      // Order primary image first if present
       const sortedImages = [...stagedImages].sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0));
       const imageFiles = sortedImages.map((i) => i.file);
       const documentPayloads = stagedDocuments.map((d) => ({
@@ -227,473 +254,534 @@ export function SupplierOfferingForm({
         documentPayloads
       );
     } catch (err: any) {
-      setError(err.message || "Failed to save offering.");
+      setError(err.message || "Failed to submit offering.");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-      {/* HEADER */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
+      {/* Top Header Navigation */}
+      <div className="flex items-center justify-between pb-3 border-b border-[#DFE1E6]">
         <div>
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 mb-1 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0052CC] hover:underline mb-1"
           >
-            <ChevronLeft className="w-4 h-4" />
-            Back to Chemical Selection
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>Back to Master Chemical Selection</span>
           </button>
-          <h2 className="text-xl font-bold text-slate-900">Add Chemical Offering</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Configure commercial terms, upload product sample media, and attach technical documentation.
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#091E42] tracking-tight">
+            Add Commercial Chemical Offering
+          </h1>
+          <p className="text-xs text-[#5E6C84] mt-0.5">
+            Configure commercial pricing, stock, lead times, upload verified media, and attach COA/MSDS documents.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {mediaWarning && (
-        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium flex items-center gap-2">
-          <Info className="w-4 h-4 shrink-0 text-amber-600" />
-          <span>{mediaWarning}</span>
-        </div>
-      )}
-
-      {/* READONLY MASTER PRODUCT BANNER */}
-      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
+      {/* SECTION A: PRODUCT SELECTION & MONOGRAPH */}
+      <section className="bg-white rounded-2xl border border-[#DFE1E6] p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 font-mono text-xs font-bold">
+            <span className="w-6 h-6 rounded-full bg-[#DEEBFF] text-[#0052CC] font-bold text-xs flex items-center justify-center">
+              A
+            </span>
+            <h2 className="text-sm font-extrabold text-[#091E42] uppercase tracking-wider">
+              Selected Master Chemical Monograph
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="text-xs font-bold text-[#0052CC] hover:underline"
+          >
+            Change Chemical
+          </button>
+        </div>
+
+        <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <span className="text-[10px] font-bold uppercase text-[#5E6C84] block">Chemical Name</span>
+            <strong className="text-sm font-bold text-[#091E42] block truncate">
+              {masterProduct.name}
+            </strong>
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase text-[#5E6C84] block">Master Code</span>
+            <span className="font-mono text-xs font-bold text-[#0052CC] block">
               {masterProduct.masterProductCode}
             </span>
-            <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-mono text-xs">
-              CAS: {masterProduct.casNumber || "N/A"}
-            </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-semibold">
-              {masterProduct.category}
+          </div>
+          <div>
+            <span className="text-[10px] font-bold uppercase text-[#5E6C84] block">CAS Number</span>
+            <span className="font-mono text-xs text-[#172B4D] block">
+              {masterProduct.casNumber || "N/A"}
             </span>
           </div>
-          <h3 className="text-base font-extrabold text-slate-900">{masterProduct.name}</h3>
-          <p className="text-xs text-slate-500 line-clamp-1">
-            {masterProduct.description || "Canonical chemical monograph from Synthora Master Registry."}
-          </p>
-        </div>
-        <div className="flex items-center gap-1 text-[11px] font-semibold text-slate-400 shrink-0 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-          <Lock className="w-3.5 h-3.5" />
-          <span>Catalog Identity Locked</span>
-        </div>
-      </div>
-
-      {/* COMMERCIAL & INVENTORY SPECIFICATIONS */}
-      <div className="space-y-4">
-        <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-blue-600" />
-          Commercial & Logistics Terms
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {/* PRICE PER KG */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Unit Price (per kg) <span className="text-red-500">*</span>
+            <span className="text-[10px] font-bold uppercase text-[#5E6C84] block">Category</span>
+            <span className="inline-block px-2 py-0.5 mt-0.5 rounded text-[10px] font-extrabold uppercase bg-[#DEEBFF] text-[#0052CC]">
+              {masterProduct.category.replace("_", " ")}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION B: COMMERCIAL SPECIFICATIONS */}
+      <section className="bg-white rounded-2xl border border-[#DFE1E6] p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[#DEEBFF] text-[#0052CC] font-bold text-xs flex items-center justify-center">
+            B
+          </span>
+          <h2 className="text-sm font-extrabold text-[#091E42] uppercase tracking-wider">
+            Commercial Specifications & Pricing
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          {/* Price & Currency */}
+          <div>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Unit Price *
             </label>
-            <div className="flex gap-2">
+            <div className="flex rounded-lg border border-[#DFE1E6] overflow-hidden focus-within:border-[#0052CC] bg-[#FAFBFC]">
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-24 px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                className="px-2.5 py-2 bg-[#EBECF0] border-r border-[#DFE1E6] font-bold text-[#091E42] text-xs outline-none"
               >
                 {SUPPORTED_CURRENCIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
               <input
                 type="number"
                 step="0.01"
-                min="0.01"
                 required
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                placeholder="e.g. 24.50"
-                className="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                placeholder="e.g. 1500.00"
+                className="w-full px-3 py-2 bg-transparent text-[#091E42] font-semibold text-xs outline-none"
               />
             </div>
+            {fieldErrors.price && (
+              <span className="text-rose-600 text-[11px] mt-1 block">{fieldErrors.price}</span>
+            )}
           </div>
 
-          {/* STOCK */}
+          {/* Pharmacopoeial Grade */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Available Inventory (kg) <span className="text-red-500">*</span>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Pharmacopoeial Grade *
+            </label>
+            <select
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg font-medium text-[#091E42] text-xs outline-none focus:border-[#0052CC]"
+            >
+              <option value="USP">USP Grade</option>
+              <option value="EP">EP (European Pharmacopoeia)</option>
+              <option value="IP">IP (Indian Pharmacopoeia)</option>
+              <option value="BP">BP (British Pharmacopoeia)</option>
+              <option value="JP">JP (Japanese Pharmacopoeia)</option>
+              <option value="HPLC">HPLC / Analytical Grade</option>
+              <option value="TECH">Technical / Industrial Grade</option>
+            </select>
+          </div>
+
+          {/* Purity % */}
+          <div>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Assay / Purity (%) *
             </label>
             <input
               type="number"
-              min="0"
-              required
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              placeholder="e.g. 500"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
-            />
-          </div>
-
-          {/* PURITY */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Batch Assay / Purity (%)</label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
+              step="0.1"
               max="100"
               value={purity}
               onChange={(e) => setPurity(e.target.value)}
               placeholder="e.g. 99.5"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+              className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg font-medium text-[#091E42] text-xs outline-none focus:border-[#0052CC]"
             />
+            {fieldErrors.purity && (
+              <span className="text-rose-600 text-[11px] mt-1 block">{fieldErrors.purity}</span>
+            )}
           </div>
 
-          {/* GRADE */}
+          {/* Stock Available */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Grade Standard</label>
-            <select
-              value={grade}
-              onChange={(e) => setGrade(e.target.value)}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
-            >
-              <option value="USP">USP (United States Pharmacopeia)</option>
-              <option value="BP">BP (British Pharmacopoeia)</option>
-              <option value="EP">EP / Ph. Eur. (European Pharmacopoeia)</option>
-              <option value="IP">IP (Indian Pharmacopoeia)</option>
-              <option value="Pharma">Pharmaceutical Grade</option>
-              <option value="Analytical">Analytical / AR Grade</option>
-              <option value="Technical">Technical / Industrial Grade</option>
-            </select>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Stock Available (kg/L) *
+            </label>
+            <input
+              type="number"
+              required
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              placeholder="e.g. 500"
+              className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg font-medium text-[#091E42] text-xs outline-none focus:border-[#0052CC]"
+            />
+            {fieldErrors.stock && (
+              <span className="text-rose-600 text-[11px] mt-1 block">{fieldErrors.stock}</span>
+            )}
           </div>
 
           {/* MOQ */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Min. Order Quantity (kg)</label>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Minimum Order Quantity (MOQ kg) *
+            </label>
             <input
               type="number"
-              step="0.1"
-              min="0.1"
               value={moqKg}
               onChange={(e) => setMoqKg(e.target.value)}
               placeholder="e.g. 25"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+              className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg font-medium text-[#091E42] text-xs outline-none focus:border-[#0052CC]"
             />
+            {fieldErrors.moq && (
+              <span className="text-rose-600 text-[11px] mt-1 block">{fieldErrors.moq}</span>
+            )}
           </div>
 
-          {/* LEAD TIME */}
+          {/* Lead Time */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Lead Time (Days)</label>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Lead Time (Days) *
+            </label>
             <input
               type="number"
-              min="1"
               value={leadTimeDays}
               onChange={(e) => setLeadTimeDays(e.target.value)}
               placeholder="e.g. 7"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+              className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg font-medium text-[#091E42] text-xs outline-none focus:border-[#0052CC]"
             />
+            {fieldErrors.leadTime && (
+              <span className="text-rose-600 text-[11px] mt-1 block">{fieldErrors.leadTime}</span>
+            )}
           </div>
 
-          {/* PACKAGING */}
+          {/* Packaging */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Packaging Format</label>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Packaging Format
+            </label>
             <input
               type="text"
               value={packaging}
               onChange={(e) => setPackaging(e.target.value)}
-              placeholder="e.g. 25kg Fiber Drum"
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+              placeholder="e.g. HDPE Drum 25kg, Fiber Drum, ISO Tank"
+              className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg font-medium text-[#091E42] text-xs outline-none focus:border-[#0052CC]"
             />
           </div>
 
-          {/* AVAILABILITY STATUS */}
+          {/* Availability Status */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Listing Status</label>
+            <label className="font-bold text-[#172B4D] block mb-1">
+              Offering Availability
+            </label>
             <select
               value={availabilityStatus}
               onChange={(e) => setAvailabilityStatus(e.target.value)}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+              className="w-full px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg font-medium text-[#091E42] text-xs outline-none focus:border-[#0052CC]"
             >
-              <option value="AVAILABLE">AVAILABLE</option>
-              <option value="OUT_OF_STOCK">OUT OF STOCK</option>
-              <option value="HIDDEN">HIDDEN</option>
+              <option value="AVAILABLE">Available for Immediate Sourcing</option>
+              <option value="MADE_TO_ORDER">Made to Order / Custom Synthesis</option>
+              <option value="OUT_OF_STOCK">Temporarily Out of Stock</option>
             </select>
           </div>
         </div>
+      </section>
 
-        {/* COMPLIANCE & EXPORT AVAILABILITY */}
-        <div className="pt-4 border-t border-slate-100">
-          <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-2 flex items-center gap-2">
-            <Package className="w-4 h-4 text-blue-600" />
-            Compliance & Export Availability
-          </h3>
-          <p className="text-xs text-slate-500 mb-3">
-            Select the documentation and export credentials you can provide for this offering.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-            <label
-              className={`flex items-start gap-2.5 p-3 rounded-xl border transition-colors cursor-pointer ${
-                coaAvailable ? "border-blue-300 bg-blue-50/50" : "border-slate-200 bg-slate-50 hover:bg-white"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={coaAvailable}
-                onChange={(e) => setCoaAvailable(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <div>
-                <span className="font-bold text-slate-900 block">Certificate of Analysis (COA)</span>
-                <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                  Supplier indicates COA is available
-                </span>
-              </div>
-            </label>
-
-            <label
-              className={`flex items-start gap-2.5 p-3 rounded-xl border transition-colors cursor-pointer ${
-                msdsAvailable ? "border-blue-300 bg-blue-50/50" : "border-slate-200 bg-slate-50 hover:bg-white"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={msdsAvailable}
-                onChange={(e) => setMsdsAvailable(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <div>
-                <span className="font-bold text-slate-900 block">MSDS / SDS</span>
-                <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                  Supplier indicates safety documentation is available
-                </span>
-              </div>
-            </label>
-
-            <label
-              className={`flex items-start gap-2.5 p-3 rounded-xl border transition-colors cursor-pointer ${
-                exportReady ? "border-blue-300 bg-blue-50/50" : "border-slate-200 bg-slate-50 hover:bg-white"
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={exportReady}
-                onChange={(e) => setExportReady(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-              <div>
-                <span className="font-bold text-slate-900 block">Ready for Global Export</span>
-                <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                  Supplier indicates export availability
-                </span>
-              </div>
-            </label>
+      {/* SECTION C: PRODUCT MEDIA */}
+      <section className="bg-white rounded-2xl border border-[#DFE1E6] p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-[#DEEBFF] text-[#0052CC] font-bold text-xs flex items-center justify-center">
+              C
+            </span>
+            <h2 className="text-sm font-extrabold text-[#091E42] uppercase tracking-wider">
+              Product Images & Sample Media
+            </h2>
           </div>
+          <span className="text-[11px] text-[#5E6C84]">
+            {stagedImages.length} of 10 images staged
+          </span>
         </div>
 
-        {/* PRODUCT SAMPLE MEDIA (IMAGES) */}
-        <div className="pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-blue-600" />
-                Product Sample Images
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Upload batch sample or packaging photographs. Accepted formats: JPG, PNG, WEBP (Max 5 MB each, up to 10 images).
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => imageInputRef.current?.click()}
-              className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition-colors flex items-center gap-1.5"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              Upload Images
-            </button>
-            <input
-              ref={imageInputRef}
-              type="file"
-              multiple
-              accept="image/jpeg,image/png,image/webp"
-              onChange={(e) => handleImageFilesSelected(e.target.files)}
-              className="hidden"
-            />
-          </div>
-
-          {/* Staged Images Preview Grid */}
-          {stagedImages.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-3">
-              {stagedImages.map((img, idx) => (
-                <div
-                  key={idx}
-                  className={`relative group rounded-xl border overflow-hidden p-2 bg-white transition-all ${
-                    img.isPrimary ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-200"
-                  }`}
-                >
-                  <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center relative">
-                    <img
-                      src={img.previewUrl}
-                      alt={img.file.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {img.isPrimary && (
-                      <span className="absolute top-1.5 left-1.5 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-current" /> Primary
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-2 flex items-center justify-between gap-1 text-[11px]">
-                    <span className="text-slate-600 truncate font-medium max-w-[100px]">
-                      {img.file.name}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {!img.isPrimary && (
-                        <button
-                          type="button"
-                          onClick={() => setPrimaryStagedImage(idx)}
-                          title="Set as primary image"
-                          className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-                        >
-                          <Star className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeStagedImage(idx)}
-                        title="Remove image"
-                        className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div
-              onClick={() => imageInputRef.current?.click()}
-              className="mt-2 border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-5 text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-blue-50/20"
-            >
-              <ImageIcon className="w-7 h-7 mx-auto text-slate-400 mb-1.5" />
-              <div className="text-xs font-semibold text-slate-700">Click or drag & drop sample images</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">JPG, PNG, WEBP up to 5 MB each</div>
-            </div>
-          )}
+        {/* Dropzone */}
+        <div
+          onClick={() => imageInputRef.current?.click()}
+          className="border-2 border-dashed border-[#DFE1E6] hover:border-[#0052CC] rounded-xl p-5 text-center cursor-pointer bg-[#FAFBFC] hover:bg-[#F4F5F7] transition-all"
+        >
+          <input
+            ref={imageInputRef}
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => handleImageFilesSelected(e.target.files)}
+          />
+          <ImageIcon className="w-6 h-6 text-[#0052CC] mx-auto mb-1" />
+          <span className="text-xs font-bold text-[#091E42] block">
+            Click to upload product compound images
+          </span>
+          <span className="text-[10px] text-[#5E6C84] block mt-0.5">
+            Supported: JPG, PNG, WEBP (Max 5 MB each). Star icon designates primary thumbnail.
+          </span>
         </div>
 
-        {/* TECHNICAL & COMMERCIAL DOCUMENTATION */}
-        <div className="pt-4 border-t border-slate-100">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-            <div>
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <FileText className="w-4 h-4 text-blue-600" />
-                Technical & Commercial Documentation
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Upload COA, MSDS/SDS, Specifications, or Certificates (PDF, DOCX, up to 15 MB).
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedDocCategory}
-                onChange={(e) => setSelectedDocCategory(e.target.value as OfferingDocumentCategory)}
-                className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700"
+        {/* Image Grid */}
+        {stagedImages.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            {stagedImages.map((img, index) => (
+              <div
+                key={index}
+                className="relative group rounded-xl border border-[#DFE1E6] bg-white overflow-hidden p-1 shadow-2xs"
               >
-                <option value="COA">Certificate of Analysis (COA)</option>
-                <option value="MSDS">MSDS / SDS</option>
-                <option value="TECHNICAL_SPECIFICATION">Technical Specification</option>
-                <option value="CERTIFICATION">Quality / ISO / GMP Certificate</option>
-                <option value="OTHER">Other Commercial Document</option>
-              </select>
-              <button
-                type="button"
-                onClick={() => docInputRef.current?.click()}
-                className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition-colors flex items-center gap-1.5 shrink-0"
-              >
-                <Upload className="w-3.5 h-3.5" />
-                Upload Document
-              </button>
-              <input
-                ref={docInputRef}
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.xls,.xlsx"
-                onChange={(e) => handleDocFilesSelected(e.target.files)}
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          {/* Staged Documents List */}
-          {stagedDocuments.length > 0 ? (
-            <div className="space-y-2 mt-3">
-              {stagedDocuments.map((doc, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-800 font-mono text-[10px] font-bold rounded shrink-0">
-                      {doc.category}
-                    </span>
-                    <span className="font-semibold text-slate-900 truncate">{doc.file.name}</span>
-                    <span className="text-slate-400 font-mono text-[11px] shrink-0">
-                      {formatFileSize(doc.file.size)}
-                    </span>
-                  </div>
+                <img
+                  src={img.previewUrl}
+                  alt="Product preview"
+                  className="w-full h-24 object-cover rounded-lg"
+                />
+                <div className="absolute top-2 left-2">
                   <button
                     type="button"
-                    onClick={() => removeStagedDocument(idx)}
-                    className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    onClick={() => setPrimaryStagedImage(index)}
+                    className={`p-1 rounded-md text-[10px] font-bold flex items-center gap-0.5 shadow-2xs ${
+                      img.isPrimary
+                        ? "bg-[#0052CC] text-white"
+                        : "bg-white/90 text-[#5E6C84] hover:bg-white"
+                    }`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Star className="w-3 h-3 fill-current" />
+                    {img.isPrimary ? "Primary" : "Set Primary"}
                   </button>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div
-              onClick={() => docInputRef.current?.click()}
-              className="mt-2 border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-xl p-5 text-center cursor-pointer transition-colors bg-slate-50/50 hover:bg-blue-50/20"
-            >
-              <FileText className="w-7 h-7 mx-auto text-slate-400 mb-1.5" />
-              <div className="text-xs font-semibold text-slate-700">Click to attach supporting documents</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">PDF, DOCX, XLSX up to 15 MB each</div>
-            </div>
-          )}
-        </div>
-      </div>
+                <button
+                  type="button"
+                  onClick={() => removeStagedImage(index)}
+                  className="absolute top-2 right-2 p-1 bg-white/90 hover:bg-rose-50 text-rose-600 rounded-md shadow-2xs"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
-      {/* SUBMIT BUTTON */}
-      <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-5 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-colors"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          {isLoading ? "Saving Offering & Media..." : "Save Offering to Catalog"}
-        </button>
-      </div>
+      {/* SECTION D: DOCUMENTATION VAULT */}
+      <section className="bg-white rounded-2xl border border-[#DFE1E6] p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-[#DEEBFF] text-[#0052CC] font-bold text-xs flex items-center justify-center">
+              D
+            </span>
+            <h2 className="text-sm font-extrabold text-[#091E42] uppercase tracking-wider">
+              Technical Documentation (COA / MSDS / Specs)
+            </h2>
+          </div>
+          <span className="text-[11px] text-[#5E6C84]">
+            {stagedDocuments.length} of 10 documents staged
+          </span>
+        </div>
+
+        {/* Document Uploader */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <select
+            value={selectedDocCategory}
+            onChange={(e) => setSelectedDocCategory(e.target.value as OfferingDocumentCategory)}
+            className="px-3 py-2 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg text-xs font-bold text-[#091E42] outline-none focus:border-[#0052CC]"
+          >
+            <option value="COA">Certificate of Analysis (COA)</option>
+            <option value="MSDS">Material Safety Data Sheet (MSDS)</option>
+            <option value="TECHNICAL_SPEC">Technical Specification Sheet</option>
+            <option value="CERTIFICATION">GMP / ISO Certification</option>
+            <option value="OTHER">Other Compliance Document</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={() => docInputRef.current?.click()}
+            className="px-4 py-2 bg-[#DEEBFF] hover:bg-[#B3D4FF] text-[#0052CC] text-xs font-bold rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Select PDF / Document</span>
+          </button>
+          <input
+            ref={docInputRef}
+            type="file"
+            multiple
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            className="hidden"
+            onChange={(e) => handleDocFilesSelected(e.target.files)}
+          />
+        </div>
+
+        {/* Staged Docs List */}
+        {stagedDocuments.length > 0 && (
+          <div className="space-y-2 pt-2">
+            {stagedDocuments.map((doc, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-2.5 bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg text-xs"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <FileText className="w-4 h-4 text-[#0052CC] shrink-0" />
+                  <span className="font-bold text-[#091E42] truncate">{doc.file.name}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-[#EBECF0] text-[#5E6C84]">
+                    {doc.category}
+                  </span>
+                  <span className="text-[10px] text-[#5E6C84]">
+                    ({formatFileSize(doc.file.size)})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeStagedDocument(index)}
+                  className="text-rose-600 hover:text-rose-800 p-1"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* SECTION E: COMPLIANCE DECLARATIONS (MANUALLY CONTROLLED) */}
+      <section className="bg-white rounded-2xl border border-[#DFE1E6] p-5 sm:p-6 shadow-2xs space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[#DEEBFF] text-[#0052CC] font-bold text-xs flex items-center justify-center">
+            E
+          </span>
+          <h2 className="text-sm font-extrabold text-[#091E42] uppercase tracking-wider">
+            Regulatory Compliance Declarations
+          </h2>
+        </div>
+        <p className="text-xs text-[#5E6C84]">
+          Explicit declarations required for buyer RFP evaluation. Checkboxes remain under your manual confirmation.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[#DFE1E6] hover:border-[#0052CC] cursor-pointer bg-[#FAFBFC]">
+            <input
+              type="checkbox"
+              checked={coaAvailable}
+              onChange={(e) => setCoaAvailable(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded text-[#0052CC] border-[#DFE1E6]"
+            />
+            <div>
+              <span className="block text-xs font-bold text-[#091E42]">COA Available</span>
+              <span className="block text-[10px] text-[#5E6C84]">
+                Batch Certificate of Analysis available for every shipment
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[#DFE1E6] hover:border-[#0052CC] cursor-pointer bg-[#FAFBFC]">
+            <input
+              type="checkbox"
+              checked={msdsAvailable}
+              onChange={(e) => setMsdsAvailable(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded text-[#0052CC] border-[#DFE1E6]"
+            />
+            <div>
+              <span className="block text-xs font-bold text-[#091E42]">MSDS Available</span>
+              <span className="block text-[10px] text-[#5E6C84]">
+                GHS-compliant safety data sheets provided on demand
+              </span>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-3 p-3.5 rounded-xl border border-[#DFE1E6] hover:border-[#0052CC] cursor-pointer bg-[#FAFBFC]">
+            <input
+              type="checkbox"
+              checked={exportReady}
+              onChange={(e) => setExportReady(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded text-[#0052CC] border-[#DFE1E6]"
+            />
+            <div>
+              <span className="block text-xs font-bold text-[#091E42]">Export Ready</span>
+              <span className="block text-[10px] text-[#5E6C84]">
+                Complies with international shipping & customs clearance
+              </span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      {/* SECTION F: OFFERING REVIEW SUMMARY & SUBMISSION */}
+      <section className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-md space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[#0052CC] text-white font-bold text-xs flex items-center justify-center">
+            F
+          </span>
+          <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-100">
+            Offering Pre-Flight Summary
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-800/80 p-4 rounded-xl border border-slate-700">
+          <div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase block">Unit Price</span>
+            <strong className="text-emerald-400 font-extrabold text-sm">
+              {price ? `${currency} ${price}` : "Not set"}
+            </strong>
+          </div>
+          <div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase block">Grade & Purity</span>
+            <span className="font-semibold text-slate-200">
+              {grade} • {purity ? `${purity}%` : "Standard"}
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase block">MOQ / Lead Time</span>
+            <span className="font-semibold text-slate-200">
+              {moqKg} kg • {leadTimeDays} days
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] text-slate-400 font-bold uppercase block">Attachments</span>
+            <span className="font-semibold text-slate-200">
+              {stagedImages.length} images • {stagedDocuments.length} docs
+            </span>
+          </div>
+        </div>
+
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Offering will be submitted for verification and published to the Master Catalog.</span>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full sm:w-auto px-7 py-3 bg-[#0052CC] hover:bg-[#0747A6] text-white font-bold text-xs rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+          >
+            {isLoading ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Submitting Offering...</span>
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                <span>Submit Offering to Catalog</span>
+              </>
+            )}
+          </button>
+        </div>
+      </section>
     </form>
   );
 }

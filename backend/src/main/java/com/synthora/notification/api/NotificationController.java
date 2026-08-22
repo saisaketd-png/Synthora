@@ -13,6 +13,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.synthora.notification.NotificationStreamService;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import java.util.UUID;
 
 /**
@@ -25,10 +29,15 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final NotificationStreamService notificationStreamService;
 
-    public NotificationController(NotificationService notificationService, UserRepository userRepository) {
+    public NotificationController(
+            NotificationService notificationService,
+            UserRepository userRepository,
+            NotificationStreamService notificationStreamService) {
         this.notificationService = notificationService;
         this.userRepository = userRepository;
+        this.notificationStreamService = notificationStreamService;
     }
 
     private User getAuthenticatedUser(Authentication authentication) {
@@ -37,6 +46,12 @@ public class NotificationController {
         }
         return userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new AccessDeniedException("Authenticated user not found"));
+    }
+
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe(Authentication authentication) {
+        User user = getAuthenticatedUser(authentication);
+        return notificationStreamService.subscribe(user.getId());
     }
 
     @GetMapping

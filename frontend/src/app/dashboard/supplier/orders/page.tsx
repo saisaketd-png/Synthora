@@ -88,8 +88,10 @@ export default function SupplierOrdersPage() {
           const q = searchQuery.toLowerCase().trim();
           const matchesPo = (order.poNumber || "").toLowerCase().includes(q);
           const matchesRfq = (order.rfqId || "").toLowerCase().includes(q);
-          const matchesId = order.id.toLowerCase().includes(q);
-          const matchesProduct = (order.productName || "").toLowerCase().includes(q) || order.productId.toLowerCase().includes(q);
+          const matchesId = (order.id || "").toLowerCase().includes(q);
+          const matchesProduct =
+            (order.productName || "").toLowerCase().includes(q) ||
+            (order.productId ? order.productId.toLowerCase().includes(q) : false);
           const matchesBuyer = (order.buyerId || "").toLowerCase().includes(q);
           return matchesPo || matchesRfq || matchesId || matchesProduct || matchesBuyer;
         }
@@ -305,7 +307,7 @@ export default function SupplierOrdersPage() {
                           {order.productName || "Chemical Product"}
                         </span>
                         <span className="text-[10px] font-mono text-[#5E6C84]">
-                          ID: {order.productId.slice(0, 8)}
+                          {order.productId ? `ID: ${order.productId.slice(0, 8)}` : order.poNumber}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-[#172B4D]">

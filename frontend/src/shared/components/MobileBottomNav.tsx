@@ -23,12 +23,14 @@ import {
   Users,
 } from "lucide-react";
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
+import { useUnreadNotificationCount } from "@/features/notifications/hooks/useUnreadNotificationCount";
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [mounted, setMounted] = useState(false);
   const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
+  const { unreadCount } = useUnreadNotificationCount();
 
   useEffect(() => {
     setMounted(true);
@@ -134,13 +136,21 @@ export function MobileBottomNav() {
           <button
             type="button"
             onClick={() => setMoreDrawerOpen(!moreDrawerOpen)}
-            className={`flex-1 flex flex-col items-center justify-center py-1 rounded-lg transition-all ${
+            className={`flex-1 flex flex-col items-center justify-center py-1 rounded-lg transition-all relative ${
               moreDrawerOpen ? "text-[#0052CC]" : "text-[#5E6C84] hover:text-[#091E42]"
             }`}
             aria-label="Open Workspace Menu"
           >
-            <div className="w-5 h-5 rounded-md bg-[#DEEBFF] text-[#0747A6] font-bold text-[10px] flex items-center justify-center font-mono">
-              {userDisplayName.charAt(0).toUpperCase()}
+            <div className="relative">
+              <div className="w-5 h-5 rounded-md bg-[#DEEBFF] text-[#0747A6] font-bold text-[10px] flex items-center justify-center font-mono">
+                {userDisplayName.charAt(0).toUpperCase()}
+              </div>
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#0052CC] ring-1 ring-white"
+                  aria-hidden="true"
+                />
+              )}
             </div>
             <span
               className={`text-[10px] tracking-tight mt-0.5 ${
@@ -186,7 +196,7 @@ export function MobileBottomNav() {
               <button
                 type="button"
                 onClick={() => setMoreDrawerOpen(false)}
-                className="p-1.5 text-[#64748B] hover:text-[#091E42] rounded-lg"
+                className="p-1.5 text-[#64748B] hover:text-[#091E42] rounded-lg cursor-pointer"
                 aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
@@ -198,7 +208,7 @@ export function MobileBottomNav() {
               {/* Buyer Links */}
               {isBuyer && (
                 <div className="space-y-1">
-                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
                     Procurement Operations
                   </span>
                   <Link
@@ -236,10 +246,17 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/notifications"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
                   >
-                    <Bell className="w-4 h-4 text-[#0052CC]" />
-                    <span>System Alerts</span>
+                    <div className="flex items-center gap-2.5">
+                      <Bell className="w-4 h-4 text-[#0052CC]" />
+                      <span>Notifications</span>
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold font-mono bg-[#0052CC] text-white rounded-full">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
                   </Link>
                 </div>
               )}
@@ -247,7 +264,7 @@ export function MobileBottomNav() {
               {/* Supplier Links */}
               {isSupplier && (
                 <div className="space-y-1">
-                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
                     Supplier Operations
                   </span>
                   <Link
@@ -264,7 +281,7 @@ export function MobileBottomNav() {
                     className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
                   >
                     <Package className="w-4 h-4 text-[#0052CC]" />
-                    <span>Chemical Inventory</span>
+                    <span>Product Offerings</span>
                   </Link>
                   <Link
                     href="/dashboard/supplier/rfqs"
@@ -283,6 +300,14 @@ export function MobileBottomNav() {
                     <span>Purchase Orders</span>
                   </Link>
                   <Link
+                    href="/dashboard/supplier/profile"
+                    onClick={() => setMoreDrawerOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  >
+                    <Building2 className="w-4 h-4 text-[#0052CC]" />
+                    <span>Company Profile</span>
+                  </Link>
+                  <Link
                     href="/dashboard/supplier/verification"
                     onClick={() => setMoreDrawerOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
@@ -290,13 +315,28 @@ export function MobileBottomNav() {
                     <ShieldCheck className="w-4 h-4 text-[#00875A]" />
                     <span>Compliance & Verification</span>
                   </Link>
+                  <Link
+                    href="/dashboard/notifications"
+                    onClick={() => setMoreDrawerOpen(false)}
+                    className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Bell className="w-4 h-4 text-[#0052CC]" />
+                      <span>Notifications</span>
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold font-mono bg-[#0052CC] text-white rounded-full">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </Link>
                 </div>
               )}
 
               {/* Admin Links */}
               {isAdmin && (
                 <div className="space-y-1">
-                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1">
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
                     Administration
                   </span>
                   <Link
@@ -340,6 +380,37 @@ export function MobileBottomNav() {
                     <span>User Management</span>
                   </Link>
                   <Link
+                    href="/dashboard/admin/transactions/rfqs"
+                    onClick={() => setMoreDrawerOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  >
+                    <FileText className="w-4 h-4 text-[#0052CC]" />
+                    <span>RFQ Oversight</span>
+                  </Link>
+                  <Link
+                    href="/dashboard/admin/transactions/orders"
+                    onClick={() => setMoreDrawerOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  >
+                    <ShoppingBag className="w-4 h-4 text-[#0052CC]" />
+                    <span>Order Oversight</span>
+                  </Link>
+                  <Link
+                    href="/dashboard/notifications"
+                    onClick={() => setMoreDrawerOpen(false)}
+                    className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Bell className="w-4 h-4 text-[#0052CC]" />
+                      <span>Notifications</span>
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold font-mono bg-[#0052CC] text-white rounded-full">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                  <Link
                     href="/dashboard/admin/activity"
                     onClick={() => setMoreDrawerOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
@@ -352,7 +423,7 @@ export function MobileBottomNav() {
 
               {/* Public Marketplace Quick Navigation */}
               <div className="space-y-1 pt-2 border-t border-[#E2E8F0]">
-                <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1">
+                <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
                   Public Marketplace
                 </span>
                 <Link
@@ -387,7 +458,7 @@ export function MobileBottomNav() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="w-full flex items-center justify-center gap-2 h-11 px-4 text-[#DE350B] hover:bg-[#FFEBE6] bg-white border border-[#FFBDAD] rounded-xl font-bold text-xs transition-colors"
+                className="w-full flex items-center justify-center gap-2 h-11 px-4 text-[#DE350B] hover:bg-[#FFEBE6] bg-white border border-[#FFBDAD] rounded-xl font-bold text-xs transition-colors cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out of Workspace</span>

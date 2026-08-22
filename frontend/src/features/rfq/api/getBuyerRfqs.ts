@@ -3,16 +3,21 @@ import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 export type BuyerRfq = {
   id: string;
   rfqReference?: string;
+  sourcingRequestId?: string;
+  sourcingRequestReference?: string;
   buyerId: string;
   buyerName?: string;
-  productId: string;
-  productName?: string;
+  productId?: string | null;
+  masterProductId?: string | null;
+  supplierOfferingId?: string | null;
+  productName?: string | null;
   supplierId: number;
-  supplierName?: string;
+  supplierName?: string | null;
   quantity: number;
   unit: string;
-  message: string;
+  message?: string | null;
   status: string;
+  expiresAt?: string | null;
   createdAt: string;
 };
 

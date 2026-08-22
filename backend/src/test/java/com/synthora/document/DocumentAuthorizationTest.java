@@ -132,11 +132,19 @@ class DocumentAuthorizationTest {
 
         when(rfqRepository.findById(rfqId)).thenReturn(Optional.of(rfq));
 
+        // Viewing RFQ documents
         assertTrue(authorizationService.canAccessDocument(DocumentOwnerType.RFQ, rfqId, buyerA));
         assertTrue(authorizationService.canAccessDocument(DocumentOwnerType.RFQ, rfqId, supplierUserA));
-        
         assertFalse(authorizationService.canAccessDocument(DocumentOwnerType.RFQ, rfqId, buyerB));
         assertFalse(authorizationService.canAccessDocument(DocumentOwnerType.RFQ, rfqId, supplierUserB));
+        assertFalse(authorizationService.canAccessDocument(DocumentOwnerType.RFQ, rfqId, null));
+
+        // Uploading RFQ documents (COA, Tech Spec, etc.)
+        assertTrue(authorizationService.canUploadDocument(DocumentOwnerType.RFQ, rfqId, buyerA));
+        assertTrue(authorizationService.canUploadDocument(DocumentOwnerType.RFQ, rfqId, supplierUserA));
+        assertFalse(authorizationService.canUploadDocument(DocumentOwnerType.RFQ, rfqId, buyerB));
+        assertFalse(authorizationService.canUploadDocument(DocumentOwnerType.RFQ, rfqId, supplierUserB));
+        assertFalse(authorizationService.canUploadDocument(DocumentOwnerType.RFQ, rfqId, null));
     }
 
     @Test

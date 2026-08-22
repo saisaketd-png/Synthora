@@ -11,15 +11,20 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * In-memory sliding rate limiter for authentication endpoints.
  * Protects against brute-force password guessing and credential stuffing.
- * For distributed multi-instance production environments, this can be backed by Redis.
+ * 
+ * Configured with dual protection tiers:
+ * 1. Per-Account Threshold: 5 failed attempts per target email (strict brute-force defense).
+ * 2. Per-IP Aggregate Threshold: 30 failed attempts per IP address (defends against distributed attacks
+ *    while avoiding false-positive lockouts in shared corporate NAT/VPN/office network environments).
  */
 @Service
 public class LoginRateLimiterService {
 
     private static final Logger log = LoggerFactory.getLogger(LoginRateLimiterService.class);
 
-    private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final long LOCKOUT_DURATION_SECONDS = 900; // 15 minutes
+    public static final int MAX_FAILED_ATTEMPTS_PER_ACCOUNT = 5;
+    public static final int MAX_FAILED_ATTEMPTS_PER_IP = 30;
+    public static final long LOCKOUT_DURATION_SECONDS = 900; // 15 minutes
 
     private final Map<String, AttemptRecord> ipAttempts = new ConcurrentHashMap<>();
     private final Map<String, AttemptRecord> emailAttempts = new ConcurrentHashMap<>();
@@ -37,25 +42,32 @@ public class LoginRateLimiterService {
     }
 
     public void checkRateLimit(String ip, String email) {
-        if (isBlocked(ipAttempts, ip) || isBlocked(emailAttempts, email != null ? email.toLowerCase() : null)) {
-            log.warn("Rate limit exceeded for login attempt [IP: {}]", ip);
-            throw new RateLimitExceededException("Too many failed login attempts. Please try again later.");
+        if (isBlocked(emailAttempts, email != null ? email.toLowerCase().trim() : null, MAX_FAILED_ATTEMPTS_PER_ACCOUNT)) {
+            log.warn("Rate limit exceeded for account login attempt [Email: {}, IP: {}]", email, ip);
+            throw new RateLimitExceededException("Too many failed login attempts for this account. Please try again in 15 minutes.");
+        }
+
+        if (isBlocked(ipAttempts, ip, MAX_FAILED_ATTEMPTS_PER_IP)) {
+            log.warn("Rate limit exceeded for IP aggregate login attempts [IP: {}]", ip);
+            throw new RateLimitExceededException("Too many failed login attempts from this network. Please try again in 15 minutes.");
         }
     }
 
     public void recordFailedAttempt(String ip, String email) {
-        record(ipAttempts, ip);
+        if (ip != null && !ip.isBlank()) {
+            record(ipAttempts, ip.trim());
+        }
         if (email != null && !email.isBlank()) {
-            record(emailAttempts, email.toLowerCase());
+            record(emailAttempts, email.toLowerCase().trim());
         }
     }
 
     public void recordSuccessfulLogin(String ip, String email) {
-        if (ip != null) {
-            ipAttempts.remove(ip);
+        if (ip != null && !ip.isBlank()) {
+            ipAttempts.remove(ip.trim());
         }
-        if (email != null) {
-            emailAttempts.remove(email.toLowerCase());
+        if (email != null && !email.isBlank()) {
+            emailAttempts.remove(email.toLowerCase().trim());
         }
     }
 
@@ -86,7 +98,7 @@ public class LoginRateLimiterService {
         });
     }
 
-    private boolean isBlocked(Map<String, AttemptRecord> map, String key) {
+    private boolean isBlocked(Map<String, AttemptRecord> map, String key, int threshold) {
         if (key == null || key.isBlank()) {
             return false;
         }
@@ -103,6 +115,6 @@ public class LoginRateLimiterService {
             return false;
         }
 
-        return record.count >= MAX_FAILED_ATTEMPTS;
+        return record.count >= threshold;
     }
 }

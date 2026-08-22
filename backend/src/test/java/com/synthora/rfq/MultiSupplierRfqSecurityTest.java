@@ -60,6 +60,9 @@ public class MultiSupplierRfqSecurityTest {
     private ProductRepository productRepository;
 
     @Autowired
+    private RfqRepository rfqRepository;
+
+    @Autowired
     private PurchaseOrderRepository purchaseOrderRepository;
 
     private User buyerUser;
@@ -540,5 +543,115 @@ public class MultiSupplierRfqSecurityTest {
         CreateRfqRequest req = new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry");
         RfqResponse res = rfqService.createRfq(req, buyerAuth);
         assertNotNull(res.id());
+    }
+
+    // 31. Supplier and Buyer quotation history visibility and counter-offer tracking
+    @Test
+    public void test31_SupplierAndBuyerQuotationHistoryVisibility() {
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        RfqResponse rfq = rfqService.createRfq(new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry"), buyerAuth);
+
+        // V1: Supplier Quote
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+        QuotationResponse q1 = rfqService.submitQuotation(rfq.id(), new CreateQuotationRequest(new BigDecimal("120.00"), "INR", new BigDecimal("50.00"), 7, LocalDate.now().plusDays(30), "25kg", "Initial"), supplierAuthA);
+
+        // V2: Buyer Counter
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        QuotationResponse q2 = rfqService.submitCounterOffer(rfq.id(), new CreateCounterOfferRequest(new BigDecimal("110.00"), "INR", new BigDecimal("50.00"), 5, "25kg", "Target 110"), buyerAuth);
+
+        // V3: Supplier Revision
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+        QuotationResponse q3 = rfqService.submitQuotation(rfq.id(), new CreateQuotationRequest(new BigDecimal("115.00"), "INR", new BigDecimal("50.00"), 6, LocalDate.now().plusDays(30), "25kg", "Revised 115"), supplierAuthA);
+
+        // Supplier A fetches quotations
+        List<QuotationResponse> supplierQuotes = rfqService.getSupplierQuotations(rfq.id(), supplierAuthA);
+        assertNotNull(supplierQuotes);
+        assertEquals(3, supplierQuotes.size());
+        assertEquals(3, supplierQuotes.get(0).quotationVersion());
+        assertEquals("SUPPLIER", supplierQuotes.get(0).actorType());
+        assertEquals(new BigDecimal("115.00"), supplierQuotes.get(0).unitPrice());
+
+        assertEquals(2, supplierQuotes.get(1).quotationVersion());
+        assertEquals("BUYER", supplierQuotes.get(1).actorType());
+        assertEquals("COUNTER_OFFER", supplierQuotes.get(1).actionType());
+        assertEquals("Target 110", supplierQuotes.get(1).commercialMessage());
+        assertEquals(new BigDecimal("110.00"), supplierQuotes.get(1).unitPrice());
+
+        assertEquals(1, supplierQuotes.get(2).quotationVersion());
+        assertEquals(new BigDecimal("120.00"), supplierQuotes.get(2).unitPrice());
+
+        // Buyer fetches quotations
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        List<QuotationResponse> buyerQuotes = rfqService.getBuyerQuotations(rfq.id(), buyerAuth);
+        assertEquals(3, buyerQuotes.size());
+
+        // Unauthorized Supplier B cannot access Supplier A's quotations
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthB);
+        assertThrows(RuntimeException.class, () -> rfqService.getSupplierQuotations(rfq.id(), supplierAuthB));
+    }
+
+    // 32. Supplier can accept buyer counter-offer
+    @Test
+    public void test32_SupplierCanAcceptBuyerCounterOffer() {
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        RfqResponse rfq = rfqService.createRfq(new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry"), buyerAuth);
+
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+        rfqService.submitQuotation(rfq.id(), new CreateQuotationRequest(new BigDecimal("120.00"), "INR", new BigDecimal("50.00"), 7, LocalDate.now().plusDays(30), "25kg", "Initial"), supplierAuthA);
+
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        QuotationResponse counter = rfqService.submitCounterOffer(rfq.id(), new CreateCounterOfferRequest(new BigDecimal("110.00"), "INR", new BigDecimal("50.00"), 5, "25kg", "Accept 110?"), buyerAuth);
+
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+        QuotationDecisionResponse decision = rfqService.acceptSupplierCounterOffer(rfq.id(), counter.id(), new AcceptQuotationRequest("Agreed to 110"), supplierAuthA);
+
+        assertNotNull(decision);
+        assertEquals("ACCEPTED", decision.decision());
+        assertEquals(RfqStatus.ACCEPTED, decision.rfqStatus());
+        assertEquals(counter.id(), decision.quotationId());
+
+        Rfq updated = rfqRepository.findById(rfq.id()).orElseThrow();
+        assertEquals(RfqStatus.ACCEPTED, updated.getStatus());
+        assertEquals(counter.id(), updated.getAcceptedQuotationId());
+    }
+
+    // 33. Supplier can reject buyer counter-offer
+    @Test
+    public void test33_SupplierCanRejectBuyerCounterOffer() {
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        RfqResponse rfq = rfqService.createRfq(new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry"), buyerAuth);
+
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+        rfqService.submitQuotation(rfq.id(), new CreateQuotationRequest(new BigDecimal("120.00"), "INR", new BigDecimal("50.00"), 7, LocalDate.now().plusDays(30), "25kg", "Initial"), supplierAuthA);
+
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        QuotationResponse counter = rfqService.submitCounterOffer(rfq.id(), new CreateCounterOfferRequest(new BigDecimal("100.00"), "INR", new BigDecimal("50.00"), 5, "25kg", "Too low"), buyerAuth);
+
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+        QuotationDecisionResponse decision = rfqService.rejectSupplierCounterOffer(rfq.id(), counter.id(), new RejectQuotationRequest("Below margin"), supplierAuthA);
+
+        assertNotNull(decision);
+        assertEquals("REJECTED", decision.decision());
+        assertEquals(RfqStatus.REJECTED, decision.rfqStatus());
+
+        Rfq updated = rfqRepository.findById(rfq.id()).orElseThrow();
+        assertEquals(RfqStatus.REJECTED, updated.getStatus());
+    }
+
+    // 34. Supplier B cannot accept or reject Supplier A's negotiation
+    @Test
+    public void test34_SupplierBCannotAcceptOrRejectSupplierANegotiation() {
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        RfqResponse rfq = rfqService.createRfq(new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry"), buyerAuth);
+
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+        rfqService.submitQuotation(rfq.id(), new CreateQuotationRequest(new BigDecimal("120.00"), "INR", new BigDecimal("50.00"), 7, LocalDate.now().plusDays(30), "25kg", "Initial"), supplierAuthA);
+
+        SecurityContextHolder.getContext().setAuthentication(buyerAuth);
+        QuotationResponse counter = rfqService.submitCounterOffer(rfq.id(), new CreateCounterOfferRequest(new BigDecimal("110.00"), "INR", new BigDecimal("50.00"), 5, "25kg", "Counter"), buyerAuth);
+
+        SecurityContextHolder.getContext().setAuthentication(supplierAuthB);
+        assertThrows(RuntimeException.class, () -> rfqService.acceptSupplierCounterOffer(rfq.id(), counter.id(), null, supplierAuthB));
+        assertThrows(RuntimeException.class, () -> rfqService.rejectSupplierCounterOffer(rfq.id(), counter.id(), null, supplierAuthB));
     }
 }

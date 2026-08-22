@@ -76,10 +76,18 @@ public class RfqService {
                         .map(MasterProduct::getName)
                         .orElse(null);
             }
-            if (finalProductName == null) {
+            if (finalProductName == null && rfq.getProductId() != null) {
                 finalProductName = productRepository.findById(rfq.getProductId())
                         .map(Product::getName)
-                        .orElse("Specialty Chemical Product");
+                        .orElse(null);
+            }
+            if (finalProductName == null && rfq.getSupplierOfferingId() != null) {
+                finalProductName = supplierOfferingRepository.findById(rfq.getSupplierOfferingId())
+                        .map(offering -> offering.getMasterProduct() != null ? offering.getMasterProduct().getName() : null)
+                        .orElse(null);
+            }
+            if (finalProductName == null) {
+                finalProductName = "Specialty Chemical Product";
             }
         }
 
@@ -258,12 +266,16 @@ public class RfqService {
 
         Set<UUID> productIds = rfqs.stream().map(Rfq::getProductId).filter(Objects::nonNull).collect(Collectors.toSet());
         Set<UUID> masterProductIds = rfqs.stream().map(Rfq::getMasterProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<UUID> offeringIds = rfqs.stream().map(Rfq::getSupplierOfferingId).filter(Objects::nonNull).collect(Collectors.toSet());
         Set<Long> supplierIds = rfqs.stream().map(Rfq::getSupplierId).filter(Objects::nonNull).collect(Collectors.toSet());
 
         Map<UUID, String> productNames = productIds.isEmpty() ? Collections.emptyMap() : productRepository.findAllById(productIds).stream()
                 .collect(Collectors.toMap(Product::getId, Product::getName, (a, b) -> a));
         Map<UUID, String> masterProductNames = masterProductIds.isEmpty() ? Collections.emptyMap() : masterProductRepository.findAllById(masterProductIds).stream()
                 .collect(Collectors.toMap(MasterProduct::getId, MasterProduct::getName, (a, b) -> a));
+        Map<UUID, String> offeringNames = offeringIds.isEmpty() ? Collections.emptyMap() : supplierOfferingRepository.findAllById(offeringIds).stream()
+                .filter(o -> o.getMasterProduct() != null)
+                .collect(Collectors.toMap(SupplierOffering::getId, o -> o.getMasterProduct().getName(), (a, b) -> a));
         Map<Long, String> supplierNames = supplierIds.isEmpty() ? Collections.emptyMap() : supplierRepository.findAllById(supplierIds).stream()
                 .collect(Collectors.toMap(Supplier::getId, Supplier::getName, (a, b) -> a));
 
@@ -275,6 +287,9 @@ public class RfqService {
             }
             if (prodName == null && rfq.getProductId() != null) {
                 prodName = productNames.get(rfq.getProductId());
+            }
+            if (prodName == null && rfq.getSupplierOfferingId() != null) {
+                prodName = offeringNames.get(rfq.getSupplierOfferingId());
             }
             if (prodName == null) {
                 prodName = "Specialty Chemical Product";
@@ -429,12 +444,16 @@ public class RfqService {
 
         Set<UUID> productIds = rfqs.stream().map(Rfq::getProductId).filter(Objects::nonNull).collect(Collectors.toSet());
         Set<UUID> masterProductIds = rfqs.stream().map(Rfq::getMasterProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<UUID> offeringIds = rfqs.stream().map(Rfq::getSupplierOfferingId).filter(Objects::nonNull).collect(Collectors.toSet());
         Set<UUID> buyerIds = rfqs.stream().map(Rfq::getBuyerId).filter(Objects::nonNull).collect(Collectors.toSet());
 
         Map<UUID, String> productNames = productIds.isEmpty() ? Collections.emptyMap() : productRepository.findAllById(productIds).stream()
                 .collect(Collectors.toMap(Product::getId, Product::getName, (a, b) -> a));
         Map<UUID, String> masterProductNames = masterProductIds.isEmpty() ? Collections.emptyMap() : masterProductRepository.findAllById(masterProductIds).stream()
                 .collect(Collectors.toMap(MasterProduct::getId, MasterProduct::getName, (a, b) -> a));
+        Map<UUID, String> offeringNames = offeringIds.isEmpty() ? Collections.emptyMap() : supplierOfferingRepository.findAllById(offeringIds).stream()
+                .filter(o -> o.getMasterProduct() != null)
+                .collect(Collectors.toMap(SupplierOffering::getId, o -> o.getMasterProduct().getName(), (a, b) -> a));
         Map<UUID, String> buyerNames = buyerIds.isEmpty() ? Collections.emptyMap() : userRepository.findAllById(buyerIds).stream()
                 .collect(Collectors.toMap(User::getId, User::getName, (a, b) -> a));
 
@@ -446,6 +465,9 @@ public class RfqService {
             }
             if (prodName == null && rfq.getProductId() != null) {
                 prodName = productNames.get(rfq.getProductId());
+            }
+            if (prodName == null && rfq.getSupplierOfferingId() != null) {
+                prodName = offeringNames.get(rfq.getSupplierOfferingId());
             }
             if (prodName == null) {
                 prodName = "Specialty Chemical Product";
@@ -832,5 +854,117 @@ public class RfqService {
                 .stream()
                 .map(this::mapToQuotationResponse)
                 .toList();
+    }
+
+    public com.synthora.rfq.dto.QuotationDecisionResponse acceptSupplierCounterOffer(
+            UUID rfqId,
+            UUID quotationId,
+            com.synthora.rfq.dto.AcceptQuotationRequest request,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+        User supplierUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Supplier supplier = supplierRepository.findByUser(supplierUser)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
+
+        Rfq rfq = rfqRepository.findByIdAndSupplierIdForUpdate(rfqId, supplier.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
+
+        validateRfqActive(rfq, "accept counter offer");
+
+        if (rfq.getStatus() != RfqStatus.COUNTERED && rfq.getStatus() != RfqStatus.QUOTED) {
+            throw new IllegalStateException("Cannot accept quotation for RFQ in status: " + rfq.getStatus());
+        }
+
+        com.synthora.rfq.quotation.Quotation quotation = quotationRepository.findByIdAndRfqId(quotationId, rfq.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Quotation not found"));
+
+        if (quotation.getValidityDate() != null && quotation.getValidityDate().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalStateException("Cannot accept an expired quotation.");
+        }
+
+        Integer maxVersion = quotationRepository.findMaxQuotationVersionByRfqId(rfq.getId());
+        if (!quotation.getQuotationVersion().equals(maxVersion)) {
+            throw new IllegalStateException("Cannot accept an outdated quotation version. Latest version is " + maxVersion);
+        }
+
+        rfq.setStatus(RfqStatus.ACCEPTED);
+        rfq.setAcceptedQuotationId(quotation.getId());
+        rfqRepository.save(rfq);
+
+        if (rfq.getSourcingRequestId() != null) {
+            sourcingRequestRepository.findById(rfq.getSourcingRequestId()).ifPresent(sr -> {
+                sr.setStatus(SourcingRequestStatus.COMPLETED);
+                sourcingRequestRepository.save(sr);
+            });
+        }
+
+        eventPublisher.publishEvent(new QuotationAcceptedEvent(
+                quotation.getId(),
+                rfq.getId(),
+                rfq.getBuyerId(),
+                rfq.getSupplierId()
+        ));
+
+        return new com.synthora.rfq.dto.QuotationDecisionResponse(
+                rfq.getId(),
+                quotation.getId(),
+                quotation.getQuotationVersion(),
+                rfq.getStatus(),
+                "ACCEPTED",
+                java.time.LocalDateTime.now()
+        );
+    }
+
+    public com.synthora.rfq.dto.QuotationDecisionResponse rejectSupplierCounterOffer(
+            UUID rfqId,
+            UUID quotationId,
+            com.synthora.rfq.dto.RejectQuotationRequest request,
+            Authentication authentication) {
+
+        String email = authentication.getName();
+        User supplierUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Supplier supplier = supplierRepository.findByUser(supplierUser)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
+
+        Rfq rfq = rfqRepository.findByIdAndSupplierIdForUpdate(rfqId, supplier.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
+
+        validateRfqActive(rfq, "reject counter offer");
+
+        if (rfq.getStatus() != RfqStatus.COUNTERED && rfq.getStatus() != RfqStatus.QUOTED && rfq.getStatus() != RfqStatus.PENDING) {
+            throw new IllegalStateException("Cannot reject quotation for RFQ in status: " + rfq.getStatus());
+        }
+
+        com.synthora.rfq.quotation.Quotation quotation = quotationRepository.findByIdAndRfqId(quotationId, rfq.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Quotation not found"));
+
+        Integer maxVersion = quotationRepository.findMaxQuotationVersionByRfqId(rfq.getId());
+        if (!quotation.getQuotationVersion().equals(maxVersion)) {
+            throw new IllegalStateException("Cannot reject an outdated quotation version. Latest version is " + maxVersion);
+        }
+
+        rfq.setStatus(RfqStatus.REJECTED);
+        rfqRepository.save(rfq);
+
+        eventPublisher.publishEvent(new QuotationRejectedEvent(
+                quotation.getId(),
+                rfq.getId(),
+                rfq.getBuyerId(),
+                rfq.getSupplierId()
+        ));
+
+        return new com.synthora.rfq.dto.QuotationDecisionResponse(
+                rfq.getId(),
+                quotation.getId(),
+                quotation.getQuotationVersion(),
+                rfq.getStatus(),
+                "REJECTED",
+                java.time.LocalDateTime.now()
+        );
     }
 }

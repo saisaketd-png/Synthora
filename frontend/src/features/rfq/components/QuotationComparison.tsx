@@ -1,8 +1,24 @@
+"use client";
+
 import React, { useState } from "react";
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  ArrowRight,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  MessageSquare,
+  ShieldCheck,
+  AlertCircle,
+  HelpCircle,
+  FileCheck,
+  Send,
+} from "lucide-react";
 import { QuotationResponse } from "../api/submitQuotation";
 import { acceptQuotation } from "../api/acceptQuotation";
 import { rejectQuotation } from "../api/rejectQuotation";
-import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
 
 interface QuotationComparisonProps {
   quotations: QuotationResponse[];
@@ -26,23 +42,22 @@ export function QuotationComparison({
 
   if (!quotations || quotations.length === 0) {
     return (
-      <section className="mb-16">
-        <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
-            03 / COMMERCIAL NEGOTIATION
-          </h2>
-          <p className="text-[11px] text-slate-500 mt-0.5">Quotation & Counter-Offer History</p>
+      <div className="bg-white border border-[#DFE1E6] rounded-2xl p-8 text-center shadow-xs">
+        <div className="w-12 h-12 rounded-2xl bg-[#F4F5F7] text-[#5E6C84] flex items-center justify-center mx-auto mb-3 font-bold">
+          <Clock className="w-6 h-6" />
         </div>
-        <div className="py-8 border-b border-slate-200 text-center bg-slate-50/50 rounded-xl">
-          <p className="text-xs font-mono text-slate-500 uppercase tracking-wider">
-            NO QUOTATIONS OR COUNTER OFFERS TRANSMITTED YET.
-          </p>
-        </div>
-      </section>
+        <h3 className="text-sm font-bold text-[#091E42]">
+          Awaiting Commercial Quotation
+        </h3>
+        <p className="text-xs text-[#5E6C84] max-w-md mx-auto mt-1">
+          The verified manufacturer has received your inquiry and is preparing a formal commercial quotation with pricing and lead times.
+        </p>
+      </div>
     );
   }
 
   const latestQuotation = quotations[0];
+  const previousQuotation = quotations.length > 1 ? quotations[1] : null;
   const canBuyerAct = (rfqStatus === "QUOTED" || rfqStatus === "COUNTERED") && latestQuotation.actorType !== "BUYER";
 
   async function handleConfirmDecision() {
@@ -74,363 +89,344 @@ export function QuotationComparison({
   const formatActionLabel = (action?: string | null) => {
     switch (action) {
       case "COUNTER_OFFER":
-        return "COUNTER OFFER";
+        return "Counter Offer";
       case "REVISED_QUOTATION":
-        return "REVISED QUOTATION";
+        return "Revised Quotation";
       case "INITIAL_QUOTATION":
       default:
-        return "INITIAL QUOTATION";
+        return "Initial Proposal";
     }
   };
 
-  const getStatusDisplayLabel = () => {
-    switch (rfqStatus) {
-      case "ACCEPTED":
-        return "Quotation Accepted";
-      case "REJECTED":
-        return "Quotation Rejected";
-      case "COUNTERED":
-        return latestQuotation.actorType === "BUYER"
-          ? "Awaiting Supplier Response"
-          : "Counter Offer Transmitted";
-      case "QUOTED":
-        return latestQuotation.actorType === "BUYER"
-          ? "Awaiting Supplier Response"
-          : "Awaiting Buyer Decision";
-      default:
-        return rfqStatus;
-    }
+  // Price delta helper
+  const getPriceDelta = (current: number, prev: number | null | undefined) => {
+    if (prev == null || prev === 0) return null;
+    const diff = current - prev;
+    const pct = ((diff / prev) * 100).toFixed(1);
+    return { diff, pct, isLower: diff < 0, isHigher: diff > 0 };
   };
+
+  const delta = previousQuotation ? getPriceDelta(latestQuotation.unitPrice, previousQuotation.unitPrice) : null;
 
   return (
-    <section className="mb-16 relative">
-      {/* Header */}
-      <div className="border-b-[2px] border-[#0A192F] pb-3 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
-            03 / COMMERCIAL NEGOTIATION
-          </h2>
-          <p className="text-[11px] text-slate-500 mt-0.5">Quotation & Counter-Offer History</p>
+    <div className="space-y-6">
+      {/* 1. LATEST / CURRENT ACTIVE QUOTATION CARD */}
+      <div className="bg-white border-2 border-[#0052CC] rounded-2xl shadow-xs overflow-hidden">
+        {/* Header Ribbon */}
+        <div className="px-6 py-4 bg-[#091E42] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest bg-[#0052CC] text-white px-2.5 py-0.5 rounded">
+              CURRENT QUOTATION — VERSION {latestQuotation.quotationVersion}
+            </span>
+            <span className="text-xs text-[#DEEBFF] font-medium">
+              {formatActionLabel(latestQuotation.actionType)} by {latestQuotation.actorType === "BUYER" ? "Buyer (You)" : "Supplier"}
+            </span>
+          </div>
+
+          <span className="text-xs font-mono text-[#8993A4]">
+            {new Date(latestQuotation.createdAt).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })}
+          </span>
         </div>
-        <span className="text-[10px] font-mono font-bold px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md border border-slate-200">
-          {quotations.length} REVISION{quotations.length > 1 ? "S" : ""} LOGGED
-        </span>
-      </div>
 
-      {/* NEGOTIATION STATUS SUMMARY CARD */}
-      <div className="mb-10 bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800">
-        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 border-b border-slate-800 pb-2">
-          NEGOTIATION SUMMARY
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div>
-            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-              CURRENT OFFER
-            </span>
-            <span className="font-mono text-xl font-bold text-teal-400">
-              {latestQuotation.currency} {latestQuotation.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
-            </span>
-          </div>
-          <div>
-            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-              MOQ
-            </span>
-            <span className="font-mono text-sm font-bold text-slate-200">
-              {latestQuotation.minimumOrderQuantity != null ? `${latestQuotation.minimumOrderQuantity.toLocaleString()} units` : "Standard"}
-            </span>
-          </div>
-          <div>
-            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-              LEAD TIME
-            </span>
-            <span className="font-mono text-sm font-bold text-slate-200">
-              {latestQuotation.leadTimeDays != null ? `${latestQuotation.leadTimeDays} DAYS` : "Standard"}
-            </span>
-          </div>
-          <div>
-            <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-              STATUS
-            </span>
-            <span className="inline-block text-xs font-bold px-2.5 py-1 rounded bg-teal-500/20 text-teal-300 border border-teal-500/30 uppercase tracking-wider">
-              {getStatusDisplayLabel()}
-            </span>
-          </div>
-        </div>
-      </div>
+        {/* Commercial Figures */}
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pb-6 border-b border-[#DFE1E6]">
+            {/* Unit Price */}
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                Agreed Unit Price
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-2xl font-extrabold text-[#091E42]">
+                  {latestQuotation.currency} {latestQuotation.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                </span>
+                {delta && (
+                  <span
+                    className={`inline-flex items-center text-xs font-bold font-mono px-1.5 py-0.2 rounded ${
+                      delta.isLower
+                        ? "bg-[#E3FCEF] text-[#006644]"
+                        : delta.isHigher
+                        ? "bg-[#FFEBE6] text-[#BF2600]"
+                        : "bg-[#F4F5F7] text-[#5E6C84]"
+                    }`}
+                  >
+                    {delta.isLower ? "↓" : "↑"} {Math.abs(Number(delta.pct))}%
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] text-[#5E6C84]">per standard unit</span>
+            </div>
 
-      {/* VERTICAL NEGOTIATION TIMELINE */}
-      <div className="space-y-6 relative">
-        {quotations.map((q, idx) => {
-          const isLatest = idx === 0;
-          const isBuyerActor = q.actorType === "BUYER";
-          const isExpired = q.validityDate ? new Date(q.validityDate) < new Date(new Date().setHours(0, 0, 0, 0)) : false;
+            {/* Minimum Order Quantity */}
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                Minimum Order Quantity (MOQ)
+              </span>
+              <span className="font-mono text-xl font-bold text-[#091E42] block">
+                {latestQuotation.minimumOrderQuantity != null
+                  ? `${latestQuotation.minimumOrderQuantity.toLocaleString()} Units`
+                  : "Standard"}
+              </span>
+              <span className="text-[11px] text-[#5E6C84]">Production threshold</span>
+            </div>
 
-          return (
-            <React.Fragment key={q.id}>
-              {/* Connector Arrow between revisions */}
-              {idx > 0 && (
-                <div className="flex justify-center my-2">
-                  <div className="flex flex-col items-center gap-0.5 text-slate-300">
-                    <div className="w-0.5 h-4 bg-slate-300" />
-                    <span className="text-xs font-bold">↓</span>
-                  </div>
-                </div>
-              )}
+            {/* Fulfillment Lead Time */}
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                Fulfillment Lead Time
+              </span>
+              <span className="font-mono text-xl font-bold text-[#091E42] block">
+                {latestQuotation.leadTimeDays != null ? `${latestQuotation.leadTimeDays} Days` : "Standard"}
+              </span>
+              <span className="text-[11px] text-[#5E6C84]">Upon order confirmation</span>
+            </div>
 
-              {/* Revision Timeline Card */}
-              <div
-                className={`rounded-2xl border transition-all p-6 ${
-                  isLatest
-                    ? isExpired
-                      ? "border-rose-300 bg-rose-50/30 shadow-md ring-1 ring-rose-300"
-                      : "border-teal-500/80 bg-white shadow-lg ring-1 ring-teal-500/30"
-                    : "border-slate-200 bg-slate-50/60 opacity-85"
-                }`}
-              >
-                {/* Revision Header */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4 mb-4">
-                  <div className="flex items-center gap-2.5">
-                    {/* Actor Badge */}
-                    <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-md border uppercase tracking-wider ${
-                        isBuyerActor
-                          ? "bg-blue-50 text-blue-700 border-blue-200"
-                          : "bg-purple-50 text-purple-700 border-purple-200"
-                      }`}
-                    >
-                      {isBuyerActor ? "BUYER" : "SUPPLIER"}
-                    </span>
-
-                    {/* Version & Action */}
-                    <span className="font-mono text-sm font-bold text-slate-900">
-                      V{q.quotationVersion} · {formatActionLabel(q.actionType)}
-                    </span>
-
-                    {/* Latest Badge */}
-                    {isLatest && !isExpired && (
-                      <span className="text-[9px] font-bold bg-teal-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-                        CURRENT / LATEST
-                      </span>
-                    )}
-
-                    {/* Expired Badge */}
-                    {isExpired && (
-                      <span className="text-[9px] font-bold bg-rose-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs animate-pulse">
-                        QUOTATION EXPIRED
-                      </span>
-                    )}
-
-                    {!isLatest && (
-                      <span className="text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded uppercase tracking-wider">
-                        SUPERSEDED
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Timestamp */}
-                  <span className="font-mono text-xs text-slate-500">
-                    {new Date(q.createdAt).toLocaleDateString("en-GB", {
+            {/* Validity Date */}
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                Quotation Validity
+              </span>
+              <span className="font-mono text-base font-bold text-[#091E42] block">
+                {latestQuotation.validityDate
+                  ? new Date(latestQuotation.validityDate).toLocaleDateString("en-GB", {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
-                    }).toUpperCase()}
-                  </span>
-                </div>
+                    })
+                  : "30 Days"}
+              </span>
+              <span className="text-[11px] text-[#006644] font-medium">Valid Commercial Offer</span>
+            </div>
+          </div>
 
-                {/* Commercial Content Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-4">
-                  <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                      UNIT PRICE
-                    </span>
-                    <span className={`font-mono text-lg ${isLatest ? "font-bold text-[#0A192F]" : "font-medium text-slate-700"}`}>
-                      {q.currency} {q.unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
+          {/* Secondary Details & Commercial Notes */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                Packaging & Presentation
+              </span>
+              <p className="font-medium text-[#172B4D]">
+                {latestQuotation.packagingDetails || "Standard industrial protective drums / containers"}
+              </p>
+            </div>
 
-                  <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                      MOQ
-                    </span>
-                    <span className="font-mono text-sm font-bold text-slate-800">
-                      {q.minimumOrderQuantity != null ? `${q.minimumOrderQuantity.toLocaleString()} units` : "Standard"}
-                    </span>
-                  </div>
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                Commercial Terms & Notes
+              </span>
+              <p className="font-medium text-[#172B4D] italic bg-[#FAFBFC] p-2.5 rounded-lg border border-[#DFE1E6]">
+                {latestQuotation.commercialNotes || "Standard B2B commercial terms and quality warranty apply."}
+              </p>
+            </div>
+          </div>
 
-                  <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                      LEAD TIME
-                    </span>
-                    <span className="font-mono text-sm font-bold text-slate-800">
-                      {q.leadTimeDays != null ? `${q.leadTimeDays} DAYS` : "Standard"}
-                    </span>
-                  </div>
+          {/* Commercial Message (if Counter-Offer) */}
+          {latestQuotation.commercialMessage && (
+            <div className="p-4 bg-[#DEEBFF]/40 border border-[#B3D4FF] rounded-xl text-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#0747A6] block mb-1">
+                Commercial Counter Rationale
+              </span>
+              <p className="text-[#091E42] font-medium leading-relaxed">
+                "{latestQuotation.commercialMessage}"
+              </p>
+            </div>
+          )}
 
-                  <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                      VALID UNTIL
-                    </span>
-                    <span className={`font-mono text-xs font-bold ${isExpired ? "text-rose-600" : "text-slate-800"}`}>
-                      {q.validityDate || "30 Days"}
-                    </span>
-                  </div>
+          {/* Action Bar for Buyer Decisioning */}
+          {canBuyerAct && (
+            <div className="pt-4 border-t border-[#DFE1E6] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#FAFBFC] -mx-6 -mb-6 p-6">
+              <div className="text-xs text-[#5E6C84]">
+                <strong className="text-[#091E42] block">Action Required</strong>
+                Review the supplier's commercial proposal and select your decision.
+              </div>
 
-                  <div>
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                      PACKAGING
-                    </span>
-                    <span className="text-xs font-bold text-slate-800 truncate block">
-                      {q.packagingDetails || "Standard"}
-                    </span>
-                  </div>
-                </div>
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setModalMode("reject")}
+                  className="px-4 py-2.5 rounded-xl border border-[#DFE1E6] hover:border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold uppercase tracking-wider transition-colors"
+                >
+                  Decline Proposal
+                </button>
 
-                {/* Commercial Message / Notes */}
-                {(q.commercialMessage || q.commercialNotes) && (
-                  <div className="mt-4 pt-3 border-t border-slate-100 bg-slate-50 p-3 rounded-xl">
-                    <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-1">
-                      {isBuyerActor ? "BUYER MESSAGE" : "COMMERCIAL NOTES"}
-                    </span>
-                    <p className="text-xs font-mono text-slate-700 italic">
-                      "{q.commercialMessage || q.commercialNotes}"
-                    </p>
-                  </div>
+                {onOpenCounterOffer && (
+                  <button
+                    type="button"
+                    onClick={onOpenCounterOffer}
+                    className="px-5 py-2.5 rounded-xl border border-[#0052CC] text-[#0052CC] hover:bg-[#DEEBFF]/50 text-xs font-bold uppercase tracking-wider transition-colors"
+                  >
+                    Counter Offer
+                  </button>
                 )}
 
-                {/* Actions for Latest Revision */}
-                {isLatest && canBuyerAct && (
-                  <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                    {isExpired ? (
-                      <div className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
-                        <span>⚠️</span>
-                        <span>This quotation expired on {q.validityDate}. Acceptance is locked.</span>
-                      </div>
-                    ) : (
-                      <div />
-                    )}
+                <button
+                  type="button"
+                  onClick={() => setModalMode("accept")}
+                  className="px-6 py-2.5 rounded-xl bg-[#00875A] hover:bg-[#006644] text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Accept Quotation</span>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-                    <div className="flex flex-wrap items-center gap-3 ml-auto">
-                      <button
-                        type="button"
-                        disabled={isExpired}
-                        onClick={() => {
-                          setDecisionError(null);
-                          setModalMode("accept");
-                        }}
-                        className={`px-4 py-2 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs ${
-                          isExpired
-                            ? "bg-slate-300 text-slate-500 cursor-not-allowed"
-                            : "bg-teal-600 hover:bg-teal-700 text-white"
+      {/* 2. QUOTATION REVISION & NEGOTIATION TIMELINE */}
+      {quotations.length > 1 && (
+        <div className="bg-white border border-[#DFE1E6] rounded-2xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-[#DFE1E6] pb-3">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+                Commercial Negotiation History
+              </h3>
+              <p className="text-[11px] text-[#5E6C84]">Previous versions and proposal progression</p>
+            </div>
+            <span className="font-mono text-xs font-bold text-[#5E6C84] bg-[#F4F5F7] px-2 py-0.5 rounded">
+              {quotations.length} Versions Logged
+            </span>
+          </div>
+
+          <div className="divide-y divide-[#DFE1E6]">
+            {quotations.map((quote, idx) => {
+              const isCurrent = idx === 0;
+              const isBuyer = quote.actorType === "BUYER";
+
+              return (
+                <div key={quote.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase ${
+                          isBuyer ? "bg-[#DEEBFF] text-[#0747A6]" : "bg-[#EAE6FF] text-[#403294]"
                         }`}
                       >
-                        ACCEPT QUOTATION →
-                      </button>
-                      {onOpenCounterOffer && (
-                        <button
-                          type="button"
-                          onClick={onOpenCounterOffer}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs"
-                        >
-                          COUNTER OFFER
-                        </button>
+                        {isBuyer ? "Buyer" : "Supplier"}
+                      </span>
+                      <strong className="text-xs font-bold text-[#091E42]">
+                        V{quote.quotationVersion} · {formatActionLabel(quote.actionType)}
+                      </strong>
+                      {isCurrent && (
+                        <span className="text-[9px] font-bold bg-[#E3FCEF] text-[#006644] px-2 py-0.2 rounded uppercase">
+                          Latest
+                        </span>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDecisionError(null);
-                          setModalMode("reject");
-                        }}
-                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors"
-                      >
-                        REJECT QUOTATION
-                      </button>
+                    </div>
+                    <span className="text-[11px] text-[#5E6C84] block">
+                      {new Date(quote.createdAt).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-xs font-mono">
+                    <div>
+                      <span className="text-[10px] text-[#5E6C84] block font-sans">Price</span>
+                      <span className="font-bold text-[#091E42]">
+                        {quote.currency} {quote.unitPrice.toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-[#5E6C84] block font-sans">MOQ</span>
+                      <span className="font-bold text-[#091E42]">
+                        {quote.minimumOrderQuantity != null ? `${quote.minimumOrderQuantity} U` : "—"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] text-[#5E6C84] block font-sans">Lead Time</span>
+                      <span className="font-bold text-[#091E42]">
+                        {quote.leadTimeDays != null ? `${quote.leadTimeDays}d` : "—"}
+                      </span>
                     </div>
                   </div>
-                )}
-              </div>
-            </React.Fragment>
-          );
-        })}
-      </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-      {/* QUOTATION DOCUMENTS */}
-      <div className="mt-12 border-t border-slate-200 pt-8">
-        <GenericDocumentManager
-          title="Quotation Documents"
-          description="Technical specifications, certifications, and quotation attachments."
-          ownerType="QUOTATION"
-          ownerId={latestQuotation.id}
-          canUpload={false}
-          canDelete={false}
-          allowedCategories={[]}
-        />
-      </div>
-
-      {/* CONFIRMATION DECISION MODAL */}
+      {/* 3. ACCEPT / REJECT CONFIRMATION MODAL */}
       {modalMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="bg-white max-w-md w-full p-8 rounded-2xl border border-slate-300 shadow-2xl">
-            <div className="border-b-[2px] border-[#0A192F] pb-2 mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-[#0A192F]">
-                {modalMode === "accept"
-                  ? `Accept Revision ${latestQuotation.quotationVersion}`
-                  : `Reject Revision ${latestQuotation.quotationVersion}`}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl shadow-2xl border border-[#DFE1E6] max-w-md w-full overflow-hidden">
+            <div className="px-6 py-5 bg-[#091E42] text-white flex items-center justify-between">
+              <h3 className="text-base font-bold">
+                {modalMode === "accept" ? "Accept Commercial Quotation" : "Decline Quotation"}
               </h3>
+              <button
+                type="button"
+                onClick={() => setModalMode(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
             </div>
 
-            {decisionError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-xs font-medium rounded-lg">
-                {decisionError}
+            <div className="p-6 space-y-4 text-xs">
+              {decisionError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl">
+                  {decisionError}
+                </div>
+              )}
+
+              <p className="text-[#172B4D] leading-relaxed">
+                {modalMode === "accept"
+                  ? `You are accepting Version ${latestQuotation.quotationVersion} at ${latestQuotation.currency} ${latestQuotation.unitPrice.toFixed(2)} / unit. Once accepted, you will be able to issue the binding Purchase Order.`
+                  : `Are you sure you want to decline this quotation? You may optionally include a message explaining why.`}
+              </p>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] mb-1">
+                  Optional Remarks / Notes
+                </label>
+                <textarea
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="e.g. Terms accepted. Ready for standard delivery schedule."
+                  className="w-full text-xs rounded-xl border border-[#DFE1E6] p-3 text-[#091E42] placeholder:text-[#8993A4] focus:outline-none focus:border-[#0052CC]"
+                />
               </div>
-            )}
 
-            <p className="text-xs text-slate-600 mb-4">
-              {modalMode === "accept"
-                ? "Are you sure you want to accept this quotation? This will lock commercial terms and enable Purchase Order creation."
-                : "Are you sure you want to reject this quotation? The supplier will be notified."}
-            </p>
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#DFE1E6]">
+                <button
+                  type="button"
+                  onClick={() => setModalMode(null)}
+                  disabled={submitting}
+                  className="px-4 py-2 text-xs font-bold text-[#5E6C84]"
+                >
+                  Cancel
+                </button>
 
-            <div className="mb-6">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                Optional Notes / Reason
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder="Enter any additional notes..."
-                className="w-full p-3 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setModalMode(null);
-                  setDecisionError(null);
-                }}
-                disabled={submitting}
-                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors"
-              >
-                CANCEL
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDecision}
-                disabled={submitting}
-                className={`px-4 py-2 text-xs font-bold text-white rounded-xl transition-colors shadow-xs ${
-                  modalMode === "accept"
-                    ? "bg-teal-600 hover:bg-teal-700"
-                    : "bg-red-600 hover:bg-red-700"
-                }`}
-              >
-                {submitting ? "PROCESSING..." : modalMode === "accept" ? "CONFIRM ACCEPTANCE" : "CONFIRM REJECTION"}
-              </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDecision}
+                  disabled={submitting}
+                  className={`px-5 py-2 rounded-xl text-white text-xs font-bold uppercase tracking-wider ${
+                    modalMode === "accept"
+                      ? "bg-[#00875A] hover:bg-[#006644]"
+                      : "bg-[#DE350B] hover:bg-[#BF2600]"
+                  }`}
+                >
+                  {submitting ? "Processing..." : modalMode === "accept" ? "Confirm Acceptance" : "Decline"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }

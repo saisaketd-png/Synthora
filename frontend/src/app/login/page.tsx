@@ -27,7 +27,7 @@ function LoginForm() {
       } else if (user.role === "SUPPLIER") {
         router.push("/dashboard/supplier");
       } else {
-        router.push("/dashboard");
+        router.push("/products");
       }
     }
   }, [router, redirectParam]);
@@ -56,7 +56,7 @@ function LoginForm() {
       } else if (user && user.role === "SUPPLIER") {
         router.push("/dashboard/supplier");
       } else {
-        router.push("/dashboard");
+        router.push("/products");
       }
     } catch (error) {
       setError(

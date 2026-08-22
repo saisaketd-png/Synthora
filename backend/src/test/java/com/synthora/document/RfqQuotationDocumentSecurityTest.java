@@ -172,13 +172,24 @@ public class RfqQuotationDocumentSecurityTest {
     }
 
     @Test
-    public void supplierCannotUploadRfqDocument() throws Exception {
+    public void supplierAssignedCanUploadRfqDocument() throws Exception {
         mockMvc.perform(multipart("/api/v1/documents")
                 .file(createMockFile())
                 .param("ownerType", "RFQ")
                 .param("ownerId", testRfq.getId().toString())
                 .param("category", "TECHNICAL_SPECIFICATION")
                 .header("Authorization", "Bearer " + supplier1Token))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void unrelatedSupplierCannotUploadRfqDocument() throws Exception {
+        mockMvc.perform(multipart("/api/v1/documents")
+                .file(createMockFile())
+                .param("ownerType", "RFQ")
+                .param("ownerId", testRfq.getId().toString())
+                .param("category", "TECHNICAL_SPECIFICATION")
+                .header("Authorization", "Bearer " + supplier2Token))
                 .andExpect(status().isForbidden());
     }
 
@@ -199,7 +210,7 @@ public class RfqQuotationDocumentSecurityTest {
     }
 
     @Test
-    public void supplierCannotDeleteRfqDocument() throws Exception {
+    public void supplierCannotDeleteBuyerRfqDocument() throws Exception {
         String res = mockMvc.perform(multipart("/api/v1/documents")
                 .file(createMockFile())
                 .param("ownerType", "RFQ")
@@ -212,6 +223,22 @@ public class RfqQuotationDocumentSecurityTest {
         mockMvc.perform(delete("/api/v1/documents/" + docId)
                 .header("Authorization", "Bearer " + supplier1Token))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void supplierCanDeleteOwnUploadedRfqDocument() throws Exception {
+        String res = mockMvc.perform(multipart("/api/v1/documents")
+                .file(createMockFile())
+                .param("ownerType", "RFQ")
+                .param("ownerId", testRfq.getId().toString())
+                .param("category", "TECHNICAL_SPECIFICATION")
+                .header("Authorization", "Bearer " + supplier1Token))
+                .andReturn().getResponse().getContentAsString();
+        String docId = res.split("\"id\":\"")[1].split("\"")[0];
+
+        mockMvc.perform(delete("/api/v1/documents/" + docId)
+                .header("Authorization", "Bearer " + supplier1Token))
+                .andExpect(status().isNoContent());
     }
 
     // --- QUOTATION Document Tests ---

@@ -46,25 +46,81 @@ export default function NotificationInboxPage() {
   }, [router]);
 
   // Load paginated notifications
-  const loadNotifications = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const loadNotifications = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const response = await getNotifications(page, pageSize);
       setData(response);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to load notifications";
-      setError(msg);
+      if (!silent) {
+        const msg = err instanceof Error ? err.message : "Failed to load notifications";
+        setError(msg);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [page, pageSize]);
 
   useEffect(() => {
     if (user) {
-      loadNotifications();
+      loadNotifications(false);
     }
-  }, [user, loadNotifications]);
+
+    // Visibility-aware polling for Notification Center
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible" && user) {
+        loadNotifications(true);
+      }
+    }, 15000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && user) {
+        loadNotifications(true);
+      }
+    };
+
+    const handleWindowFocus = () => {
+      if (user) {
+        loadNotifications(true);
+      }
+    };
+
+    const handleNotificationsUpdate = (e: Event) => {
+      const customEvt = e as CustomEvent<{ notification?: NotificationResponse }>;
+      const newNotif = customEvt.detail?.notification;
+
+      if (newNotif && page === 0) {
+        // Prepend directly if on page 0 without flashing
+        setData((prev) => {
+          if (!prev) return prev;
+          if (prev.content.some((n) => n.id === newNotif.id)) return prev;
+          return {
+            ...prev,
+            totalElements: prev.totalElements + 1,
+            content: [newNotif, ...prev.content],
+          };
+        });
+      } else {
+        loadNotifications(true);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleWindowFocus);
+    window.addEventListener("notifications-updated", handleNotificationsUpdate);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleWindowFocus);
+      window.removeEventListener("notifications-updated", handleNotificationsUpdate);
+    };
+  }, [user, loadNotifications, page]);
 
   // Handle clicking on an individual notification
   const handleNotificationSelect = async (notification: NotificationResponse) => {
@@ -124,108 +180,122 @@ export default function NotificationInboxPage() {
     : rawNotifications;
 
   const totalPages = data?.totalPages || 0;
+  const totalElements = data?.totalElements || 0;
   const unreadCountOnPage = rawNotifications.filter((n) => !n.read).length;
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+    <div className="max-w-[1240px] mx-auto py-2 sm:py-4 space-y-6">
+      {/* 1. PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DFE1E6] pb-5">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200">
-              <Bell className="w-4 h-4" />
-            </div>
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-              Notification Center
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Stay updated with real-time procurement alerts, RFQ quotations, and order updates.
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#091E42] tracking-tight">
+            Notifications
+          </h1>
+          <p className="text-sm sm:text-[15px] text-[#526581] mt-1 leading-normal">
+            Stay informed about RFQs, quotations, orders, documents, and procurement activity.
           </p>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2.5">
+        {/* Header Action */}
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={handleMarkAll}
             disabled={markingAll || unreadCountOnPage === 0}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-[#091E42] bg-white border border-[#DFE1E6] hover:bg-[#FAFBFC] rounded-lg transition-colors shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
           >
-            <CheckCheck className="w-3.5 h-3.5 text-blue-600" />
-            <span>Mark all read</span>
+            <CheckCheck className="w-4 h-4 text-[#0052CC]" />
+            <span>Mark all as read</span>
           </button>
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center p-1 bg-slate-100/80 rounded-lg border border-slate-200 text-xs font-semibold">
+      {/* 2. FILTER BAR & SUMMARY */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left: Segmented Filter Control */}
+        <div className="inline-flex items-center p-1 bg-[#EBECF0]/70 rounded-lg border border-[#DFE1E6] text-xs font-semibold">
           <button
             type="button"
             onClick={() => setFilterUnreadOnly(false)}
-            className={`px-3 py-1.5 rounded-md transition-all ${
+            className={`px-3.5 py-1.5 rounded-md transition-all cursor-pointer ${
               !filterUnreadOnly
-                ? "bg-white text-slate-900 shadow-xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-[#0052CC] font-bold shadow-xs border border-[#DFE1E6]/80"
+                : "text-[#5E6C84] hover:text-[#091E42]"
             }`}
           >
-            All Notifications
+            All notifications
           </button>
           <button
             type="button"
             onClick={() => setFilterUnreadOnly(true)}
-            className={`px-3 py-1.5 rounded-md transition-all flex items-center gap-1.5 ${
+            className={`px-3.5 py-1.5 rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
               filterUnreadOnly
-                ? "bg-white text-slate-900 shadow-xs font-bold"
-                : "text-slate-600 hover:text-slate-900"
+                ? "bg-white text-[#0052CC] font-bold shadow-xs border border-[#DFE1E6]/80"
+                : "text-[#5E6C84] hover:text-[#091E42]"
             }`}
           >
             <Filter className="w-3 h-3" />
             <span>Unread</span>
+            {unreadCountOnPage > 0 && (
+              <span className="font-mono text-[10px] font-bold bg-[#DEEBFF] text-[#0747A6] px-1.5 py-0.2 rounded-full">
+                {unreadCountOnPage}
+              </span>
+            )}
           </button>
         </div>
 
+        {/* Right: Informative Summary */}
         {data && (
-          <span className="text-xs text-slate-500 font-medium">
-            Showing {displayedNotifications.length} of {data.totalElements} items
-          </span>
+          <div className="text-xs sm:text-[13px] text-[#5E6C84] font-medium flex items-center gap-2">
+            <span>
+              <strong className="text-[#091E42]">{totalElements}</strong> {totalElements === 1 ? "notification" : "notifications"}
+            </span>
+            {unreadCountOnPage > 0 && (
+              <>
+                <span>•</span>
+                <span className="text-[#0052CC] font-semibold">
+                  {unreadCountOnPage} unread
+                </span>
+              </>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Notification List */}
+      {/* 3. UNIFIED NOTIFICATION PANEL */}
       <NotificationList
         notifications={displayedNotifications}
         loading={loading}
         error={error}
         isSupplier={isSupplier}
+        filterUnreadOnly={filterUnreadOnly}
         onNotificationSelect={handleNotificationSelect}
         onRetry={loadNotifications}
       />
 
-      {/* Pagination Controls */}
+      {/* 4. PAGINATION CONTROLS */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-slate-200 pt-4 px-2">
+        <div className="flex items-center justify-between border-t border-[#DFE1E6] pt-4 px-2">
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page === 0 || loading}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#091E42] bg-white border border-[#DFE1E6] rounded-lg hover:bg-[#FAFBFC] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-colors cursor-pointer"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
             <span>Previous</span>
           </button>
 
-          <span className="text-xs text-slate-600 font-medium">
-            Page <span className="font-bold text-slate-900">{page + 1}</span> of{" "}
-            <span className="font-bold text-slate-900">{totalPages}</span>
+          <span className="text-xs text-[#5E6C84] font-medium">
+            Page <strong className="text-[#091E42] font-mono">{page + 1}</strong> of{" "}
+            <strong className="text-[#091E42] font-mono">{totalPages}</strong>
           </span>
 
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1 || loading}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#091E42] bg-white border border-[#DFE1E6] rounded-lg hover:bg-[#FAFBFC] disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-colors cursor-pointer"
           >
             <span>Next</span>
             <ChevronRight className="w-3.5 h-3.5" />

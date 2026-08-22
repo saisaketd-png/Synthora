@@ -4,15 +4,21 @@ import React from "react";
 import {
   FileText,
   FileCheck,
-  CheckCircle,
+  CheckCircle2,
   XCircle,
   ClipboardList,
-  CheckSquare,
   Clock,
   Truck,
   PackageCheck,
-  File,
+  FileUp,
+  BadgeCheck,
+  RefreshCw,
   ChevronRight,
+  ShieldAlert,
+  AlertTriangle,
+  Factory,
+  Layers,
+  ArrowRight,
 } from "lucide-react";
 import { NotificationResponse, NotificationType } from "../types/notification";
 import { formatNotificationTime, resolveNotificationRoute } from "../utils/navigation";
@@ -24,33 +30,74 @@ interface NotificationItemProps {
   compact?: boolean;
 }
 
-function getNotificationIcon(type: NotificationType) {
+function getNotificationIcon(type: NotificationType, isUnread: boolean) {
+  const iconClass = isUnread ? "w-4 h-4 text-[#0052CC]" : "w-4 h-4 text-[#5E6C84]";
+
   switch (type) {
+    case "RFQ_CREATED":
     case "RFQ_SUBMITTED":
-      return <FileText className="w-4 h-4 text-blue-600" />;
+    case "RFQ_RECEIVED":
+      return <FileText className={isUnread ? "w-4 h-4 text-[#0052CC]" : iconClass} />;
     case "QUOTATION_SUBMITTED":
-      return <FileCheck className="w-4 h-4 text-emerald-600" />;
+    case "QUOTATION_UPDATED":
     case "QUOTATION_REVISED":
-      return <FileCheck className="w-4 h-4 text-purple-600" />;
+      return <FileCheck className={isUnread ? "w-4 h-4 text-[#0052CC]" : iconClass} />;
     case "COUNTER_OFFER_RECEIVED":
-      return <Clock className="w-4 h-4 text-amber-600" />;
+    case "COUNTER_OFFER_ACCEPTED":
+      return <RefreshCw className={isUnread ? "w-4 h-4 text-[#B35C00]" : iconClass} />;
     case "QUOTATION_ACCEPTED":
-      return <CheckCircle className="w-4 h-4 text-teal-600" />;
-    case "QUOTATION_REJECTED":
-      return <XCircle className="w-4 h-4 text-rose-600" />;
-    case "PO_ISSUED":
-      return <ClipboardList className="w-4 h-4 text-indigo-600" />;
     case "PO_CONFIRMED":
-      return <CheckSquare className="w-4 h-4 text-sky-600" />;
+    case "PURCHASE_ORDER_CONFIRMED":
+    case "ORDER_RECEIPT_CONFIRMED":
+      return <CheckCircle2 className={isUnread ? "w-4 h-4 text-[#006644]" : iconClass} />;
+    case "QUOTATION_REJECTED":
+    case "PO_REJECTED":
+    case "RFQ_CANCELLED":
+    case "PURCHASE_ORDER_CANCELLED":
+    case "PRODUCT_REQUEST_REJECTED":
+      return <XCircle className={isUnread ? "w-4 h-4 text-[#DE350B]" : iconClass} />;
+    case "PO_ISSUED":
+    case "PURCHASE_ORDER_CREATED":
+      return <ClipboardList className={isUnread ? "w-4 h-4 text-[#403294]" : iconClass} />;
     case "ORDER_PROCESSING_STARTED":
-      return <Clock className="w-4 h-4 text-amber-600" />;
+    case "PURCHASE_ORDER_PROCESSING":
+      return <Factory className={isUnread ? "w-4 h-4 text-[#0052CC]" : iconClass} />;
     case "ORDER_SHIPPED":
-      return <Truck className="w-4 h-4 text-purple-600" />;
+    case "PURCHASE_ORDER_SHIPPED":
+      return <Truck className={isUnread ? "w-4 h-4 text-[#403294]" : iconClass} />;
     case "ORDER_DELIVERED":
-      return <PackageCheck className="w-4 h-4 text-emerald-600" />;
+    case "PURCHASE_ORDER_DELIVERED":
+      return <PackageCheck className={isUnread ? "w-4 h-4 text-[#006644]" : iconClass} />;
     case "DOCUMENT_UPLOADED":
+      return <FileUp className={isUnread ? "w-4 h-4 text-[#0052CC]" : iconClass} />;
+    case "SUPPLIER_VERIFIED":
+    case "SUPPLIER_OFFERING_APPROVED":
+      return <BadgeCheck className={isUnread ? "w-4 h-4 text-[#006644]" : iconClass} />;
+    case "SUPPLIER_INFORMATION_REQUIRED":
+    case "DOCUMENT_VERIFICATION_REQUIRED":
+      return <AlertTriangle className={isUnread ? "w-4 h-4 text-[#B35C00]" : iconClass} />;
     default:
-      return <File className="w-4 h-4 text-slate-600" />;
+      return <FileText className={iconClass} />;
+  }
+}
+
+function formatEntityReference(entityType: string, entityId: string): string | null {
+  if (!entityId) return null;
+  const shortId = entityId.length > 8 ? entityId.substring(0, 8).toUpperCase() : entityId.toUpperCase();
+  switch (entityType) {
+    case "RFQ":
+      return `RFQ-${shortId}`;
+    case "PURCHASE_ORDER":
+      return `PO-${shortId}`;
+    case "QUOTATION":
+      return `QUOTE-${shortId}`;
+    case "SHIPMENT":
+      return `TRK-${shortId}`;
+    case "MASTER_PRODUCT":
+    case "SUPPLIER_OFFERING":
+      return `PRD-${shortId}`;
+    default:
+      return null;
   }
 }
 
@@ -62,6 +109,7 @@ export function NotificationItem({
 }: NotificationItemProps) {
   const hasRoute = resolveNotificationRoute(notification, isSupplier) !== null;
   const isUnread = !notification.read;
+  const reference = formatEntityReference(notification.entityType, notification.entityId);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -70,63 +118,150 @@ export function NotificationItem({
     }
   };
 
+  // Compact Mode (for Top Navbar Notification Dropdown)
+  if (compact) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => onSelect(notification)}
+        onKeyDown={handleKeyDown}
+        className={`group relative flex items-start gap-3 px-4 py-3 transition-colors text-left w-full outline-none focus-visible:bg-[#FAFBFC] focus-visible:ring-1 focus-visible:ring-[#0052CC] cursor-pointer ${
+          isUnread ? "bg-[#F4F8FF] hover:bg-[#EBF3FF]" : "bg-white hover:bg-[#FAFBFC]"
+        }`}
+        aria-label={`${notification.title} - ${isUnread ? "Unread" : "Read"}`}
+      >
+        <div
+          className={`shrink-0 w-7 h-7 rounded-md flex items-center justify-center border mt-0.5 ${
+            isUnread ? "bg-white border-[#B3D4FF] shadow-2xs" : "bg-[#FAFBFC] border-[#DFE1E6]"
+          }`}
+        >
+          {getNotificationIcon(notification.type, isUnread)}
+        </div>
+
+        <div className="flex-1 min-w-0 pr-1 space-y-0.5">
+          <div className="flex items-center justify-between gap-2">
+            <p
+              className={`text-xs truncate ${
+                isUnread ? "font-bold text-[#091E42]" : "font-semibold text-[#172B4D]"
+              }`}
+            >
+              {notification.title}
+            </p>
+            <span className="text-[10px] text-[#6B778C] font-mono whitespace-nowrap shrink-0">
+              {formatNotificationTime(notification.createdAt)}
+            </span>
+          </div>
+
+          <p
+            className={`text-[11px] leading-relaxed line-clamp-2 ${
+              isUnread ? "text-[#172B4D]" : "text-[#5E6C84]"
+            }`}
+          >
+            {notification.message}
+          </p>
+
+          {reference && (
+            <div className="pt-0.5">
+              <span className="inline-block font-mono text-[9px] font-bold text-[#5E6C84] bg-[#F4F5F7] px-1.5 py-0.2 rounded border border-[#DFE1E6]">
+                {reference}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0 self-center pl-1">
+          {isUnread && (
+            <span
+              className="w-2 h-2 rounded-full bg-[#0052CC]"
+              title="Unread notification"
+              aria-hidden="true"
+            />
+          )}
+          {hasRoute && (
+            <ChevronRight className="w-3.5 h-3.5 text-[#A5ADBA] group-hover:text-[#091E42] transition-colors" />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Full Row Mode (for Notification Center Inbox Feed)
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={() => onSelect(notification)}
       onKeyDown={handleKeyDown}
-      className={`group relative flex items-start gap-3.5 transition-all text-left w-full outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg cursor-pointer ${
-        compact ? "p-3 hover:bg-slate-50" : "p-4 hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
-      } ${isUnread ? "bg-blue-50/40" : "bg-white"}`}
+      className={`group relative flex items-start gap-4 sm:gap-5 py-4.5 px-5 sm:py-5 sm:px-6 transition-all text-left w-full outline-none focus-visible:bg-[#F4F8FF] focus-visible:ring-2 focus-visible:ring-[#0052CC] cursor-pointer ${
+        isUnread
+          ? "bg-[#F4F8FF] hover:bg-[#EAF2FF]"
+          : "bg-white hover:bg-[#F8FAFC]"
+      }`}
       aria-label={`${notification.title} - ${isUnread ? "Unread" : "Read"}`}
     >
-      {/* Type Icon Container */}
+      {/* Semantic Icon Container (40px) */}
       <div
-        className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border ${
+        className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center border mt-0.5 transition-colors ${
           isUnread
-            ? "bg-white border-blue-200 shadow-xs"
-            : "bg-slate-50 border-slate-200"
+            ? "bg-white border-[#B3D4FF] shadow-2xs text-[#0052CC]"
+            : "bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] group-hover:border-[#CBD5E1]"
         }`}
       >
-        {getNotificationIcon(notification.type)}
+        {getNotificationIcon(notification.type, isUnread)}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 pr-1">
-        <div className="flex items-center justify-between gap-2 mb-0.5">
-          <p
-            className={`text-xs truncate ${
-              isUnread ? "font-bold text-slate-900" : "font-medium text-slate-700"
-            }`}
-          >
-            {notification.title}
-          </p>
-          <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap flex-shrink-0">
+      {/* Main Content & Message Body */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        {/* Title + Mobile/Desktop Time Row */}
+        <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 sm:gap-4">
+          <div className="flex items-center gap-2 min-w-0">
+            {isUnread && (
+              <span
+                className="inline-block w-2 h-2 rounded-full bg-[#0052CC] shrink-0"
+                title="Unread notification"
+                aria-hidden="true"
+              />
+            )}
+            <h3
+              className={`text-[15px] sm:text-base leading-snug tracking-tight truncate ${
+                isUnread ? "font-bold text-[#091E42]" : "font-semibold text-[#1E293B]"
+              }`}
+            >
+              {notification.title}
+            </h3>
+          </div>
+
+          <span className="text-xs text-[#64748B] font-medium whitespace-nowrap shrink-0">
             {formatNotificationTime(notification.createdAt)}
           </span>
         </div>
 
+        {/* Clear, High-Contrast Description */}
         <p
-          className={`text-xs leading-relaxed line-clamp-2 ${
-            isUnread ? "text-slate-800" : "text-slate-500"
+          className={`text-[13.5px] sm:text-sm leading-relaxed max-w-4xl ${
+            isUnread ? "text-[#1E293B] font-medium" : "text-[#475569]"
           }`}
         >
           {notification.message}
         </p>
+
+        {/* Reference Identifier & Metadata */}
+        {reference && (
+          <div className="pt-1 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-[#475569] bg-[#F1F5F9] px-2 py-0.5 rounded border border-[#E2E8F0] tracking-wide">
+              {reference}
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Trailing indicator / affordance */}
-      <div className="flex items-center gap-1.5 flex-shrink-0 self-center">
-        {isUnread && (
-          <span
-            className="w-2 h-2 rounded-full bg-blue-600"
-            title="Unread"
-            aria-hidden="true"
-          />
-        )}
+      {/* Trailing Action Chevron */}
+      <div className="flex items-center gap-2 shrink-0 self-center pl-2">
         {hasRoute && (
-          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 transition-colors" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] group-hover:text-[#0052CC] group-hover:bg-white group-hover:shadow-2xs transition-all">
+            <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-0.5" />
+          </div>
         )}
       </div>
     </div>

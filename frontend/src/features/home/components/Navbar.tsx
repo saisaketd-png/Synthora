@@ -306,6 +306,18 @@ export function Navbar() {
                             <span className="text-[10px] text-[#5E6C84] block truncate">Saved supplier offerings</span>
                           </div>
                         </Link>
+
+                        <Link
+                          href="/dashboard/notifications"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-[#172B4D] hover:text-[#091E42] hover:bg-[#F4F5F7] rounded-lg transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Bell className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <span className="font-semibold text-xs block">Notifications</span>
+                            <span className="text-[10px] text-[#5E6C84] block truncate">System & order alerts</span>
+                          </div>
+                        </Link>
                       </>
                     )}
 
@@ -371,6 +383,18 @@ export function Navbar() {
                             <span className="text-[10px] text-[#5E6C84] block truncate">KYC & documents</span>
                           </div>
                         </Link>
+
+                        <Link
+                          href="/dashboard/notifications"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-[#172B4D] hover:text-[#091E42] hover:bg-[#F4F5F7] rounded-lg transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Bell className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <span className="font-semibold text-xs block">Notifications</span>
+                            <span className="text-[10px] text-[#5E6C84] block truncate">RFQ & inquiry alerts</span>
+                          </div>
+                        </Link>
                       </>
                     )}
 
@@ -422,6 +446,18 @@ export function Navbar() {
                           <div className="min-w-0 flex-1">
                             <span className="font-semibold text-xs block">Transactions & RFQs</span>
                             <span className="text-[10px] text-[#5E6C84] block truncate">Inquiries & orders</span>
+                          </div>
+                        </Link>
+
+                        <Link
+                          href="/dashboard/notifications"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-[#172B4D] hover:text-[#091E42] hover:bg-[#F4F5F7] rounded-lg transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Bell className="w-3.5 h-3.5 text-[#0052CC] shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <span className="font-semibold text-xs block">Notifications</span>
+                            <span className="text-[10px] text-[#5E6C84] block truncate">Platform oversight alerts</span>
                           </div>
                         </Link>
                       </>

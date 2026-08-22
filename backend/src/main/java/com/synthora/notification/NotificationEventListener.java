@@ -200,21 +200,44 @@ public class NotificationEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onQuotationAccepted(QuotationAcceptedEvent event) {
         try {
-            UUID recipientId = resolveSupplierUserId(event.supplierId());
-            if (recipientId != null) {
+            boolean isBuyerQuote = false;
+            if (event.quotationId() != null) {
+                isBuyerQuote = quotationRepository.findById(event.quotationId())
+                        .map(q -> "BUYER".equalsIgnoreCase(q.getActorType()))
+                        .orElse(false);
+            }
+
+            if (isBuyerQuote) {
+                // Supplier accepted Buyer's counter-offer -> notify Buyer
                 Notification n = notificationService.createNotification(
-                        recipientId,
+                        event.buyerId(),
                         NotificationType.QUOTATION_ACCEPTED,
-                        "Quotation Accepted",
-                        "Your quotation has been accepted by the buyer.",
-                        NotificationEntityType.QUOTATION,
+                        "Counter-Offer Accepted",
+                        "The supplier has accepted your counter-offer. You may now issue the Purchase Order.",
+                        NotificationEntityType.RFQ,
                         event.rfqId()
                 );
                 if (n != null) {
                     emailNotificationService.sendNotificationEmail(n);
                 }
             } else {
-                log.warn("Could not resolve supplier User for supplier ID {}", event.supplierId());
+                // Buyer accepted Supplier's quotation -> notify Supplier
+                UUID recipientId = resolveSupplierUserId(event.supplierId());
+                if (recipientId != null) {
+                    Notification n = notificationService.createNotification(
+                            recipientId,
+                            NotificationType.QUOTATION_ACCEPTED,
+                            "Quotation Accepted",
+                            "Your quotation has been accepted by the buyer.",
+                            NotificationEntityType.QUOTATION,
+                            event.rfqId()
+                    );
+                    if (n != null) {
+                        emailNotificationService.sendNotificationEmail(n);
+                    }
+                } else {
+                    log.warn("Could not resolve supplier User for supplier ID {}", event.supplierId());
+                }
             }
         } catch (Exception e) {
             log.error("Failed to process QuotationAcceptedEvent for quotation {}", event.quotationId(), e);
@@ -225,21 +248,44 @@ public class NotificationEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onQuotationRejected(QuotationRejectedEvent event) {
         try {
-            UUID recipientId = resolveSupplierUserId(event.supplierId());
-            if (recipientId != null) {
+            boolean isBuyerQuote = false;
+            if (event.quotationId() != null) {
+                isBuyerQuote = quotationRepository.findById(event.quotationId())
+                        .map(q -> "BUYER".equalsIgnoreCase(q.getActorType()))
+                        .orElse(false);
+            }
+
+            if (isBuyerQuote) {
+                // Supplier rejected Buyer's counter-offer -> notify Buyer
                 Notification n = notificationService.createNotification(
-                        recipientId,
+                        event.buyerId(),
                         NotificationType.QUOTATION_REJECTED,
-                        "Quotation Rejected",
-                        "Your quotation has been rejected by the buyer.",
-                        NotificationEntityType.QUOTATION,
+                        "Counter-Offer Declined",
+                        "The supplier has declined your proposed counter-offer.",
+                        NotificationEntityType.RFQ,
                         event.rfqId()
                 );
                 if (n != null) {
                     emailNotificationService.sendNotificationEmail(n);
                 }
             } else {
-                log.warn("Could not resolve supplier User for supplier ID {}", event.supplierId());
+                // Buyer rejected Supplier's quotation -> notify Supplier
+                UUID recipientId = resolveSupplierUserId(event.supplierId());
+                if (recipientId != null) {
+                    Notification n = notificationService.createNotification(
+                            recipientId,
+                            NotificationType.QUOTATION_REJECTED,
+                            "Quotation Rejected",
+                            "Your quotation has been rejected by the buyer.",
+                            NotificationEntityType.QUOTATION,
+                            event.rfqId()
+                    );
+                    if (n != null) {
+                        emailNotificationService.sendNotificationEmail(n);
+                    }
+                } else {
+                    log.warn("Could not resolve supplier User for supplier ID {}", event.supplierId());
+                }
             }
         } catch (Exception e) {
             log.error("Failed to process QuotationRejectedEvent for quotation {}", event.quotationId(), e);
