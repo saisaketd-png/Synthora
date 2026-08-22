@@ -3,6 +3,7 @@ package com.synthora.rfq;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.product.Supplier;
 import com.synthora.product.SupplierRepository;
 import com.synthora.rfq.quotation.Quotation;
@@ -62,6 +63,9 @@ public class BuyerQuotationDecisionTest {
     @Autowired
     private com.synthora.seller.SellerProfileRepository sellerProfileRepository;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     private User buyer1;
     private String buyer1Token;
 
@@ -74,20 +78,14 @@ public class BuyerQuotationDecisionTest {
 
     @BeforeEach
     public void setup() {
-        shipmentRepository.deleteAll();
-        purchaseOrderRepository.deleteAll();
-        quotationRepository.deleteAll();
-        rfqRepository.deleteAll();
-        productRepository.deleteAll();
-        supplierRepository.deleteAll();
-        sellerProfileRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         buyer1 = new User();
         buyer1.setEmail("buyer1@synthora.com");
         buyer1.setName("Buyer One");
         buyer1.setPasswordHash("hash123");
         buyer1.setRole(UserRole.USER);
+        buyer1.setStatus(UserStatus.ACTIVE);
         buyer1 = userRepository.save(buyer1);
         buyer1Token = jwtService.generateToken(buyer1);
 
@@ -96,6 +94,7 @@ public class BuyerQuotationDecisionTest {
         buyer2.setName("Buyer Two");
         buyer2.setPasswordHash("hash123");
         buyer2.setRole(UserRole.USER);
+        buyer2.setStatus(UserStatus.ACTIVE);
         buyer2 = userRepository.save(buyer2);
         buyer2Token = jwtService.generateToken(buyer2);
 
@@ -104,6 +103,7 @@ public class BuyerQuotationDecisionTest {
         supplierUser.setName("Seller User");
         supplierUser.setPasswordHash("hash123");
         supplierUser.setRole(UserRole.SUPPLIER);
+        supplierUser.setStatus(UserStatus.ACTIVE);
         supplierUser = userRepository.save(supplierUser);
         supplierToken = jwtService.generateToken(supplierUser);
 

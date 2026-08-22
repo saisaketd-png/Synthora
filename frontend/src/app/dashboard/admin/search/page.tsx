@@ -28,7 +28,7 @@ export default function UnifiedAdminSearchPage() {
     setSearched(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://127.0.0.1:8085/api/v1/admin/operations/search?query=${encodeURIComponent(query)}`, {
+      const res = await fetch(`/api/v1/admin/operations/search?query=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {

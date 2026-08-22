@@ -11,6 +11,7 @@ export interface GovernanceStats {
   potentialDuplicates: number;
   duplicateCandidatesCount?: number;
   totalOfferings: number;
+  pendingOfferingReviews?: number;
   pendingSupplierVerifications?: number;
   verifiedSuppliersCount?: number;
   flaggedOfferingsCount?: number;
@@ -117,8 +118,19 @@ export async function searchAdminMasterProducts(params: AdminCatalogSearchParams
   if (params.size !== undefined) searchParams.append("size", params.size.toString());
   if (params.sort) searchParams.append("sort", params.sort);
 
-  const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products?${searchParams.toString()}`);
-  if (!res.ok) throw new Error("Failed to search admin catalog");
+  const url = `/api/v1/admin/catalog/master-products?${searchParams.toString()}`;
+  const res = await authenticatedFetch(url);
+  if (!res.ok) {
+    let err = `Failed to search admin catalog (HTTP ${res.status})`;
+    try {
+      const errJson = await res.json();
+      err = errJson.message || errJson.error || err;
+    } catch {}
+    if (process.env.NODE_ENV !== "production") {
+      console.error(`[adminCatalogApi] searchAdminMasterProducts error on ${url}:`, err);
+    }
+    throw new Error(err);
+  }
   return res.json();
 }
 
@@ -151,8 +163,19 @@ export async function updateMasterProduct(id: string, payload: UpdateMasterProdu
 }
 
 export async function getGovernanceStats(): Promise<GovernanceStats> {
-  const res = await authenticatedFetch("/api/v1/admin/catalog/governance-stats");
-  if (!res.ok) throw new Error("Failed to load governance stats");
+  const url = "/api/v1/admin/catalog/governance-stats";
+  const res = await authenticatedFetch(url);
+  if (!res.ok) {
+    let err = `Failed to load governance stats (HTTP ${res.status})`;
+    try {
+      const errJson = await res.json();
+      err = errJson.message || errJson.error || err;
+    } catch {}
+    if (process.env.NODE_ENV !== "production") {
+      console.error(`[adminCatalogApi] getGovernanceStats error on ${url}:`, err);
+    }
+    throw new Error(err);
+  }
   return res.json();
 }
 
@@ -331,4 +354,115 @@ export async function getGlobalAuditLogs(params: { entityType?: string; page?: n
   const res = await authenticatedFetch(`/api/v1/admin/catalog/audit?${searchParams.toString()}`);
   if (!res.ok) throw new Error("Failed to load audit logs");
   return res.json();
+}
+
+// --- Synonyms Management ---
+
+export async function getAdminMasterProductSynonyms(masterProductId: string): Promise<any[]> {
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products/${masterProductId}/synonyms`);
+  if (!res.ok) throw new Error("Failed to load synonyms");
+  return res.json();
+}
+
+export async function addOfficialSynonym(masterProductId: string, synonym: string): Promise<any> {
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products/${masterProductId}/synonyms`, {
+    method: "POST",
+    body: JSON.stringify({ synonym }),
+  });
+  if (!res.ok) {
+    let err = "Failed to add synonym";
+    try { err = (await res.json()).message || err; } catch {}
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+export async function deleteSynonym(masterProductId: string, synonymId: string): Promise<void> {
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products/${masterProductId}/synonyms/${synonymId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete synonym");
+}
+
+export async function reviewSynonym(synonymId: string, status: "APPROVED" | "REJECTED"): Promise<any> {
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/synonyms/${synonymId}/review`, {
+    method: "PUT",
+    body: JSON.stringify({ status }),
+  });
+  if (!res.ok) throw new Error("Failed to review synonym");
+  return res.json();
+}
+
+export async function getPendingSynonyms(): Promise<any[]> {
+  const res = await authenticatedFetch("/api/v1/admin/catalog/synonyms/pending");
+  if (!res.ok) throw new Error("Failed to load pending synonyms");
+  return res.json();
+}
+
+// --- Canonical Product Images ---
+
+export async function uploadMasterProductImage(masterProductId: string, file: File, altText?: string): Promise<any> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (altText) formData.append("altText", altText);
+
+  const res = await authenticatedFetch(`/api/v1/master-products/${masterProductId}/images`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    let err = "Failed to upload image";
+    try { err = (await res.json()).message || err; } catch {}
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+export async function setPrimaryMasterProductImage(masterProductId: string, imageId: string): Promise<any> {
+  const res = await authenticatedFetch(`/api/v1/master-products/${masterProductId}/images/${imageId}/primary`, {
+    method: "PUT",
+  });
+  if (!res.ok) throw new Error("Failed to set primary image");
+  return res.json();
+}
+
+export async function deleteMasterProductImage(masterProductId: string, imageId: string): Promise<void> {
+  const res = await authenticatedFetch(`/api/v1/master-products/${masterProductId}/images/${imageId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete image");
+}
+
+// --- Technical Documents ---
+
+export async function uploadMasterProductDocument(
+  masterProductId: string,
+  file: File,
+  category: string = "PRODUCT_SPECIFICATION",
+  documentNumber?: string
+): Promise<any> {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("ownerType", "MASTER_PRODUCT");
+  formData.append("ownerId", masterProductId);
+  formData.append("category", category);
+  if (documentNumber) formData.append("documentNumber", documentNumber);
+
+  const res = await authenticatedFetch("/api/v1/documents", {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    let err = "Failed to upload document";
+    try { err = (await res.json()).message || err; } catch {}
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+export async function deleteMasterProductDocument(documentId: string): Promise<void> {
+  const res = await authenticatedFetch(`/api/v1/documents/${documentId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Failed to delete document");
 }

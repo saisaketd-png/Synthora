@@ -106,7 +106,7 @@ public class FileSecurityTest {
     @BeforeEach
     public void setup() {
         rateLimiterService.resetAll();
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         // Buyers
         buyerA = createTestUser("buyer_a_filesec@synthora.com", "Buyer A", UserRole.USER);
@@ -269,7 +269,7 @@ public class FileSecurityTest {
                         .param("category", "COA")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("HTML/Script payload detected")));
+                .andExpect(jsonPath("$.message", containsString("HTML/Script payload detected")));
     }
 
     @Test
@@ -285,7 +285,7 @@ public class FileSecurityTest {
                         .param("category", "COA")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("File signature mismatch")));
+                .andExpect(jsonPath("$.message", containsString("File signature mismatch")));
     }
 
     @Test
@@ -301,7 +301,7 @@ public class FileSecurityTest {
                         .param("category", "COA")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Executable binary content detected")));
+                .andExpect(jsonPath("$.message", containsString("Executable binary content detected")));
     }
 
     @Test
@@ -317,7 +317,7 @@ public class FileSecurityTest {
                         .param("category", "COA")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Executable binary content detected")));
+                .andExpect(jsonPath("$.message", containsString("Executable binary content detected")));
     }
 
     @Test
@@ -333,7 +333,7 @@ public class FileSecurityTest {
                         .param("category", "TECHNICAL_SPECIFICATION")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("File signature mismatch")));
+                .andExpect(jsonPath("$.message", containsString("File signature mismatch")));
     }
 
     @Test
@@ -465,7 +465,7 @@ public class FileSecurityTest {
                         .param("category", "COA")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("File cannot be empty")));
+                .andExpect(jsonPath("$.message", containsString("File cannot be empty")));
     }
 
     // =========================================================================
@@ -566,8 +566,22 @@ public class FileSecurityTest {
     @Test
     @DisplayName("22. Unauthenticated user cannot access document download (401)")
     public void testUnauthenticatedDownloadRejected() throws Exception {
-        mockMvc.perform(get("/api/v1/documents/" + UUID.randomUUID() + "/download"))
-                .andExpect(status().isUnauthorized());
+        byte[] pdfBytes = "%PDF-1.4 valid test pdf content".getBytes();
+        MockMultipartFile file = new MockMultipartFile("file", "rfq_spec.pdf", "application/pdf", pdfBytes);
+
+        String uploadJson = mockMvc.perform(multipart("/api/v1/documents")
+                        .file(file)
+                        .param("ownerType", "RFQ")
+                        .param("ownerId", rfqA.getId().toString())
+                        .param("category", "TECHNICAL_SPECIFICATION")
+                        .header("Authorization", "Bearer " + tokenBuyerA))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        String docId = uploadJson.split("\"id\":\"")[1].split("\"")[0];
+
+        mockMvc.perform(get("/api/v1/documents/" + docId + "/download"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -642,7 +656,7 @@ public class FileSecurityTest {
         mockMvc.perform(get("/api/v1/documents/" + docId + "/download")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error", containsString("Document file not found on storage")));
+                .andExpect(jsonPath("$.message", containsString("Document file not found on storage")));
     }
 
     @Test
@@ -721,7 +735,7 @@ public class FileSecurityTest {
                         .param("category", "TECHNICAL_SPECIFICATION")
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Null bytes detected")));
+                .andExpect(jsonPath("$.message", containsString("Null bytes detected")));
     }
 
     @Test
@@ -746,7 +760,7 @@ public class FileSecurityTest {
         mockMvc.perform(get("/api/v1/documents/" + UUID.randomUUID() + "/download")
                         .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error", containsString("Document not found")));
+                .andExpect(jsonPath("$.message", containsString("Document not found")));
     }
 
     @Test

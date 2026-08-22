@@ -38,5 +38,7 @@ public record SupplierOfferingGovernanceWorkspaceDto(
         List<OfferingAuditDto> auditHistory,
         String adminRequestNotes,
         String supplierResponseNotes,
-        String moderationNotes
+        String moderationNotes,
+        List<com.synthora.product.dto.CatalogImageResponse> images,
+        List<com.synthora.document.DocumentResponse> documents
 ) {}

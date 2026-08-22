@@ -409,6 +409,56 @@ public class NotificationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onPurchaseOrderCancelled(PurchaseOrderCancelledEvent event) {
+        try {
+            UUID recipientId = resolveSupplierUserId(event.supplierId());
+            if (recipientId != null) {
+                String message = "The buyer has cancelled this purchase order.";
+                if (event.reason() != null && !event.reason().isBlank()) {
+                    message = "The buyer has cancelled this purchase order. Reason: " + event.reason().trim();
+                }
+                Notification n = notificationService.createNotification(
+                        recipientId,
+                        NotificationType.PURCHASE_ORDER_CANCELLED,
+                        "Purchase Order Cancelled",
+                        message,
+                        NotificationEntityType.PURCHASE_ORDER,
+                        event.purchaseOrderId()
+                );
+                if (n != null) {
+                    emailNotificationService.sendNotificationEmail(n);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to process PurchaseOrderCancelledEvent for PO {}", event.purchaseOrderId(), e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void onOrderCompleted(OrderCompletedEvent event) {
+        try {
+            UUID recipientId = resolveSupplierUserId(event.supplierId());
+            if (recipientId != null) {
+                Notification n = notificationService.createNotification(
+                        recipientId,
+                        NotificationType.PURCHASE_ORDER_DELIVERED,
+                        "Purchase Order Completed",
+                        "The purchase order has been finalized and marked complete.",
+                        NotificationEntityType.PURCHASE_ORDER,
+                        event.purchaseOrderId()
+                );
+                if (n != null) {
+                    emailNotificationService.sendNotificationEmail(n);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to process OrderCompletedEvent for PO {}", event.purchaseOrderId(), e);
+        }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onDocumentUploaded(DocumentUploadedEvent event) {
         try {
             UUID recipientId = resolveDocumentCounterparty(event);

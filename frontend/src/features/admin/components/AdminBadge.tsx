@@ -1,10 +1,9 @@
 import React from "react";
-import { UserRole, UserStatus, ProductAvailability, RfqStatus, OrderStatus } from "../types";
+import { UserRole, UserStatus, RfqStatus, OrderStatus } from "../types";
 
 export type BadgeType =
   | UserRole
   | UserStatus
-  | ProductAvailability
   | RfqStatus
   | OrderStatus
   | "VERIFIED"

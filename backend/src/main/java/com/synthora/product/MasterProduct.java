@@ -61,6 +61,9 @@ public class MasterProduct {
     @OneToMany(mappedBy = "masterProduct", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SupplierOffering> offerings = new ArrayList<>();
 
+    @OneToMany(mappedBy = "masterProduct", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductSynonym> synonyms = new ArrayList<>();
+
     public MasterProduct() {
     }
 
@@ -166,5 +169,13 @@ public class MasterProduct {
 
     public void setOfferings(List<SupplierOffering> offerings) {
         this.offerings = offerings;
+    }
+
+    public List<ProductSynonym> getSynonyms() {
+        return synonyms;
+    }
+
+    public void setSynonyms(List<ProductSynonym> synonyms) {
+        this.synonyms = synonyms;
     }
 }

@@ -123,15 +123,15 @@ export function NotificationBell({ isSupplier }: NotificationBellProps) {
         aria-label={`Notifications (${unreadCount} unread)`}
         aria-haspopup="dialog"
         aria-expanded={dropdownOpen}
-        className={`relative p-2 rounded-lg transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-100 ${
-          dropdownOpen ? "bg-slate-100 text-slate-900" : ""
+        className={`relative h-[38px] w-[38px] rounded-lg border border-[#DFE1E6] bg-white hover:bg-[#FAFBFC] flex items-center justify-center transition-all text-[#5E6C84] hover:text-[#091E42] shadow-2xs ${
+          dropdownOpen ? "bg-[#EBECF0] text-[#091E42] border-[#C1C7D0]" : ""
         }`}
       >
         <Bell className="w-4 h-4" />
 
         {unreadCount > 0 && (
           <span
-            className="absolute top-1 right-1 flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-extrabold text-white bg-blue-600 rounded-full border-2 border-white shadow-xs animate-in fade-in zoom-in-75 duration-150"
+            className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] font-extrabold text-white bg-[#DE350B] rounded-full border border-white shadow-xs"
             aria-hidden="true"
           >
             {unreadCount > 99 ? "99+" : unreadCount}

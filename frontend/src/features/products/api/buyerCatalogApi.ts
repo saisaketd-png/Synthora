@@ -1,4 +1,5 @@
 import { MasterProduct, SupplierOffering } from "@/features/supplier-products/api/masterCatalogApi";
+import { resolveApiUrl } from "@/lib/apiUrl";
 
 export interface PublicMasterProductPage {
   content: MasterProduct[];
@@ -52,19 +53,22 @@ export async function searchPublicMasterProducts(
   params.append("size", (filters.size || 20).toString());
   if (filters.sort) params.append("sort", filters.sort);
 
-  const res = await fetch(`/api/v1/public/master-products?${params.toString()}`);
+  const targetUrl = resolveApiUrl(`/api/v1/public/master-products?${params.toString()}`);
+  const res = await fetch(targetUrl, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load catalog products");
   return res.json();
 }
 
 export async function getPublicMasterProductDetail(idOrCode: string): Promise<MasterProduct> {
-  const res = await fetch(`/api/v1/public/master-products/${idOrCode}`);
+  const targetUrl = resolveApiUrl(`/api/v1/public/master-products/${encodeURIComponent(idOrCode)}`);
+  const res = await fetch(targetUrl, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load chemical details");
   return res.json();
 }
 
 export async function getPublicMasterProductOfferings(masterProductId: string): Promise<SupplierOffering[]> {
-  const res = await fetch(`/api/v1/public/master-products/${masterProductId}/offerings`);
+  const targetUrl = resolveApiUrl(`/api/v1/public/master-products/${encodeURIComponent(masterProductId)}/offerings`);
+  const res = await fetch(targetUrl, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load supplier offerings");
   return res.json();
 }

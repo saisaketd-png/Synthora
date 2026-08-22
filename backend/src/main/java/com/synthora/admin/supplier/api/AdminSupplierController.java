@@ -36,6 +36,8 @@ public class AdminSupplierController {
             @RequestParam(required = false) Boolean verified,
             @RequestParam(required = false) Boolean exportReady,
             @RequestParam(required = false) UserStatus status,
+            @RequestParam(required = false) com.synthora.seller.SupplierVerificationStatus verificationStatus,
+            @RequestParam(defaultValue = "false") boolean excludeDraft,
             @RequestParam(defaultValue = "false") boolean includeDeleted) {
 
         String effectiveQuery = (query != null && !query.trim().isEmpty()) ? query : q;
@@ -47,9 +49,24 @@ public class AdminSupplierController {
                 verified,
                 exportReady,
                 status,
+                verificationStatus,
+                excludeDraft,
                 includeDeleted
         );
         return ResponseEntity.ok(suppliers);
+    }
+
+    public ResponseEntity<Page<AdminSupplierResponse>> getSuppliers(
+            int page,
+            int size,
+            String query,
+            String q,
+            String country,
+            Boolean verified,
+            Boolean exportReady,
+            UserStatus status,
+            boolean includeDeleted) {
+        return getSuppliers(page, size, query, q, country, verified, exportReady, status, null, false, includeDeleted);
     }
 
     @GetMapping("/{id}")
@@ -85,50 +102,5 @@ public class AdminSupplierController {
             HttpServletRequest servletRequest) {
 
         return ResponseEntity.ok(adminSupplierService.updateSupplierStatus(id, request, authentication, servletRequest));
-    }
-
-    @PostMapping("/{id}/verification/start-review")
-    public ResponseEntity<AdminSupplierResponse> startReview(
-            @PathVariable Long id,
-            @RequestBody(required = false) com.synthora.seller.dto.SupplierVerificationPayload payload,
-            Authentication authentication) {
-        String notes = payload != null ? payload.notes() : "Review started by Admin";
-        return ResponseEntity.ok(adminSupplierService.transitionSupplierVerification(id, com.synthora.seller.SupplierVerificationStatus.UNDER_REVIEW, notes, authentication));
-    }
-
-    @PostMapping("/{id}/verification/request-info")
-    public ResponseEntity<AdminSupplierResponse> requestVerificationInfo(
-            @PathVariable Long id,
-            @RequestBody com.synthora.seller.dto.SupplierVerificationPayload payload,
-            Authentication authentication) {
-        String notes = payload != null ? payload.notes() : "Information required";
-        return ResponseEntity.ok(adminSupplierService.transitionSupplierVerification(id, com.synthora.seller.SupplierVerificationStatus.INFORMATION_REQUIRED, notes, authentication));
-    }
-
-    @PostMapping("/{id}/verification/verify")
-    public ResponseEntity<AdminSupplierResponse> verifySupplier(
-            @PathVariable Long id,
-            @RequestBody(required = false) com.synthora.seller.dto.SupplierVerificationPayload payload,
-            Authentication authentication) {
-        String notes = payload != null ? payload.notes() : "Supplier verified by Admin";
-        return ResponseEntity.ok(adminSupplierService.transitionSupplierVerification(id, com.synthora.seller.SupplierVerificationStatus.VERIFIED, notes, authentication));
-    }
-
-    @PostMapping("/{id}/verification/reject")
-    public ResponseEntity<AdminSupplierResponse> rejectSupplier(
-            @PathVariable Long id,
-            @RequestBody com.synthora.seller.dto.SupplierVerificationPayload payload,
-            Authentication authentication) {
-        String notes = payload != null ? payload.notes() : "Supplier verification rejected";
-        return ResponseEntity.ok(adminSupplierService.transitionSupplierVerification(id, com.synthora.seller.SupplierVerificationStatus.REJECTED, notes, authentication));
-    }
-
-    @PostMapping("/{id}/verification/suspend")
-    public ResponseEntity<AdminSupplierResponse> suspendSupplier(
-            @PathVariable Long id,
-            @RequestBody com.synthora.seller.dto.SupplierVerificationPayload payload,
-            Authentication authentication) {
-        String notes = payload != null ? payload.notes() : "Supplier verification suspended";
-        return ResponseEntity.ok(adminSupplierService.transitionSupplierVerification(id, com.synthora.seller.SupplierVerificationStatus.SUSPENDED, notes, authentication));
     }
 }

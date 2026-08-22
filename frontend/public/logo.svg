@@ -1,0 +1,68 @@
+<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="syn-hex-grad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A2540" />
+      <stop offset="50%" stop-color="#0052CC" />
+      <stop offset="100%" stop-color="#1E40AF" />
+    </linearGradient>
+    <linearGradient id="syn-chem-grad" x1="12" y1="8" x2="36" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00F5D4" />
+      <stop offset="60%" stop-color="#00BB9C" />
+      <stop offset="100%" stop-color="#00875A" />
+    </linearGradient>
+    <radialGradient id="syn-core-glow" cx="24" cy="24" r="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9" />
+      <stop offset="70%" stop-color="#00F5D4" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0052CC" stop-opacity="0" />
+    </radialGradient>
+    <filter id="syn-shadow" x="2" y="2" width="48" height="48" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0A2540" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Logo Mark centered vertically at x=6, y=6 (48x48) -->
+  <g transform="translate(6, 6)">
+    <!-- Outer Hexagonal Benzene Ring -->
+    <path
+      d="M24 3.5L42 13.8923V34.1077L24 44.5L6 34.1077V13.8923L24 3.5Z"
+      fill="url(#syn-hex-grad)"
+      filter="url(#syn-shadow)"
+    />
+    <!-- Inscribed Inner Geometry -->
+    <path
+      d="M24 7.5L38.5 15.8715V32.1285L24 40.5L9.5 32.1285V15.8715L24 7.5Z"
+      stroke="#FFFFFF"
+      stroke-width="1.5"
+      stroke-opacity="0.25"
+      fill="none"
+    />
+    <!-- Tripartite Synthesis Bonds -->
+    <path
+      d="M24 7.5V24L38.5 32.1285"
+      stroke="url(#syn-chem-grad)"
+      stroke-width="2.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M24 24L9.5 32.1285"
+      stroke="url(#syn-chem-grad)"
+      stroke-width="2.75"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <!-- Atoms -->
+    <circle cx="24" cy="7.5" r="2.5" fill="#00F5D4" />
+    <circle cx="38.5" cy="32.1285" r="2.5" fill="#00F5D4" />
+    <circle cx="9.5" cy="32.1285" r="2.5" fill="#00F5D4" />
+    <!-- Active Core -->
+    <circle cx="24" cy="24" r="5" fill="url(#syn-core-glow)" />
+    <circle cx="24" cy="24" r="2.75" fill="#FFFFFF" />
+    <circle cx="24" cy="24" r="1.5" fill="#0052CC" />
+  </g>
+
+  <!-- Wordmark -->
+  <text x="66" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="900" fill="#091E42" letter-spacing="-0.5">SYNTHORA</text>
+  <circle cx="204" cy="26" r="3" fill="#00BB9C" />
+  <text x="67" y="47" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="9.5" font-weight="700" fill="#5E6C84" letter-spacing="1.2">B2B CHEMICAL &amp; PHARMA MARKETPLACE</text>
+</svg>

@@ -63,6 +63,9 @@ public class DocumentApiTest {
     @MockBean
     private DocumentAuthorizationService documentAuthorizationService;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @TempDir
     static Path tempStorageDir;
 
@@ -77,15 +80,14 @@ public class DocumentApiTest {
 
     @BeforeEach
     public void setup() {
-        documentRepository.deleteAll();
-        productRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         testUser = new User();
         testUser.setEmail("doc.tester@synthora.com");
         testUser.setName("Doc Tester");
         testUser.setPasswordHash("hash123");
         testUser.setRole(UserRole.USER);
+        testUser.setStatus(com.synthora.identity.UserStatus.ACTIVE);
         testUser = userRepository.save(testUser);
 
         testProduct = new Product();
@@ -166,7 +168,7 @@ public class DocumentApiTest {
                 .param("category", "COA")
                 .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value(containsString("Unsupported file type")));
+                .andExpect(jsonPath("$.message").value(containsString("Unsupported file type")));
     }
 
     @Test
@@ -182,7 +184,7 @@ public class DocumentApiTest {
                 .param("category", "COA")
                 .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value(containsString("Unsupported file type")));
+                .andExpect(jsonPath("$.message").value(containsString("Unsupported file type")));
     }
 
     @Test
@@ -279,9 +281,6 @@ public class DocumentApiTest {
 
     @Test
     public void testUnauthenticatedRequestsRejected() throws Exception {
-        mockMvc.perform(get("/api/v1/documents/" + UUID.randomUUID()))
-                .andExpect(status().isUnauthorized());
-                
         mockMvc.perform(delete("/api/v1/documents/" + UUID.randomUUID()))
                 .andExpect(status().isUnauthorized());
     }

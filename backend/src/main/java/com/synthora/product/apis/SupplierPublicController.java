@@ -4,12 +4,17 @@ import com.synthora.common.ResourceNotFoundException;
 import com.synthora.product.Supplier;
 import com.synthora.product.SupplierRepository;
 import com.synthora.product.SupplierSpecification;
+import com.synthora.product.dto.SupplierPerformanceResponse;
 import com.synthora.product.dto.SupplierPublicResponse;
 import com.synthora.seller.SellerProfile;
 import com.synthora.seller.SupplierIdentityResolver;
+import com.synthora.seller.SupplierPerformanceService;
 import com.synthora.identity.User;
 import com.synthora.product.Product;
 import com.synthora.product.ProductRepository;
+import com.synthora.product.MasterProduct;
+import com.synthora.product.ProductCategory;
+import com.synthora.product.SupplierOffering;
 import com.synthora.product.dto.SupplierProductPublicResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,13 +41,22 @@ public class SupplierPublicController {
     private final SupplierRepository supplierRepository;
     private final SupplierIdentityResolver identityResolver;
     private final ProductRepository productRepository;
+    private final com.synthora.product.SupplierOfferingRepository supplierOfferingRepository;
+    private final com.synthora.document.storage.StorageService storageService;
+    private final SupplierPerformanceService supplierPerformanceService;
 
     public SupplierPublicController(SupplierRepository supplierRepository,
                                     SupplierIdentityResolver identityResolver,
-                                    ProductRepository productRepository) {
+                                    ProductRepository productRepository,
+                                    com.synthora.product.SupplierOfferingRepository supplierOfferingRepository,
+                                    com.synthora.document.storage.StorageService storageService,
+                                    SupplierPerformanceService supplierPerformanceService) {
         this.supplierRepository = supplierRepository;
         this.identityResolver = identityResolver;
         this.productRepository = productRepository;
+        this.supplierOfferingRepository = supplierOfferingRepository;
+        this.storageService = storageService;
+        this.supplierPerformanceService = supplierPerformanceService;
     }
 
     private static final java.util.Set<String> ALLOWED_SUPPLIER_SORT_FIELDS = java.util.Set.of(
@@ -89,8 +103,17 @@ public class SupplierPublicController {
         Map<User, SellerProfile> profileMap = profiles.stream()
                 .collect(Collectors.toMap(SellerProfile::getUser, p -> p));
 
-        Page<SupplierPublicResponse> responsePage = supplierPage.map(supplier ->
-                mapToResponse(supplier, Optional.ofNullable(supplier.getUser() != null ? profileMap.get(supplier.getUser()) : null)));
+        List<Long> supplierIds = supplierPage.getContent().stream()
+                .map(Supplier::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        Map<Long, SupplierPerformanceResponse> performanceMap = supplierPerformanceService.getBulkSupplierPerformance(supplierIds);
+
+        Page<SupplierPublicResponse> responsePage = supplierPage.map(supplier -> {
+            Optional<SellerProfile> profileOpt = Optional.ofNullable(supplier.getUser() != null ? profileMap.get(supplier.getUser()) : null);
+            SupplierPerformanceResponse perf = performanceMap.get(supplier.getId());
+            return mapToResponse(supplier, profileOpt, perf);
+        });
 
         return ResponseEntity.ok(responsePage);
     }
@@ -105,10 +128,50 @@ public class SupplierPublicController {
             profileOpt = identityResolver.resolveEditableProfile(supplier.getUser());
         }
 
-        return ResponseEntity.ok(mapToResponse(supplier, profileOpt));
+        SupplierPerformanceResponse perf = supplierPerformanceService.getSupplierPerformance(id);
+        return ResponseEntity.ok(mapToResponse(supplier, profileOpt, perf));
     }
 
-    private SupplierPublicResponse mapToResponse(Supplier supplier, Optional<SellerProfile> profileOpt) {
+    @GetMapping("/{id}/performance")
+    public ResponseEntity<SupplierPerformanceResponse> getSupplierPerformance(@PathVariable Long id) {
+        if (!supplierRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Supplier not found: " + id);
+        }
+        return ResponseEntity.ok(supplierPerformanceService.getSupplierPerformance(id));
+    }
+
+    @GetMapping("/{id}/logo")
+    public ResponseEntity<org.springframework.core.io.Resource> getSupplierLogo(@PathVariable Long id) {
+        Supplier supplier = supplierRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + id));
+
+        if (supplier.getLogoStoragePath() == null || supplier.getLogoStoragePath().isBlank()) {
+            throw new ResourceNotFoundException("Supplier logo not found for supplier: " + id);
+        }
+
+        if (!storageService.exists(supplier.getLogoStoragePath())) {
+            throw new ResourceNotFoundException("Supplier logo file does not exist in storage: " + id);
+        }
+
+        org.springframework.core.io.Resource resource = storageService.loadAsResource(supplier.getLogoStoragePath());
+        String contentType = supplier.getLogoContentType() != null && !supplier.getLogoContentType().isBlank()
+                ? supplier.getLogoContentType()
+                : org.springframework.http.MediaType.IMAGE_PNG_VALUE;
+
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .header("X-Content-Type-Options", "nosniff")
+                .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                .body(resource);
+    }
+
+    private SupplierPublicResponse mapToResponse(Supplier supplier, Optional<SellerProfile> profileOpt, SupplierPerformanceResponse perf) {
+        Integer calculatedRate = perf != null ? perf.responseRate() : supplier.getResponseRate();
+        Long avgResponseTime = perf != null ? perf.averageResponseTimeSeconds() : null;
+        String formattedTime = perf != null ? perf.formattedResponseTime() : null;
+        Long eligible = perf != null ? perf.eligibleRfqs() : null;
+        Long responded = perf != null ? perf.respondedRfqs() : null;
+
         return new SupplierPublicResponse(
                 supplier.getId(),
                 supplier.getName(),
@@ -118,7 +181,11 @@ public class SupplierPublicController {
                 supplier.getLogoUrl(),
                 supplier.getVerified(),
                 supplier.getYearsInBusiness(),
-                supplier.getResponseRate(),
+                calculatedRate,
+                avgResponseTime,
+                formattedTime,
+                eligible,
+                responded,
                 supplier.getExportReady(),
                 profileOpt.map(SellerProfile::getAboutCompany).orElse(null),
                 profileOpt.map(SellerProfile::getWebsite).orElse(null),
@@ -152,6 +219,32 @@ public class SupplierPublicController {
         }
         Pageable safePageable = org.springframework.data.domain.PageRequest.of(page, size, Sort.by(safeOrders));
 
+        // 1. Check active SupplierOffering records first
+        Page<SupplierOffering> offerings = supplierOfferingRepository.findBySupplierId(id, safePageable);
+        if (offerings.hasContent()) {
+            Page<SupplierProductPublicResponse> responsePage = offerings.map(offering -> {
+                MasterProduct mp = offering.getMasterProduct();
+                ProductCategory cat = mp != null && mp.getCategory() != null ? mp.getCategory() : ProductCategory.API;
+                return new SupplierProductPublicResponse(
+                        mp.getId(),
+                        mp.getName(),
+                        mp.getDescription(),
+                        cat,
+                        mp.getCasNumber(),
+                        mp.getMolecularFormula(),
+                        offering.getPurity(),
+                        offering.getGrade(),
+                        offering.getMoqKg(),
+                        offering.getPackaging(),
+                        offering.getLeadTimeDays(),
+                        offering.getAvailabilityStatus(),
+                        offering.getExportReady()
+                );
+            });
+            return ResponseEntity.ok(responsePage);
+        }
+
+        // 2. Legacy fallback
         if (supplier.getUser() == null ||
                 supplier.getUser().getStatus() == com.synthora.identity.UserStatus.SUSPENDED ||
                 supplier.getUser().getDeletedAt() != null) {
@@ -161,13 +254,7 @@ public class SupplierPublicController {
         Page<Product> products = productRepository.findBySellerId(supplier.getUser().getId(), safePageable);
         
         Page<SupplierProductPublicResponse> responsePage = products
-            .map(product -> {
-                if (product.getAvailabilityStatus() != null &&
-                        ("HIDDEN".equalsIgnoreCase(product.getAvailabilityStatus()) ||
-                         "DISCONTINUED".equalsIgnoreCase(product.getAvailabilityStatus()))) {
-                    return null;
-                }
-                return new SupplierProductPublicResponse(
+            .map(product -> new SupplierProductPublicResponse(
                     product.getId(),
                     product.getName(),
                     product.getDescription(),
@@ -181,8 +268,7 @@ public class SupplierPublicController {
                     product.getLeadTimeDays(),
                     product.getAvailabilityStatus(),
                     product.getExportReady()
-                );
-            });
+            ));
 
         return ResponseEntity.ok(responsePage);
     }

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Phone, Mail, MapPin, ShieldCheck, Building2, Hexagon } from "lucide-react";
+import { Phone, Mail, MapPin, ShieldCheck, Building2 } from "lucide-react";
+import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
 export function Footer() {
   return (
@@ -9,15 +10,12 @@ export function Footer() {
           
           {/* Brand & Enterprise Procurement Contacts (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="relative flex items-center justify-center w-8 h-8 text-teal-400">
-                <Hexagon className="w-8 h-8 fill-current absolute" />
-                <Hexagon className="w-3.5 h-3.5 text-[#0A192F] absolute" strokeWidth={3} />
-              </div>
-              <span className="text-xl font-extrabold tracking-tight text-white">
-                Synthora
-              </span>
-            </Link>
+            <SynthoraLogo
+              href="/"
+              variant="dark"
+              size="lg"
+              subtitle="Enterprise Chemical Sourcing"
+            />
 
             <p className="text-slate-400 leading-relaxed max-w-sm text-sm">
               Enterprise B2B Marketplace for APIs, Pharmaceutical Intermediates, Solvents, & Specialty Chemicals. Connecting verified chemical manufacturers and institutional buyers worldwide.

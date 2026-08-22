@@ -20,7 +20,7 @@ export function resolveNotificationRoute(
       case "SUPPLIER_OFFERING":
         return `/dashboard/admin/catalog/offerings/${entityId}`;
       case "SUPPLIER":
-        return `/dashboard/admin/catalog/verification/${entityId}`;
+        return `/dashboard/admin/suppliers/verification/${entityId}`;
       case "PRODUCT_REQUEST":
         return `/dashboard/admin/catalog/requests`;
       case "MASTER_PRODUCT":

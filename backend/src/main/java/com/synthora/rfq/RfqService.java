@@ -127,20 +127,36 @@ public class RfqService {
         User buyer = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        UUID targetMasterProductId = request.masterProductId();
+        if (buyer.getStatus() != null && buyer.getStatus() != com.synthora.identity.UserStatus.ACTIVE) {
+            throw new IllegalStateException("Buyer account is not active.");
+        }
+
+        final UUID requestedMasterProductId = request.masterProductId();
         UUID targetOfferingId = request.supplierOfferingId();
 
-        // 1. Supplier Offering & Identity Spoofing Validation
+        // 1. Master Product Validation
+        if (requestedMasterProductId != null) {
+            MasterProduct masterProduct = masterProductRepository.findById(requestedMasterProductId)
+                    .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + requestedMasterProductId));
+
+            if (!"ACTIVE".equalsIgnoreCase(masterProduct.getStatus())) {
+                throw new IllegalArgumentException("Cannot create RFQ for inactive MasterProduct: " + requestedMasterProductId);
+            }
+        }
+
+        UUID derivedMasterProductId = requestedMasterProductId;
+
+        // 2. Supplier Offering & Identity Spoofing Validation
         if (targetOfferingId != null) {
             SupplierOffering offering = supplierOfferingRepository.findById(targetOfferingId)
                     .orElseThrow(() -> new ResourceNotFoundException("SupplierOffering not found: " + targetOfferingId));
 
             if (!"ACTIVE".equalsIgnoreCase(offering.getAvailabilityStatus()) && !"AVAILABLE".equalsIgnoreCase(offering.getAvailabilityStatus())) {
-                throw new IllegalStateException("Cannot create RFQ for inactive SupplierOffering: " + targetOfferingId);
+                throw new IllegalArgumentException("Cannot create RFQ for inactive SupplierOffering: " + targetOfferingId);
             }
 
             if (!"APPROVED".equalsIgnoreCase(offering.getModerationStatus())) {
-                throw new IllegalStateException("Cannot create RFQ for unapproved SupplierOffering: " + targetOfferingId);
+                throw new IllegalArgumentException("Cannot create RFQ for unapproved SupplierOffering: " + targetOfferingId);
             }
 
             // Zero-Trust Spoofing Check
@@ -148,16 +164,25 @@ public class RfqService {
                 throw new IllegalArgumentException("Supplier ID " + request.supplierId() + " does not match SupplierOffering owner ID " + offering.getSupplier().getId());
             }
 
-            if (targetMasterProductId != null && offering.getMasterProduct() != null && !offering.getMasterProduct().getId().equals(targetMasterProductId)) {
-                throw new IllegalArgumentException("MasterProduct ID " + targetMasterProductId + " does not match SupplierOffering MasterProduct ID " + offering.getMasterProduct().getId());
+            if (requestedMasterProductId != null && offering.getMasterProduct() != null && !offering.getMasterProduct().getId().equals(requestedMasterProductId)) {
+                throw new IllegalArgumentException("MasterProduct ID " + requestedMasterProductId + " does not match SupplierOffering MasterProduct ID " + offering.getMasterProduct().getId());
             }
 
-            if (targetMasterProductId == null && offering.getMasterProduct() != null) {
-                targetMasterProductId = offering.getMasterProduct().getId();
+            if (derivedMasterProductId == null && offering.getMasterProduct() != null) {
+                derivedMasterProductId = offering.getMasterProduct().getId();
             }
         }
 
-        // 2. Multi-Supplier Sourcing Resolution
+        final UUID targetMasterProductId = derivedMasterProductId;
+
+        // 3. Resolve Product ID
+        UUID resolvedProdId = request.productId();
+        if (resolvedProdId == null && targetMasterProductId == null && targetOfferingId == null) {
+            throw new IllegalArgumentException("A valid product, master chemical, or supplier offering must be specified.");
+        }
+        final UUID finalProductId = resolvedProdId;
+
+        // 4. Multi-Supplier Sourcing Resolution
         List<Long> targetSuppliers = new ArrayList<>();
         if (request.targetSupplierIds() != null && !request.targetSupplierIds().isEmpty()) {
             targetSuppliers.addAll(request.targetSupplierIds());
@@ -171,11 +196,11 @@ public class RfqService {
                 ? LocalDateTime.now().plusDays(request.expiryDays())
                 : null;
 
-        // 3. Instantiate Parent SourcingRequest
+        // 5. Instantiate Parent SourcingRequest
         SourcingRequest sourcingRequest = new SourcingRequest();
         sourcingRequest.setBuyerId(buyer.getId());
         sourcingRequest.setMasterProductId(targetMasterProductId);
-        sourcingRequest.setProductId(request.productId());
+        sourcingRequest.setProductId(finalProductId);
         sourcingRequest.setTargetQuantity(request.quantity());
         sourcingRequest.setUnit(request.unit());
         sourcingRequest.setStatus(SourcingRequestStatus.OPEN);
@@ -188,11 +213,15 @@ public class RfqService {
             Supplier supp = supplierRepository.findById(sId)
                     .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + sId));
 
+            if (supp.getUser() != null && supp.getUser().getStatus() != null && supp.getUser().getStatus() != com.synthora.identity.UserStatus.ACTIVE) {
+                throw new IllegalStateException("Supplier account is inactive: " + sId);
+            }
+
             Rfq rfq = new Rfq();
             rfq.setSourcingRequestId(savedSourcingReq.getId());
             rfq.setSourcingRequestReference(savedSourcingReq.getSourcingRequestReference());
             rfq.setBuyerId(buyer.getId());
-            rfq.setProductId(request.productId());
+            rfq.setProductId(finalProductId);
             rfq.setMasterProductId(targetMasterProductId);
             rfq.setSupplierOfferingId(targetOfferingId);
             rfq.setSupplierId(supp.getId());
@@ -227,17 +256,29 @@ public class RfqService {
             return List.of();
         }
 
-        Set<UUID> productIds = rfqs.stream().map(Rfq::getProductId).collect(Collectors.toSet());
-        Set<Long> supplierIds = rfqs.stream().map(Rfq::getSupplierId).collect(Collectors.toSet());
+        Set<UUID> productIds = rfqs.stream().map(Rfq::getProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<UUID> masterProductIds = rfqs.stream().map(Rfq::getMasterProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<Long> supplierIds = rfqs.stream().map(Rfq::getSupplierId).filter(Objects::nonNull).collect(Collectors.toSet());
 
-        Map<UUID, String> productNames = productRepository.findAllById(productIds).stream()
+        Map<UUID, String> productNames = productIds.isEmpty() ? Collections.emptyMap() : productRepository.findAllById(productIds).stream()
                 .collect(Collectors.toMap(Product::getId, Product::getName, (a, b) -> a));
-        Map<Long, String> supplierNames = supplierRepository.findAllById(supplierIds).stream()
+        Map<UUID, String> masterProductNames = masterProductIds.isEmpty() ? Collections.emptyMap() : masterProductRepository.findAllById(masterProductIds).stream()
+                .collect(Collectors.toMap(MasterProduct::getId, MasterProduct::getName, (a, b) -> a));
+        Map<Long, String> supplierNames = supplierIds.isEmpty() ? Collections.emptyMap() : supplierRepository.findAllById(supplierIds).stream()
                 .collect(Collectors.toMap(Supplier::getId, Supplier::getName, (a, b) -> a));
 
         return rfqs.stream().map(rfq -> {
             String rfqRef = deriveRfqReference(rfq);
-            String prodName = productNames.getOrDefault(rfq.getProductId(), "Specialty Chemical Product");
+            String prodName = null;
+            if (rfq.getMasterProductId() != null) {
+                prodName = masterProductNames.get(rfq.getMasterProductId());
+            }
+            if (prodName == null && rfq.getProductId() != null) {
+                prodName = productNames.get(rfq.getProductId());
+            }
+            if (prodName == null) {
+                prodName = "Specialty Chemical Product";
+            }
             String suppName = supplierNames.getOrDefault(rfq.getSupplierId(), "Supplier #" + rfq.getSupplierId());
 
             return new RfqResponse(
@@ -386,17 +427,29 @@ public class RfqService {
             return List.of();
         }
 
-        Set<UUID> productIds = rfqs.stream().map(Rfq::getProductId).collect(Collectors.toSet());
-        Set<UUID> buyerIds = rfqs.stream().map(Rfq::getBuyerId).collect(Collectors.toSet());
+        Set<UUID> productIds = rfqs.stream().map(Rfq::getProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<UUID> masterProductIds = rfqs.stream().map(Rfq::getMasterProductId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<UUID> buyerIds = rfqs.stream().map(Rfq::getBuyerId).filter(Objects::nonNull).collect(Collectors.toSet());
 
-        Map<UUID, String> productNames = productRepository.findAllById(productIds).stream()
+        Map<UUID, String> productNames = productIds.isEmpty() ? Collections.emptyMap() : productRepository.findAllById(productIds).stream()
                 .collect(Collectors.toMap(Product::getId, Product::getName, (a, b) -> a));
-        Map<UUID, String> buyerNames = userRepository.findAllById(buyerIds).stream()
+        Map<UUID, String> masterProductNames = masterProductIds.isEmpty() ? Collections.emptyMap() : masterProductRepository.findAllById(masterProductIds).stream()
+                .collect(Collectors.toMap(MasterProduct::getId, MasterProduct::getName, (a, b) -> a));
+        Map<UUID, String> buyerNames = buyerIds.isEmpty() ? Collections.emptyMap() : userRepository.findAllById(buyerIds).stream()
                 .collect(Collectors.toMap(User::getId, User::getName, (a, b) -> a));
 
         return rfqs.stream().map(rfq -> {
             String rfqRef = deriveRfqReference(rfq);
-            String prodName = productNames.getOrDefault(rfq.getProductId(), "Specialty Chemical Product");
+            String prodName = null;
+            if (rfq.getMasterProductId() != null) {
+                prodName = masterProductNames.get(rfq.getMasterProductId());
+            }
+            if (prodName == null && rfq.getProductId() != null) {
+                prodName = productNames.get(rfq.getProductId());
+            }
+            if (prodName == null) {
+                prodName = "Specialty Chemical Product";
+            }
             String bName = buyerNames.getOrDefault(rfq.getBuyerId(), "Buyer Organization");
 
             return new RfqResponse(
@@ -523,11 +576,19 @@ public class RfqService {
         User supplierUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        if (supplierUser.getStatus() != null && supplierUser.getStatus() != com.synthora.identity.UserStatus.ACTIVE) {
+            throw new IllegalStateException("Supplier user is inactive.");
+        }
+
         Supplier supplier = supplierRepository.findByUser(supplierUser)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found"));
 
         Rfq rfq = rfqRepository.findByIdAndSupplierIdForUpdate(rfqId, supplier.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("RFQ not found"));
+
+        if (rfq.getStatus() == RfqStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot submit quotation for cancelled RFQ.");
+        }
 
         validateRfqActive(rfq, "submit quotation");
 
@@ -662,6 +723,17 @@ public class RfqService {
 
         com.synthora.rfq.quotation.Quotation quotation = quotationRepository.findByIdAndRfqId(quotationId, rfq.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Quotation not found"));
+
+        if (quotation.getValidityDate() != null && quotation.getValidityDate().isBefore(java.time.LocalDate.now())) {
+            throw new IllegalStateException("Cannot accept an expired quotation.");
+        }
+
+        Supplier supplier = supplierRepository.findById(rfq.getSupplierId())
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + rfq.getSupplierId()));
+
+        if (supplier.getUser() != null && supplier.getUser().getStatus() != null && supplier.getUser().getStatus() != com.synthora.identity.UserStatus.ACTIVE) {
+            throw new IllegalStateException("Supplier account is not active.");
+        }
 
         Integer maxVersion = quotationRepository.findMaxQuotationVersionByRfqId(rfq.getId());
         if (!quotation.getQuotationVersion().equals(maxVersion)) {

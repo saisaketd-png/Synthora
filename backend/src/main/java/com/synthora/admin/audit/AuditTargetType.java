@@ -11,6 +11,7 @@ public enum AuditTargetType {
     MASTER_PRODUCT,
     PRODUCT_REQUEST,
     PRODUCT_SUPPLIER,
+    SUPPLIER_OFFERING,
     DOCUMENT,
     RFQ,
     PURCHASE_ORDER

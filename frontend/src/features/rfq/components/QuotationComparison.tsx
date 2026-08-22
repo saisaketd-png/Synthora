@@ -163,6 +163,7 @@ export function QuotationComparison({
         {quotations.map((q, idx) => {
           const isLatest = idx === 0;
           const isBuyerActor = q.actorType === "BUYER";
+          const isExpired = q.validityDate ? new Date(q.validityDate) < new Date(new Date().setHours(0, 0, 0, 0)) : false;
 
           return (
             <React.Fragment key={q.id}>
@@ -180,7 +181,9 @@ export function QuotationComparison({
               <div
                 className={`rounded-2xl border transition-all p-6 ${
                   isLatest
-                    ? "border-teal-500/80 bg-white shadow-lg ring-1 ring-teal-500/30"
+                    ? isExpired
+                      ? "border-rose-300 bg-rose-50/30 shadow-md ring-1 ring-rose-300"
+                      : "border-teal-500/80 bg-white shadow-lg ring-1 ring-teal-500/30"
                     : "border-slate-200 bg-slate-50/60 opacity-85"
                 }`}
               >
@@ -204,11 +207,20 @@ export function QuotationComparison({
                     </span>
 
                     {/* Latest Badge */}
-                    {isLatest ? (
+                    {isLatest && !isExpired && (
                       <span className="text-[9px] font-bold bg-teal-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
                         CURRENT / LATEST
                       </span>
-                    ) : (
+                    )}
+
+                    {/* Expired Badge */}
+                    {isExpired && (
+                      <span className="text-[9px] font-bold bg-rose-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs animate-pulse">
+                        QUOTATION EXPIRED
+                      </span>
+                    )}
+
+                    {!isLatest && (
                       <span className="text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded uppercase tracking-wider">
                         SUPERSEDED
                       </span>
@@ -226,7 +238,7 @@ export function QuotationComparison({
                 </div>
 
                 {/* Commercial Content Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-4">
                   <div>
                     <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
                       UNIT PRICE
@@ -256,6 +268,15 @@ export function QuotationComparison({
 
                   <div>
                     <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
+                      VALID UNTIL
+                    </span>
+                    <span className={`font-mono text-xs font-bold ${isExpired ? "text-rose-600" : "text-slate-800"}`}>
+                      {q.validityDate || "30 Days"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
                       PACKAGING
                     </span>
                     <span className="text-xs font-bold text-slate-800 truncate block">
@@ -278,36 +299,52 @@ export function QuotationComparison({
 
                 {/* Actions for Latest Revision */}
                 {isLatest && canBuyerAct && (
-                  <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-end gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDecisionError(null);
-                        setModalMode("accept");
-                      }}
-                      className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs"
-                    >
-                      ACCEPT QUOTATION →
-                    </button>
-                    {onOpenCounterOffer && (
+                  <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                    {isExpired ? (
+                      <div className="text-xs font-medium text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                        <span>⚠️</span>
+                        <span>This quotation expired on {q.validityDate}. Acceptance is locked.</span>
+                      </div>
+                    ) : (
+                      <div />
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-3 ml-auto">
                       <button
                         type="button"
-                        onClick={onOpenCounterOffer}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs"
+                        disabled={isExpired}
+                        onClick={() => {
+                          setDecisionError(null);
+                          setModalMode("accept");
+                        }}
+                        className={`px-4 py-2 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs ${
+                          isExpired
+                            ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+                            : "bg-teal-600 hover:bg-teal-700 text-white"
+                        }`}
                       >
-                        COUNTER OFFER
+                        ACCEPT QUOTATION →
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDecisionError(null);
-                        setModalMode("reject");
-                      }}
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors"
-                    >
-                      REJECT QUOTATION
-                    </button>
+                      {onOpenCounterOffer && (
+                        <button
+                          type="button"
+                          onClick={onOpenCounterOffer}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-colors shadow-xs"
+                        >
+                          COUNTER OFFER
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDecisionError(null);
+                          setModalMode("reject");
+                        }}
+                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-xl transition-colors"
+                      >
+                        REJECT QUOTATION
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

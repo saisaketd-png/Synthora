@@ -84,8 +84,8 @@ export default function BuyerRfqDetailPage() {
       ]);
 
       const [productData, suppliersData] = await Promise.all([
-        getProductDetail(rfqData.productId).catch(() => null),
-        getProductSuppliers(rfqData.productId).catch(() => [] as Supplier[]),
+        rfqData.productId ? getProductDetail(rfqData.productId).catch(() => null) : Promise.resolve(null),
+        rfqData.productId ? getProductSuppliers(rfqData.productId).catch(() => [] as Supplier[]) : Promise.resolve([] as Supplier[]),
       ]);
 
       const matchingSupplier = suppliersData?.find(

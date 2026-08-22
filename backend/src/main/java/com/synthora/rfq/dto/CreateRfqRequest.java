@@ -12,7 +12,6 @@ import java.util.UUID;
 
 public record CreateRfqRequest(
 
-        @NotNull(message = "Product ID is required")
         UUID productId,
 
         UUID masterProductId,

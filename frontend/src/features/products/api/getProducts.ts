@@ -1,33 +1,41 @@
+import { resolveApiUrl } from "@/lib/apiUrl";
 import { ProductPage, ProductQueryParams } from "../types/product";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
 
 /**
  * API Client for GET /api/v1/public/master-products
  * Primary source for the public Chemical Catalog (/products).
  */
 export async function getProducts(params: ProductQueryParams = {}): Promise<ProductPage> {
-  const url = new URL(`${API_URL}/api/v1/public/master-products`);
+  const searchParams = new URLSearchParams();
 
-  if (params.page !== undefined) url.searchParams.append("page", params.page.toString());
-  if (params.size !== undefined) url.searchParams.append("size", params.size.toString());
-  if (params.search) url.searchParams.append("query", params.search);
-  if (params.category) url.searchParams.append("category", params.category);
-  if (params.casNumber) url.searchParams.append("casNumber", params.casNumber);
-  if (params.verified !== undefined) url.searchParams.append("verifiedSupplier", params.verified.toString());
-  if (params.purityMin) url.searchParams.append("minPurity", params.purityMin);
-  if (params.purityMax) url.searchParams.append("maxPurity", params.purityMax);
-  if (params.moqMin) url.searchParams.append("minMoq", params.moqMin);
-  if (params.moqMax) url.searchParams.append("maxMoq", params.moqMax);
-  if (params.inStock) url.searchParams.append("minStock", "1");
-  if (params.coa !== undefined) url.searchParams.append("coaAvailable", params.coa.toString());
-  if (params.msds !== undefined) url.searchParams.append("msdsAvailable", params.msds.toString());
-  if (params.exportReady !== undefined) url.searchParams.append("exportReady", params.exportReady.toString());
-  if (params.availability) url.searchParams.append("availabilityStatus", params.availability);
-  if (params.sort) url.searchParams.append("sort", params.sort);
+  if (params.page !== undefined) searchParams.append("page", params.page.toString());
+  if (params.size !== undefined) searchParams.append("size", params.size.toString());
+  if (params.search) searchParams.append("query", params.search);
+  if (params.category && params.category !== "ALL") searchParams.append("category", params.category);
+  if (params.casNumber) searchParams.append("casNumber", params.casNumber);
+  if (params.purityMin) searchParams.append("minPurity", params.purityMin);
+  if (params.purityMax) searchParams.append("maxPurity", params.purityMax);
+  if (params.grade) searchParams.append("grade", params.grade);
+  if (params.currency) searchParams.append("currency", params.currency);
+  if (params.maxPrice) searchParams.append("maxPrice", params.maxPrice);
+  if (params.moqMin) searchParams.append("minMoq", params.moqMin);
+  if (params.moqMax) searchParams.append("maxMoq", params.moqMax);
+  if (params.maxLeadTime) searchParams.append("maxLeadTime", params.maxLeadTime);
+  if (params.inStock || (params.minStock && Number(params.minStock) > 0)) {
+    searchParams.append("minStock", params.minStock || "1");
+  }
+  if (params.verified) searchParams.append("verifiedSupplier", "true");
+  if (params.coa) searchParams.append("coaAvailable", "true");
+  if (params.msds) searchParams.append("msdsAvailable", "true");
+  if (params.exportReady) searchParams.append("exportReady", "true");
+  if (params.availability) searchParams.append("availabilityStatus", params.availability);
+  if (params.sort) searchParams.append("sort", params.sort);
+
+  const queryStr = searchParams.toString();
+  const url = resolveApiUrl(`/api/v1/public/master-products${queryStr ? `?${queryStr}` : ""}`);
 
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       cache: "no-store",
     });
 
@@ -52,6 +60,7 @@ export async function getProducts(params: ProductQueryParams = {}): Promise<Prod
       molecularFormula: mp.molecularFormula,
       status: mp.status,
       offeringCount: mp.offeringCount || 0,
+      primaryImageUrl: mp.primaryImageUrl || null,
       price: mp.minPrice || 0,
       stock: mp.offeringCount > 0 ? 100 : 0,
       createdAt: mp.createdAt,

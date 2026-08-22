@@ -7,11 +7,27 @@ export interface SupplierPublicProfile {
   logoUrl: string | null;
   verified: boolean;
   yearsInBusiness: number;
-  responseRate: number;
+  responseRate: number | null;
+  averageResponseTimeSeconds?: number | null;
+  formattedResponseTime?: string | null;
+  eligibleRfqs?: number | null;
+  respondedRfqs?: number | null;
   exportReady: boolean;
   aboutCompany: string | null;
   website: string | null;
   certifications: string | null;
+}
+
+export interface SupplierPerformance {
+  supplierId: number;
+  responseRate: number | null;
+  averageResponseTimeSeconds: number | null;
+  formattedResponseTime: string | null;
+  totalRfqsReceived: number;
+  eligibleRfqs: number;
+  respondedRfqs: number;
+  unrespondedRfqs: number;
+  pendingRfqs: number;
 }
 
 export interface SellerProfile {
@@ -42,33 +58,33 @@ export interface UpdateSellerProfileRequest {
 }
 
 export interface SupplierProductPublicResponse {
-    id: string;
-    name: string;
-    description: string | null;
-    category: string;
-    casNumber: string | null;
-    molecularFormula: string | null;
-    purity: number | null;
-    grade: string | null;
-    moqKg: number | null;
-    packaging: string | null;
-    leadTimeDays: number | null;
-    availabilityStatus: string | null;
-    exportReady: boolean;
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  casNumber: string | null;
+  molecularFormula: string | null;
+  purity: number | null;
+  grade: string | null;
+  moqKg: number | null;
+  packaging: string | null;
+  leadTimeDays: number | null;
+  availabilityStatus: string | null;
+  exportReady: boolean;
 }
 
 export interface SupplierProductListResponse {
-    content: SupplierProductPublicResponse[];
-    totalElements: number;
-    totalPages: number;
-    size: number;
-    number: number;
+  content: SupplierProductPublicResponse[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
 }
 
 export interface SupplierProductQueryParams {
-    page?: number;
-    size?: number;
-    sort?: string;
+  page?: number;
+  size?: number;
+  sort?: string;
 }
 
 export interface SupplierDiscoveryResponse {

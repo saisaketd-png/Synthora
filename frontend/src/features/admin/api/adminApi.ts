@@ -11,13 +11,6 @@ import {
   UpdateSupplierExportReadyRequest,
   UpdateSupplierStatusRequest,
   SupplierFilterParams,
-  AdminProductResponse,
-  AdminProductDetailResponse,
-  AdminProductSupplierResponse,
-  UpdateProductAvailabilityRequest,
-  UpdateAdminProductRequest,
-  ProductSupplierRequest,
-  ProductFilterParams,
   AdminRfqResponse,
   AdminRfqDetailResponse,
   UpdateAdminRfqStatusRequest,
@@ -31,12 +24,15 @@ import {
 
 async function parseResponse<T>(res: Response, fallbackError: string): Promise<T> {
   if (!res.ok) {
-    let errorMessage = fallbackError;
+    let errorMessage = `${fallbackError} (HTTP ${res.status})`;
     try {
       const errorData = await res.json();
-      errorMessage = errorData.error || errorData.message || fallbackError;
+      errorMessage = errorData.error || errorData.message || errorMessage;
     } catch {
       // Ignore non-JSON error bodies
+    }
+    if (process.env.NODE_ENV !== "production") {
+      console.error(`[adminApi] Request failed with HTTP ${res.status}:`, errorMessage);
     }
     throw new Error(errorMessage);
   }
@@ -165,104 +161,7 @@ export async function updateAdminSupplierStatus(
 }
 
 // ---------------------------------------------------------------------------
-// 3. Product Moderation API Client
-// ---------------------------------------------------------------------------
-
-export async function getAdminProducts(
-  params: ProductFilterParams = {}
-): Promise<PaginatedResponse<AdminProductResponse>> {
-  const query = new URLSearchParams();
-  if (params.page !== undefined) query.set("page", String(params.page));
-  if (params.size !== undefined) query.set("size", String(params.size));
-  if (params.query) query.set("query", params.query);
-  if (params.category) query.set("category", params.category);
-  if (params.sellerId) query.set("sellerId", params.sellerId);
-  if (params.availabilityStatus) query.set("availabilityStatus", params.availabilityStatus);
-
-  const res = await authenticatedFetch(`/api/v1/admin/products?${query.toString()}`);
-  return parseResponse<PaginatedResponse<AdminProductResponse>>(res, "Failed to fetch products");
-}
-
-export async function getAdminProduct(id: string): Promise<AdminProductDetailResponse> {
-  const res = await authenticatedFetch(`/api/v1/admin/products/${id}`);
-  return parseResponse<AdminProductDetailResponse>(res, "Failed to fetch product details");
-}
-
-export async function updateAdminProduct(
-  id: string,
-  data: UpdateAdminProductRequest
-): Promise<AdminProductResponse> {
-  const res = await authenticatedFetch(`/api/v1/admin/products/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
-  return parseResponse<AdminProductResponse>(res, "Failed to update product");
-}
-
-export async function updateAdminProductAvailability(
-  id: string,
-  data: UpdateProductAvailabilityRequest
-): Promise<AdminProductResponse> {
-  const res = await authenticatedFetch(`/api/v1/admin/products/${id}/availability`, {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
-  return parseResponse<AdminProductResponse>(res, "Failed to moderate product availability");
-}
-
-export async function deactivateAdminProduct(id: string): Promise<AdminProductResponse> {
-  const res = await authenticatedFetch(`/api/v1/admin/products/${id}`, {
-    method: "DELETE",
-  });
-  return parseResponse<AdminProductResponse>(res, "Failed to deactivate product");
-}
-
-export async function getAdminProductSuppliers(
-  productId: string
-): Promise<AdminProductSupplierResponse[]> {
-  const res = await authenticatedFetch(`/api/v1/admin/products/${productId}/suppliers`);
-  return parseResponse<AdminProductSupplierResponse[]>(res, "Failed to fetch supplier offerings");
-}
-
-export async function updateAdminProductSupplier(
-  productId: string,
-  supplierId: number | string,
-  data: ProductSupplierRequest
-): Promise<AdminProductSupplierResponse> {
-  const res = await authenticatedFetch(
-    `/api/v1/admin/products/${productId}/suppliers/${supplierId}`,
-    {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }
-  );
-  return parseResponse<AdminProductSupplierResponse>(res, "Failed to update supplier offering");
-}
-
-export async function deleteAdminProductSupplier(
-  productId: string,
-  supplierId: number | string
-): Promise<void> {
-  const res = await authenticatedFetch(
-    `/api/v1/admin/products/${productId}/suppliers/${supplierId}`,
-    {
-      method: "DELETE",
-    }
-  );
-  if (!res.ok) {
-    let errorMessage = "Failed to delete supplier offering";
-    try {
-      const errorData = await res.json();
-      errorMessage = errorData.error || errorData.message || errorMessage;
-    } catch {
-      // Ignore non-JSON error
-    }
-    throw new Error(errorMessage);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// 4. Transaction Oversight API Client (RFQs & Purchase Orders)
+// 3. Transaction Oversight API Client (RFQs & Purchase Orders)
 // ---------------------------------------------------------------------------
 
 export async function getAdminRfqs(

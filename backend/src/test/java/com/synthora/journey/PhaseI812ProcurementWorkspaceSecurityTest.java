@@ -103,7 +103,7 @@ public class PhaseI812ProcurementWorkspaceSecurityTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         adminUser = new User(UUID.randomUUID(), "Admin User", "admin_p812@synthora.com", "9988776655", "$2a$10$hash", UserRole.ADMIN, UserStatus.ACTIVE);
         adminUser = userRepository.save(adminUser);
@@ -466,6 +466,6 @@ public class PhaseI812ProcurementWorkspaceSecurityTest {
 
         SecurityContextHolder.getContext().setAuthentication(buyerAuthA);
         assertThatThrownBy(() -> rfqService.createRfq(new CreateRfqRequest(masterProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("50"), "kg", "Notes"), buyerAuthA))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

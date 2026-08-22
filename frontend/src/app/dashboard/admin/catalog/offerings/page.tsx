@@ -205,18 +205,30 @@ export default function AdminOfferingGovernanceDashboardPage() {
                       </td>
                       <td className="px-4 py-3.5">
                         <strong className="text-slate-900 font-bold block">{off.supplierName}</strong>
-                        <span className="text-[10px] text-slate-400">Supplier ID: #{off.supplierId}</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="text-[10px] text-slate-400">Supplier #{off.supplierId}</span>
+                          <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 text-[9px] font-extrabold rounded">VERIFIED</span>
+                        </div>
                       </td>
                       <td className="px-4 py-3.5 font-mono">
                         <strong className="text-slate-900 font-bold block">{off.currency} {off.price?.toLocaleString()} / kg</strong>
                         <span className="text-[10px] text-slate-500">Stock: {off.stock} kg | MOQ: {off.moqKg || "N/A"} kg</span>
+                        <span className="text-[10px] text-slate-400 block">Lead: {off.leadTimeDays ? `${off.leadTimeDays}d` : "N/A"}</span>
                       </td>
                       <td className="px-4 py-3.5">
                         <span className="block font-bold text-slate-800">Purity: {off.purity ? `${off.purity}%` : "N/A"}</span>
                         <span className="text-[10px] text-slate-500 block">Grade: {off.grade || "N/A"}</span>
                         <div className="flex items-center gap-1 mt-0.5">
-                          {off.coaAvailable && <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 text-[9px] font-extrabold rounded">COA</span>}
-                          {off.msdsAvailable && <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 text-[9px] font-extrabold rounded">MSDS</span>}
+                          {off.coaAvailable ? (
+                            <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 text-[9px] font-extrabold rounded">COA: Avail</span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 bg-slate-100 text-slate-500 text-[9px] font-bold rounded">COA: None</span>
+                          )}
+                          {off.msdsAvailable ? (
+                            <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 text-[9px] font-extrabold rounded">MSDS: Avail</span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 bg-slate-100 text-slate-500 text-[9px] font-bold rounded">MSDS: None</span>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3.5 space-y-1">
@@ -234,9 +246,9 @@ export default function AdminOfferingGovernanceDashboardPage() {
                       <td className="px-4 py-3.5 text-right">
                         <Link
                           href={`/dashboard/admin/catalog/offerings/${off.id}`}
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
+                          className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-2xs"
                         >
-                          <Eye className="w-3.5 h-3.5" /> Inspect Offering
+                          <Eye className="w-3.5 h-3.5" /> Review
                         </Link>
                       </td>
                     </tr>

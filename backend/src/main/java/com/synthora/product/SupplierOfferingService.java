@@ -32,18 +32,24 @@ public class SupplierOfferingService {
     private final UserRepository userRepository;
     private final SupplierIdentityResolver identityResolver;
     private final NotificationService notificationService;
+    private final com.synthora.admin.audit.AuditService auditService;
+    private final com.synthora.seller.SupplierPerformanceService supplierPerformanceService;
 
     public SupplierOfferingService(
             SupplierOfferingRepository supplierOfferingRepository,
             MasterProductRepository masterProductRepository,
             UserRepository userRepository,
             SupplierIdentityResolver identityResolver,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            com.synthora.admin.audit.AuditService auditService,
+            com.synthora.seller.SupplierPerformanceService supplierPerformanceService) {
         this.supplierOfferingRepository = supplierOfferingRepository;
         this.masterProductRepository = masterProductRepository;
         this.userRepository = userRepository;
         this.identityResolver = identityResolver;
         this.notificationService = notificationService;
+        this.auditService = auditService;
+        this.supplierPerformanceService = supplierPerformanceService;
     }
 
     /**
@@ -100,6 +106,21 @@ public class SupplierOfferingService {
     public SupplierOfferingResponse getOfferingById(UUID offeringId) {
         SupplierOffering offering = supplierOfferingRepository.findById(offeringId)
                 .orElseThrow(() -> new ResourceNotFoundException("SupplierOffering not found: " + offeringId));
+        return toResponse(offering);
+    }
+
+    @Transactional(readOnly = true)
+    public SupplierOfferingResponse getOfferingById(UUID offeringId, Authentication authentication) {
+        User user = resolveUser(authentication);
+        SupplierOffering offering = supplierOfferingRepository.findById(offeringId)
+                .orElseThrow(() -> new ResourceNotFoundException("SupplierOffering not found: " + offeringId));
+
+        if (user.getRole() == UserRole.SUPPLIER) {
+            Supplier supplier = identityResolver.resolveOperationalSupplier(user);
+            if (!offering.getSupplier().getId().equals(supplier.getId())) {
+                throw new AccessDeniedException("You cannot access another supplier's offering");
+            }
+        }
         return toResponse(offering);
     }
 
@@ -209,6 +230,16 @@ public class SupplierOfferingService {
         if (notes != null) offering.setModerationNotes(notes);
         SupplierOffering saved = supplierOfferingRepository.save(offering);
 
+        // Audit Log
+        auditService.record(
+                authentication,
+                com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_APPROVED,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                saved.getId().toString(),
+                "Approved commercial offering for " + saved.getMasterProduct().getName() + " (Supplier: " + (saved.getSupplier() != null ? saved.getSupplier().getName() : "N/A") + "). Notes: " + (notes != null ? notes : "Approved"),
+                "127.0.0.1"
+        );
+
         // Notify Supplier User
         notifySupplier(saved, "Supplier Offering Approved", "Your commercial offering for " + saved.getMasterProduct().getName() + " has been approved for marketplace publication.");
         return toResponse(saved);
@@ -221,6 +252,15 @@ public class SupplierOfferingService {
         if (notes != null) offering.setModerationNotes(notes);
         SupplierOffering saved = supplierOfferingRepository.save(offering);
 
+        auditService.record(
+                authentication,
+                com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_REJECTED,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                saved.getId().toString(),
+                "Rejected commercial offering for " + saved.getMasterProduct().getName() + ". Reason: " + (notes != null ? notes : "Rejected"),
+                "127.0.0.1"
+        );
+
         notifySupplier(saved, "Supplier Offering Rejected", "Your commercial offering for " + saved.getMasterProduct().getName() + " was rejected by marketplace governance.");
         return toResponse(saved);
     }
@@ -231,6 +271,15 @@ public class SupplierOfferingService {
         offering.setModerationStatus("FLAGGED");
         if (notes != null) offering.setModerationNotes(notes);
         SupplierOffering saved = supplierOfferingRepository.save(offering);
+
+        auditService.record(
+                authentication,
+                com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_FLAGGED,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                saved.getId().toString(),
+                "Flagged commercial offering for " + saved.getMasterProduct().getName() + ". Reason: " + (notes != null ? notes : "Flagged"),
+                "127.0.0.1"
+        );
 
         notifySupplier(saved, "Supplier Offering Flagged", "Your commercial offering for " + saved.getMasterProduct().getName() + " requires attention. Reason: " + (notes != null ? notes : "Compliance review required."));
         return toResponse(saved);
@@ -243,6 +292,15 @@ public class SupplierOfferingService {
         if (notes != null) offering.setModerationNotes(notes);
         SupplierOffering saved = supplierOfferingRepository.save(offering);
 
+        auditService.record(
+                authentication,
+                com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_FLAGGED,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                saved.getId().toString(),
+                "Requested info for offering " + saved.getMasterProduct().getName() + ". Notes: " + (notes != null ? notes : "Information required"),
+                "127.0.0.1"
+        );
+
         notifySupplier(saved, "Offering Information Requested", "Marketplace governance requested update for " + saved.getMasterProduct().getName() + ": " + (notes != null ? notes : "Please review listing details."));
         return toResponse(saved);
     }
@@ -253,6 +311,15 @@ public class SupplierOfferingService {
         offering.setModerationStatus("SUSPENDED");
         if (notes != null) offering.setModerationNotes(notes);
         SupplierOffering saved = supplierOfferingRepository.save(offering);
+
+        auditService.record(
+                authentication,
+                com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_FLAGGED,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                saved.getId().toString(),
+                "Suspended offering " + saved.getMasterProduct().getName() + ". Reason: " + (notes != null ? notes : "Suspended"),
+                "127.0.0.1"
+        );
 
         notifySupplier(saved, "Supplier Offering Suspended", "Your commercial offering for " + saved.getMasterProduct().getName() + " has been suspended.");
         return toResponse(saved);
@@ -306,6 +373,11 @@ public class SupplierOfferingService {
 
     private SupplierOfferingResponse toResponse(SupplierOffering offering) {
         MasterProduct mp = offering.getMasterProduct();
+        com.synthora.product.dto.SupplierPerformanceResponse perf = null;
+        if (offering.getSupplier() != null && offering.getSupplier().getId() != null) {
+            perf = supplierPerformanceService.getSupplierPerformance(offering.getSupplier().getId());
+        }
+
         return new SupplierOfferingResponse(
                 offering.getId(),
                 mp.getId(),
@@ -330,6 +402,11 @@ public class SupplierOfferingService {
                 offering.getAvailabilityStatus(),
                 offering.getModerationStatus() != null ? offering.getModerationStatus() : "PENDING_REVIEW",
                 offering.getModerationNotes(),
+                offering.getSupplier() != null ? offering.getSupplier().getLogoUrl() : null,
+                offering.getSupplier() != null ? Boolean.TRUE.equals(offering.getSupplier().getVerified()) : false,
+                perf != null ? perf.responseRate() : null,
+                perf != null ? perf.averageResponseTimeSeconds() : null,
+                perf != null ? perf.formattedResponseTime() : null,
                 offering.getCreatedAt(),
                 offering.getUpdatedAt()
         );

@@ -31,11 +31,38 @@ public class PurchaseOrder {
     @Column(name = "supplier_id", nullable = false)
     private Long supplierId;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id")
     private UUID productId;
+
+    @Column(name = "master_product_id")
+    private UUID masterProductId;
+
+    @Column(name = "master_product_code", length = 50)
+    private String masterProductCode;
+
+    @Column(name = "supplier_offering_id")
+    private UUID supplierOfferingId;
+
+    @Column(name = "rfq_reference", length = 50)
+    private String rfqReference;
+
+    @Column(name = "quotation_reference", length = 50)
+    private String quotationReference;
+
+    @Column(name = "quotation_version")
+    private Integer quotationVersion;
 
     @Column(name = "product_name")
     private String productName;
+
+    @Column(precision = 5, scale = 2)
+    private BigDecimal purity;
+
+    @Column(length = 50)
+    private String grade;
+
+    @Column(length = 255)
+    private String packaging;
 
     @Column(nullable = false, precision = 18, scale = 2)
     private BigDecimal quantity;
@@ -54,6 +81,15 @@ public class PurchaseOrder {
 
     @Column(name = "agreed_lead_time_days")
     private Integer agreedLeadTimeDays;
+
+    @Column(name = "payment_terms", length = 100)
+    private String paymentTerms;
+
+    @Column(name = "delivery_terms", length = 100)
+    private String deliveryTerms;
+
+    @Column(length = 50)
+    private String incoterms;
 
     @Column(name = "shipping_address", nullable = false, columnDefinition = "TEXT")
     private String shippingAddress;
@@ -74,6 +110,9 @@ public class PurchaseOrder {
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
+    @Column(name = "confirmed_by", length = 100)
+    private String confirmedBy;
+
     @Column(name = "processing_at")
     private LocalDateTime processingAt;
 
@@ -83,11 +122,26 @@ public class PurchaseOrder {
     @Column(name = "delivered_at")
     private LocalDateTime deliveredAt;
 
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @Column(name = "rejected_at")
     private LocalDateTime rejectedAt;
 
+    @Column(name = "rejected_by", length = 100)
+    private String rejectedBy;
+
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
+
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+
+    @Column(name = "cancelled_by", length = 100)
+    private String cancelledBy;
+
+    @Column(name = "cancellation_reason", columnDefinition = "TEXT")
+    private String cancellationReason;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -295,6 +349,150 @@ public class PurchaseOrder {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+
+    public UUID getMasterProductId() {
+        return masterProductId;
+    }
+
+    public void setMasterProductId(UUID masterProductId) {
+        this.masterProductId = masterProductId;
+    }
+
+    public String getMasterProductCode() {
+        return masterProductCode;
+    }
+
+    public void setMasterProductCode(String masterProductCode) {
+        this.masterProductCode = masterProductCode;
+    }
+
+    public UUID getSupplierOfferingId() {
+        return supplierOfferingId;
+    }
+
+    public void setSupplierOfferingId(UUID supplierOfferingId) {
+        this.supplierOfferingId = supplierOfferingId;
+    }
+
+    public String getRfqReference() {
+        return rfqReference;
+    }
+
+    public void setRfqReference(String rfqReference) {
+        this.rfqReference = rfqReference;
+    }
+
+    public String getQuotationReference() {
+        return quotationReference;
+    }
+
+    public void setQuotationReference(String quotationReference) {
+        this.quotationReference = quotationReference;
+    }
+
+    public Integer getQuotationVersion() {
+        return quotationVersion;
+    }
+
+    public void setQuotationVersion(Integer quotationVersion) {
+        this.quotationVersion = quotationVersion;
+    }
+
+    public BigDecimal getPurity() {
+        return purity;
+    }
+
+    public void setPurity(BigDecimal purity) {
+        this.purity = purity;
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+
+    public String getPackaging() {
+        return packaging;
+    }
+
+    public void setPackaging(String packaging) {
+        this.packaging = packaging;
+    }
+
+    public String getPaymentTerms() {
+        return paymentTerms;
+    }
+
+    public void setPaymentTerms(String paymentTerms) {
+        this.paymentTerms = paymentTerms;
+    }
+
+    public String getDeliveryTerms() {
+        return deliveryTerms;
+    }
+
+    public void setDeliveryTerms(String deliveryTerms) {
+        this.deliveryTerms = deliveryTerms;
+    }
+
+    public String getIncoterms() {
+        return incoterms;
+    }
+
+    public void setIncoterms(String incoterms) {
+        this.incoterms = incoterms;
+    }
+
+    public String getConfirmedBy() {
+        return confirmedBy;
+    }
+
+    public void setConfirmedBy(String confirmedBy) {
+        this.confirmedBy = confirmedBy;
+    }
+
+    public String getRejectedBy() {
+        return rejectedBy;
+    }
+
+    public void setRejectedBy(String rejectedBy) {
+        this.rejectedBy = rejectedBy;
+    }
+
+    public LocalDateTime getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public void setCancelledAt(LocalDateTime cancelledAt) {
+        this.cancelledAt = cancelledAt;
+    }
+
+    public String getCancelledBy() {
+        return cancelledBy;
+    }
+
+    public void setCancelledBy(String cancelledBy) {
+        this.cancelledBy = cancelledBy;
+    }
+
+    public String getCancellationReason() {
+        return cancellationReason;
+    }
+
+    public void setCancellationReason(String cancellationReason) {
+        this.cancellationReason = cancellationReason;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 
     public LocalDateTime getCreatedAt() {

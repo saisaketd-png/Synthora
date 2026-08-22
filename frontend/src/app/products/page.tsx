@@ -26,11 +26,16 @@ export async function generateMetadata(props: {
     searchParams.casNumber ||
     searchParams.purityMin ||
     searchParams.purityMax ||
+    searchParams.grade ||
+    searchParams.maxPrice ||
     searchParams.moqMin ||
     searchParams.moqMax ||
+    searchParams.maxLeadTime ||
     searchParams.inStock ||
+    searchParams.verified ||
     searchParams.coa ||
     searchParams.msds ||
+    searchParams.exportReady ||
     searchParams.country
   );
 
@@ -74,8 +79,13 @@ export default async function ProductsPage(props: {
     verified: searchParams.verified === "true",
     purityMin: typeof searchParams.purityMin === "string" ? searchParams.purityMin : undefined,
     purityMax: typeof searchParams.purityMax === "string" ? searchParams.purityMax : undefined,
+    grade: typeof searchParams.grade === "string" ? searchParams.grade : undefined,
+    currency: typeof searchParams.currency === "string" ? searchParams.currency : undefined,
+    maxPrice: typeof searchParams.maxPrice === "string" ? searchParams.maxPrice : undefined,
     moqMin: typeof searchParams.moqMin === "string" ? searchParams.moqMin : undefined,
     moqMax: typeof searchParams.moqMax === "string" ? searchParams.moqMax : undefined,
+    maxLeadTime: typeof searchParams.maxLeadTime === "string" ? searchParams.maxLeadTime : undefined,
+    minStock: typeof searchParams.minStock === "string" ? searchParams.minStock : undefined,
     inStock: searchParams.inStock === "true",
     coa: searchParams.coa === "true",
     msds: searchParams.msds === "true",
@@ -109,42 +119,43 @@ export default async function ProductsPage(props: {
   const countries = getUniqueCountries(products);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans text-slate-900 antialiased">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans text-[#1E293B] antialiased">
       <Navbar />
 
       <main className="flex-1 py-8 sm:py-10">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          {/* Breadcrumb */}
+        <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 space-y-7">
+          {/* Breadcrumb Navigation */}
           <nav
-            className="flex items-center gap-2 text-xs font-semibold text-slate-500"
+            className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#64748B]"
             aria-label="Breadcrumb"
           >
-            <Link href="/" className="hover:text-blue-600 transition-colors">
+            <Link href="/" className="hover:text-[#0052CC] transition-colors">
               Home
             </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-900 font-bold" aria-current="page">
+            <ChevronRight className="w-4 h-4 text-[#94A3B8]" />
+            <span className="text-[#091E42] font-bold" aria-current="page">
               Chemical Catalog
             </span>
           </nav>
 
-          {/* Catalog Hero */}
+          {/* Operational Top Catalog Area */}
           <ProductCatalogHero categories={categories} />
 
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Left Filter Rail */}
-            <div className="w-full lg:w-3/12 max-w-sm shrink-0">
+          {/* Two-Column Discovery Layout with Sticky Filter Rail */}
+          <div className="flex flex-col lg:flex-row gap-8 items-start">
+            {/* Left Filter Rail (320px Sticky on Desktop) */}
+            <aside className="w-full lg:w-[320px] shrink-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto pr-0 lg:pr-1">
               <ProductFilters categories={categories} countries={countries} />
-            </div>
+            </aside>
 
-            {/* Main Content Area */}
-            <div className="w-full lg:w-9/12 flex-1 min-w-0">
+            {/* Main Product Results Area */}
+            <div className="w-full flex-1 min-w-0 space-y-6">
               <ProductToolbar totalResults={totalElements} />
 
               {products.length === 0 ? (
                 <ProductEmptyState />
               ) : (
-                <section className="space-y-6" aria-label="Product listings">
+                <section className="space-y-6" aria-label="Chemical Catalog entries">
                   <ProductCatalogTable products={products} />
 
                   <ProductPagination

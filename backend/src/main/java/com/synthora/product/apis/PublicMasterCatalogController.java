@@ -41,7 +41,8 @@ public class PublicMasterCatalogController {
             @RequestParam(required = false) com.synthora.product.ProductCategory category,
             @RequestParam(required = false) java.math.BigDecimal minPurity,
             @RequestParam(required = false) java.math.BigDecimal maxPurity,
-            @RequestParam(defaultValue = "INR") String currency,
+            @RequestParam(required = false) String grade,
+            @RequestParam(required = false) String currency,
             @RequestParam(required = false) java.math.BigDecimal maxPrice,
             @RequestParam(required = false) java.math.BigDecimal minMoq,
             @RequestParam(required = false) java.math.BigDecimal maxMoq,
@@ -56,9 +57,37 @@ public class PublicMasterCatalogController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String sort) {
         com.synthora.product.dto.MasterProductSearchCriteria criteria = new com.synthora.product.dto.MasterProductSearchCriteria(
-                query, category, minPurity, maxPurity, currency, maxPrice, minMoq, maxMoq,
+                query, category, minPurity, maxPurity, grade, currency, maxPrice, minMoq, maxMoq,
                 maxLeadTime, availabilityStatus, minStock, coaAvailable, msdsAvailable, exportReady, verifiedSupplier, page, size, sort);
         return ResponseEntity.ok(masterProductService.searchActiveMasterProductsWithCriteria(criteria));
+    }
+
+    public ResponseEntity<Page<MasterProductResponse>> searchActiveMasterProducts(
+            String query,
+            com.synthora.product.ProductCategory category,
+            java.math.BigDecimal minPurity,
+            java.math.BigDecimal maxPurity,
+            String currency,
+            java.math.BigDecimal maxPrice,
+            java.math.BigDecimal minMoq,
+            java.math.BigDecimal maxMoq,
+            Integer maxLeadTime,
+            String availabilityStatus,
+            Integer minStock,
+            Boolean coaAvailable,
+            Boolean msdsAvailable,
+            Boolean exportReady,
+            Boolean verifiedSupplier,
+            int page,
+            int size,
+            String sort) {
+        return searchActiveMasterProducts(query, category, minPurity, maxPurity, null, currency, maxPrice, minMoq, maxMoq,
+                maxLeadTime, availabilityStatus, minStock, coaAvailable, msdsAvailable, exportReady, verifiedSupplier, page, size, sort);
+    }
+
+    @GetMapping("/categories/counts")
+    public ResponseEntity<java.util.Map<String, Long>> getCategoryCounts() {
+        return ResponseEntity.ok(masterProductService.getCategoryCounts());
     }
 
     @GetMapping("/{idOrCode}")
@@ -116,6 +145,11 @@ public class PublicMasterCatalogController {
                         o.availabilityStatus(),
                         o.moderationStatus(),
                         null, // Sanitize internal governance notes for privacy
+                        o.supplierLogoUrl(),
+                        o.supplierVerified(),
+                        o.responseRate(),
+                        o.averageResponseTimeSeconds(),
+                        o.formattedResponseTime(),
                         o.createdAt(),
                         o.updatedAt()
                 ))

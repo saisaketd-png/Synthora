@@ -109,7 +109,7 @@ public class PhaseI88SupplierTrustLifecycleIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         // Admin
         adminUser = new User(UUID.randomUUID(), "Admin Due Diligence", "admin_phase88@synthora.com", "9900112233", "$2a$10$hash", UserRole.ADMIN, UserStatus.ACTIVE);
@@ -124,8 +124,8 @@ public class PhaseI88SupplierTrustLifecycleIntegrationTest {
         supplierA.setName("Pharma Source A");
         supplierA.setSlug("pharma-source-a");
         supplierA.setUser(supplierUserA);
-        supplierA.setVerified(true);
-        supplierA.setVerificationStatus(SupplierVerificationStatus.VERIFIED);
+        supplierA.setVerified(false);
+        supplierA.setVerificationStatus(SupplierVerificationStatus.PENDING);
         supplierA.setBusinessType("MANUFACTURER");
         supplierA.setLegalName("Pharma Source A Ltd");
         supplierA.setCompanyRegistrationNumber("REG-88001");
@@ -230,6 +230,10 @@ public class PhaseI88SupplierTrustLifecycleIntegrationTest {
     // Check 7: Supplier cannot modify verification audit
     @Test
     void test07_supplierCannotModifyVerificationAudit() {
+        supplierA.setVerificationStatus(SupplierVerificationStatus.PENDING);
+        supplierA.setVerified(false);
+        supplierA = supplierRepository.save(supplierA);
+
         verificationService.startReview(supplierA.getId(), adminAuth);
         var audits = auditRepository.findBySupplierIdOrderByTimestampDesc(supplierA.getId());
         assertThat(audits).isNotEmpty();
@@ -296,6 +300,10 @@ public class PhaseI88SupplierTrustLifecycleIntegrationTest {
     // Check 13: Invalid state transitions handled gracefully
     @Test
     void test13_invalidStateTransitionsHandledGracefully() {
+        supplierA.setVerificationStatus(SupplierVerificationStatus.PENDING);
+        supplierA.setVerified(false);
+        supplierA = supplierRepository.save(supplierA);
+
         verificationService.startReview(supplierA.getId(), adminAuth);
         var workspace = verificationService.getVerificationDetails(supplierA.getId());
         assertThat(workspace.verificationStatus()).isEqualTo("UNDER_REVIEW");
@@ -304,6 +312,10 @@ public class PhaseI88SupplierTrustLifecycleIntegrationTest {
     // Check 14: Suspended supplier loses public verified status
     @Test
     void test14_suspendedSupplierLosesPublicVerifiedStatus() {
+        supplierA.setVerified(true);
+        supplierA.setVerificationStatus(SupplierVerificationStatus.VERIFIED);
+        supplierA = supplierRepository.save(supplierA);
+
         verificationService.suspendSupplier(supplierA.getId(), "Violation", adminAuth);
         Supplier updated = supplierRepository.findById(supplierA.getId()).orElseThrow();
 
@@ -314,6 +326,10 @@ public class PhaseI88SupplierTrustLifecycleIntegrationTest {
     // Check 15: Supplier offerings disappear from public catalog after suspension
     @Test
     void test15_supplierOfferingsDisappearFromPublicCatalog_afterSuspension() {
+        supplierA.setVerified(true);
+        supplierA.setVerificationStatus(SupplierVerificationStatus.VERIFIED);
+        supplierA = supplierRepository.save(supplierA);
+
         var off = supplierOfferingService.createOffering(new CreateSupplierOfferingRequest(masterProductParacetamol.getId(), new BigDecimal("120.00"), "INR", 500, new BigDecimal("99.80"), "USP", new BigDecimal("25.00"), "Drum", 7, true, true, true, "AVAILABLE"), supplierAuthA);
         supplierOfferingService.approveOffering(off.id(), "Approved", adminAuth);
 

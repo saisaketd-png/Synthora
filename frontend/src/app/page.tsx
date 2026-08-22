@@ -8,7 +8,6 @@ import { CategoryShortcuts } from "@/features/home/components/CategoryShortcuts"
 import { SupplierSpotlight } from "@/features/home/components/SupplierSpotlight";
 import { MarketActivity } from "@/features/home/components/MarketActivity";
 import { ProcurementWorkflow } from "@/features/home/components/ProcurementWorkflow";
-import { IndustryGrid } from "@/features/home/components/IndustryGrid";
 import { ResourcesSection } from "@/features/home/components/ResourcesSection";
 import { EnterpriseCTA } from "@/features/home/components/EnterpriseCTA";
 import { Footer } from "@/features/home/components/Footer";
@@ -42,7 +41,6 @@ export default async function HomePage() {
           </div>
         </section>
         <CategoryShortcuts />
-        <IndustryGrid />
         <ResourcesSection />
         <EnterpriseCTA />
       </main>

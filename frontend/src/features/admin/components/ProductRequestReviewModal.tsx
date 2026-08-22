@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { X, CheckCircle2, XCircle, AlertCircle, Building2, FlaskConical, HelpCircle, GitMerge } from "lucide-react";
-import { ProductRequest } from "@/features/supplier-products/api/masterCatalogApi";
+import { useState, useEffect, useCallback } from "react";
+import { X, CheckCircle2, XCircle, AlertCircle, Building2, FlaskConical, HelpCircle, GitMerge, Search, Check, RefreshCw } from "lucide-react";
+import { ProductRequest, MasterProduct, searchMasterProducts } from "@/features/supplier-products/api/masterCatalogApi";
 import { ApproveRequestPayload, ApproveAndLinkPayload } from "../api/adminCatalogApi";
 
 interface ProductRequestReviewModalProps {
@@ -30,9 +30,34 @@ export function ProductRequestReviewModal({
   const [molecularFormula, setMolecularFormula] = useState(request.molecularFormula || "");
   const [category, setCategory] = useState(request.category);
   const [description, setDescription] = useState(request.description || "");
-  const [existingMpId, setExistingMpId] = useState("");
+  
+  // Link to Existing Master Product State
+  const [searchQuery, setSearchQuery] = useState(request.casNumber || request.proposedName || "");
+  const [searchResults, setSearchResults] = useState<MasterProduct[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [selectedMasterProduct, setSelectedMasterProduct] = useState<MasterProduct | null>(null);
+
   const [rejectionReason, setRejectionReason] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Search master products when entering LINK mode or changing query
+  const executeMasterProductSearch = useCallback(async (query: string) => {
+    try {
+      setIsSearching(true);
+      const results = await searchMasterProducts(query);
+      setSearchResults(results.filter((mp) => mp.status === "ACTIVE"));
+    } catch (e: any) {
+      console.error("Failed to search master products for linking:", e);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mode === "LINK") {
+      executeMasterProductSearch(searchQuery);
+    }
+  }, [mode, executeMasterProductSearch, searchQuery]);
 
   const handleApproveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,14 +78,14 @@ export function ProductRequestReviewModal({
   const handleLinkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    if (!existingMpId.trim() || !onApproveAndLink) {
-      setError("Please provide an existing Master Product UUID to link.");
+    if (!selectedMasterProduct || !onApproveAndLink) {
+      setError("Please select an existing Master Product from the list below.");
       return;
     }
     try {
       await onApproveAndLink(request.id, {
-        existingMasterProductId: existingMpId.trim(),
-        adminNotes: "Linked proposal to existing MasterProduct",
+        existingMasterProductId: selectedMasterProduct.id,
+        adminNotes: `Linked proposal '${request.proposedName}' to canonical Master Product ${selectedMasterProduct.masterProductCode} (${selectedMasterProduct.name})`,
       });
     } catch (err: any) {
       setError(err.message || "Failed to link request.");
@@ -99,81 +124,88 @@ export function ProductRequestReviewModal({
           </button>
         </div>
 
-        {error && (
-          <div className="mx-6 mt-4 p-3 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-2.5 text-rose-800 text-xs font-medium">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <div>{error}</div>
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-          {/* Supplier Context */}
-          <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 space-y-1.5 text-xs text-blue-950">
-            <div className="flex items-center gap-2 font-bold text-slate-900">
-              <Building2 className="w-4 h-4 text-blue-600" />
-              <span>Requesting Supplier: {request.supplierName}</span>
+        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+          {error && (
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-2.5 text-rose-800 text-xs font-medium">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
-            {request.supplierMessage && (
-              <p className="text-slate-700 italic">
-                &quot;{request.supplierMessage}&quot;
-              </p>
-            )}
-          </div>
+          )}
 
           {mode === "VIEW" && (
-            <div className="space-y-4 text-xs font-medium">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Proposed Name</span>
-                  <strong className="text-slate-900 font-bold text-sm">{request.proposedName}</strong>
+            <div className="space-y-6">
+              {/* Proposal Details */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Supplier Proposed Chemical
+                  </span>
+                  <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded text-[10px] font-bold">
+                    {request.status.replace("_", " ")}
+                  </span>
                 </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Category</span>
-                  <strong className="text-slate-900 font-bold">{request.category.replace("_", " ")}</strong>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <span className="text-slate-500 block">Proposed Name:</span>
+                    <strong className="text-slate-900 font-bold text-sm">{request.proposedName}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Category:</span>
+                    <strong className="text-slate-900 font-bold">{request.category}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">CAS Number:</span>
+                    <strong className="text-slate-900 font-mono">{request.casNumber || "Not Specified"}</strong>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Molecular Formula:</span>
+                    <strong className="text-slate-900 font-mono">{request.molecularFormula || "Not Specified"}</strong>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">CAS Number</span>
-                  <strong className="text-slate-900 font-bold">{request.casNumber || "N/A"}</strong>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Molecular Formula</span>
-                  <strong className="text-slate-900 font-bold">{request.molecularFormula || "N/A"}</strong>
+                {request.description && (
+                  <div className="text-xs pt-2 border-t border-slate-200/60">
+                    <span className="text-slate-500 block mb-0.5">Description:</span>
+                    <p className="text-slate-700">{request.description}</p>
+                  </div>
+                )}
+                {request.supplierMessage && (
+                  <div className="text-xs pt-2 border-t border-slate-200/60">
+                    <span className="text-slate-500 block mb-0.5">Supplier Message:</span>
+                    <p className="text-slate-700 italic">&ldquo;{request.supplierMessage}&rdquo;</p>
+                  </div>
+                )}
+                <div className="text-xs pt-2 border-t border-slate-200/60 flex items-center justify-between text-slate-500">
+                  <div className="flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Submitted by: <strong>{request.supplierName}</strong></span>
+                  </div>
+                  <span>{new Date(request.createdAt).toLocaleDateString()}</span>
                 </div>
               </div>
 
-              {request.description && (
-                <div>
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold mb-1">Description</span>
-                  <p className="text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                    {request.description}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
-                <div className="flex items-center gap-2">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                {onRequestInfo && (
                   <button
                     type="button"
-                    onClick={() => onRequestInfo && onRequestInfo(request)}
-                    className="px-3.5 py-2 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                    onClick={() => onRequestInfo(request)}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
                   >
-                    <HelpCircle className="w-4 h-4 text-amber-600" />
-                    Request Information
+                    <HelpCircle className="w-4 h-4 text-slate-500" />
+                    Request Info
                   </button>
+                )}
+                <div className="flex items-center gap-2 ml-auto">
                   {onApproveAndLink && (
                     <button
                       type="button"
                       onClick={() => setMode("LINK")}
-                      className="px-3.5 py-2 bg-purple-50 text-purple-800 hover:bg-purple-100 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+                      className="px-4 py-2 bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 border border-purple-200"
                     >
                       <GitMerge className="w-4 h-4 text-purple-600" />
-                      Link to Existing MP
+                      Link to Existing
                     </button>
                   )}
-                </div>
-
-                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setMode("REJECT")}
@@ -188,7 +220,7 @@ export function ProductRequestReviewModal({
                     className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center gap-1.5"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    Approve & Create MP
+                    Approve & Create
                   </button>
                 </div>
               </div>
@@ -196,32 +228,146 @@ export function ProductRequestReviewModal({
           )}
 
           {mode === "LINK" && (
-            <form onSubmit={handleLinkSubmit} className="space-y-4 text-xs font-medium">
-              <h4 className="text-sm font-extrabold text-slate-900">Link Proposal to Existing Canonical Master Product</h4>
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Existing Master Product UUID *</label>
-                <input
-                  type="text"
-                  required
-                  value={existingMpId}
-                  onChange={(e) => setExistingMpId(e.target.value)}
-                  placeholder="Paste existing MasterProduct UUID"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 font-mono"
-                />
+            <form onSubmit={handleLinkSubmit} className="space-y-5 text-xs font-medium">
+              <div className="border-b border-slate-100 pb-3">
+                <h4 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                  <GitMerge className="w-4 h-4 text-purple-600" />
+                  Select Existing Canonical Master Product
+                </h4>
+                <p className="text-slate-500 text-xs mt-0.5">
+                  Link this proposal to an already verified Master Product. The supplier will be notified with the canonical code.
+                </p>
               </div>
+
+              {/* If a MasterProduct is already selected, show confirmation card */}
+              {selectedMasterProduct ? (
+                <div className="p-4 bg-purple-50/80 border border-purple-200 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold text-purple-700 uppercase tracking-wider flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-purple-700" /> Selected Master Product
+                    </span>
+                    <span className="px-2.5 py-0.5 bg-purple-600 text-white font-mono text-[10px] font-bold rounded-lg uppercase">
+                      {selectedMasterProduct.masterProductCode}
+                    </span>
+                  </div>
+                  <div>
+                    <h5 className="text-base font-extrabold text-slate-900">{selectedMasterProduct.name}</h5>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 text-xs">
+                      <div>
+                        <span className="text-slate-500 block text-[10px] uppercase font-bold">CAS Number</span>
+                        <strong className="text-slate-800 font-mono">{selectedMasterProduct.casNumber || "N/A"}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[10px] uppercase font-bold">Formula</span>
+                        <strong className="text-slate-800 font-mono">{selectedMasterProduct.molecularFormula || "N/A"}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block text-[10px] uppercase font-bold">Category</span>
+                        <strong className="text-slate-800">{selectedMasterProduct.category}</strong>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-purple-200/60 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMasterProduct(null)}
+                      className="text-xs font-bold text-purple-700 hover:text-purple-900 hover:underline"
+                    >
+                      ← Change Selection
+                    </button>
+                    <span className="text-[11px] text-purple-600 font-medium">Ready to link</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1.5">
+                      Search Canonical Catalog
+                    </label>
+                    <div className="relative">
+                      <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          executeMasterProductSearch(e.target.value);
+                        }}
+                        placeholder="Search by product name, CAS, code (e.g. API-MP-696203), formula..."
+                        className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Results List */}
+                  <div className="border border-slate-200 rounded-xl overflow-hidden max-h-56 overflow-y-auto divide-y divide-slate-100 bg-white">
+                    {isSearching ? (
+                      <div className="p-6 text-center text-slate-400 flex items-center justify-center gap-2">
+                        <RefreshCw className="w-4 h-4 animate-spin text-purple-600" />
+                        <span>Searching catalog...</span>
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      searchResults.map((mp) => (
+                        <div
+                          key={mp.id}
+                          onClick={() => setSelectedMasterProduct(mp)}
+                          className="p-3 hover:bg-purple-50/50 cursor-pointer transition-colors flex items-center justify-between gap-3 group"
+                        >
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <strong className="text-slate-900 font-bold group-hover:text-purple-700 transition-colors">
+                                {mp.name}
+                              </strong>
+                              <span className="px-2 py-0.5 bg-slate-900 text-white font-mono text-[9px] font-bold rounded">
+                                {mp.masterProductCode}
+                              </span>
+                              <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-[9px] font-bold rounded">
+                                {mp.category}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-mono flex items-center gap-3">
+                              <span>CAS: <strong>{mp.casNumber || "N/A"}</strong></span>
+                              {mp.molecularFormula && (
+                                <span>Formula: <strong>{mp.molecularFormula}</strong></span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMasterProduct(mp);
+                            }}
+                            className="px-3 py-1 bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white rounded-lg text-xs font-bold transition-colors shrink-0"
+                          >
+                            Select
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-6 text-center text-slate-400">
+                        No active Master Products matched &quot;{searchQuery}&quot;. Try searching another name, CAS, or formula.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button
                   type="button"
-                  onClick={() => setMode("VIEW")}
+                  onClick={() => {
+                    setSelectedMasterProduct(null);
+                    setMode("VIEW");
+                  }}
                   className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isLoading}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
+                  disabled={isLoading || !selectedMasterProduct}
+                  className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {isLoading ? "Linking..." : "Confirm & Link"}
                 </button>

@@ -1,8 +1,8 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+import { resolveApiUrl } from "@/lib/apiUrl";
 
 export async function getCategories(): Promise<string[]> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/categories`, {
+    const response = await fetch(resolveApiUrl("/api/v1/categories"), {
       cache: "no-store",
     });
 

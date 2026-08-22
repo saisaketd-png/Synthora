@@ -1,13 +1,11 @@
+import { resolveApiUrl } from "@/lib/apiUrl";
 import { ProductSearchResponse } from "../types/product";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
 
 export async function searchProducts(query: string): Promise<ProductSearchResponse> {
   try {
-    const url = new URL(`${API_URL}/api/v1/products/search`);
-    url.searchParams.append("query", query);
+    const url = resolveApiUrl(`/api/v1/products/search?query=${encodeURIComponent(query)}`);
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(url, {
       cache: "no-store",
     });
 

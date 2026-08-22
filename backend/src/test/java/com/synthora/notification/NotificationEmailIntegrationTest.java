@@ -7,6 +7,7 @@ import com.synthora.document.DocumentUploadRequest;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.notification.email.EmailService;
 import com.synthora.order.PurchaseOrderService;
 import com.synthora.order.dto.CreatePurchaseOrderRequest;
@@ -68,26 +69,14 @@ public class NotificationEmailIntegrationTest {
 
     @BeforeEach
     public void setup() {
-        jdbcTemplate.execute("DELETE FROM notifications");
-        jdbcTemplate.execute(
-                "UPDATE rfqs SET accepted_quotation_id = NULL; " +
-                "DELETE FROM shipments; " +
-                "DELETE FROM purchase_orders; " +
-                "DELETE FROM quotations; " +
-                "DELETE FROM rfqs; " +
-                "DELETE FROM documents; " +
-                "DELETE FROM product_suppliers; " +
-                "DELETE FROM products; " +
-                "DELETE FROM seller_profiles; " +
-                "DELETE FROM suppliers; " +
-                "DELETE FROM users;"
-        );
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         buyerUser = new User();
         buyerUser.setEmail("buyer-corp@enterprise.com");
         buyerUser.setName("Buyer User");
         buyerUser.setPasswordHash("hash");
         buyerUser.setRole(UserRole.USER);
+        buyerUser.setStatus(UserStatus.ACTIVE);
         buyerUser = userRepository.save(buyerUser);
         buyerAuth = new UsernamePasswordAuthenticationToken(buyerUser.getEmail(), null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
@@ -96,6 +85,7 @@ public class NotificationEmailIntegrationTest {
         supplierUser.setName("Supplier User");
         supplierUser.setPasswordHash("hash");
         supplierUser.setRole(UserRole.SUPPLIER);
+        supplierUser.setStatus(UserStatus.ACTIVE);
         supplierUser = userRepository.save(supplierUser);
         supplierAuth = new UsernamePasswordAuthenticationToken(supplierUser.getEmail(), null, List.of(new SimpleGrantedAuthority("ROLE_SUPPLIER")));
 

@@ -1,9 +1,32 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+import { resolveApiUrl } from "./apiUrl";
+
+export { resolveApiUrl, getApiBaseUrl } from "./apiUrl";
 
 export async function fetchProductDetail(idOrCode: string) {
-  const masterRes = await fetch(`${API_BASE}/api/v1/public/master-products/${encodeURIComponent(idOrCode)}`, { cache: "no-store" });
+  const masterRes = await fetch(resolveApiUrl(`/api/v1/public/master-products/${encodeURIComponent(idOrCode)}`), {
+    cache: "no-store",
+  });
+
   if (masterRes.ok) {
     const mp = await masterRes.json();
+    let primaryImageUrl: string | null = null;
+    let images: any[] = [];
+
+    try {
+      const imgRes = await fetch(resolveApiUrl(`/api/v1/master-products/${mp.id}/images`), {
+        cache: "no-store",
+      });
+      if (imgRes.ok) {
+        images = await imgRes.json();
+        const primary = images.find((i: any) => i.isPrimary) || images[0];
+        if (primary) {
+          primaryImageUrl = primary.imageUrl;
+        }
+      }
+    } catch {
+      // Graceful fallback if images cannot be loaded
+    }
+
     return {
       id: mp.id,
       productCode: mp.masterProductCode,
@@ -14,6 +37,8 @@ export async function fetchProductDetail(idOrCode: string) {
       description: mp.description,
       status: mp.status,
       offeringCount: mp.offeringCount || 0,
+      primaryImageUrl,
+      images,
       stock: mp.offeringCount > 0 ? 100 : 0,
       price: 0,
       sellerName: "Master Catalog",
@@ -21,8 +46,8 @@ export async function fetchProductDetail(idOrCode: string) {
     };
   }
 
-  // Legacy fallback for historical legacy IDs
-  const res = await fetch(`${API_BASE}/api/v1/products/${encodeURIComponent(idOrCode)}/detail`, {
+  // Fallback for legacy ID lookups
+  const res = await fetch(resolveApiUrl(`/api/v1/products/${encodeURIComponent(idOrCode)}/detail`), {
     cache: "no-store",
   });
 
@@ -33,9 +58,10 @@ export async function fetchProductDetail(idOrCode: string) {
 }
 
 export async function fetchProductSuppliers(idOrCode: string) {
-  const offeringsRes = await fetch(`${API_BASE}/api/v1/public/master-products/${encodeURIComponent(idOrCode)}/offerings`, {
+  const offeringsRes = await fetch(resolveApiUrl(`/api/v1/public/master-products/${encodeURIComponent(idOrCode)}/offerings`), {
     cache: "no-store",
   });
+
   if (offeringsRes.ok) {
     const offerings = await offeringsRes.json();
     return offerings.map((o: any) => ({
@@ -44,6 +70,9 @@ export async function fetchProductSuppliers(idOrCode: string) {
       masterProductId: o.masterProductId,
       supplierId: o.supplierId,
       name: o.supplierName,
+      supplierName: o.supplierName,
+      supplierLogoUrl: o.supplierLogoUrl,
+      supplierVerified: o.supplierVerified,
       price: o.price,
       currency: o.currency,
       stock: o.stock,
@@ -59,10 +88,13 @@ export async function fetchProductSuppliers(idOrCode: string) {
       exportReady: o.exportReady,
       availabilityStatus: o.availabilityStatus,
       moderationStatus: o.moderationStatus,
+      responseRate: o.responseRate,
+      averageResponseTimeSeconds: o.averageResponseTimeSeconds,
+      formattedResponseTime: o.formattedResponseTime,
     }));
   }
 
-  const res = await fetch(`${API_BASE}/api/v1/products/${encodeURIComponent(idOrCode)}/suppliers`, {
+  const res = await fetch(resolveApiUrl(`/api/v1/products/${encodeURIComponent(idOrCode)}/suppliers`), {
     cache: "no-store",
   });
   if (!res.ok) return [];

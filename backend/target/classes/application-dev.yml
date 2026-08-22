@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/marketplace
-    username: postgres
-    password: Saisaket@123
+    url: jdbc:postgresql://localhost:5435/synthora
+    username: synthora_admin
+    password: postgres
 
   jpa:
     hibernate:

@@ -48,8 +48,11 @@ D:\Saisaket\Synthora\backend\src\test\java\com\synthora\notification\Notificatio
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\order\apis\PurchaseOrderFulfillmentApiControllerTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\order\PurchaseOrderFulfillmentServiceTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\order\PurchaseOrderSecurityAndFlowTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\order\PurchaseOrderWorkflowSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\order\ShipmentDomainTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\BuyerMasterCatalogSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\CatalogFilterSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\CatalogIntegrationStabilizationSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\CatalogSearchAndProductCodeTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\MasterCatalogGovernanceSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\MasterCatalogIntegrationSecurityTest.java
@@ -57,6 +60,8 @@ D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\MasterCatalogSea
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\MasterProductMergeIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\MasterProductOfferingImageSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\MasterProductOfferingSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\MasterProductSynonymAndRequestFlowSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\OfferingMediaDocumentSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\ProductRequestSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\ProductSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\product\ProductSupplierSecurityTest.java
@@ -69,7 +74,9 @@ D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\MultiSupplierRfqHard
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\MultiSupplierRfqSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\QuotationNegotiationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\QuotationSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\RfqQuotationWorkflowSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\rfq\RoleCorrectRfqUxTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\AdminBootstrapSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\AuthenticationSecurityHardeningTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\AuthorizationIdorSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\FileSecurityTest.java
@@ -77,9 +84,12 @@ D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\InputValidation
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\PurchaseOrderFulfillmentSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\SecurityHardeningIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\SupplierProductManagementSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\SupplierRegistrationSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\security\UserRegistrationSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\seller\SellerProfileSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\seller\SupplierIdentityReconciliationTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\seller\SupplierPerformanceSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\seo\SeoArchitectureTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\supplier\SupplierMasterCatalogSearchSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\synthora\supplier\SupplierOfferingInventoryIntegrationTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\synthora\supplier\SupplierOnboardingAndVerificationSecurityTest.java

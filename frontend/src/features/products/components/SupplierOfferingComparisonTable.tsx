@@ -47,8 +47,16 @@ export function SupplierOfferingComparisonTable({
               <tr key={offering.id} className="hover:bg-slate-50/80 transition-colors">
                 {/* Supplier Name */}
                 <td className="py-4 px-4 font-bold text-slate-900">
-                  <div className="flex items-center gap-1.5">
-                    <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <div className="flex items-center gap-2">
+                    {offering.supplierLogoUrl ? (
+                      <img
+                        src={offering.supplierLogoUrl}
+                        alt={offering.supplierName}
+                        className="w-6 h-6 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0 shadow-2xs"
+                      />
+                    ) : (
+                      <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    )}
                     <span>{offering.supplierName}</span>
                     <span title="Verified Supplier">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
@@ -126,7 +134,15 @@ export function SupplierOfferingComparisonTable({
           >
             <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-slate-400" />
+                {offering.supplierLogoUrl ? (
+                  <img
+                    src={offering.supplierLogoUrl}
+                    alt={offering.supplierName}
+                    className="w-6 h-6 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0 shadow-2xs"
+                  />
+                ) : (
+                  <Building2 className="w-4 h-4 text-slate-400" />
+                )}
                 <span className="font-bold text-slate-900 text-sm">{offering.supplierName}</span>
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
               </div>

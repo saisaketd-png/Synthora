@@ -1,0 +1,31 @@
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Build Artifacts & Dependencies
+**/target/
+**/.next/
+**/node_modules/
+**/out/
+**/dist/
+**/build/
+
+# Storage & Uploads
+storage/
+**/storage/
+uploads/
+**/uploads/
+*.log
+logs/
+scratch*.json
+replace_urls.py
+graphify-out/
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+

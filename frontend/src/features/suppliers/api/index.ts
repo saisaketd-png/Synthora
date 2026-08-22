@@ -1,5 +1,14 @@
 import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
-import { SupplierPublicProfile, SellerProfile, UpdateSellerProfileRequest, SupplierDiscoveryResponse, SupplierSearchParams, SupplierProductListResponse, SupplierProductQueryParams } from "../types";
+import { resolveApiUrl } from "@/lib/apiUrl";
+import {
+  SupplierPublicProfile,
+  SellerProfile,
+  UpdateSellerProfileRequest,
+  SupplierDiscoveryResponse,
+  SupplierSearchParams,
+  SupplierProductListResponse,
+  SupplierProductQueryParams,
+} from "../types";
 
 export async function getSuppliers(params: SupplierSearchParams): Promise<SupplierDiscoveryResponse> {
   const query = new URLSearchParams();
@@ -11,7 +20,9 @@ export async function getSuppliers(params: SupplierSearchParams): Promise<Suppli
   if (params.size !== undefined) query.set("size", String(params.size));
   if (params.sort) query.set("sort", params.sort);
 
-  const res = await fetch(`http://localhost:8080/api/v1/suppliers?${query.toString()}`, {
+  const targetUrl = resolveApiUrl(`/api/v1/suppliers?${query.toString()}`);
+
+  const res = await fetch(targetUrl, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -27,12 +38,13 @@ export async function getSuppliers(params: SupplierSearchParams): Promise<Suppli
 }
 
 export async function getSupplierPublicProfile(id: string | number): Promise<SupplierPublicProfile | null> {
-  const res = await fetch(`http://localhost:8080/api/v1/suppliers/${id}`, {
+  const targetUrl = resolveApiUrl(`/api/v1/suppliers/${id}`);
+
+  const res = await fetch(targetUrl, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
-    // Adding no-cache since public profiles could be updated
     cache: "no-store",
   });
 
@@ -51,30 +63,44 @@ export async function getSupplierProducts(
   supplierId: string,
   params?: SupplierProductQueryParams
 ): Promise<SupplierProductListResponse> {
-  const urlParams = new URLSearchParams();
-  
-  if (params) {
-    if (params.page !== undefined) urlParams.append("page", params.page.toString());
-    if (params.size !== undefined) urlParams.append("size", params.size.toString());
-    if (params.sort !== undefined) urlParams.append("sort", params.sort);
-  }
-  
-  const queryString = urlParams.toString();
-  const url = `http://localhost:8080/api/v1/suppliers/${supplierId}/products${queryString ? `?${queryString}` : ""}`;
-  
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    cache: "no-store",
-  });
+  const defaultEmpty: SupplierProductListResponse = {
+    content: [],
+    totalElements: 0,
+    totalPages: 0,
+    number: 0,
+    size: params?.size || 10,
+  };
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch supplier products: ${res.statusText}`);
-  }
+  try {
+    const urlParams = new URLSearchParams();
 
-  return res.json();
+    if (params) {
+      if (params.page !== undefined) urlParams.append("page", params.page.toString());
+      if (params.size !== undefined) urlParams.append("size", params.size.toString());
+      if (params.sort !== undefined) urlParams.append("sort", params.sort);
+    }
+
+    const queryString = urlParams.toString();
+    const targetUrl = resolveApiUrl(
+      `/api/v1/suppliers/${supplierId}/products${queryString ? `?${queryString}` : ""}`
+    );
+
+    const res = await fetch(targetUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      return defaultEmpty;
+    }
+
+    return res.json();
+  } catch {
+    return defaultEmpty;
+  }
 }
 
 export async function getMySellerProfile(): Promise<SellerProfile | null> {

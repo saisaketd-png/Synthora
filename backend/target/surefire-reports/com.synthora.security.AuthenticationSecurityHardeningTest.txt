@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.synthora.security.AuthenticationSecurityHardeningTest
 -------------------------------------------------------------------------------
-Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.132 s -- in com.synthora.security.AuthenticationSecurityHardeningTest
+Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.713 s -- in com.synthora.security.AuthenticationSecurityHardeningTest

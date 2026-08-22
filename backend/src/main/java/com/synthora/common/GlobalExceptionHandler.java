@@ -108,9 +108,12 @@ public class GlobalExceptionHandler {
         return new ApiErrorResponse(LocalDateTime.now(), HttpStatus.TOO_MANY_REQUESTS.value(), "RATE_LIMIT_EXCEEDED", ex.getMessage(), request.getRequestURI());
     }
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiErrorResponse handleGeneralException(Exception ex, HttpServletRequest request) {
+        log.error("Unhandled exception processing request {}: ", request.getRequestURI(), ex);
         return new ApiErrorResponse(LocalDateTime.now(), HttpStatus.INTERNAL_SERVER_ERROR.value(), "INTERNAL_SERVER_ERROR", "An internal error occurred. Please try again later.", request.getRequestURI());
     }
 }

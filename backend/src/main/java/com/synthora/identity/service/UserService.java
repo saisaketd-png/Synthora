@@ -112,6 +112,7 @@ public class UserService {
         supplier.setCountryCode(request.countryCode() != null && !request.countryCode().isBlank() ? request.countryCode().trim().toUpperCase() : "IN");
         supplier.setCountryName(request.country().trim());
         supplier.setVerified(false);
+        supplier.setVerificationStatus(com.synthora.seller.SupplierVerificationStatus.DRAFT);
         supplier.setExportReady(false);
         supplier.setCreatedAt(LocalDateTime.now());
         supplierRepository.save(supplier);

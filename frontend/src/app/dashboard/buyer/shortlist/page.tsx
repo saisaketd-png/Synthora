@@ -16,8 +16,10 @@ import {
 } from "lucide-react";
 import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 import RfqModal from "@/features/rfq/components/RfqModal";
+import { useToast } from "@/shared/context/ToastContext";
 
 export default function BuyerShortlistPage() {
+  const toast = useToast();
   const [shortlist, setShortlist] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +52,10 @@ export default function BuyerShortlistPage() {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to remove item from shortlist");
+      toast.success("Offering removed from shortlist");
       await loadShortlist();
     } catch (e: any) {
-      alert("Error: " + e.message);
+      toast.error(e.message || "Failed to remove item");
     } finally {
       setRemovingId(null);
     }

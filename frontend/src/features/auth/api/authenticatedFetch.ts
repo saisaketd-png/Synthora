@@ -1,5 +1,4 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+import { resolveApiUrl } from "@/lib/apiUrl";
 
 let isRedirectingToLogin = false;
 
@@ -41,7 +40,9 @@ export async function authenticatedFetch(
     }
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const targetUrl = resolveApiUrl(path);
+
+  const response = await fetch(targetUrl, {
     ...options,
     headers,
   });

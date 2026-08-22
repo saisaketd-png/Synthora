@@ -37,6 +37,7 @@ public class SupplierOfferingVerificationService {
     private final UserRepository userRepository;
     private final DocumentRepository documentRepository;
     private final NotificationService notificationService;
+    private final com.synthora.product.CatalogImageService catalogImageService;
 
     public SupplierOfferingVerificationService(
             SupplierOfferingRepository supplierOfferingRepository,
@@ -46,7 +47,8 @@ public class SupplierOfferingVerificationService {
             SupplierOfferingCompletenessCalculator completenessCalculator,
             UserRepository userRepository,
             DocumentRepository documentRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            com.synthora.product.CatalogImageService catalogImageService) {
         this.supplierOfferingRepository = supplierOfferingRepository;
         this.evidenceRepository = evidenceRepository;
         this.auditRepository = auditRepository;
@@ -55,6 +57,7 @@ public class SupplierOfferingVerificationService {
         this.userRepository = userRepository;
         this.documentRepository = documentRepository;
         this.notificationService = notificationService;
+        this.catalogImageService = catalogImageService;
     }
 
     public SupplierOfferingGovernanceWorkspaceDto getOfferingVerificationDetails(UUID offeringId) {
@@ -108,6 +111,13 @@ public class SupplierOfferingVerificationService {
                 ))
                 .toList();
 
+        List<com.synthora.product.dto.CatalogImageResponse> images = catalogImageService.getOfferingImages(offeringId);
+        List<com.synthora.document.DocumentResponse> documents = documentRepository
+                .findByOwnerTypeAndOwnerId(com.synthora.document.DocumentOwnerType.SUPPLIER_OFFERING, offeringId)
+                .stream()
+                .map(com.synthora.document.DocumentResponse::new)
+                .toList();
+
         return new SupplierOfferingGovernanceWorkspaceDto(
                 offering.getId(),
                 mp.getId(),
@@ -142,7 +152,9 @@ public class SupplierOfferingVerificationService {
                 auditDtos,
                 offering.getAdminRequestInfoNotes(),
                 offering.getSupplierResponseNotes(),
-                offering.getModerationNotes()
+                offering.getModerationNotes(),
+                images,
+                documents
         );
     }
 

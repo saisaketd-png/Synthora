@@ -12,16 +12,25 @@ import {
   ShoppingCart,
   LogOut,
   Shield,
-  ChevronRight,
   Menu,
   X,
   Hexagon,
   Bell,
-  PlusCircle,
   FlaskConical,
+  ShieldCheck,
+  Layers,
+  ArrowUpRight,
+  Activity,
+  Bookmark,
 } from "lucide-react";
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+
+interface NavSection {
+  title?: string;
+  items: NavItem[];
+}
 
 interface NavItem {
   name: string;
@@ -68,7 +77,6 @@ export default function DashboardLayout({
       if (!updated) {
         router.push("/login");
       } else {
-        // Re-check admin route guard on auth change
         if (pathname.startsWith("/dashboard/admin") && updated.role !== "ADMIN") {
           if (updated.role === "SUPPLIER") {
             router.push("/dashboard/supplier");
@@ -89,7 +97,6 @@ export default function DashboardLayout({
     };
   }, [router, pathname]);
 
-  // Close mobile sidebar on route changes
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname]);
@@ -101,8 +108,8 @@ export default function DashboardLayout({
 
   if (!mounted || !user) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="h-screen w-screen bg-[#F4F5F7] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -110,383 +117,332 @@ export default function DashboardLayout({
   const isAdmin = user.role === "ADMIN" || pathname.startsWith("/dashboard/admin");
   const isSupplier = !isAdmin && (user.role === "SUPPLIER" || pathname.startsWith("/dashboard/supplier"));
 
-  const buyerNavItems: NavItem[] = [
+  const buyerNavSections: NavSection[] = [
     {
-      name: "Overview",
-      href: "/dashboard",
-      icon: LayoutDashboard,
-      exact: true,
+      title: "OPERATIONS",
+      items: [
+        {
+          name: "Procurement Desk",
+          href: "/dashboard/buyer",
+          icon: LayoutDashboard,
+          exact: true,
+        },
+        {
+          name: "My Sourcing RFQs",
+          href: "/dashboard/rfqs",
+          icon: FileText,
+        },
+        {
+          name: "Purchase Orders",
+          href: "/dashboard/orders",
+          icon: ShoppingCart,
+        },
+        {
+          name: "Saved Shortlists",
+          href: "/dashboard/buyer/shortlist",
+          icon: Bookmark,
+        },
+      ],
     },
     {
-      name: "My RFQs",
-      href: "/dashboard/rfqs",
-      icon: FileText,
-      badge: "Inquiries",
-    },
-    {
-      name: "Purchase Orders",
-      href: "/dashboard/orders",
-      icon: Package,
-      badge: "POs",
-    },
-    {
-      name: "Notifications",
-      href: "/dashboard/notifications",
-      icon: Bell,
-      badge: "Alerts",
-    },
-    {
-      name: "Chemical Catalog",
-      href: "/products",
-      icon: Building2,
-      isExternal: true,
-    },
-  ];
-
-  const supplierNavItems: NavItem[] = [
-    {
-      name: "Overview",
-      href: "/dashboard/supplier",
-      icon: LayoutDashboard,
-      exact: true,
-    },
-    {
-      name: "Product Inventory",
-      href: "/dashboard/supplier/products",
-      icon: Package,
-      badge: "Chemicals",
-    },
-    {
-      name: "RFQ Inbox",
-      href: "/dashboard/supplier/rfqs",
-      icon: FileText,
-      badge: "Quotes",
-    },
-    {
-      name: "Incoming Orders",
-      href: "/dashboard/supplier/orders",
-      icon: ShoppingCart,
-      badge: "POs",
-    },
-    {
-      name: "Company Profile",
-      href: "/dashboard/supplier/profile",
-      icon: Building2,
-      badge: "Profile",
-    },
-    {
-      name: "Notifications",
-      href: "/dashboard/notifications",
-      icon: Bell,
-      badge: "Alerts",
-    },
-    {
-      name: "Chemical Catalog",
-      href: "/products",
-      icon: FlaskConical,
-      isExternal: true,
+      title: "COMMUNICATION",
+      items: [
+        {
+          name: "System Alerts",
+          href: "/dashboard/notifications",
+          icon: Bell,
+        },
+      ],
     },
   ];
 
-  const adminNavItems: NavItem[] = [
+  const supplierNavSections: NavSection[] = [
     {
-      name: "Overview",
-      href: "/dashboard/admin",
-      icon: LayoutDashboard,
-      exact: true,
+      title: "OPERATIONS",
+      items: [
+        {
+          name: "Supplier Operations",
+          href: "/dashboard/supplier",
+          icon: LayoutDashboard,
+          exact: true,
+        },
+        {
+          name: "Product Offerings",
+          href: "/dashboard/supplier/products",
+          icon: Package,
+        },
+        {
+          name: "RFQ Inquiries",
+          href: "/dashboard/supplier/rfqs",
+          icon: FileText,
+        },
+        {
+          name: "Purchase Orders",
+          href: "/dashboard/supplier/orders",
+          icon: ShoppingCart,
+        },
+      ],
     },
     {
-      name: "Master Catalog",
-      href: "/dashboard/admin/catalog",
-      icon: FlaskConical,
-      badge: "Canonical",
+      title: "ORGANIZATION",
+      items: [
+        {
+          name: "Company Profile",
+          href: "/dashboard/supplier/profile",
+          icon: Building2,
+        },
+        {
+          name: "Compliance & Verification",
+          href: "/dashboard/supplier/verification",
+          icon: ShieldCheck,
+        },
+      ],
     },
     {
-      name: "User Management",
-      href: "/dashboard/admin/users",
-      icon: Users,
-      badge: "Accounts",
-    },
-    {
-      name: "Supplier Moderation",
-      href: "/dashboard/admin/suppliers",
-      icon: Building2,
-      badge: "Verification",
-    },
-    {
-      name: "Legacy Products",
-      href: "/dashboard/admin/products",
-      icon: Package,
-      badge: "Legacy",
-    },
-    {
-      name: "RFQ Oversight",
-      href: "/dashboard/admin/transactions/rfqs",
-      icon: FileText,
-      badge: "Quotes",
-    },
-    {
-      name: "Order Oversight",
-      href: "/dashboard/admin/transactions/orders",
-      icon: ShoppingCart,
-      badge: "POs",
-    },
-    {
-      name: "Platform Alerts",
-      href: "/dashboard/notifications",
-      icon: Bell,
-      badge: "Alerts",
+      title: "COMMUNICATION",
+      items: [
+        {
+          name: "Supplier Alerts",
+          href: "/dashboard/notifications",
+          icon: Bell,
+        },
+      ],
     },
   ];
 
-  const navItems = isAdmin
-    ? adminNavItems
-    : isSupplier
-    ? supplierNavItems
-    : buyerNavItems;
+  const adminNavSections: NavSection[] = [
+    {
+      title: "OPERATIONS",
+      items: [
+        {
+          name: "Operations Console",
+          href: "/dashboard/admin/operations",
+          icon: LayoutDashboard,
+          exact: true,
+        },
+        {
+          name: "Master Catalog",
+          href: "/dashboard/admin/catalog",
+          icon: Layers,
+        },
+        {
+          name: "Supplier Moderation",
+          href: "/dashboard/admin/suppliers",
+          icon: Building2,
+        },
+        {
+          name: "Supplier Verification",
+          href: "/dashboard/admin/suppliers/quality",
+          icon: ShieldCheck,
+        },
+        {
+          name: "Offering Review",
+          href: "/dashboard/admin/catalog/offerings/quality",
+          icon: Package,
+        },
+        {
+          name: "User Management",
+          href: "/dashboard/admin/users",
+          icon: Users,
+        },
+      ],
+    },
+    {
+      title: "TRANSACTIONS",
+      items: [
+        {
+          name: "RFQ Oversight",
+          href: "/dashboard/admin/transactions/rfqs",
+          icon: FileText,
+        },
+        {
+          name: "Order Oversight",
+          href: "/dashboard/admin/transactions/orders",
+          icon: ShoppingCart,
+        },
+      ],
+    },
+    {
+      title: "SYSTEM",
+      items: [
+        {
+          name: "Platform Alerts",
+          href: "/dashboard/notifications",
+          icon: Bell,
+        },
+        {
+          name: "Audit Logs",
+          href: "/dashboard/admin/activity",
+          icon: Activity,
+        },
+      ],
+    },
+  ];
 
-  const roleBadgeStyle = isAdmin
-    ? "bg-amber-50 text-amber-800 border-amber-300"
+  const navSections = isAdmin
+    ? adminNavSections
     : isSupplier
-    ? "bg-purple-50 text-purple-700 border-purple-200"
-    : "bg-blue-50 text-blue-700 border-blue-200";
+    ? supplierNavSections
+    : buyerNavSections;
 
-  const roleLabel = isAdmin
-    ? "Admin Workspace"
+  const workspaceLabel = isAdmin
+    ? "ADMIN OPERATIONS"
     : isSupplier
-    ? "Supplier Workspace"
-    : "Buyer Workspace";
+    ? "SUPPLIER OPERATIONS"
+    : "BUYER PROCUREMENT";
 
-  const avatarStyle = isAdmin
-    ? "bg-amber-100 text-amber-800"
-    : isSupplier
-    ? "bg-purple-100 text-purple-700"
-    : "bg-blue-100 text-blue-700";
+  const userDisplayName = user.email.split("@")[0];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col antialiased font-sans">
-      {/* Top Application Bar */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200/80 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-2xs">
-        <div className="flex items-center gap-4">
+    <div className="h-screen w-screen bg-[#F4F5F7] flex flex-col font-sans text-[#172B4D] overflow-hidden">
+      {/* 1. FIXED TOP HEADER (64px) */}
+      <header className="shrink-0 z-40 bg-white border-b border-[#DFE1E6] h-[64px] flex items-center justify-between px-4 sm:px-6">
+        {/* Left Brand & Workspace Identity */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 text-[#5E6C84] hover:bg-[#F4F5F7] rounded-lg focus:outline-none"
             aria-label="Toggle Sidebar Navigation"
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="relative flex items-center justify-center w-7 h-7 text-[#0A192F]">
-              <Hexagon className="w-7 h-7 fill-current absolute" />
-              <Hexagon className="w-3 h-3 text-teal-400 absolute" strokeWidth={3} />
-            </div>
-            <span className="font-extrabold text-lg text-slate-900 tracking-tight">
-              Synthora
-            </span>
-          </Link>
-
-          <div className="hidden sm:flex items-center gap-2 pl-4 border-l border-slate-200">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${roleBadgeStyle}`}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              {roleLabel}
-            </span>
-          </div>
+          <SynthoraLogo
+            href="/"
+            size="sm"
+            subtitle={workspaceLabel}
+          />
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Direct Catalog Sourcing Link */}
+        {/* Right Header Controls */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5">
           <Link
             href="/products"
-            className="hidden md:inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0052CC] hover:underline px-2.5 py-1.5 rounded-lg hover:bg-[#F4F5F7] transition-colors"
           >
-            <Building2 className="w-4 h-4 text-slate-500" />
-            Chemical Catalog
+            <FlaskConical className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Chemical Catalog</span>
+            <ArrowUpRight className="w-3 h-3 text-[#5E6C84]" />
           </Link>
 
-          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+          <div className="h-4 w-px bg-[#DFE1E6]" />
 
-          {/* Live Notification Bell */}
           <NotificationBell isSupplier={isSupplier} />
 
-          <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+          <div className="h-4 w-px bg-[#DFE1E6]" />
 
-          {/* User Profile Pill */}
-          <div className="flex items-center gap-2.5">
-            <div
-              className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold ${avatarStyle}`}
+          {/* User Account / Role Menu */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex flex-col items-end text-right">
+              <span className="text-xs font-bold font-mono text-[#091E42] leading-tight max-w-[100px] sm:max-w-[140px] truncate">
+                {userDisplayName}
+              </span>
+              <span className="text-[9px] font-mono font-semibold text-[#5E6C84] uppercase">
+                {user.role}
+              </span>
+            </div>
+
+            <div className="h-4 w-px bg-[#DFE1E6]" />
+
+            <button
+              onClick={handleSignOut}
+              className="p-1.5 text-[#5E6C84] hover:text-[#DE350B] hover:bg-[#FFEBE6] rounded-lg transition-colors"
+              title="Sign Out"
             >
-              {user.email.charAt(0).toUpperCase()}
-            </div>
-            <div className="hidden md:flex flex-col">
-              <span className="text-xs font-bold text-slate-800 max-w-[140px] truncate leading-none">
-                {user.email.split("@")[0]}
-              </span>
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
-                {isAdmin ? "Admin" : isSupplier ? "Supplier" : "Buyer"}
-              </span>
-            </div>
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
-            title="Sign Out"
-            aria-label="Sign Out of Session"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Desktop Left Sidebar */}
-        <aside className="hidden lg:flex w-64 flex-col bg-white border-r border-slate-200/80 p-4 space-y-6 flex-shrink-0">
-          <div className="space-y-1">
-            <p className="px-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-              Workspace Navigation
-            </p>
-            <nav className="space-y-1 pt-2" aria-label="Sidebar Navigation">
-              {navItems.map((item) => {
-                const isActive = item.exact
-                  ? pathname === item.href
-                  : pathname.startsWith(item.href) && (!item.isExternal || pathname === item.href);
+      {/* 2. MAIN BODY (FIXED SIDEBAR + INDEPENDENTLY SCROLLABLE CONTENT) */}
+      <div className="flex-1 flex w-full overflow-hidden relative">
+        {/* Mobile Backdrop Overlay */}
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/40 z-20 lg:hidden"
+            aria-hidden="true"
+          />
+        )}
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all ${
-                      isActive
-                        ? isAdmin
-                          ? "bg-amber-50 text-amber-900 border border-amber-200 font-bold shadow-2xs"
-                          : isSupplier
-                          ? "bg-purple-50 text-purple-700 border border-purple-200 font-bold shadow-2xs"
-                          : "bg-blue-50 text-blue-700 border border-blue-200 font-bold shadow-2xs"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <item.icon
-                        className={`w-4 h-4 ${
+        {/* FIXED DESKTOP SIDEBAR / MOBILE DRAWER (270px) */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-30 w-[270px] bg-[#FAFBFC] border-r border-[#DFE1E6] transform transition-transform duration-150 ease-in-out lg:translate-x-0 lg:static flex flex-col shrink-0 ${
+            sidebarOpen ? "translate-x-0 top-[64px] h-[calc(100vh-64px)] shadow-2xl" : "-translate-x-full lg:translate-x-0"
+          }`}
+        >
+          {/* Scrollable Navigation Groups */}
+          <div className="flex-1 py-4 px-3 overflow-y-auto space-y-5">
+            {navSections.map((section, sIdx) => (
+              <div key={sIdx} className="space-y-1">
+                {section.title && (
+                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+                    {section.title}
+                  </span>
+                )}
+                <div className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = item.exact
+                      ? pathname === item.href
+                      : pathname.startsWith(item.href) && item.href !== "/dashboard" && item.href !== "/dashboard/admin";
+
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`group flex items-center justify-between px-3 h-9.5 rounded-lg text-xs sm:text-[13px] transition-colors ${
                           isActive
-                            ? isAdmin
-                              ? "text-amber-700"
-                              : isSupplier
-                              ? "text-purple-600"
-                              : "text-blue-600"
-                            : "text-slate-400"
+                            ? "bg-[#EBECF0] text-[#091E42] font-bold border-l-[3px] border-[#0052CC]"
+                            : "text-[#172B4D] hover:bg-[#F4F5F7]"
                         }`}
-                      />
-                      <span>{item.name}</span>
-                    </div>
-                    {item.badge && (
-                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Icon
+                            className={`w-4 h-4 shrink-0 ${
+                              isActive ? "text-[#0052CC]" : "text-[#5E6C84] group-hover:text-[#172B4D]"
+                            }`}
+                          />
+                          <span className="truncate">{item.name}</span>
+                        </div>
+
+                        {item.badge && (
+                          <span
+                            className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase ${
+                              isActive
+                                ? "bg-white text-[#091E42] border-[#DFE1E6]"
+                                : "bg-[#F4F5F7] text-[#5E6C84] border-[#DFE1E6]"
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="mt-auto pt-4 border-t border-slate-100">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">
-              <p className="text-xs font-bold text-slate-800">
-                {isAdmin ? "Governance Portal" : "Need Procurement Help?"}
-              </p>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                {isAdmin
-                  ? "All actions are recorded to the immutable audit log."
-                  : "Connect with chemical sourcing support for inquiries."}
-              </p>
-              {!isAdmin && (
-                <Link
-                  href="/resources"
-                  className="pt-1 inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700"
-                >
-                  Procurement Guide <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              )}
+          {/* FIXED SYSTEM STATUS FOOTER */}
+          <div className="p-3 border-t border-[#DFE1E6] bg-white text-[11px] text-[#5E6C84] space-y-0.5 shrink-0">
+            <div className="font-semibold text-[#091E42]">Synthora Industrial</div>
+            <div className="flex items-center justify-between font-mono text-[10px]">
+              <span>Production Environment</span>
+              <span className="text-[#00875A] font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00875A]" />
+                Live
+              </span>
             </div>
           </div>
         </aside>
 
-        {/* Mobile Drawer Overlay */}
-        {sidebarOpen && (
-          <div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <div
-              className="w-72 bg-white h-full p-5 space-y-6 shadow-2xl flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  {roleLabel}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-                  aria-label="Close sidebar"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <nav className="space-y-1">
-                {navItems.map((item) => {
-                  const isActive = item.exact
-                    ? pathname === item.href
-                    : pathname.startsWith(item.href) && (!item.isExternal || pathname === item.href);
-
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all min-h-[44px] ${
-                        isActive
-                          ? isAdmin
-                            ? "bg-amber-50 text-amber-900 border border-amber-200 font-bold"
-                            : isSupplier
-                            ? "bg-purple-50 text-purple-700 border border-purple-200 font-bold"
-                            : "bg-blue-50 text-blue-700 border border-blue-200 font-bold"
-                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.name}</span>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="mt-auto pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 min-h-[44px]"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-slate-50/50">
+        {/* INDEPENDENTLY SCROLLABLE MAIN CONTENT PANE (Fluid Responsive Padding) */}
+        <main className="flex-1 min-w-0 bg-[#F4F5F7] p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {children}
         </main>
       </div>

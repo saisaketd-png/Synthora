@@ -5,8 +5,10 @@ import Link from "next/link";
 import { ArrowLeft, GitMerge, AlertTriangle, RefreshCw, CheckCircle2 } from "lucide-react";
 import { DuplicateCandidate, MergePayload, getDuplicateCandidates, mergeMasterProducts } from "@/features/admin/api/adminCatalogApi";
 import { MasterProductMergeModal } from "@/features/admin/components/MasterProductMergeModal";
+import { useToast } from "@/shared/context/ToastContext";
 
 export default function DuplicateDetectionPage() {
+  const toast = useToast();
   const [candidates, setCandidates] = useState<DuplicateCandidate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,10 +37,11 @@ export default function DuplicateDetectionPage() {
     try {
       setActionLoading(true);
       await mergeMasterProducts(payload);
+      toast.success("Master Chemicals merged successfully");
       setSelectedCandidate(null);
       await fetchDuplicates();
     } catch (e: any) {
-      alert("Failed to merge products: " + e.message);
+      toast.error("Failed to merge products: " + e.message);
     } finally {
       setActionLoading(false);
     }

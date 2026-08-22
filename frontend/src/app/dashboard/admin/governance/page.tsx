@@ -25,7 +25,7 @@ export default function GovernanceQueuePage() {
     async function fetchQueue() {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://127.0.0.1:8085/api/v1/admin/operations/governance/queue", {
+        const res = await fetch("/api/v1/admin/operations/governance/queue", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {

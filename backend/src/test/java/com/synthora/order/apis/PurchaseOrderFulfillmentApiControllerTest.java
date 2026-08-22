@@ -75,6 +75,9 @@ public class PurchaseOrderFulfillmentApiControllerTest {
     @Autowired
     private ShipmentRepository shipmentRepository;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     private User buyerA;
     private String buyerAToken;
 
@@ -93,13 +96,7 @@ public class PurchaseOrderFulfillmentApiControllerTest {
 
     @BeforeEach
     public void setup() {
-        shipmentRepository.deleteAll();
-        purchaseOrderRepository.deleteAll();
-        quotationRepository.deleteAll();
-        rfqRepository.deleteAll();
-        productRepository.deleteAll();
-        supplierRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         buyerA = createUser("buyerA@synthora.com", UserRole.USER);
         buyerAToken = jwtService.generateToken(buyerA);

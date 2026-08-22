@@ -75,6 +75,8 @@ public class AdminSupplierService {
             Boolean verified,
             Boolean exportReady,
             UserStatus status,
+            com.synthora.seller.SupplierVerificationStatus verificationStatus,
+            boolean excludeDraft,
             boolean includeDeleted) {
 
         int boundedPage = Math.max(0, page);
@@ -92,6 +94,14 @@ public class AdminSupplierService {
 
             if (!includeDeleted) {
                 predicates.add(cb.or(cb.isNull(userJoin), cb.isNull(userJoin.get("deletedAt"))));
+            }
+
+            if (excludeDraft) {
+                predicates.add(cb.notEqual(root.get("verificationStatus"), com.synthora.seller.SupplierVerificationStatus.DRAFT));
+            }
+
+            if (verificationStatus != null) {
+                predicates.add(cb.equal(root.get("verificationStatus"), verificationStatus));
             }
 
             if (query != null && !query.trim().isEmpty()) {
@@ -125,6 +135,18 @@ public class AdminSupplierService {
         };
 
         return supplierRepository.findAll(spec, pageable).map(this::toResponse);
+    }
+
+    public Page<AdminSupplierResponse> getSuppliers(
+            int page,
+            int size,
+            String query,
+            String country,
+            Boolean verified,
+            Boolean exportReady,
+            UserStatus status,
+            boolean includeDeleted) {
+        return getSuppliers(page, size, query, country, verified, exportReady, status, null, false, includeDeleted);
     }
 
     /**

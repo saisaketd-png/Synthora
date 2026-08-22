@@ -122,7 +122,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
     @BeforeEach
     public void setup() {
         rateLimiterService.resetAll();
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         // Buyers
         buyerA = createTestUser("buyer_a_po@synthora.com", "Buyer A", UserRole.USER);
@@ -258,7 +258,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
         mockMvc.perform(post("/api/v1/orders/supplier/{id}/process", poA.getId())
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot start processing order in status: PLACED")));
+                .andExpect(jsonPath("$.message", containsString("Cannot start processing order in status: PLACED")));
     }
 
     @Test
@@ -294,7 +294,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
         mockMvc.perform(post("/api/v1/orders/supplier/{id}/process", poA.getId())
                         .header("Authorization", "Bearer " + tokenSupplierA))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot start processing order in status: PROCESSING")));
+                .andExpect(jsonPath("$.message", containsString("Cannot start processing order in status: PROCESSING")));
     }
 
     @Test
@@ -333,7 +333,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot ship order in status: CONFIRMED")));
+                .andExpect(jsonPath("$.message", containsString("Cannot ship order in status: CONFIRMED")));
     }
 
     @Test
@@ -346,7 +346,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot ship order in status: PLACED")));
+                .andExpect(jsonPath("$.message", containsString("Cannot ship order in status: PLACED")));
     }
 
     @Test
@@ -418,7 +418,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot reject order in status: PROCESSING")));
+                .andExpect(jsonPath("$.message", containsString("Cannot reject order in status: PROCESSING")));
     }
 
     @Test
@@ -434,7 +434,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot reject order in status: SHIPPED")));
+                .andExpect(jsonPath("$.message", containsString("Cannot reject order in status: SHIPPED")));
     }
 
     @Test
@@ -450,7 +450,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot reject order in status: DELIVERED")));
+                .andExpect(jsonPath("$.message", containsString("Cannot reject order in status: DELIVERED")));
     }
 
     @Test
@@ -505,7 +505,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
         mockMvc.perform(post("/api/v1/orders/{id}/receive", poA.getId())
                         .header("Authorization", "Bearer " + tokenBuyerA))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot confirm receipt for order in status: PLACED")));
+                .andExpect(jsonPath("$.message", containsString("Cannot confirm receipt for order in status: PLACED")));
     }
 
     @Test
@@ -517,7 +517,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
         mockMvc.perform(post("/api/v1/orders/{id}/receive", poA.getId())
                         .header("Authorization", "Bearer " + tokenBuyerA))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot confirm receipt for order in status: CONFIRMED")));
+                .andExpect(jsonPath("$.message", containsString("Cannot confirm receipt for order in status: CONFIRMED")));
     }
 
     @Test
@@ -529,7 +529,7 @@ public class PurchaseOrderFulfillmentSecurityTest {
         mockMvc.perform(post("/api/v1/orders/{id}/receive", poA.getId())
                         .header("Authorization", "Bearer " + tokenBuyerA))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error", containsString("Cannot confirm receipt for order in status: PROCESSING")));
+                .andExpect(jsonPath("$.message", containsString("Cannot confirm receipt for order in status: PROCESSING")));
     }
 
     @Test

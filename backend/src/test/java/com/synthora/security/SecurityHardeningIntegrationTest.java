@@ -75,12 +75,12 @@ public class SecurityHardeningIntegrationTest {
     private Product productA;
     private Rfq rfqA;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     public void setUp() {
-        quotationRepository.deleteAll();
-        rfqRepository.deleteAll();
-        productRepository.deleteAll();
-        supplierRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         String s = UUID.randomUUID().toString().substring(0, 8);
 
@@ -380,6 +380,6 @@ public class SecurityHardeningIntegrationTest {
         mockMvc.perform(get("/api/v1/rfqs/invalid-uuid-format")
                 .header("Authorization", "Bearer " + tokenBuyerA))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.message").exists());
     }
 }

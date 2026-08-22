@@ -163,11 +163,13 @@ public class AdminMasterCatalogController {
     @GetMapping("/offerings")
     public ResponseEntity<Page<SupplierOfferingResponse>> getOfferings(
             @RequestParam(required = false) String query,
+            @RequestParam(required = false) String moderationStatus,
             @RequestParam(required = false) Boolean flagged,
+            @RequestParam(required = false) Long supplierId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             Authentication authentication) {
-        return ResponseEntity.ok(adminMasterCatalogService.searchSupplierOfferings(query, flagged, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")), authentication));
+        return ResponseEntity.ok(adminMasterCatalogService.searchSupplierOfferings(query, moderationStatus, flagged, supplierId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")), authentication));
     }
 
     @GetMapping("/offerings/{id}")
@@ -232,5 +234,46 @@ public class AdminMasterCatalogController {
             @RequestParam String entityId,
             Authentication authentication) {
         return ResponseEntity.ok(adminMasterCatalogService.getAuditLogsForEntity(entityType, entityId, authentication));
+    }
+
+    // --- Product Synonyms Management ---
+
+    @GetMapping("/master-products/{id}/synonyms")
+    public ResponseEntity<List<ProductSynonymResponse>> getMasterProductSynonyms(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        return ResponseEntity.ok(adminMasterCatalogService.getSynonymsForMasterProduct(id, authentication));
+    }
+
+    @PostMapping("/master-products/{id}/synonyms")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ProductSynonymResponse> addOfficialSynonym(
+            @PathVariable UUID id,
+            @Valid @RequestBody AddSynonymPayload payload,
+            Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(adminMasterCatalogService.addOfficialSynonym(id, payload, authentication));
+    }
+
+    @DeleteMapping("/master-products/{id}/synonyms/{synonymId}")
+    public ResponseEntity<Void> deleteSynonym(
+            @PathVariable UUID id,
+            @PathVariable UUID synonymId,
+            Authentication authentication) {
+        adminMasterCatalogService.deleteSynonym(id, synonymId, authentication);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/synonyms/{synonymId}/review")
+    public ResponseEntity<ProductSynonymResponse> reviewSynonym(
+            @PathVariable UUID synonymId,
+            @Valid @RequestBody ReviewSynonymPayload payload,
+            Authentication authentication) {
+        return ResponseEntity.ok(adminMasterCatalogService.reviewSupplierSynonym(synonymId, payload, authentication));
+    }
+
+    @GetMapping("/synonyms/pending")
+    public ResponseEntity<List<ProductSynonymResponse>> getPendingSynonyms(Authentication authentication) {
+        return ResponseEntity.ok(adminMasterCatalogService.getPendingSynonyms(authentication));
     }
 }

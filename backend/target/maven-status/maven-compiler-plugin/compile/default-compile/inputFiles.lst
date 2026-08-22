@@ -55,6 +55,7 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\common\dto\ApiErrorRespo
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\common\GlobalExceptionHandler.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\common\RequestLoggingFilter.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\common\ResourceNotFoundException.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\config\AdminBootstrap.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\config\AsyncConfig.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\config\OpenApiConfig.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\config\SecurityConfig.java
@@ -96,10 +97,12 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\email\Email
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\email\NotificationEmailTemplateResolver.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\CounterOfferSubmittedEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\DocumentUploadedEvent.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\OrderCompletedEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\OrderDeliveredEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\OrderProcessingStartedEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\OrderReceiptConfirmedEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\OrderShippedEvent.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\PurchaseOrderCancelledEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\PurchaseOrderConfirmedEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\PurchaseOrderIssuedEvent.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\events\PurchaseOrderRejectedEvent.java
@@ -116,6 +119,7 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\Notificatio
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\NotificationService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\notification\NotificationType.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\order\apis\PurchaseOrderController.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\order\dto\CancelPurchaseOrderRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\order\dto\CreatePurchaseOrderRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\order\dto\PurchaseOrderResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\order\dto\RejectPurchaseOrderRequest.java
@@ -141,6 +145,7 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\apis\SupplierOff
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\apis\SupplierOfferingImageController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\apis\SupplierPublicController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\CatalogImageService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\AddSynonymPayload.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\AdminMasterProductSearchCriteria.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ApproveAndLinkPayload.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ApproveProductRequestPayload.java
@@ -154,6 +159,7 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\CreateSuppli
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\DuplicateCandidateResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\FlagOfferingPayload.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\GovernanceStatsResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ImageContentResult.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\MasterProductDetailResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\MasterProductResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\MasterProductSearchCriteria.java
@@ -165,10 +171,13 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductRespo
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductSupplierManageResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductSupplierRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductSupplierResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ProductSynonymResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\RejectProductRequestPayload.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\RequestProductInfoPayload.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\RespondProductInfoPayload.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\ReviewSynonymPayload.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\SupplierOfferingResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\SupplierPerformanceResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\SupplierProductPublicResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\SupplierPublicResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\dto\UpdateImageAltTextPayload.java
@@ -201,6 +210,8 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSpecifica
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplier.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplierRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSupplierService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSynonym.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\ProductSynonymRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\Supplier.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SupplierOffering.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SupplierOfferingImage.java
@@ -209,6 +220,8 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SupplierOffering
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SupplierOfferingService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SupplierRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SupplierSpecification.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SynonymSource.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\SynonymStatus.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\verification\AdminSupplierOfferingVerificationController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\verification\BestMatchScoringEngine.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\product\verification\dto\FinalizeOfferingVerificationRequest.java
@@ -256,13 +269,17 @@ D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\LoginRateLimite
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\security\RateLimitExceededException.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\api\SellerProfileController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\SellerProfileResponse.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\SupplierProfileResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\SupplierVerificationAuditResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\SupplierVerificationPayload.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\UpdateSellerProfileRequest.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\dto\UpdateSupplierProfileRequest.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SellerProfile.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SellerProfileRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SellerProfileService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SupplierIdentityResolver.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SupplierPerformanceService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SupplierProfileController.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SupplierVerificationAudit.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SupplierVerificationAuditRepository.java
 D:\Saisaket\Synthora\backend\src\main\java\com\synthora\seller\SupplierVerificationStatus.java

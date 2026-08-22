@@ -124,4 +124,21 @@ public class PurchaseOrderController {
             Authentication authentication) {
         return purchaseOrderService.confirmReceiptBuyerOrder(orderId, authentication);
     }
+
+    @PostMapping("/{orderId}/cancel")
+    @PreAuthorize("hasRole('BUYER') or hasRole('USER')")
+    public PurchaseOrderResponse cancelOrder(
+            @PathVariable UUID orderId,
+            @Valid @RequestBody com.synthora.order.dto.CancelPurchaseOrderRequest request,
+            Authentication authentication) {
+        return purchaseOrderService.cancelBuyerOrder(orderId, request, authentication);
+    }
+
+    @PostMapping("/{orderId}/complete")
+    @PreAuthorize("hasRole('BUYER') or hasRole('USER') or hasRole('SUPPLIER') or hasRole('ADMIN')")
+    public PurchaseOrderResponse completeOrder(
+            @PathVariable UUID orderId,
+            Authentication authentication) {
+        return purchaseOrderService.completeOrder(orderId, authentication);
+    }
 }

@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { login, getAuthUser } from "@/features/auth/api/auth";
-import { Hexagon, Lock, Mail, ShieldAlert, ArrowRight } from "lucide-react";
+import { Lock, Mail, ShieldAlert, ArrowRight } from "lucide-react";
+import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
 function LoginForm() {
   const router = useRouter();
@@ -76,18 +77,11 @@ function LoginForm() {
         
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8 space-y-3">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="relative flex items-center justify-center w-10 h-10 text-[#0A192F]">
-              <Hexagon className="w-10 h-10 fill-current absolute" />
-              <Hexagon className="w-4 h-4 text-teal-400 absolute" strokeWidth={3} />
-            </div>
-            <span className="font-extrabold text-2xl text-slate-900 tracking-tight">
-              Synthora
-            </span>
-          </Link>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Enterprise Chemical & Pharmaceutical Marketplace
-          </span>
+          <SynthoraLogo
+            href="/"
+            size="xl"
+            subtitle="Enterprise Chemical & Pharmaceutical Marketplace"
+          />
         </div>
 
         {/* Card */}

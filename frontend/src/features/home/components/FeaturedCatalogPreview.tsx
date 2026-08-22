@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Product } from "@/features/products/types/product";
 import { PremiumProductCard, PremiumProduct } from "@/shared/components/PremiumProductCard";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 interface FeaturedCatalogPreviewProps {
   products?: Product[];
@@ -21,7 +21,7 @@ const SAMPLE_PRODUCTS: PremiumProduct[] = [
       name: "Apex BioPharma Exporters",
       isVerified: true,
       country: "India",
-      countryCode: "IN"
+      countryCode: "IN",
     },
   },
   {
@@ -37,7 +37,7 @@ const SAMPLE_PRODUCTS: PremiumProduct[] = [
       name: "SinoChem Specialty Corp",
       isVerified: true,
       country: "United Arab Emirates",
-      countryCode: "AE"
+      countryCode: "AE",
     },
   },
   {
@@ -53,7 +53,7 @@ const SAMPLE_PRODUCTS: PremiumProduct[] = [
       name: "EuroPharm Synthetics GmbH",
       isVerified: true,
       country: "Germany",
-      countryCode: "DE"
+      countryCode: "DE",
     },
   },
   {
@@ -69,63 +69,62 @@ const SAMPLE_PRODUCTS: PremiumProduct[] = [
       name: "Vanguard Fine Chem Tech",
       isVerified: true,
       country: "China",
-      countryCode: "CN"
+      countryCode: "CN",
     },
   },
 ];
 
 export function FeaturedCatalogPreview({ products }: FeaturedCatalogPreviewProps) {
-  const displayProducts = (products && products.length > 0) 
-    ? products.map(p => ({
-        id: p.id,
-        name: p.name,
-        category: p.category,
-        casNumber: p.casNumber || "N/A",
-        moq: p.moq || "100 units",
-        purity: "99.0%",
-        stockStatus: (p.stock > 0 ? "In Stock" : "Made to Order") as "In Stock" | "Made to Order",
-        supplier: {
-          id: p.sellerId || "unknown",
-          name: p.sellerName || "Unknown Supplier",
-          isVerified: true,
-          country: p.country || "Global",
-          countryCode: p.country ? p.country.substring(0, 2).toUpperCase() : "GL"
-        }
-      })) 
-    : SAMPLE_PRODUCTS;
+  const displayProducts =
+    products && products.length > 0
+      ? products.map((p) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category,
+          casNumber: p.casNumber || "N/A",
+          moq: p.moq || "100 units",
+          purity: "99.0%",
+          image: p.primaryImageUrl,
+          stockStatus: (p.stock > 0 ? "In Stock" : "Made to Order") as "In Stock" | "Made to Order",
+          supplier: {
+            id: p.sellerId || "unknown",
+            name: p.sellerName || "Verified Supplier",
+            isVerified: true,
+            country: p.country || "Global",
+            countryCode: p.country ? p.country.substring(0, 2).toUpperCase() : "GL",
+          },
+        }))
+      : SAMPLE_PRODUCTS;
 
   return (
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Header matching Screenshot 2 */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-2 rounded-full bg-teal-400" />
-              <span className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">
-                Featured Catalog
-              </span>
+    <section className="py-16 sm:py-20 bg-white border-b border-[#E2E8F0]">
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="max-w-2xl space-y-2">
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-bold text-[#006644] bg-[#E3FCEF] border border-[#ABF5D1]">
+              <Sparkles className="w-3.5 h-3.5 text-[#00875A]" />
+              <span className="font-mono uppercase tracking-wider">Verified Sourcing</span>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-[#0A192F] tracking-tight mb-4">
-              Precision ingredients, <br /> ready to source
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#091E42] tracking-tight">
+              Precision Chemical Catalog
             </h2>
-            <p className="text-slate-500 text-lg leading-relaxed">
-              Curated from top-rated verified manufacturers, each listing ships with certificates of analysis and full regulatory documentation.
+            <p className="text-sm sm:text-[15px] text-[#64748B] leading-relaxed">
+              Curated from verified pharmaceutical and chemical manufacturers, complete with Certificates of Analysis (COA) and regulatory compliance data.
             </p>
           </div>
-          
+
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 text-[13px] font-bold rounded-full transition-all shrink-0"
+            className="h-[42px] px-5 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#091E42] text-sm font-semibold rounded-xl transition-all inline-flex items-center gap-2 shadow-2xs shrink-0 self-start md:self-auto"
           >
-            <span>Browse full catalog</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>Browse Full Catalog</span>
+            <ArrowRight className="w-4 h-4 text-[#64748B]" />
           </Link>
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Product Grid: 1 col (mobile) -> 2 cols (tablet) -> 3-4 cols (desktop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {displayProducts.slice(0, 4).map((product) => (
             <PremiumProductCard key={product.id} product={product} />
           ))}
@@ -134,4 +133,3 @@ export function FeaturedCatalogPreview({ products }: FeaturedCatalogPreviewProps
     </section>
   );
 }
-

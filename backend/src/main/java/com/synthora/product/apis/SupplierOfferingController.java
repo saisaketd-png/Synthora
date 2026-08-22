@@ -37,8 +37,10 @@ public class SupplierOfferingController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SupplierOfferingResponse> getOfferingById(@PathVariable UUID id) {
-        return ResponseEntity.ok(supplierOfferingService.getOfferingById(id));
+    public ResponseEntity<SupplierOfferingResponse> getOfferingById(
+            @PathVariable UUID id,
+            Authentication authentication) {
+        return ResponseEntity.ok(supplierOfferingService.getOfferingById(id, authentication));
     }
 
     @PutMapping("/{id}")

@@ -27,6 +27,18 @@ public class SupplierOfferingImageController {
         return ResponseEntity.ok(catalogImageService.getOfferingImages(offeringId));
     }
 
+    @GetMapping("/{imageId}/content")
+    public ResponseEntity<org.springframework.core.io.Resource> getImageContent(
+            @PathVariable UUID offeringId,
+            @PathVariable UUID imageId) {
+        com.synthora.product.dto.ImageContentResult result = catalogImageService.getOfferingImageContent(offeringId, imageId);
+        return ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType(result.contentType()))
+                .header(org.springframework.http.HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .header("X-Content-Type-Options", "nosniff")
+                .body(result.resource());
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('SUPPLIER')")
     public ResponseEntity<CatalogImageResponse> uploadOfferingImage(

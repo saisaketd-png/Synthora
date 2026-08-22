@@ -16,8 +16,10 @@ import {
   FileCheck
 } from "lucide-react";
 import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
+import { useToast } from "@/shared/context/ToastContext";
 
 export default function SupplierVerificationSelfServicePage() {
+  const toast = useToast();
   const [workspace, setWorkspace] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export default function SupplierVerificationSelfServicePage() {
       setLoading(true);
       setError(null);
       const res = await authenticatedFetch("/api/v1/supplier/verification");
-      if (!res.ok) throw new Error("Failed to load verification status");
+      if (!res.ok) throw new Error("Failed to load verification workspace");
       const data = await res.json();
       setWorkspace(data);
     } catch (e: any) {
@@ -46,7 +48,7 @@ export default function SupplierVerificationSelfServicePage() {
   const handleSubmitResponse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!responseNotes.trim()) {
-      alert("Please enter details regarding your verification submission.");
+      toast.error("Please enter details regarding your verification submission.");
       return;
     }
     try {
@@ -57,10 +59,10 @@ export default function SupplierVerificationSelfServicePage() {
       });
       if (!res.ok) throw new Error("Failed to submit verification response");
       setResponseNotes("");
+      toast.success("Response submitted successfully! Your account is now UNDER REVIEW.");
       await loadVerification();
-      alert("Response submitted successfully! Your account is now UNDER REVIEW.");
     } catch (err: any) {
-      alert("Error: " + err.message);
+      toast.error("Error: " + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -95,27 +97,27 @@ export default function SupplierVerificationSelfServicePage() {
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl space-y-4">
+      <div className="bg-[#0B1F3A] text-white rounded-2xl p-6 sm:p-7 shadow-2xs space-y-4 border border-[#0B1F3A]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-extrabold tracking-widest text-blue-400 uppercase">Supplier Trust & Compliance</span>
-              <span className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase ${
-                vStatus === "VERIFIED" ? "bg-emerald-400/20 text-emerald-300 border border-emerald-500/40" :
-                vStatus === "UNDER_REVIEW" ? "bg-blue-400/20 text-blue-300 border border-blue-500/40" :
-                vStatus === "INFORMATION_REQUIRED" ? "bg-purple-400/20 text-purple-300 border border-purple-500/40" :
-                vStatus === "SUSPENDED" ? "bg-rose-400/20 text-rose-300 border border-rose-500/40" :
-                "bg-amber-400/20 text-amber-300 border border-amber-500/40"
+              <span className="text-[10px] font-extrabold tracking-widest text-[#0F9F9A] uppercase">Supplier Trust & Compliance</span>
+              <span className={`px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                vStatus === "VERIFIED" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" :
+                vStatus === "UNDER_REVIEW" ? "bg-blue-500/20 text-blue-300 border border-blue-500/40" :
+                vStatus === "INFORMATION_REQUIRED" ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" :
+                vStatus === "SUSPENDED" ? "bg-rose-500/20 text-rose-300 border border-rose-500/40" :
+                "bg-amber-500/20 text-amber-300 border border-amber-500/40"
               }`}>
                 {vStatus}
               </span>
             </div>
-            <h1 className="text-2xl font-black tracking-tight mt-1">{workspace.companyName} Verification Status</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight mt-1">{workspace.companyName} Verification Status</h1>
           </div>
 
           <button
             onClick={loadVerification}
-            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 self-start sm:self-auto"
+            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 self-start sm:self-auto border border-white/10"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Refresh Status
           </button>
@@ -125,10 +127,10 @@ export default function SupplierVerificationSelfServicePage() {
         <div className="pt-4 border-t border-white/10 space-y-2">
           <div className="flex justify-between text-xs font-bold">
             <span className="text-slate-300">Onboarding Completeness Score</span>
-            <span className="text-blue-300 font-extrabold">{workspace.completenessPercentage}% Complete</span>
+            <span className="text-[#0F9F9A] font-extrabold font-mono">{workspace.completenessPercentage}% Complete</span>
           </div>
-          <div className="w-full bg-white/10 h-3 rounded-full overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-400 to-emerald-400 h-full transition-all duration-500" style={{ width: `${workspace.completenessPercentage}%` }} />
+          <div className="w-full bg-white/10 h-2.5 rounded-full overflow-hidden">
+            <div className="bg-[#0F9F9A] h-full transition-all duration-500" style={{ width: `${workspace.completenessPercentage}%` }} />
           </div>
         </div>
       </div>

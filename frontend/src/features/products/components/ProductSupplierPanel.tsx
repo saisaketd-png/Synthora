@@ -123,10 +123,6 @@ export function ProductSupplierPanel({ productId }: Props) {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm(
-      "REMOVE OFFERING?\n\nYou will no longer appear as a supplier for this product. This action cannot be undone."
-    )) return;
-
     try {
       setPanelState("DELETING");
       setError(null);

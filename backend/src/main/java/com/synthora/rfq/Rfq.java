@@ -22,7 +22,7 @@ public class Rfq {
     @Column(name = "buyer_id", nullable = false)
     private UUID buyerId;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id")
     private UUID productId;
 
     @Column(name = "master_product_id")
@@ -68,8 +68,12 @@ public class Rfq {
             status = RfqStatus.PENDING;
         }
         LocalDateTime now = LocalDateTime.now();
-        createdAt = now;
-        updatedAt = now;
+        if (createdAt == null) {
+            createdAt = now;
+        }
+        if (updatedAt == null) {
+            updatedAt = now;
+        }
     }
 
     @PreUpdate
@@ -193,7 +197,15 @@ public class Rfq {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

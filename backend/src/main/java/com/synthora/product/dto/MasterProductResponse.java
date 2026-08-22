@@ -15,6 +15,7 @@ public record MasterProductResponse(
         String description,
         String status,
         int offeringCount,
+        String primaryImageUrl,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

@@ -26,6 +26,8 @@ export type SupplierOffering = {
   exportReady?: boolean;
   availabilityStatus?: string;
   moderationStatus?: string;
+  supplierLogoUrl?: string;
+  supplierVerified?: boolean;
 };
 
 interface ExpandableSupplierOfferingsDrawerProps {
@@ -107,8 +109,16 @@ export function ExpandableSupplierOfferingsDrawer({
               {/* Left Column: Supplier Identity & Commercial specs */}
               <div className="space-y-2 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-1.5 font-extrabold text-slate-900 text-sm">
-                    <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="flex items-center gap-2 font-extrabold text-slate-900 text-sm">
+                    {offering.supplierLogoUrl ? (
+                      <img
+                        src={offering.supplierLogoUrl}
+                        alt={offering.supplierName}
+                        className="w-6 h-6 rounded-md object-contain border border-slate-200 bg-white p-0.5 shrink-0 shadow-2xs"
+                      />
+                    ) : (
+                      <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
+                    )}
                     <span className="truncate">{offering.supplierName}</span>
                   </div>
 

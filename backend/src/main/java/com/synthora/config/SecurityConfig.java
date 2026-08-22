@@ -120,12 +120,16 @@ public class SecurityConfig {
                                 "/api/v1/public/**",
                                 "/api/v1/products",
                                 "/api/v1/products/**",
+                                "/api/v1/master-products/**",
                                 "/api/v1/categories",
                                 "/api/v1/categories/**",
                                 "/api/v1/countries",
                                 "/api/v1/suppliers",
                                 "/api/v1/suppliers/**",
-                                "/api/v1/documents"
+                                "/api/v1/supplier/offerings/*/images",
+                                "/api/v1/supplier/offerings/*/images/**",
+                                "/api/v1/documents",
+                                "/api/v1/documents/**"
                         ).permitAll()
 
                         // Buyer RFQ operations

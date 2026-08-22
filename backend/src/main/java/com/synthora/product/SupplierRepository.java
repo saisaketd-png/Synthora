@@ -16,6 +16,8 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long>, JpaSp
 
     long countByVerificationStatus(SupplierVerificationStatus verificationStatus);
 
+    long countByVerified(Boolean verified);
+
     Page<Supplier> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     List<Supplier> findByVerificationStatus(SupplierVerificationStatus verificationStatus);

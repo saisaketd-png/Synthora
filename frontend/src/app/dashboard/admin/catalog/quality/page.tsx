@@ -26,7 +26,7 @@ export default function MasterCatalogQualityPage() {
     async function fetchQuality() {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://127.0.0.1:8085/api/v1/admin/operations/catalog/quality", {
+        const res = await fetch("/api/v1/admin/operations/catalog/quality", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {

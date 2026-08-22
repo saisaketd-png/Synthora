@@ -9,6 +9,7 @@ import com.synthora.governance.dto.GovernanceAuditLogResponse;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.order.PurchaseOrder;
 import com.synthora.order.PurchaseOrderRepository;
 import com.synthora.order.PurchaseOrderService;
@@ -111,6 +112,7 @@ public class AdminCatalogOperationsSecurityTest {
         adminUser.setEmail("admin_gov_" + suffix + "@synthora.com");
         adminUser.setPasswordHash("hash");
         adminUser.setRole(UserRole.ADMIN);
+        adminUser.setStatus(UserStatus.ACTIVE);
         adminUser = userRepository.save(adminUser);
         adminAuth = new UsernamePasswordAuthenticationToken(adminUser.getEmail(), null, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
 
@@ -119,6 +121,7 @@ public class AdminCatalogOperationsSecurityTest {
         buyerUser.setEmail("buyer_gov_" + suffix + "@synthora.com");
         buyerUser.setPasswordHash("hash");
         buyerUser.setRole(UserRole.USER);
+        buyerUser.setStatus(UserStatus.ACTIVE);
         buyerUser = userRepository.save(buyerUser);
         buyerAuth = new UsernamePasswordAuthenticationToken(buyerUser.getEmail(), null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
@@ -127,6 +130,7 @@ public class AdminCatalogOperationsSecurityTest {
         supplierUserA.setEmail("sup_a_gov_" + suffix + "@synthora.com");
         supplierUserA.setPasswordHash("hash");
         supplierUserA.setRole(UserRole.SUPPLIER);
+        supplierUserA.setStatus(UserStatus.ACTIVE);
         supplierUserA = userRepository.save(supplierUserA);
 
         supplierA = new Supplier();
@@ -143,6 +147,7 @@ public class AdminCatalogOperationsSecurityTest {
         supplierUserB.setEmail("sup_b_gov_" + suffix + "@synthora.com");
         supplierUserB.setPasswordHash("hash");
         supplierUserB.setRole(UserRole.SUPPLIER);
+        supplierUserB.setStatus(UserStatus.ACTIVE);
         supplierUserB = userRepository.save(supplierUserB);
 
         supplierB = new Supplier();

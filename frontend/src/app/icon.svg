@@ -1,0 +1,54 @@
+<svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="syn-fav-grad" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A2540" />
+      <stop offset="50%" stop-color="#0052CC" />
+      <stop offset="100%" stop-color="#1E40AF" />
+    </linearGradient>
+    <linearGradient id="syn-fav-chem" x1="12" y1="8" x2="36" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#00F5D4" />
+      <stop offset="100%" stop-color="#00875A" />
+    </linearGradient>
+    <radialGradient id="syn-fav-core" cx="24" cy="24" r="8" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#00F5D4" />
+    </radialGradient>
+  </defs>
+
+  <!-- Outer Hexagonal Benzene Ring -->
+  <path
+    d="M24 3.5L42 13.8923V34.1077L24 44.5L6 34.1077V13.8923L24 3.5Z"
+    fill="url(#syn-fav-grad)"
+  />
+  <!-- Inner Ring -->
+  <path
+    d="M24 7.5L38.5 15.8715V32.1285L24 40.5L9.5 32.1285V15.8715L24 7.5Z"
+    stroke="#FFFFFF"
+    stroke-width="1.5"
+    stroke-opacity="0.3"
+    fill="none"
+  />
+  <!-- Tripartite Bonds -->
+  <path
+    d="M24 7.5V24L38.5 32.1285"
+    stroke="url(#syn-fav-chem)"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M24 24L9.5 32.1285"
+    stroke="url(#syn-fav-chem)"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Nodes -->
+  <circle cx="24" cy="7.5" r="3" fill="#00F5D4" />
+  <circle cx="38.5" cy="32.1285" r="3" fill="#00F5D4" />
+  <circle cx="9.5" cy="32.1285" r="3" fill="#00F5D4" />
+  <!-- Center Core -->
+  <circle cx="24" cy="24" r="5" fill="url(#syn-fav-core)" />
+  <circle cx="24" cy="24" r="2.5" fill="#FFFFFF" />
+  <circle cx="24" cy="24" r="1.5" fill="#0052CC" />
+</svg>

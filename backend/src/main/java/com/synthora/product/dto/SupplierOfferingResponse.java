@@ -28,6 +28,11 @@ public record SupplierOfferingResponse(
         String availabilityStatus,
         String moderationStatus,
         String moderationNotes,
+        String supplierLogoUrl,
+        Boolean supplierVerified,
+        Integer responseRate,
+        Long averageResponseTimeSeconds,
+        String formattedResponseTime,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

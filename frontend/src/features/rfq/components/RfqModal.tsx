@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Send } from "lucide-react";
+import { X, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Send, ShieldCheck, Building2, FlaskConical, ArrowRight } from "lucide-react";
 import { createRfq } from "../api/createRfq";
 
 export type RfqModalProps = {
@@ -30,7 +30,7 @@ export default function RfqModal({
   defaultQuantity,
 }: RfqModalProps) {
   const [step, setStep] = useState<"fill" | "review" | "success">("fill");
-  const [quantity, setQuantity] = useState<number | string>(defaultQuantity || "");
+  const [quantity, setQuantity] = useState<number | string>(defaultQuantity || 50);
   const [unit, setUnit] = useState("kg");
   const [deliveryLocation, setDeliveryLocation] = useState("Mumbai, India");
   const [messageText, setMessageText] = useState("");
@@ -42,7 +42,7 @@ export default function RfqModal({
 
   const handleClose = () => {
     setStep("fill");
-    setQuantity(defaultQuantity || "");
+    setQuantity(defaultQuantity || 50);
     setUnit("kg");
     setDeliveryLocation("Mumbai, India");
     setMessageText("");
@@ -75,8 +75,8 @@ export default function RfqModal({
   const handleProceedToReview = (e: React.FormEvent) => {
     e.preventDefault();
     const numericQuantity = Number(quantity);
-    if (!quantity || !Number.isFinite(numericQuantity) || numericQuantity <= 0 || numericQuantity > 1000000) {
-      setError("Please enter a valid quantity between 1 and 1,000,000.");
+    if (!quantity || !Number.isFinite(numericQuantity) || numericQuantity <= 0 || numericQuantity > 10000000) {
+      setError("Please enter a valid quantity between 1 and 10,000,000.");
       return;
     }
     setError(null);
@@ -87,7 +87,7 @@ export default function RfqModal({
     if (submittingRef.current) return;
 
     const numericQuantity = Number(quantity);
-    const fullMessage = deliveryLocation ? `Delivery Location: ${deliveryLocation}\n${messageText}`.trim() : messageText;
+    const fullMessage = deliveryLocation ? `Delivery Destination: ${deliveryLocation}\n\nRequirements:\n${messageText}`.trim() : messageText;
 
     const payload = {
       productId: productId || undefined,
@@ -122,253 +122,236 @@ export default function RfqModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
       role="dialog"
       aria-modal="true"
-      onClick={handleClose}
+      aria-labelledby="rfq-modal-title"
     >
-      <div
-        className="bg-white rounded-2xl shadow-xl w-full max-w-[640px] flex flex-col overflow-hidden max-h-[90vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            {step === "review" && (
-              <button
-                type="button"
-                onClick={() => setStep("fill")}
-                className="p-1 hover:bg-slate-100 rounded-full transition-colors text-slate-500"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            )}
-            <h2 className="text-xl font-bold text-slate-900">
-              {step === "fill" ? "Request Quote" : step === "review" ? "Confirm RFQ Sourcing Request" : "RFQ Submitted"}
+      <div className="bg-white rounded-2xl border border-[#CBD5E1] shadow-2xl max-w-lg sm:max-w-xl w-full overflow-hidden flex flex-col max-h-[92vh]">
+        {/* Modal Header */}
+        <div className="p-4 sm:p-5 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-start justify-between gap-3">
+          <div className="space-y-1 min-w-0">
+            <h2 id="rfq-modal-title" className="text-base sm:text-lg font-bold text-[#091E42] tracking-tight">
+              Request a Direct Quotation
             </h2>
+            <div className="flex items-center gap-2 text-xs text-[#64748B] flex-wrap">
+              <span className="font-bold text-[#091E42] truncate max-w-[180px] sm:max-w-xs">{productName}</span>
+              <span>·</span>
+              <span className="truncate">Supplier: <strong className="text-[#091E42]">{supplierName}</strong></span>
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-[#006644] bg-[#E3FCEF] border border-[#ABF5D1] px-1.5 py-0.2 rounded font-mono">
+                <ShieldCheck className="w-2.5 h-2.5" /> VERIFIED
+              </span>
+            </div>
           </div>
+
           <button
+            type="button"
             onClick={handleClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors rounded-full p-1"
+            className="p-1.5 text-[#64748B] hover:text-[#091E42] hover:bg-[#F1F5F9] rounded-lg transition-colors shrink-0"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-6 overflow-y-auto">
+        {/* Modal Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4">
           {error && (
-            <div className="mb-4 bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-rose-800 font-medium">{error}</p>
+            <div className="p-3 bg-[#FFEBE6] border border-[#FFBDAD] rounded-xl text-xs text-[#BF2600] flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Step 1: Form Fill */}
+          {/* STEP 1: Form Fill */}
           {step === "fill" && (
-            <form onSubmit={handleProceedToReview} className="space-y-5">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
-                <div className="flex justify-between">
-                  <span className="text-slate-500 font-bold uppercase">Chemical</span>
-                  <span className="font-extrabold text-slate-900">{productName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500 font-bold uppercase">Target Supplier</span>
-                  <span className="font-bold text-slate-900">{supplierName} ({supplierCountry})</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label htmlFor="quantity" className="text-xs font-bold text-slate-700">
-                    Required Quantity <span className="text-rose-500">*</span>
+            <form id="rfq-form" onSubmit={handleProceedToReview} className="space-y-4">
+              {/* Quantity & Unit Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2 space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                    Required Quantity *
                   </label>
                   <input
                     type="number"
-                    id="quantity"
-                    autoFocus
-                    required
                     min="1"
-                    max="1000000"
                     step="any"
-                    disabled={loading}
+                    required
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
-                    placeholder="Enter quantity"
+                    placeholder="e.g. 500"
+                    className="w-full h-11 px-3.5 text-sm font-mono font-bold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#0052CC]"
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="unit" className="text-xs font-bold text-slate-700">
-                    Unit <span className="text-rose-500">*</span>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                    Unit *
                   </label>
                   <select
-                    id="unit"
-                    required
-                    disabled={loading}
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-semibold"
+                    className="w-full h-11 px-3 text-sm font-bold bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#0052CC]"
                   >
                     <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="mg">mg</option>
-                    <option value="L">L</option>
-                    <option value="mL">mL</option>
+                    <option value="MT">Metric Ton (MT)</option>
+                    <option value="g">Grams (g)</option>
+                    <option value="L">Liters (L)</option>
                   </select>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label htmlFor="location" className="text-xs font-bold text-slate-700">
-                  Delivery Location / Destination Port
+              {/* Delivery Destination */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                  Delivery Destination / Port
                 </label>
                 <input
                   type="text"
-                  id="location"
                   value={deliveryLocation}
                   onChange={(e) => setDeliveryLocation(e.target.value)}
-                  placeholder="City, Country or Destination Port"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  placeholder="e.g. Mumbai Port, India or Rotterdam, Netherlands"
+                  className="w-full h-11 px-3.5 text-sm bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#0052CC]"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between">
-                  <label htmlFor="message" className="text-xs font-bold text-slate-700">
+              {/* Commercial & Technical Requirements */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
                     Commercial & Technical Requirements
                   </label>
-                  <span className="text-[11px] text-slate-400">{messageText.length}/1000</span>
+                  <span className="text-[10px] text-[#64748B] font-mono">
+                    {messageText.length}/2000
+                  </span>
                 </div>
                 <textarea
-                  id="message"
-                  rows={3}
-                  maxLength={1000}
-                  disabled={loading}
+                  rows={4}
+                  maxLength={2000}
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Specify purity target, grade, lead time constraints, shipping terms..."
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
-                ></textarea>
-              </div>
-
-              <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="px-5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-2xs"
-                >
-                  Review Request
-                </button>
+                  placeholder="Specify purity target, grade (USP/BP/EP), required lead time, packaging type (drums/IBC), target payment terms, or required export certificates..."
+                  className="w-full p-3 text-sm bg-white border border-[#CBD5E1] rounded-xl focus:outline-none focus:border-[#0052CC] resize-none"
+                />
+                <p className="text-xs text-[#64748B]">
+                  This inquiry will be routed directly to {supplierName} for quotation generation.
+                </p>
               </div>
             </form>
           )}
 
-          {/* Step 2: Pre-Submission Review */}
+          {/* STEP 2: Review */}
           {step === "review" && (
-            <div className="space-y-6">
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3 text-xs">
-                <h3 className="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">Sourcing Summary</h3>
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div>
-                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Chemical Compound</span>
-                    <span className="font-extrabold text-slate-900 text-sm">{productName}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Target Supplier</span>
-                    <span className="font-bold text-slate-900 text-sm">{supplierName}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Requested Sourcing Quantity</span>
-                    <span className="font-mono font-extrabold text-slate-900 text-sm">{quantity} {unit}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 font-bold block uppercase text-[10px]">Delivery Destination</span>
-                    <span className="font-bold text-slate-900 text-sm">{deliveryLocation || "Not specified"}</span>
-                  </div>
+            <div className="space-y-3.5 text-xs sm:text-sm">
+              <div className="p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl space-y-3">
+                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                  <span className="text-[#64748B] uppercase tracking-wider font-bold text-xs">Product</span>
+                  <strong className="text-[#091E42]">{productName}</strong>
                 </div>
-              </div>
 
-              {messageText && (
-                <div className="bg-white border border-slate-200 p-4 rounded-xl text-xs space-y-1">
-                  <span className="font-bold text-slate-500 uppercase text-[10px]">Notes & Specifications</span>
-                  <p className="text-slate-800 whitespace-pre-wrap">{messageText}</p>
+                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                  <span className="text-[#64748B] uppercase tracking-wider font-bold text-xs">Target Supplier</span>
+                  <strong className="text-[#091E42]">{supplierName}</strong>
                 </div>
-              )}
 
-              <div className="pt-4 flex items-center justify-between gap-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setStep("fill")}
-                  disabled={loading}
-                  className="px-5 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
-                >
-                  [ BACK ]
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFinalSubmit}
-                  disabled={loading}
-                  className="px-6 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-2xs flex items-center gap-2"
-                >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {loading ? "Submitting..." : "[ SUBMIT RFQ ]"}
-                </button>
+                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                  <span className="text-[#64748B] uppercase tracking-wider font-bold text-xs">Sourcing Quantity</span>
+                  <strong className="text-[#091E42] font-mono">{quantity} {unit}</strong>
+                </div>
+
+                <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                  <span className="text-[#64748B] uppercase tracking-wider font-bold text-xs">Destination</span>
+                  <strong className="text-[#091E42]">{deliveryLocation || "Not specified"}</strong>
+                </div>
+
+                {messageText && (
+                  <div className="space-y-1">
+                    <span className="text-[#64748B] uppercase tracking-wider font-bold text-xs block">Requirements Note</span>
+                    <p className="text-[#172B4D] bg-white p-3 rounded-xl border border-[#E2E8F0] whitespace-pre-wrap text-xs sm:text-sm">
+                      {messageText}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Step 3: Success Confirmation */}
+          {/* STEP 3: Success Confirmation */}
           {step === "success" && (
-            <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+            <div className="py-6 sm:py-8 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-[#E3FCEF] border border-[#ABF5D1] text-[#00875A] flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
-              <div>
-                <h3 className="text-xl font-extrabold text-slate-900">RFQ Created Successfully</h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Your sourcing request has been transmitted directly to {supplierName}.
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-[#091E42]">
+                  Quotation Request Dispatched
+                </h3>
+                <p className="text-xs sm:text-sm text-[#64748B] max-w-sm mx-auto leading-relaxed">
+                  Your RFQ has been dispatched to <strong>{supplierName}</strong>. You can monitor quotation responses directly in your buyer operations desk.
                 </p>
+                {submittedRfq?.rfqReference && (
+                  <p className="font-mono text-xs sm:text-sm font-bold text-[#0052CC] pt-2">
+                    Reference: {submittedRfq.rfqReference}
+                  </p>
+                )}
               </div>
+            </div>
+          )}
+        </div>
 
-              {submittedRfq && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 w-full text-xs space-y-2 text-left mt-2">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">RFQ Reference:</span>
-                    <span className="font-mono font-extrabold text-slate-900">{submittedRfq.rfqReference || submittedRfq.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">Chemical:</span>
-                    <span className="font-bold text-slate-900">{productName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">Target Quantity:</span>
-                    <span className="font-mono font-bold text-slate-900">{submittedRfq.quantity} {submittedRfq.unit}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500 font-bold">Status:</span>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-extrabold rounded text-[10px] uppercase">
-                      {submittedRfq.status || "SUBMITTED"}
-                    </span>
-                  </div>
-                </div>
-              )}
-
+        {/* Modal Footer */}
+        <div className="p-4 border-t border-[#E2E8F0] bg-[#F8FAFC] flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
+          {step === "fill" && (
+            <>
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-6 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-colors mt-4"
+                className="w-full sm:w-auto h-11 px-4 rounded-xl border border-[#CBD5E1] text-sm font-semibold text-[#091E42] hover:bg-[#F1F5F9] transition-colors"
               >
-                Close & Return to Catalog
+                Cancel
               </button>
-            </div>
+              <button
+                type="submit"
+                form="rfq-form"
+                className="w-full sm:w-auto h-11 px-5 rounded-xl bg-[#0052CC] hover:bg-[#0747A6] text-white text-sm font-bold transition-colors inline-flex items-center justify-center gap-2 shadow-sm"
+              >
+                <span>Review Request</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </>
+          )}
+
+          {step === "review" && (
+            <>
+              <button
+                type="button"
+                onClick={() => setStep("fill")}
+                disabled={loading}
+                className="w-full sm:w-auto h-11 px-4 rounded-xl border border-[#CBD5E1] text-sm font-semibold text-[#091E42] hover:bg-[#F1F5F9] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Edit</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalSubmit}
+                disabled={loading}
+                className="w-full sm:w-auto h-11 px-5 rounded-xl bg-[#0052CC] hover:bg-[#0747A6] text-white text-sm font-bold transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2 shadow-sm"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                <span>{loading ? "Submitting..." : "Submit Quotation Request"}</span>
+              </button>
+            </>
+          )}
+
+          {step === "success" && (
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-full sm:w-auto h-11 px-6 rounded-xl bg-[#0052CC] hover:bg-[#0747A6] text-white text-sm font-bold transition-colors shadow-sm"
+            >
+              Done
+            </button>
           )}
         </div>
       </div>

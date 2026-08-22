@@ -46,6 +46,13 @@ public class AdminMasterProductSpecification {
                 // Match Description
                 searchPredicates.add(cb.like(cb.lower(root.get("description")), lq));
 
+                // Match Synonyms (Approved)
+                Join<MasterProduct, ProductSynonym> synonymJoin = root.join("synonyms", JoinType.LEFT);
+                searchPredicates.add(cb.and(
+                        cb.equal(synonymJoin.get("status"), SynonymStatus.APPROVED),
+                        cb.like(cb.lower(synonymJoin.get("synonym")), lq)
+                ));
+
                 predicates.add(cb.or(searchPredicates.toArray(new Predicate[0])));
             }
 

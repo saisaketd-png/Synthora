@@ -3,6 +3,7 @@ package com.synthora.rfq;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.order.PurchaseOrder;
 import com.synthora.order.PurchaseOrderRepository;
 import com.synthora.order.PurchaseOrderService;
@@ -85,8 +86,13 @@ public class MultiSupplierRfqHardeningSecurityTest {
     private SupplierOffering offeringB;
     private Product legacyProduct;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     public void setUp() {
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+
         String suffix = UUID.randomUUID().toString().substring(0, 8);
 
         buyerUser = new User();
@@ -94,6 +100,7 @@ public class MultiSupplierRfqHardeningSecurityTest {
         buyerUser.setEmail("buyer_hrd_" + suffix + "@synthora.com");
         buyerUser.setPasswordHash("hash");
         buyerUser.setRole(UserRole.USER);
+        buyerUser.setStatus(UserStatus.ACTIVE);
         buyerUser = userRepository.save(buyerUser);
         buyerAuth = new UsernamePasswordAuthenticationToken(buyerUser.getEmail(), null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
@@ -102,6 +109,7 @@ public class MultiSupplierRfqHardeningSecurityTest {
         supplierUserA.setEmail("sup_a_hrd_" + suffix + "@synthora.com");
         supplierUserA.setPasswordHash("hash");
         supplierUserA.setRole(UserRole.SUPPLIER);
+        supplierUserA.setStatus(UserStatus.ACTIVE);
         supplierUserA = userRepository.save(supplierUserA);
 
         supplierA = new Supplier();
@@ -116,6 +124,7 @@ public class MultiSupplierRfqHardeningSecurityTest {
         supplierUserB.setEmail("sup_b_hrd_" + suffix + "@synthora.com");
         supplierUserB.setPasswordHash("hash");
         supplierUserB.setRole(UserRole.SUPPLIER);
+        supplierUserB.setStatus(UserStatus.ACTIVE);
         supplierUserB = userRepository.save(supplierUserB);
 
         supplierB = new Supplier();
@@ -146,12 +155,16 @@ public class MultiSupplierRfqHardeningSecurityTest {
                 masterProduct.getId(), new BigDecimal("120.00"), "INR", 500, new BigDecimal("99.80"), "USP", new BigDecimal("50.00"), "25kg Drum", 7, true, true, true, "AVAILABLE"
         ), supplierAuthA);
         offeringA = supplierOfferingRepository.findById(offA.id()).orElseThrow();
+        offeringA.setModerationStatus("APPROVED");
+        supplierOfferingRepository.save(offeringA);
 
         SecurityContextHolder.getContext().setAuthentication(supplierAuthB);
         SupplierOfferingResponse offB = supplierOfferingService.createOffering(new CreateSupplierOfferingRequest(
                 masterProduct.getId(), new BigDecimal("125.00"), "INR", 300, new BigDecimal("99.50"), "EP", new BigDecimal("25.00"), "50kg Drum", 5, true, true, true, "AVAILABLE"
         ), supplierAuthB);
         offeringB = supplierOfferingRepository.findById(offB.id()).orElseThrow();
+        offeringB.setModerationStatus("APPROVED");
+        supplierOfferingRepository.save(offeringB);
 
         SecurityContextHolder.getContext().setAuthentication(buyerAuth);
     }
@@ -529,7 +542,7 @@ public class MultiSupplierRfqHardeningSecurityTest {
         supplierOfferingService.deactivateOffering(offeringA.getId(), supplierAuthA);
 
         SecurityContextHolder.getContext().setAuthentication(buyerAuth);
-        assertThrows(IllegalStateException.class, () -> rfqService.createRfq(new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry"), buyerAuth));
+        assertThrows(IllegalArgumentException.class, () -> rfqService.createRfq(new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry"), buyerAuth));
     }
 
     // 29. RFQ response includes sourcingRequestId, sourcingRequestReference, and expiresAt

@@ -112,8 +112,31 @@ public class SupplierVerificationService {
                 supplier.getId(),
                 supplier.getName(),
                 supplier.getLegalName() != null ? supplier.getLegalName() : supplier.getName(),
+                supplier.getTradeName(),
                 supplier.getBusinessType(),
-                supplier.getVerificationStatus().name(),
+                supplier.getLogoUrl(),
+                supplier.getCountryCode(),
+                supplier.getCountryName(),
+                supplier.getStateProvince(),
+                supplier.getCity(),
+                supplier.getPostalCode(),
+                supplier.getRegisteredAddress(),
+                supplier.getBusinessEmail(),
+                supplier.getBusinessPhone(),
+                supplier.getAuthorizedRepresentativeName(),
+                supplier.getAuthorizedRepresentativeDesignation(),
+                Boolean.TRUE.equals(supplier.getEmailVerified()),
+                Boolean.TRUE.equals(supplier.getPhoneVerified()),
+                supplier.getWebsite(),
+                supplier.getTaxVatNumber(),
+                supplier.getCompanyRegistrationNumber(),
+                supplier.getBusinessDescription(),
+                supplier.getCountriesServed(),
+                supplier.getPrimaryCategories(),
+                supplier.getYearsInBusiness(),
+                Boolean.TRUE.equals(supplier.getExportReady()),
+                Boolean.TRUE.equals(supplier.getVerified()),
+                supplier.getVerificationStatus() != null ? supplier.getVerificationStatus().name() : "PENDING",
                 completeness.overallPercentage(),
                 completeness,
                 checklist,
@@ -128,6 +151,14 @@ public class SupplierVerificationService {
     public SupplierVerificationWorkspaceDto startReview(Long supplierId, Authentication authentication) {
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + supplierId));
+
+        if (supplier.getVerificationStatus() == SupplierVerificationStatus.VERIFIED && Boolean.TRUE.equals(supplier.getVerified())) {
+            throw new IllegalStateException("Cannot restart review on an already verified supplier: " + supplierId);
+        }
+
+        if (supplier.getVerificationStatus() == SupplierVerificationStatus.UNDER_REVIEW) {
+            return getVerificationDetails(supplierId);
+        }
 
         User admin = getAuthenticatedUser(authentication);
         SupplierVerificationStatus oldStatus = supplier.getVerificationStatus();
@@ -247,6 +278,10 @@ public class SupplierVerificationService {
     public SupplierVerificationWorkspaceDto finalizeVerification(Long supplierId, String overrideReason, Authentication authentication) {
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + supplierId));
+
+        if (supplier.getVerificationStatus() == SupplierVerificationStatus.VERIFIED && Boolean.TRUE.equals(supplier.getVerified())) {
+            throw new IllegalStateException("Supplier is already verified: " + supplierId);
+        }
 
         User admin = getAuthenticatedUser(authentication);
         Set<VerificationType> mandatoryTypes = requirementResolver.getMandatoryRequirements(supplier.getBusinessType());

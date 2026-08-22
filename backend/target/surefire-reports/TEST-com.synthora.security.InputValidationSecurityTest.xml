@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.synthora.security.InputValidationSecurityTest" time="11.938" tests="31" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="com.synthora.security.InputValidationSecurityTest" time="5.028" tests="31" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="25"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -17,7 +17,7 @@
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
     <property name="user.country" value="US"/>
     <property name="sun.boot.library.path" value="C:\Program Files\Java\jdk-25.0.2\bin"/>
-    <property name="sun.java.command" value="C:\Users\saisa\AppData\Local\Temp\surefire7183063202783587689\surefirebooter-20260819214410178_3.jar C:\Users\saisa\AppData\Local\Temp\surefire7183063202783587689 2026-08-19T21-44-09_958-jvmRun1 surefire-20260819214410178_1tmp surefire_0-20260819214410178_2tmp"/>
+    <property name="sun.java.command" value="C:\Users\saisa\AppData\Local\Temp\surefire14074567858015162339\surefirebooter-20260822224127480_3.jar C:\Users\saisa\AppData\Local\Temp\surefire14074567858015162339 2026-08-22T22-41-27_357-jvmRun1 surefire-20260822224127480_1tmp surefire_0-20260822224127480_2tmp"/>
     <property name="jdk.debug" value="release"/>
     <property name="surefire.test.class.path" value="D:\Saisaket\Synthora\backend\target\test-classes;D:\Saisaket\Synthora\backend\target\classes;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-web\3.4.1\spring-boot-starter-web-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter\3.4.1\spring-boot-starter-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot\3.4.1\spring-boot-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-autoconfigure\3.4.1\spring-boot-autoconfigure-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-logging\3.4.1\spring-boot-starter-logging-3.4.1.jar;C:\Users\saisa\.m2\repository\ch\qos\logback\logback-classic\1.5.12\logback-classic-1.5.12.jar;C:\Users\saisa\.m2\repository\ch\qos\logback\logback-core\1.5.12\logback-core-1.5.12.jar;C:\Users\saisa\.m2\repository\org\apache\logging\log4j\log4j-to-slf4j\2.24.3\log4j-to-slf4j-2.24.3.jar;C:\Users\saisa\.m2\repository\org\apache\logging\log4j\log4j-api\2.24.3\log4j-api-2.24.3.jar;C:\Users\saisa\.m2\repository\org\slf4j\jul-to-slf4j\2.0.16\jul-to-slf4j-2.0.16.jar;C:\Users\saisa\.m2\repository\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;C:\Users\saisa\.m2\repository\org\yaml\snakeyaml\2.3\snakeyaml-2.3.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-json\3.4.1\spring-boot-starter-json-3.4.1.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.18.2\jackson-datatype-jdk8-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\module\jackson-module-parameter-names\2.18.2\jackson-module-parameter-names-2.18.2.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-tomcat\3.4.1\spring-boot-starter-tomcat-3.4.1.jar;C:\Users\saisa\.m2\repository\org\apache\tomcat\embed\tomcat-embed-core\10.1.34\tomcat-embed-core-10.1.34.jar;C:\Users\saisa\.m2\repository\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.34\tomcat-embed-websocket-10.1.34.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-web\6.2.1\spring-web-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-beans\6.2.1\spring-beans-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-webmvc\6.2.1\spring-webmvc-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-context\6.2.1\spring-context-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-expression\6.2.1\spring-expression-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-data-jpa\3.4.1\spring-boot-starter-data-jpa-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-jdbc\3.4.1\spring-boot-starter-jdbc-3.4.1.jar;C:\Users\saisa\.m2\repository\com\zaxxer\HikariCP\5.1.0\HikariCP-5.1.0.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-jdbc\6.2.1\spring-jdbc-6.2.1.jar;C:\Users\saisa\.m2\repository\org\hibernate\orm\hibernate-core\6.6.4.Final\hibernate-core-6.6.4.Final.jar;C:\Users\saisa\.m2\repository\jakarta\persistence\jakarta.persistence-api\3.1.0\jakarta.persistence-api-3.1.0.jar;C:\Users\saisa\.m2\repository\jakarta\transaction\jakarta.transaction-api\2.0.1\jakarta.transaction-api-2.0.1.jar;C:\Users\saisa\.m2\repository\org\jboss\logging\jboss-logging\3.6.1.Final\jboss-logging-3.6.1.Final.jar;C:\Users\saisa\.m2\repository\org\hibernate\common\hibernate-commons-annotations\7.0.3.Final\hibernate-commons-annotations-7.0.3.Final.jar;C:\Users\saisa\.m2\repository\io\smallrye\jandex\3.2.0\jandex-3.2.0.jar;C:\Users\saisa\.m2\repository\com\fasterxml\classmate\1.7.0\classmate-1.7.0.jar;C:\Users\saisa\.m2\repository\net\bytebuddy\byte-buddy\1.15.11\byte-buddy-1.15.11.jar;C:\Users\saisa\.m2\repository\org\glassfish\jaxb\jaxb-runtime\4.0.5\jaxb-runtime-4.0.5.jar;C:\Users\saisa\.m2\repository\org\glassfish\jaxb\jaxb-core\4.0.5\jaxb-core-4.0.5.jar;C:\Users\saisa\.m2\repository\org\glassfish\jaxb\txw2\4.0.5\txw2-4.0.5.jar;C:\Users\saisa\.m2\repository\com\sun\istack\istack-commons-runtime\4.1.2\istack-commons-runtime-4.1.2.jar;C:\Users\saisa\.m2\repository\jakarta\inject\jakarta.inject-api\2.0.1\jakarta.inject-api-2.0.1.jar;C:\Users\saisa\.m2\repository\org\antlr\antlr4-runtime\4.13.0\antlr4-runtime-4.13.0.jar;C:\Users\saisa\.m2\repository\org\springframework\data\spring-data-jpa\3.4.1\spring-data-jpa-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\data\spring-data-commons\3.4.1\spring-data-commons-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-orm\6.2.1\spring-orm-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-tx\6.2.1\spring-tx-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-aspects\6.2.1\spring-aspects-6.2.1.jar;C:\Users\saisa\.m2\repository\org\aspectj\aspectjweaver\1.9.22.1\aspectjweaver-1.9.22.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-security\3.4.1\spring-boot-starter-security-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-aop\6.2.1\spring-aop-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-config\6.4.2\spring-security-config-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-web\6.4.2\spring-security-web-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-validation\3.4.1\spring-boot-starter-validation-3.4.1.jar;C:\Users\saisa\.m2\repository\org\apache\tomcat\embed\tomcat-embed-el\10.1.34\tomcat-embed-el-10.1.34.jar;C:\Users\saisa\.m2\repository\org\hibernate\validator\hibernate-validator\8.0.2.Final\hibernate-validator-8.0.2.Final.jar;C:\Users\saisa\.m2\repository\jakarta\validation\jakarta.validation-api\3.0.2\jakarta.validation-api-3.0.2.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-actuator\3.4.1\spring-boot-starter-actuator-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-actuator-autoconfigure\3.4.1\spring-boot-actuator-autoconfigure-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-actuator\3.4.1\spring-boot-actuator-3.4.1.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-observation\1.14.2\micrometer-observation-1.14.2.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-commons\1.14.2\micrometer-commons-1.14.2.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-jakarta9\1.14.2\micrometer-jakarta9-1.14.2.jar;C:\Users\saisa\.m2\repository\io\micrometer\micrometer-core\1.14.2\micrometer-core-1.14.2.jar;C:\Users\saisa\.m2\repository\org\hdrhistogram\HdrHistogram\2.2.2\HdrHistogram-2.2.2.jar;C:\Users\saisa\.m2\repository\org\latencyutils\LatencyUtils\2.0.3\LatencyUtils-2.0.3.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-mail\3.4.1\spring-boot-starter-mail-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-context-support\6.2.1\spring-context-support-6.2.1.jar;C:\Users\saisa\.m2\repository\org\eclipse\angus\jakarta.mail\2.0.3\jakarta.mail-2.0.3.jar;C:\Users\saisa\.m2\repository\jakarta\activation\jakarta.activation-api\2.1.3\jakarta.activation-api-2.1.3.jar;C:\Users\saisa\.m2\repository\org\eclipse\angus\angus-activation\2.0.2\angus-activation-2.0.2.jar;C:\Users\saisa\.m2\repository\org\postgresql\postgresql\42.7.4\postgresql-42.7.4.jar;C:\Users\saisa\.m2\repository\org\checkerframework\checker-qual\3.42.0\checker-qual-3.42.0.jar;C:\Users\saisa\.m2\repository\org\flywaydb\flyway-core\10.20.1\flyway-core-10.20.1.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-toml\2.18.2\jackson-dataformat-toml-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\core\jackson-core\2.18.2\jackson-core-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.18.2\jackson-datatype-jsr310-2.18.2.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\core\jackson-annotations\2.18.2\jackson-annotations-2.18.2.jar;C:\Users\saisa\.m2\repository\org\flywaydb\flyway-database-postgresql\10.20.1\flyway-database-postgresql-10.20.1.jar;C:\Users\saisa\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-ui\2.8.3\springdoc-openapi-starter-webmvc-ui-2.8.3.jar;C:\Users\saisa\.m2\repository\org\springdoc\springdoc-openapi-starter-webmvc-api\2.8.3\springdoc-openapi-starter-webmvc-api-2.8.3.jar;C:\Users\saisa\.m2\repository\org\springdoc\springdoc-openapi-starter-common\2.8.3\springdoc-openapi-starter-common-2.8.3.jar;C:\Users\saisa\.m2\repository\io\swagger\core\v3\swagger-core-jakarta\2.2.27\swagger-core-jakarta-2.2.27.jar;C:\Users\saisa\.m2\repository\org\apache\commons\commons-lang3\3.17.0\commons-lang3-3.17.0.jar;C:\Users\saisa\.m2\repository\io\swagger\core\v3\swagger-annotations-jakarta\2.2.27\swagger-annotations-jakarta-2.2.27.jar;C:\Users\saisa\.m2\repository\io\swagger\core\v3\swagger-models-jakarta\2.2.27\swagger-models-jakarta-2.2.27.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\dataformat\jackson-dataformat-yaml\2.18.2\jackson-dataformat-yaml-2.18.2.jar;C:\Users\saisa\.m2\repository\org\webjars\swagger-ui\5.18.2\swagger-ui-5.18.2.jar;C:\Users\saisa\.m2\repository\org\webjars\webjars-locator-lite\1.0.1\webjars-locator-lite-1.0.1.jar;C:\Users\saisa\.m2\repository\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;C:\Users\saisa\.m2\repository\org\projectlombok\lombok\1.18.36\lombok-1.18.36.jar;C:\Users\saisa\.m2\repository\org\mapstruct\mapstruct\1.6.3\mapstruct-1.6.3.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-starter-test\3.4.1\spring-boot-starter-test-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-test\3.4.1\spring-boot-test-3.4.1.jar;C:\Users\saisa\.m2\repository\org\springframework\boot\spring-boot-test-autoconfigure\3.4.1\spring-boot-test-autoconfigure-3.4.1.jar;C:\Users\saisa\.m2\repository\com\jayway\jsonpath\json-path\2.9.0\json-path-2.9.0.jar;C:\Users\saisa\.m2\repository\jakarta\xml\bind\jakarta.xml.bind-api\4.0.2\jakarta.xml.bind-api-4.0.2.jar;C:\Users\saisa\.m2\repository\net\minidev\json-smart\2.5.1\json-smart-2.5.1.jar;C:\Users\saisa\.m2\repository\net\minidev\accessors-smart\2.5.1\accessors-smart-2.5.1.jar;C:\Users\saisa\.m2\repository\org\ow2\asm\asm\9.6\asm-9.6.jar;C:\Users\saisa\.m2\repository\org\assertj\assertj-core\3.26.3\assertj-core-3.26.3.jar;C:\Users\saisa\.m2\repository\org\awaitility\awaitility\4.2.2\awaitility-4.2.2.jar;C:\Users\saisa\.m2\repository\org\hamcrest\hamcrest\2.2\hamcrest-2.2.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter\5.11.4\junit-jupiter-5.11.4.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter-api\5.11.4\junit-jupiter-api-5.11.4.jar;C:\Users\saisa\.m2\repository\org\opentest4j\opentest4j\1.3.0\opentest4j-1.3.0.jar;C:\Users\saisa\.m2\repository\org\junit\platform\junit-platform-commons\1.11.4\junit-platform-commons-1.11.4.jar;C:\Users\saisa\.m2\repository\org\apiguardian\apiguardian-api\1.1.2\apiguardian-api-1.1.2.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter-params\5.11.4\junit-jupiter-params-5.11.4.jar;C:\Users\saisa\.m2\repository\org\junit\jupiter\junit-jupiter-engine\5.11.4\junit-jupiter-engine-5.11.4.jar;C:\Users\saisa\.m2\repository\org\junit\platform\junit-platform-engine\1.11.4\junit-platform-engine-1.11.4.jar;C:\Users\saisa\.m2\repository\org\mockito\mockito-core\5.14.2\mockito-core-5.14.2.jar;C:\Users\saisa\.m2\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar;C:\Users\saisa\.m2\repository\org\objenesis\objenesis\3.3\objenesis-3.3.jar;C:\Users\saisa\.m2\repository\org\mockito\mockito-junit-jupiter\5.14.2\mockito-junit-jupiter-5.14.2.jar;C:\Users\saisa\.m2\repository\org\skyscreamer\jsonassert\1.5.3\jsonassert-1.5.3.jar;C:\Users\saisa\.m2\repository\com\vaadin\external\google\android-json\0.0.20131108.vaadin1\android-json-0.0.20131108.vaadin1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-core\6.2.1\spring-core-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-jcl\6.2.1\spring-jcl-6.2.1.jar;C:\Users\saisa\.m2\repository\org\springframework\spring-test\6.2.1\spring-test-6.2.1.jar;C:\Users\saisa\.m2\repository\org\xmlunit\xmlunit-core\2.10.0\xmlunit-core-2.10.0.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-test\6.4.2\spring-security-test-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-core\6.4.2\spring-security-core-6.4.2.jar;C:\Users\saisa\.m2\repository\org\springframework\security\spring-security-crypto\6.4.2\spring-security-crypto-6.4.2.jar;C:\Users\saisa\.m2\repository\io\jsonwebtoken\jjwt-api\0.12.6\jjwt-api-0.12.6.jar;C:\Users\saisa\.m2\repository\io\jsonwebtoken\jjwt-impl\0.12.6\jjwt-impl-0.12.6.jar;C:\Users\saisa\.m2\repository\io\jsonwebtoken\jjwt-jackson\0.12.6\jjwt-jackson-0.12.6.jar;C:\Users\saisa\.m2\repository\com\fasterxml\jackson\core\jackson-databind\2.18.2\jackson-databind-2.18.2.jar;C:\Users\saisa\.m2\repository\org\apache\tika\tika-core\2.9.2\tika-core-2.9.2.jar;C:\Users\saisa\.m2\repository\org\slf4j\slf4j-api\2.0.16\slf4j-api-2.0.16.jar;C:\Users\saisa\.m2\repository\commons-io\commons-io\2.15.1\commons-io-2.15.1.jar;C:\Users\saisa\.m2\repository\com\h2database\h2\2.3.232\h2-2.3.232.jar;"/>
     <property name="sun.cpu.endian" value="little"/>
@@ -34,7 +34,7 @@
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="FILE_LOG_CHARSET" value="UTF-8"/>
     <property name="java.awt.headless" value="true"/>
-    <property name="surefire.real.class.path" value="C:\Users\saisa\AppData\Local\Temp\surefire7183063202783587689\surefirebooter-20260819214410178_3.jar"/>
+    <property name="surefire.real.class.path" value="C:\Users\saisa\AppData\Local\Temp\surefire14074567858015162339\surefirebooter-20260822224127480_3.jar"/>
     <property name="user.script" value=""/>
     <property name="polyglot.engine.WarnInterpreterOnly" value="false"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
@@ -54,7 +54,7 @@
     <property name="user.dir" value="D:\Saisaket\Synthora\backend"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="PID" value="34132"/>
+    <property name="PID" value="8960"/>
     <property name="sun.os.patch.level" value=""/>
     <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
     <property name="native.encoding" value="Cp1252"/>
@@ -68,51 +68,136 @@
     <property name="java.class.version" value="69.0"/>
     <property name="LOGGED_APPLICATION_NAME" value="[synthora] "/>
   </properties>
-  <testcase name="testMalformedRfqUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.304">
-    <system-out><![CDATA[2026-08-19T21:46:07.727+05:30  INFO 34132 --- [synthora] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.synthora.security.InputValidationSecurityTest]: InputValidationSecurityTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2026-08-19T21:46:07.731+05:30  INFO 34132 --- [synthora] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.synthora.SynthoraApplication for test class com.synthora.security.InputValidationSecurityTest
+  <testcase name="testMalformedRfqUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.16">
+    <system-out><![CDATA[2026-08-22T22:42:28.934+05:30  INFO 8960 --- [synthora] [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.synthora.security.InputValidationSecurityTest]: InputValidationSecurityTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2026-08-22T22:42:28.935+05:30  INFO 8960 --- [synthora] [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.synthora.SynthoraApplication for test class com.synthora.security.InputValidationSecurityTest
+2026-08-22T22:42:29.095+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/rfqs/not-a-valid-uuid status=400 duration=3ms requestId=a201993b-5037-4934-b228-31e669e1e235
 ]]></system-out>
   </testcase>
-  <testcase name="testScriptInRfqNotes" classname="com.synthora.security.InputValidationSecurityTest" time="0.357">
-    <system-out><![CDATA[2026-08-19T21:46:08.391+05:30 DEBUG 34132 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification a669f802-7fec-49e2-9aa4-84cca1e9136f for recipient 2e6a420a-5fa8-4a0a-a50d-b72d50a20afe
-2026-08-19T21:46:08.392+05:30 DEBUG 34132 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_validation@synthora.com with subject '[Synthora] New RFQ Received'
+  <testcase name="testScriptInRfqNotes" classname="com.synthora.security.InputValidationSecurityTest" time="0.162">
+    <system-out><![CDATA[2026-08-22T22:42:29.256+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 51744910-ebc8-4784-a97b-31e493f0e4ce for recipient 4bf16bb2-5337-4145-b6dd-0ead73a99561
+2026-08-22T22:42:29.256+05:30 DEBUG 8960 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_validation@synthora.com with subject '[Synthora] New RFQ Received'
+2026-08-22T22:42:29.256+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/rfqs status=201 duration=2ms requestId=e51e8ff2-5e33-459a-adf8-76d902926439
 ]]></system-out>
   </testcase>
-  <testcase name="testScriptInQuotationNotes" classname="com.synthora.security.InputValidationSecurityTest" time="0.381">
-    <system-out><![CDATA[2026-08-19T21:46:08.770+05:30 DEBUG 34132 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification a101da93-912d-4a74-800d-3cbcd41a866b for recipient 641e09a4-aa9b-49fc-9f6d-4486b718a93d
-2026-08-19T21:46:08.770+05:30 DEBUG 34132 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to buyer_validation@synthora.com with subject '[Synthora] New Quotation Received'
+  <testcase name="testScriptInQuotationNotes" classname="com.synthora.security.InputValidationSecurityTest" time="0.16">
+    <system-out><![CDATA[2026-08-22T22:42:29.419+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 62d90f36-c32d-4e27-8059-11f8b11413ae for recipient a69097b7-21e2-4568-beb2-390522106c2c
+2026-08-22T22:42:29.419+05:30 DEBUG 8960 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to buyer_validation@synthora.com with subject '[Synthora] New Quotation Received'
+2026-08-22T22:42:29.419+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/rfqs/supplier/28ee7808-2fe7-4e54-a2fc-15fb550cf57c/quotations status=201 duration=3ms requestId=4d9f3639-6767-47d5-922e-4d0662f10206
 ]]></system-out>
   </testcase>
-  <testcase name="testMaliciousSortFieldSanitized" classname="com.synthora.security.InputValidationSecurityTest" time="0.327"/>
-  <testcase name="testPreserveTechnicalNotation" classname="com.synthora.security.InputValidationSecurityTest" time="0.394"/>
-  <testcase name="testZeroQuantityRfq" classname="com.synthora.security.InputValidationSecurityTest" time="0.357"/>
-  <testcase name="testNegativeLeadTimeProductSupplier" classname="com.synthora.security.InputValidationSecurityTest" time="0.324"/>
-  <testcase name="testNegativePriceProduct" classname="com.synthora.security.InputValidationSecurityTest" time="0.423"/>
-  <testcase name="testMassAssignmentRoleInRegistration" classname="com.synthora.security.InputValidationSecurityTest" time="0.538"/>
-  <testcase name="testPreserveChemicalNamesAndFormulas" classname="com.synthora.security.InputValidationSecurityTest" time="0.394"/>
-  <testcase name="testNegativePageNumber" classname="com.synthora.security.InputValidationSecurityTest" time="0.418"/>
-  <testcase name="testJpqlInjectionInSearch" classname="com.synthora.security.InputValidationSecurityTest" time="0.408"/>
-  <testcase name="testMalformedDocumentUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.419"/>
-  <testcase name="testPathTraversalInFilename" classname="com.synthora.security.InputValidationSecurityTest" time="0.369"/>
-  <testcase name="testSqlInjectionInSearch" classname="com.synthora.security.InputValidationSecurityTest" time="0.36"/>
-  <testcase name="testNonNumericPageParameter" classname="com.synthora.security.InputValidationSecurityTest" time="0.376"/>
-  <testcase name="testNegativeQuantityRfq" classname="com.synthora.security.InputValidationSecurityTest" time="0.343"/>
-  <testcase name="testScriptInRejectionReason" classname="com.synthora.security.InputValidationSecurityTest" time="0.45">
-    <system-out><![CDATA[2026-08-19T21:46:14.685+05:30 DEBUG 34132 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification b4db40dd-6765-419e-a8a9-5d980529e6f5 for recipient 0e6ac9de-ecac-488e-934b-495843276d04
-2026-08-19T21:46:14.687+05:30 DEBUG 34132 --- [synthora] [    mail-exec-2] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_validation@synthora.com with subject '[Synthora] Quotation Rejected'
+  <testcase name="testMaliciousSortFieldSanitized" classname="com.synthora.security.InputValidationSecurityTest" time="0.161">
+    <system-out><![CDATA[2026-08-22T22:42:29.581+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=200 duration=3ms requestId=0c4c8785-5041-4c87-9a3a-04e4ffa526e6
 ]]></system-out>
   </testcase>
-  <testcase name="testMaliciousSortDirectionSanitized" classname="com.synthora.security.InputValidationSecurityTest" time="0.336"/>
-  <testcase name="testJavascriptUrlInSellerProfile" classname="com.synthora.security.InputValidationSecurityTest" time="0.4"/>
-  <testcase name="testExcessivelyLargePageSize" classname="com.synthora.security.InputValidationSecurityTest" time="0.374"/>
-  <testcase name="testExcessivelyLargePriceProduct" classname="com.synthora.security.InputValidationSecurityTest" time="0.368"/>
-  <testcase name="testMalformedPoUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.393"/>
-  <testcase name="testValidHttpsWebsiteUrl" classname="com.synthora.security.InputValidationSecurityTest" time="0.4"/>
-  <testcase name="testInvalidProductCategory" classname="com.synthora.security.InputValidationSecurityTest" time="0.365"/>
-  <testcase name="testNegativePageSize" classname="com.synthora.security.InputValidationSecurityTest" time="0.369"/>
-  <testcase name="testInvalidUserStatus" classname="com.synthora.security.InputValidationSecurityTest" time="0.359"/>
-  <testcase name="testScriptInProductDescription" classname="com.synthora.security.InputValidationSecurityTest" time="0.43"/>
-  <testcase name="testMalformedProductUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.4"/>
-  <testcase name="testScriptInProductName" classname="com.synthora.security.InputValidationSecurityTest" time="0.389"/>
-  <testcase name="testPastQuotationValidityDate" classname="com.synthora.security.InputValidationSecurityTest" time="0.379"/>
+  <testcase name="testPreserveTechnicalNotation" classname="com.synthora.security.InputValidationSecurityTest" time="0.162">
+    <system-out><![CDATA[2026-08-22T22:42:29.742+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products status=200 duration=2ms requestId=fbed9e7f-f7e8-4b13-8c88-f3fb9b192f8b
+]]></system-out>
+  </testcase>
+  <testcase name="testZeroQuantityRfq" classname="com.synthora.security.InputValidationSecurityTest" time="0.158">
+    <system-out><![CDATA[2026-08-22T22:42:29.900+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/rfqs status=400 duration=1ms requestId=de351e38-cf03-4503-bf0e-a1b2e1a7127b
+]]></system-out>
+  </testcase>
+  <testcase name="testNegativeLeadTimeProductSupplier" classname="com.synthora.security.InputValidationSecurityTest" time="0.158">
+    <system-out><![CDATA[2026-08-22T22:42:30.059+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products/867131c0-482d-4646-9ca6-f69644a6ba6e/supplier-offering status=400 duration=2ms requestId=fff46609-7409-4124-beac-88cd8091ec37
+]]></system-out>
+  </testcase>
+  <testcase name="testNegativePriceProduct" classname="com.synthora.security.InputValidationSecurityTest" time="0.159">
+    <system-out><![CDATA[2026-08-22T22:42:30.218+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products status=400 duration=1ms requestId=85cfee69-cd1b-4612-af00-396f9825ef62
+]]></system-out>
+  </testcase>
+  <testcase name="testMassAssignmentRoleInRegistration" classname="com.synthora.security.InputValidationSecurityTest" time="0.216">
+    <system-out><![CDATA[2026-08-22T22:42:30.435+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/auth/register status=201 duration=59ms requestId=70689951-a5b9-4bbd-82fc-1225b06fc540
+]]></system-out>
+  </testcase>
+  <testcase name="testPreserveChemicalNamesAndFormulas" classname="com.synthora.security.InputValidationSecurityTest" time="0.158">
+    <system-out><![CDATA[2026-08-22T22:42:30.593+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products status=200 duration=2ms requestId=21e4fa00-3e5f-433e-8cae-3217fcaa64c6
+]]></system-out>
+  </testcase>
+  <testcase name="testNegativePageNumber" classname="com.synthora.security.InputValidationSecurityTest" time="0.157">
+    <system-out><![CDATA[2026-08-22T22:42:30.751+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=200 duration=2ms requestId=5fc85dc3-6a32-4cf7-ac4b-b04d1b2441e6
+]]></system-out>
+  </testcase>
+  <testcase name="testJpqlInjectionInSearch" classname="com.synthora.security.InputValidationSecurityTest" time="0.156">
+    <system-out><![CDATA[2026-08-22T22:42:30.906+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=200 duration=1ms requestId=dd78133e-662a-4b3b-839e-380ad47c23fb
+]]></system-out>
+  </testcase>
+  <testcase name="testMalformedDocumentUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.157">
+    <system-out><![CDATA[2026-08-22T22:42:31.064+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/documents/not-a-valid-uuid status=400 duration=2ms requestId=1af8460b-97cf-46cb-b5e3-bcb686953d45
+]]></system-out>
+  </testcase>
+  <testcase name="testPathTraversalInFilename" classname="com.synthora.security.InputValidationSecurityTest" time="0.16">
+    <system-out><![CDATA[2026-08-22T22:42:31.223+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/documents status=201 duration=3ms requestId=ddb522c0-4f58-4df9-8142-e2bc53ffdfc0
+]]></system-out>
+  </testcase>
+  <testcase name="testSqlInjectionInSearch" classname="com.synthora.security.InputValidationSecurityTest" time="0.159">
+    <system-out><![CDATA[2026-08-22T22:42:31.382+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=200 duration=2ms requestId=94df9f99-f5f9-4dab-8ead-dc80f4474952
+]]></system-out>
+  </testcase>
+  <testcase name="testNonNumericPageParameter" classname="com.synthora.security.InputValidationSecurityTest" time="0.158">
+    <system-out><![CDATA[2026-08-22T22:42:31.540+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=400 duration=0ms requestId=2957a7a8-2483-488e-b266-e449ef417f18
+]]></system-out>
+  </testcase>
+  <testcase name="testNegativeQuantityRfq" classname="com.synthora.security.InputValidationSecurityTest" time="0.161">
+    <system-out><![CDATA[2026-08-22T22:42:31.701+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/rfqs status=400 duration=1ms requestId=484f5e91-038d-4e1c-8ed6-8de9dab8b4d3
+]]></system-out>
+  </testcase>
+  <testcase name="testScriptInRejectionReason" classname="com.synthora.security.InputValidationSecurityTest" time="0.159">
+    <system-out><![CDATA[2026-08-22T22:42:31.860+05:30 DEBUG 8960 --- [synthora] [           main] c.s.notification.NotificationService     : Created notification 12cd5e6b-8f16-4e7a-922f-56bb8821c719 for recipient 51d45701-bca1-4ba2-a71b-197463de2df1
+2026-08-22T22:42:31.861+05:30 DEBUG 8960 --- [synthora] [    mail-exec-1] c.s.notification.email.EmailServiceImpl  : Email sending is disabled. Skipping email to supplier_validation@synthora.com with subject '[Synthora] Quotation Rejected'
+2026-08-22T22:42:31.861+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/rfqs/2f7b8d86-cc89-470a-8f98-4d84f864fe4b/quotations/cc1fbc25-d2fc-4c39-bbe7-6103af17486a/reject status=200 duration=3ms requestId=92523f1e-64e8-450b-9556-2d90a46f1fde
+]]></system-out>
+  </testcase>
+  <testcase name="testMaliciousSortDirectionSanitized" classname="com.synthora.security.InputValidationSecurityTest" time="0.161">
+    <system-out><![CDATA[2026-08-22T22:42:32.022+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=200 duration=2ms requestId=55f582fc-7e6f-447d-b839-37fb4e927378
+]]></system-out>
+  </testcase>
+  <testcase name="testJavascriptUrlInSellerProfile" classname="com.synthora.security.InputValidationSecurityTest" time="0.17">
+    <system-out><![CDATA[2026-08-22T22:42:32.192+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=PUT uri=/api/v1/sellers/me status=400 duration=9ms requestId=dbe41adb-3738-4bd1-8ea5-fae19a039caa
+]]></system-out>
+  </testcase>
+  <testcase name="testExcessivelyLargePageSize" classname="com.synthora.security.InputValidationSecurityTest" time="0.159">
+    <system-out><![CDATA[2026-08-22T22:42:32.352+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=200 duration=2ms requestId=754c6775-55c9-4b94-a41c-c9cc8068736a
+]]></system-out>
+  </testcase>
+  <testcase name="testExcessivelyLargePriceProduct" classname="com.synthora.security.InputValidationSecurityTest" time="0.159">
+    <system-out><![CDATA[2026-08-22T22:42:32.512+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products status=400 duration=1ms requestId=168c2850-41ae-4ec8-a7c2-fb7d9590a2b6
+]]></system-out>
+  </testcase>
+  <testcase name="testMalformedPoUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.158">
+    <system-out><![CDATA[2026-08-22T22:42:32.670+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/orders/not-a-valid-uuid status=400 duration=1ms requestId=e50e2776-5a4a-4e88-9047-cdbb5c12d3f9
+]]></system-out>
+  </testcase>
+  <testcase name="testValidHttpsWebsiteUrl" classname="com.synthora.security.InputValidationSecurityTest" time="0.171">
+    <system-out><![CDATA[2026-08-22T22:42:32.840+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=PUT uri=/api/v1/sellers/me status=200 duration=4ms requestId=50c6feb7-01f5-4f8f-9505-a1a3fae835c6
+]]></system-out>
+  </testcase>
+  <testcase name="testInvalidProductCategory" classname="com.synthora.security.InputValidationSecurityTest" time="0.166">
+    <system-out><![CDATA[2026-08-22T22:42:33.006+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products status=400 duration=5ms requestId=69aaf7fd-d334-4372-9774-22f81fcb8e65
+]]></system-out>
+  </testcase>
+  <testcase name="testNegativePageSize" classname="com.synthora.security.InputValidationSecurityTest" time="0.16">
+    <system-out><![CDATA[2026-08-22T22:42:33.167+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products status=200 duration=2ms requestId=b792d250-2ba8-4ce7-abec-8772cd872eb9
+]]></system-out>
+  </testcase>
+  <testcase name="testInvalidUserStatus" classname="com.synthora.security.InputValidationSecurityTest" time="0.161">
+    <system-out><![CDATA[2026-08-22T22:42:33.328+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=PUT uri=/api/v1/admin/users/80722ddd-1f63-462d-915f-3d9b880ba179/status status=400 duration=1ms requestId=64d68bcd-8c9c-4d1f-bde8-607cd7092932
+]]></system-out>
+  </testcase>
+  <testcase name="testScriptInProductDescription" classname="com.synthora.security.InputValidationSecurityTest" time="0.158">
+    <system-out><![CDATA[2026-08-22T22:42:33.487+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products status=200 duration=2ms requestId=a7817fa6-8922-4cb0-8f06-659025f85ef5
+]]></system-out>
+  </testcase>
+  <testcase name="testMalformedProductUuid" classname="com.synthora.security.InputValidationSecurityTest" time="0.157">
+    <system-out><![CDATA[2026-08-22T22:42:33.645+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=GET uri=/api/v1/products/not-a-valid-uuid/suppliers status=400 duration=1ms requestId=16284d7b-d38b-4a8b-9586-28d9a3e435c9
+]]></system-out>
+  </testcase>
+  <testcase name="testScriptInProductName" classname="com.synthora.security.InputValidationSecurityTest" time="0.157">
+    <system-out><![CDATA[2026-08-22T22:42:33.803+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/products status=200 duration=1ms requestId=ae4cb622-4558-4407-8fa0-e3da9d5a8cf6
+]]></system-out>
+  </testcase>
+  <testcase name="testPastQuotationValidityDate" classname="com.synthora.security.InputValidationSecurityTest" time="0.157">
+    <system-out><![CDATA[2026-08-22T22:42:33.960+05:30  INFO 8960 --- [synthora] [           main] c.synthora.common.RequestLoggingFilter   : API Request: method=POST uri=/api/v1/rfqs/supplier/cfccbb4a-14fb-49ba-bd9e-10140b1d64d5/quotations status=400 duration=1ms requestId=e2d8755e-1cb9-4596-88b0-dd3998e1274d
+]]></system-out>
+  </testcase>
 </testsuite>

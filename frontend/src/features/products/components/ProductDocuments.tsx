@@ -8,23 +8,23 @@ interface ProductDocumentsProps {
 }
 
 const ALLOWED_CATEGORIES = [
+  { value: "TECHNICAL_SPECIFICATION", label: "Technical Specification (TDS)" },
   { value: "COA", label: "Certificate of Analysis (COA)" },
   { value: "MSDS", label: "Material Safety Data Sheet (MSDS)" },
-  { value: "TECHNICAL_SPECIFICATION", label: "Technical Specification" },
-  { value: "CERTIFICATION", label: "Quality Certification" },
+  { value: "CERTIFICATION", label: "Quality / GMP Certification" },
 ];
 
 export function ProductDocuments({ productId, isSeller = false }: ProductDocumentsProps) {
   return (
     <GenericDocumentManager
-      title="Product Documents"
-      description="Technical specifications, COAs, and safety data sheets."
-      ownerType="PRODUCT"
+      title="Canonical Technical Documentation"
+      description="Official chemical monographs, technical data sheets, and verified compound specifications."
+      ownerType="MASTER_PRODUCT"
       ownerId={productId}
       canUpload={isSeller}
       canDelete={isSeller}
       allowedCategories={ALLOWED_CATEGORIES}
-      emptyMessage="No documents available for this product."
+      emptyMessage="No canonical documentation currently attached to this Master Chemical monograph. Individual batch COAs, purity test records, and MSDS safety sheets are provided directly by verified suppliers in the marketplace section below."
     />
   );
 }

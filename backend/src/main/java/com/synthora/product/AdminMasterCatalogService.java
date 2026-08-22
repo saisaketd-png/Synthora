@@ -39,6 +39,12 @@ public class AdminMasterCatalogService {
     private final NotificationService notificationService;
     private final AuditService auditService;
     private final GovernanceAuditLogRepository governanceAuditLogRepository;
+    private final ProductSynonymRepository productSynonymRepository;
+    private final CatalogImageService catalogImageService;
+    private final MasterProductImageRepository masterProductImageRepository;
+    private final com.synthora.document.DocumentRepository documentRepository;
+    private final com.synthora.document.DocumentService documentService;
+    private final SupplierRepository supplierRepository;
 
     public AdminMasterCatalogService(
             MasterProductRepository masterProductRepository,
@@ -48,7 +54,13 @@ public class AdminMasterCatalogService {
             MasterProductCodeGenerator codeGenerator,
             NotificationService notificationService,
             AuditService auditService,
-            GovernanceAuditLogRepository governanceAuditLogRepository) {
+            GovernanceAuditLogRepository governanceAuditLogRepository,
+            ProductSynonymRepository productSynonymRepository,
+            CatalogImageService catalogImageService,
+            MasterProductImageRepository masterProductImageRepository,
+            com.synthora.document.DocumentRepository documentRepository,
+            com.synthora.document.DocumentService documentService,
+            SupplierRepository supplierRepository) {
         this.masterProductRepository = masterProductRepository;
         this.supplierOfferingRepository = supplierOfferingRepository;
         this.productRequestRepository = productRequestRepository;
@@ -57,6 +69,12 @@ public class AdminMasterCatalogService {
         this.notificationService = notificationService;
         this.auditService = auditService;
         this.governanceAuditLogRepository = governanceAuditLogRepository;
+        this.productSynonymRepository = productSynonymRepository;
+        this.catalogImageService = catalogImageService;
+        this.masterProductImageRepository = masterProductImageRepository;
+        this.documentRepository = documentRepository;
+        this.documentService = documentService;
+        this.supplierRepository = supplierRepository;
     }
 
     @Transactional(readOnly = true)
@@ -69,21 +87,31 @@ public class AdminMasterCatalogService {
     @Transactional(readOnly = true)
     public GovernanceStatsResponse getGovernanceStats(Authentication authentication) {
         resolveAdmin(authentication);
-        long activeCount = masterProductRepository.count();
-        long pendingCount = productRequestRepository.findByStatus("PENDING_REVIEW", Pageable.unpaged()).getTotalElements();
-        long approvedCount = productRequestRepository.findByStatus("APPROVED", Pageable.unpaged()).getTotalElements();
-        long rejectedCount = productRequestRepository.findByStatus("REJECTED", Pageable.unpaged()).getTotalElements();
+        long activeCount = masterProductRepository.countByStatus("ACTIVE");
+        long draftCount = masterProductRepository.countByStatus("DRAFT");
+        long pendingCount = productRequestRepository.countByStatus("PENDING_REVIEW");
+        long approvedCount = productRequestRepository.countByStatus("APPROVED");
+        long rejectedCount = productRequestRepository.countByStatus("REJECTED");
         long offeringsCount = supplierOfferingRepository.count();
+        long pendingOfferingReviews = supplierOfferingRepository.countByModerationStatus("PENDING_REVIEW");
+        long pendingSupplierVerifications = supplierRepository.countByVerificationStatus(com.synthora.seller.SupplierVerificationStatus.PENDING);
+        long verifiedSuppliersCount = supplierRepository.countByVerified(true);
+        long flaggedOfferingsCount = supplierOfferingRepository.countByModerationStatus("FLAGGED") + supplierOfferingRepository.countByModerationStatus("REJECTED");
 
         List<DuplicateCandidateResponse> dupes = findDuplicateCandidatesInternal();
 
         return new GovernanceStatsResponse(
                 activeCount,
+                draftCount,
                 pendingCount,
                 approvedCount,
                 rejectedCount,
                 dupes.size(),
-                offeringsCount
+                offeringsCount,
+                pendingOfferingReviews,
+                pendingSupplierVerifications,
+                verifiedSuppliersCount,
+                flaggedOfferingsCount
         );
     }
 
@@ -205,8 +233,16 @@ public class AdminMasterCatalogService {
         ProductRequest pr = productRequestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("ProductRequest not found: " + requestId));
 
+        if (!"PENDING_REVIEW".equalsIgnoreCase(pr.getStatus()) && !"INFORMATION_REQUIRED".equalsIgnoreCase(pr.getStatus())) {
+            throw new IllegalStateException("ProductRequest is already processed: " + pr.getStatus());
+        }
+
         MasterProduct existingMp = masterProductRepository.findById(payload.existingMasterProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + payload.existingMasterProductId()));
+
+        if (!"ACTIVE".equalsIgnoreCase(existingMp.getStatus())) {
+            throw new IllegalStateException("Cannot link request to non-active MasterProduct (" + existingMp.getStatus() + ")");
+        }
 
         pr.setStatus("APPROVED");
         pr.setReviewedBy(admin);
@@ -214,6 +250,15 @@ public class AdminMasterCatalogService {
         productRequestRepository.save(pr);
 
         recordGovernanceAudit(admin, GovernanceAction.PRODUCT_REQUEST_APPROVED, "PRODUCT_REQUEST", pr.getId().toString(), "PENDING_REVIEW", "APPROVED", "Linked to existing MasterProduct " + existingMp.getMasterProductCode());
+
+        auditService.record(
+                authentication,
+                AuditAction.PRODUCT_REQUEST_APPROVED,
+                AuditTargetType.PRODUCT_REQUEST,
+                pr.getId().toString(),
+                "Approved and linked chemical proposal to " + existingMp.getName() + " (" + existingMp.getMasterProductCode() + ")",
+                "127.0.0.1"
+        );
 
         notificationService.createNotification(
                 pr.getSupplier().getUser().getId(),
@@ -482,8 +527,48 @@ public class AdminMasterCatalogService {
                 ? mp.getOfferings().stream().map(this::toSupplierOfferingResponse).toList()
                 : List.of();
 
-        List<GovernanceAuditLogResponse> logs = governanceAuditLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDesc("MASTER_PRODUCT", id.toString())
-                .stream().map(this::toAuditResponse).toList();
+        List<GovernanceAuditLog> entityLogs = governanceAuditLogRepository
+                .findByEntityTypeAndEntityIdOrderByTimestampDesc("MASTER_PRODUCT", id.toString());
+        List<GovernanceAuditLogResponse> logs = entityLogs.stream().map(this::toAuditResponse).toList();
+
+        List<CatalogImageResponse> images = catalogImageService.getMasterProductImages(id);
+        List<ProductSynonymResponse> synonyms = productSynonymRepository.findByMasterProductId(id)
+                .stream().map(this::toSynonymResponse).toList();
+
+        List<com.synthora.document.DocumentResponse> documents = documentRepository
+                .findByOwnerTypeAndOwnerId(com.synthora.document.DocumentOwnerType.MASTER_PRODUCT, id)
+                .stream()
+                .map(com.synthora.document.DocumentResponse::new)
+                .toList();
+
+        java.util.Map<String, String> verifiedFields = new java.util.HashMap<>();
+        verifiedFields.put("NAME", (mp.getName() != null && !mp.getName().isBlank()) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("CAS_NUMBER", (mp.getCasNumber() != null && !mp.getCasNumber().isBlank()) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("MOLECULAR_FORMULA", (mp.getMolecularFormula() != null && !mp.getMolecularFormula().isBlank()) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("CATEGORY", (mp.getCategory() != null) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("DESCRIPTION", (mp.getDescription() != null && !mp.getDescription().isBlank()) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("PRODUCT_CODE", (mp.getMasterProductCode() != null && !mp.getMasterProductCode().isBlank()) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("DOCUMENTS", (!documents.isEmpty()) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("CANONICAL_IMAGE", (!images.isEmpty()) ? "VERIFIED" : "ATTENTION_REQUIRED");
+        verifiedFields.put("DUPLICATE_CHECK", "VERIFIED");
+        verifiedFields.put("OFFERING_CONSISTENCY", "VERIFIED");
+
+        // Apply explicit administrative overrides from latest audit records (chronological order)
+        List<GovernanceAuditLog> chronologicalLogs = new java.util.ArrayList<>(entityLogs);
+        java.util.Collections.reverse(chronologicalLogs);
+
+        for (GovernanceAuditLog logEntry : chronologicalLogs) {
+            if (logEntry.getPreviousState() != null && logEntry.getPreviousState().startsWith("FIELD_VERIFICATION:")) {
+                String field = logEntry.getPreviousState().substring("FIELD_VERIFICATION:".length()).trim();
+                verifiedFields.put(field, logEntry.getNewState());
+            } else if ("FIELD_VERIFICATION".equals(logEntry.getPreviousState()) && logEntry.getReason() != null) {
+                for (String knownField : List.of("NAME", "CAS_NUMBER", "MOLECULAR_FORMULA", "CATEGORY", "DESCRIPTION", "PRODUCT_CODE", "DOCUMENTS", "CANONICAL_IMAGE", "DUPLICATE_CHECK", "OFFERING_CONSISTENCY")) {
+                    if (logEntry.getReason().contains("Verified field " + knownField)) {
+                        verifiedFields.put(knownField, logEntry.getNewState());
+                    }
+                }
+            }
+        }
 
         return new MasterProductDetailResponse(
                 mp.getId(),
@@ -500,8 +585,10 @@ public class AdminMasterCatalogService {
                 offerings,
                 List.of(),
                 logs,
-                List.of(),
-                List.of()
+                images,
+                documents,
+                synonyms,
+                verifiedFields
         );
     }
 
@@ -511,14 +598,52 @@ public class AdminMasterCatalogService {
                 .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + id));
 
         recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "MASTER_PRODUCT", mp.getId().toString(),
-                "FIELD_VERIFICATION", payload.status(), "Verified field " + payload.fieldName() + ". Notes: " + payload.notes());
+                "FIELD_VERIFICATION:" + payload.fieldName(), payload.status(), "Verified field " + payload.fieldName() + ". Notes: " + payload.notes());
 
         return toMasterProductResponse(mp);
     }
 
-    public Page<SupplierOfferingResponse> searchSupplierOfferings(String query, Boolean flagged, Pageable pageable, Authentication authentication) {
+    public Page<SupplierOfferingResponse> searchSupplierOfferings(String query, String moderationStatus, Boolean flagged, Long supplierId, Pageable pageable, Authentication authentication) {
         resolveAdmin(authentication);
-        return supplierOfferingRepository.findAll(pageable).map(this::toSupplierOfferingResponse);
+        org.springframework.data.jpa.domain.Specification<SupplierOffering> spec = (root, q, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+
+            if (moderationStatus != null && !moderationStatus.isBlank() && !"ALL".equalsIgnoreCase(moderationStatus)) {
+                predicates.add(cb.equal(cb.upper(root.get("moderationStatus")), moderationStatus.trim().toUpperCase()));
+            }
+
+            if (Boolean.TRUE.equals(flagged)) {
+                predicates.add(cb.or(
+                        cb.equal(cb.upper(root.get("moderationStatus")), "FLAGGED"),
+                        cb.equal(cb.upper(root.get("availabilityStatus")), "FLAGGED")
+                ));
+            }
+
+            if (supplierId != null) {
+                predicates.add(cb.equal(root.get("supplier").get("id"), supplierId));
+            }
+
+            if (query != null && !query.isBlank()) {
+                String lq = "%" + query.trim().toLowerCase() + "%";
+                jakarta.persistence.criteria.Join<SupplierOffering, MasterProduct> mpJoin = root.join("masterProduct", jakarta.persistence.criteria.JoinType.LEFT);
+                jakarta.persistence.criteria.Join<SupplierOffering, Supplier> supJoin = root.join("supplier", jakarta.persistence.criteria.JoinType.LEFT);
+
+                predicates.add(cb.or(
+                        cb.like(cb.lower(mpJoin.get("name")), lq),
+                        cb.like(cb.lower(mpJoin.get("masterProductCode")), lq),
+                        cb.like(cb.lower(mpJoin.get("casNumber")), lq),
+                        cb.like(cb.lower(supJoin.get("name")), lq)
+                ));
+            }
+
+            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        return supplierOfferingRepository.findAll(spec, pageable).map(this::toSupplierOfferingResponse);
+    }
+
+    public Page<SupplierOfferingResponse> searchSupplierOfferings(String query, Boolean flagged, Pageable pageable, Authentication authentication) {
+        return searchSupplierOfferings(query, null, flagged, null, pageable, authentication);
     }
 
     public SupplierOfferingResponse flagSupplierOffering(UUID offeringId, FlagOfferingPayload payload, Authentication authentication) {
@@ -565,6 +690,11 @@ public class AdminMasterCatalogService {
                 o.getAvailabilityStatus(),
                 o.getModerationStatus() != null ? o.getModerationStatus() : "PENDING_REVIEW",
                 o.getModerationNotes(),
+                o.getSupplier() != null ? o.getSupplier().getLogoUrl() : null,
+                o.getSupplier() != null ? Boolean.TRUE.equals(o.getSupplier().getVerified()) : false,
+                null,
+                null,
+                null,
                 o.getCreatedAt(),
                 o.getUpdatedAt()
         );
@@ -593,6 +723,104 @@ public class AdminMasterCatalogService {
         return user;
     }
 
+    public ProductSynonymResponse addOfficialSynonym(UUID masterProductId, AddSynonymPayload payload, Authentication authentication) {
+        User admin = resolveAdmin(authentication);
+        MasterProduct mp = masterProductRepository.findById(masterProductId)
+                .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + masterProductId));
+
+        String rawSynonym = payload.synonym() != null ? payload.synonym().trim() : "";
+        if (rawSynonym.isBlank()) {
+            throw new IllegalArgumentException("Synonym cannot be blank");
+        }
+
+        Optional<ProductSynonym> existingOpt = productSynonymRepository.findByMasterProductIdAndSynonymNormalized(masterProductId, rawSynonym);
+        if (existingOpt.isPresent()) {
+            ProductSynonym existing = existingOpt.get();
+            if (existing.getStatus() == SynonymStatus.APPROVED && existing.getSource() == SynonymSource.OFFICIAL) {
+                throw new IllegalStateException("Synonym already exists for this Master Product: " + rawSynonym);
+            }
+            existing.setStatus(SynonymStatus.APPROVED);
+            existing.setSource(SynonymSource.OFFICIAL);
+            ProductSynonym saved = productSynonymRepository.save(existing);
+            recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", saved.getId().toString(),
+                    "PENDING", "APPROVED", "Approved official synonym: " + saved.getSynonym());
+            return toSynonymResponse(saved);
+        }
+
+        ProductSynonym synonym = new ProductSynonym();
+        synonym.setMasterProduct(mp);
+        synonym.setSynonym(rawSynonym);
+        synonym.setSource(SynonymSource.OFFICIAL);
+        synonym.setStatus(SynonymStatus.APPROVED);
+        synonym.setCreatedBy(admin);
+
+        ProductSynonym saved = productSynonymRepository.save(synonym);
+        recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", saved.getId().toString(),
+                null, "APPROVED", "Added official synonym: " + saved.getSynonym());
+
+        return toSynonymResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductSynonymResponse> getSynonymsForMasterProduct(UUID masterProductId, Authentication authentication) {
+        resolveAdmin(authentication);
+        if (!masterProductRepository.existsById(masterProductId)) {
+            throw new ResourceNotFoundException("MasterProduct not found: " + masterProductId);
+        }
+        return productSynonymRepository.findByMasterProductId(masterProductId)
+                .stream().map(this::toSynonymResponse).toList();
+    }
+
+    public void deleteSynonym(UUID masterProductId, UUID synonymId, Authentication authentication) {
+        User admin = resolveAdmin(authentication);
+        ProductSynonym synonym = productSynonymRepository.findById(synonymId)
+                .orElseThrow(() -> new ResourceNotFoundException("Synonym not found: " + synonymId));
+
+        if (!synonym.getMasterProduct().getId().equals(masterProductId)) {
+            throw new IllegalArgumentException("Synonym does not belong to specified Master Product");
+        }
+
+        productSynonymRepository.delete(synonym);
+        recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", synonymId.toString(),
+                synonym.getStatus().name(), "DELETED", "Removed synonym: " + synonym.getSynonym());
+    }
+
+    public ProductSynonymResponse reviewSupplierSynonym(UUID synonymId, ReviewSynonymPayload payload, Authentication authentication) {
+        User admin = resolveAdmin(authentication);
+        ProductSynonym synonym = productSynonymRepository.findById(synonymId)
+                .orElseThrow(() -> new ResourceNotFoundException("Synonym not found: " + synonymId));
+
+        String oldStatus = synonym.getStatus().name();
+        synonym.setStatus(payload.status());
+        ProductSynonym saved = productSynonymRepository.save(synonym);
+
+        recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", synonym.getId().toString(),
+                oldStatus, payload.status().name(), "Reviewed synonym suggestion: " + synonym.getSynonym());
+
+        return toSynonymResponse(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductSynonymResponse> getPendingSynonyms(Authentication authentication) {
+        resolveAdmin(authentication);
+        return productSynonymRepository.findByStatusOrderByCreatedAtDesc(SynonymStatus.PENDING)
+                .stream().map(this::toSynonymResponse).toList();
+    }
+
+    public ProductSynonymResponse toSynonymResponse(ProductSynonym s) {
+        return new ProductSynonymResponse(
+                s.getId(),
+                s.getMasterProduct() != null ? s.getMasterProduct().getId() : null,
+                s.getSynonym(),
+                s.getSource(),
+                s.getStatus(),
+                s.getCreatedBy() != null ? s.getCreatedBy().getId() : null,
+                s.getCreatedBy() != null ? s.getCreatedBy().getName() : null,
+                s.getCreatedAt(),
+                s.getUpdatedAt()
+        );
+    }
+
     private ProductRequestResponse toRequestResponse(ProductRequest pr) {
         return new ProductRequestResponse(
                 pr.getId(),
@@ -612,6 +840,16 @@ public class AdminMasterCatalogService {
 
     private MasterProductResponse toMasterProductResponse(MasterProduct mp) {
         int count = mp.getOfferings() != null ? mp.getOfferings().size() : 0;
+        String primaryImageUrl = masterProductImageRepository
+                .findByMasterProductIdAndIsPrimaryTrueAndStatus(mp.getId(), "ACTIVE")
+                .map(img -> "/api/v1/master-products/" + mp.getId() + "/images/" + img.getId() + "/content")
+                .orElseGet(() -> masterProductImageRepository
+                        .findByMasterProductIdAndStatusOrderByDisplayOrderAsc(mp.getId(), "ACTIVE")
+                        .stream().findFirst()
+                        .map(img -> "/api/v1/master-products/" + mp.getId() + "/images/" + img.getId() + "/content")
+                        .orElse(null)
+                );
+
         return new MasterProductResponse(
                 mp.getId(),
                 mp.getMasterProductCode(),
@@ -622,6 +860,7 @@ public class AdminMasterCatalogService {
                 mp.getDescription(),
                 mp.getStatus(),
                 count,
+                primaryImageUrl,
                 mp.getCreatedAt(),
                 mp.getUpdatedAt()
         );

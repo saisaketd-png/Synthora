@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.product.dto.ProductSupplierRequest;
 import com.synthora.rfq.dto.CreateRfqRequest;
 import com.synthora.security.JwtService;
@@ -36,14 +37,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class ProductSupplierSecurityTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private JwtService jwtService;
-    @Autowired private UserRepository userRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private ProductSupplierRepository productSupplierRepository;
-    @Autowired private SupplierRepository supplierRepository;
-    @Autowired private ObjectMapper objectMapper;
-    @Autowired private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private SupplierRepository supplierRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private ProductSupplierRepository productSupplierRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private User buyer;
     private String buyerToken;
@@ -60,22 +76,7 @@ public class ProductSupplierSecurityTest {
 
     @BeforeEach
     public void setup() {
-        jdbcTemplate.execute(
-            "UPDATE rfqs SET accepted_quotation_id = NULL; " +
-            "DELETE FROM governance_audit_logs; " +
-            "DELETE FROM audit_logs; " +
-            "DELETE FROM notifications; " +
-            "DELETE FROM shipments; " +
-            "DELETE FROM purchase_orders; " +
-            "DELETE FROM quotations; " +
-            "DELETE FROM rfqs; " +
-            "DELETE FROM product_suppliers; " +
-            "DELETE FROM documents; " +
-            "DELETE FROM products; " +
-            "DELETE FROM seller_profiles; " +
-            "DELETE FROM suppliers; " +
-            "DELETE FROM users;"
-        );
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         // Buyer
         buyer = new User();
@@ -83,6 +84,7 @@ public class ProductSupplierSecurityTest {
         buyer.setName("Buyer 2E4");
         buyer.setPasswordHash("hash");
         buyer.setRole(UserRole.USER);
+        buyer.setStatus(UserStatus.ACTIVE);
         buyer = userRepository.save(buyer);
         buyerToken = jwtService.generateToken(buyer);
 
@@ -92,6 +94,7 @@ public class ProductSupplierSecurityTest {
         supplierUser1.setName("Supplier 1");
         supplierUser1.setPasswordHash("hash");
         supplierUser1.setRole(UserRole.SUPPLIER);
+        supplierUser1.setStatus(UserStatus.ACTIVE);
         supplierUser1 = userRepository.save(supplierUser1);
         supplier1Token = jwtService.generateToken(supplierUser1);
 
@@ -112,6 +115,7 @@ public class ProductSupplierSecurityTest {
         supplierUser2.setName("Supplier 2");
         supplierUser2.setPasswordHash("hash");
         supplierUser2.setRole(UserRole.SUPPLIER);
+        supplierUser2.setStatus(UserStatus.ACTIVE);
         supplierUser2 = userRepository.save(supplierUser2);
         supplier2Token = jwtService.generateToken(supplierUser2);
 
@@ -234,7 +238,7 @@ public class ProductSupplierSecurityTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.message").exists());
 
         assertEquals(1, productSupplierRepository.findByProductId(product.getId()).size());
     }

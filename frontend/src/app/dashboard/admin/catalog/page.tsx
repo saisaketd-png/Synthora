@@ -85,6 +85,7 @@ export default function MasterCatalogGovernanceDashboardPage() {
   const pendingReqs = stats?.pendingProductRequests ?? stats?.pendingRequests ?? 0;
   const dupeCount = stats?.duplicateCandidatesCount ?? stats?.potentialDuplicates ?? 0;
   const pendingSup = stats?.pendingSupplierVerifications ?? 0;
+  const pendingOff = stats?.pendingOfferingReviews ?? 0;
   const flaggedOff = stats?.flaggedOfferingsCount ?? 0;
   const verifiedSup = stats?.verifiedSuppliersCount ?? 0;
 
@@ -142,9 +143,8 @@ export default function MasterCatalogGovernanceDashboardPage() {
               {stats ? (
                 <>
                   <strong className="text-white font-extrabold">{pendingReqs}</strong> Uncatalogued Requests |{" "}
-                  <strong className="text-white font-extrabold">{dupeCount}</strong> Duplicate Pairs |{" "}
-                  <strong className="text-white font-extrabold">{pendingSup}</strong> Unverified Suppliers |{" "}
-                  <strong className="text-white font-extrabold">{flaggedOff}</strong> Flagged Listings
+                  <strong className="text-white font-extrabold">{pendingOff}</strong> Pending Offering Reviews |{" "}
+                  <strong className="text-white font-extrabold">{dupeCount}</strong> Duplicates
                 </>
               ) : (
                 "Scanning catalog governance queues..."
@@ -155,16 +155,16 @@ export default function MasterCatalogGovernanceDashboardPage() {
 
         <div className="flex items-center gap-2">
           <Link
+            href="/dashboard/admin/catalog/offerings"
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs"
+          >
+            Offering Review ({pendingOff})
+          </Link>
+          <Link
             href="/dashboard/admin/catalog/requests"
             className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs"
           >
             Review Requests ({pendingReqs})
-          </Link>
-          <Link
-            href="/dashboard/admin/catalog/verification"
-            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs"
-          >
-            Verify Suppliers ({pendingSup})
           </Link>
           <Link
             href="/dashboard/admin/catalog/duplicates"
@@ -182,30 +182,20 @@ export default function MasterCatalogGovernanceDashboardPage() {
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">ACTIVE PRODUCTS</span>
+          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">ACTIVE MASTER PRODUCTS</span>
           <strong className="text-xl font-extrabold text-slate-900">{stats?.activeMasterProducts || 0}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">DRAFT PRODUCTS</span>
-          <strong className="text-xl font-extrabold text-slate-900">{stats?.draftMasterProducts || 0}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider block">REQUIRING VERIFICATION</span>
-          <strong className="text-xl font-extrabold text-amber-600">{stats?.draftMasterProducts || 0}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider block">DUPLICATES</span>
-          <strong className="text-xl font-extrabold text-purple-600">{dupeCount}</strong>
         </div>
 
         <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
           <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider block">TOTAL OFFERINGS</span>
           <strong className="text-xl font-extrabold text-blue-600">{stats?.totalOfferings || 0}</strong>
+        </div>
+
+        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider block">PENDING OFFERINGS</span>
+          <strong className="text-xl font-extrabold text-amber-600">{pendingOff}</strong>
         </div>
 
         <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
@@ -216,6 +206,21 @@ export default function MasterCatalogGovernanceDashboardPage() {
         <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
           <span className="text-[10px] font-extrabold text-rose-600 uppercase tracking-wider block">FLAGGED OFFERINGS</span>
           <strong className="text-xl font-extrabold text-rose-600">{flaggedOff}</strong>
+        </div>
+
+        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">DRAFT PRODUCTS</span>
+          <strong className="text-xl font-extrabold text-slate-900">{stats?.draftMasterProducts || 0}</strong>
+        </div>
+
+        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider block">DUPLICATES</span>
+          <strong className="text-xl font-extrabold text-purple-600">{dupeCount}</strong>
+        </div>
+
+        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
+          <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider block">PENDING REQUESTS</span>
+          <strong className="text-xl font-extrabold text-amber-600">{pendingReqs}</strong>
         </div>
       </div>
 

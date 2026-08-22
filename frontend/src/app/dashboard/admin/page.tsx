@@ -11,11 +11,12 @@ import {
   Shield,
   ArrowRight,
   RefreshCw,
-  Bell,
-  AlertTriangle,
-  ShieldAlert,
-  EyeOff,
-  UserX,
+  FlaskConical,
+  ShieldCheck,
+  Eye,
+  Layers,
+  AlertCircle,
+  Activity,
 } from "lucide-react";
 import {
   AdminRfqResponse,
@@ -24,14 +25,18 @@ import {
 import {
   getAdminUsers,
   getAdminSuppliers,
-  getAdminProducts,
   getAdminRfqs,
   getAdminOrders,
 } from "@/features/admin/api/adminApi";
+import { getGovernanceStats } from "@/features/admin/api/adminCatalogApi";
 import { getNotifications, getUnreadCount } from "@/features/notifications/api/notifications";
-import { NotificationResponse } from "@/features/notifications/types/notification";
-import { AdminStatsCard } from "@/features/admin/components/AdminStatsCard";
-import { AdminBadge } from "@/features/admin/components/AdminBadge";
+import {
+  DataTable,
+  StatusBadge,
+  Button,
+  SkeletonLoader,
+  Badge,
+} from "@/shared/components/ui/SynthoraUI";
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -40,7 +45,6 @@ interface DashboardMetrics {
   totalRfqs: number;
   totalOrders: number;
   unreadNotifications: number;
-  // Attention metrics
   suspendedUsers: number;
   unverifiedSuppliers: number;
   hiddenProducts: number;
@@ -61,99 +65,56 @@ export default function AdminDashboardPage() {
 
   const [recentRfqs, setRecentRfqs] = useState<AdminRfqResponse[]>([]);
   const [recentOrders, setRecentOrders] = useState<AdminPurchaseOrderResponse[]>([]);
-  const [recentNotifications, setRecentNotifications] = useState<NotificationResponse[]>([]);
-
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefreshed, setLastRefreshed] = useState<string | null>(null);
-  const [errors, setErrors] = useState<string[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
-    const collectedErrors: string[] = [];
 
     const results = await Promise.allSettled([
       getAdminUsers({ page: 0, size: 1 }),
       getAdminSuppliers({ page: 0, size: 1 }),
-      getAdminProducts({ page: 0, size: 1 }),
+      getGovernanceStats(),
       getAdminRfqs({ page: 0, size: 6 }),
       getAdminOrders({ page: 0, size: 6 }),
       getUnreadCount(),
       getAdminUsers({ status: "SUSPENDED", page: 0, size: 1 }),
       getAdminSuppliers({ verified: false, page: 0, size: 1 }),
-      getAdminProducts({ availabilityStatus: "HIDDEN", page: 0, size: 1 }),
-      getNotifications(0, 5),
     ]);
 
-    // 1. Users
     let totalUsers = 0;
-    if (results[0].status === "fulfilled") {
-      totalUsers = results[0].value.totalElements;
-    } else {
-      collectedErrors.push("Users metric unavailable");
-    }
+    if (results[0].status === "fulfilled") totalUsers = results[0].value.totalElements;
 
-    // 2. Suppliers
     let totalSuppliers = 0;
-    if (results[1].status === "fulfilled") {
-      totalSuppliers = results[1].value.totalElements;
-    } else {
-      collectedErrors.push("Suppliers metric unavailable");
-    }
+    if (results[1].status === "fulfilled") totalSuppliers = results[1].value.totalElements;
 
-    // 3. Products
     let totalProducts = 0;
+    let pendingRequests = 0;
     if (results[2].status === "fulfilled") {
-      totalProducts = results[2].value.totalElements;
-    } else {
-      collectedErrors.push("Products metric unavailable");
+      totalProducts = results[2].value.activeMasterProducts;
+      pendingRequests = results[2].value.pendingRequests || 0;
     }
 
-    // 4. RFQs
     let totalRfqs = 0;
     if (results[3].status === "fulfilled") {
       totalRfqs = results[3].value.totalElements;
       setRecentRfqs(results[3].value.content);
-    } else {
-      collectedErrors.push("RFQ oversight feed unavailable");
     }
 
-    // 5. Orders
     let totalOrders = 0;
     if (results[4].status === "fulfilled") {
       totalOrders = results[4].value.totalElements;
       setRecentOrders(results[4].value.content);
-    } else {
-      collectedErrors.push("Order oversight feed unavailable");
     }
 
-    // 6. Unread Notifications
     let unreadNotifications = 0;
-    if (results[5].status === "fulfilled") {
-      unreadNotifications = results[5].value;
-    }
+    if (results[5].status === "fulfilled") unreadNotifications = results[5].value;
 
-    // 7. Suspended Users
     let suspendedUsers = 0;
-    if (results[6].status === "fulfilled") {
-      suspendedUsers = results[6].value.totalElements;
-    }
+    if (results[6].status === "fulfilled") suspendedUsers = results[6].value.totalElements;
 
-    // 8. Unverified Suppliers
     let unverifiedSuppliers = 0;
-    if (results[7].status === "fulfilled") {
-      unverifiedSuppliers = results[7].value.totalElements;
-    }
-
-    // 9. Hidden Products
-    let hiddenProducts = 0;
-    if (results[8].status === "fulfilled") {
-      hiddenProducts = results[8].value.totalElements;
-    }
-
-    // 10. Notifications preview
-    if (results[9].status === "fulfilled") {
-      setRecentNotifications(results[9].value.content || []);
-    }
+    if (results[7].status === "fulfilled") unverifiedSuppliers = results[7].value.totalElements;
 
     setMetrics({
       totalUsers,
@@ -164,10 +125,9 @@ export default function AdminDashboardPage() {
       unreadNotifications,
       suspendedUsers,
       unverifiedSuppliers,
-      hiddenProducts,
+      hiddenProducts: pendingRequests,
     });
 
-    setErrors(collectedErrors);
     setLastRefreshed(new Date().toLocaleTimeString());
     setIsLoading(false);
   }, []);
@@ -176,361 +136,437 @@ export default function AdminDashboardPage() {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
-  const modules = [
+  const summaryMetrics = [
     {
-      title: "User Administration",
-      description: "Manage accounts, roles, suspensions, activations, and non-destructive deactivations.",
+      label: "MASTER CHEMICALS",
+      value: metrics.totalProducts,
+      subtext: "Canonical chemical records",
+      href: "/dashboard/admin/catalog",
+    },
+    {
+      label: "SUPPLIERS",
+      value: metrics.totalSuppliers,
+      subtext: metrics.unverifiedSuppliers > 0 ? `${metrics.unverifiedSuppliers} suppliers awaiting verification` : "All suppliers verified",
+      href: "/dashboard/admin/suppliers",
+    },
+    {
+      label: "ACCOUNTS",
+      value: metrics.totalUsers,
+      subtext: "Buyer and supplier accounts",
+      href: "/dashboard/admin/users",
+    },
+    {
+      label: "OPEN RFQs",
+      value: metrics.totalRfqs,
+      subtext: "Active procurement inquiries",
+      href: "/dashboard/admin/transactions/rfqs",
+    },
+    {
+      label: "ORDERS",
+      value: metrics.totalOrders,
+      subtext: "Active purchase orders",
+      href: "/dashboard/admin/transactions/orders",
+    },
+  ];
+
+  const attentionItems = [
+    ...(metrics.unverifiedSuppliers > 0
+      ? [
+          {
+            type: "SUPPLIER VERIFICATION",
+            title: `${metrics.unverifiedSuppliers} Supplier Applications Pending`,
+            detail: "Corporate identity, GST/CIN verification and compliance documents awaiting review",
+            priority: "HIGH PRIORITY",
+            priorityVariant: "danger" as const,
+            href: "/dashboard/admin/suppliers/verification",
+            actionLabel: "Review Queue →",
+          },
+        ]
+      : []),
+    ...(metrics.hiddenProducts > 0
+      ? [
+          {
+            type: "CATALOG REQUESTS",
+            title: `${metrics.hiddenProducts} Chemical Addition Requests`,
+            detail: "New chemical compound monographs submitted by suppliers for catalog admission",
+            priority: "NORMAL",
+            priorityVariant: "warning" as const,
+            href: "/dashboard/admin/catalog/requests",
+            actionLabel: "Evaluate →",
+          },
+        ]
+      : []),
+    ...(metrics.suspendedUsers > 0
+      ? [
+          {
+            type: "ACCOUNT STATUS",
+            title: `${metrics.suspendedUsers} Suspended User Accounts`,
+            detail: "User accounts flagged or suspended pending administrative investigation",
+            priority: "AUDIT",
+            priorityVariant: "neutral" as const,
+            href: "/dashboard/admin/users",
+            actionLabel: "Inspect →",
+          },
+        ]
+      : []),
+  ];
+
+  const quickAccessItems = [
+    {
+      name: "Master Catalog",
+      description: "Canonical chemical compound registry, CAS codes, and monographs",
+      href: "/dashboard/admin/catalog",
+      icon: FlaskConical,
+    },
+    {
+      name: "Supplier Moderation & Verification",
+      description: "Field-level verification of legal identity, GST, CIN, and certifications",
+      href: "/dashboard/admin/suppliers/verification",
+      icon: ShieldCheck,
+    },
+    {
+      name: "Offering Review",
+      description: "Commercial offering moderation, purity tiers, MOQ, and batch documents",
+      href: "/dashboard/admin/catalog/offerings",
+      icon: Package,
+    },
+    {
+      name: "User Management",
+      description: "Account lifecycle management, roles, security status, and suspensions",
       href: "/dashboard/admin/users",
       icon: Users,
-      badge: "Accounts",
     },
     {
-      title: "Supplier Moderation",
-      description: "Moderate supplier verification statuses, export readiness, and account standing.",
-      href: "/dashboard/admin/suppliers",
-      icon: Building2,
-      badge: "Verification",
-    },
-    {
-      title: "Product Catalog",
-      description: "Control catalog availability (Available, Out of Stock, Hidden, Discontinued) and supplier offerings.",
-      href: "/dashboard/admin/products",
-      icon: Package,
-      badge: "Catalog",
-    },
-    {
-      title: "RFQ Oversight",
-      description: "Inspect RFQ inquiries, full quotation revision histories, and moderate terminal states.",
+      name: "RFQ Oversight",
+      description: "Monitor procurement inquiries, quotation revisions, and negotiations",
       href: "/dashboard/admin/transactions/rfqs",
       icon: FileText,
-      badge: "Quotes",
     },
     {
-      title: "Purchase Order Oversight",
-      description: "Track purchase order fulfillment milestones, inspect shipment tracking, and manage cancellations.",
+      name: "Order Oversight",
+      description: "Track procurement fulfillment milestones and contract status",
       href: "/dashboard/admin/transactions/orders",
       icon: ShoppingCart,
-      badge: "Orders",
-    },
-    {
-      title: "Platform Alerts",
-      description: "Review system alerts, platform-wide procurement notifications, and communication logs.",
-      href: "/dashboard/notifications",
-      icon: Bell,
-      badge: "Alerts",
     },
   ];
 
   return (
-    <div className="p-6 sm:p-8 lg:p-10 max-w-[1440px] mx-auto space-y-8">
-      {/* Workspace Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
-              <Shield className="w-3.5 h-3.5" />
-              Administrative Governance
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Admin Workspace
-            </h1>
-            <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
-              Platform-wide governance, supplier moderation, chemical catalog control, and transactional procurement oversight.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {lastRefreshed && (
-              <span className="text-xs font-semibold text-slate-400 hidden md:inline-block">
-                Refreshed: {lastRefreshed}
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={() => fetchDashboardData()}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-amber-600" : ""}`} />
-              Refresh Feed
-            </button>
-          </div>
+    <div className="max-w-[1440px] mx-auto space-y-7">
+      {/* 1. Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3 border-b border-[#DFE1E6] pb-5">
+        <div>
+          <h1 className="text-2xl sm:text-[28px] font-bold text-[#091E42] tracking-tight">
+            Administrative Operations
+          </h1>
+          <p className="text-sm text-[#5E6C84] mt-1">
+            Platform governance, supplier verification, catalog integrity and transaction oversight.
+          </p>
         </div>
-      </div>
 
-      {/* Partial Errors Notice if any */}
-      {errors.length > 0 && (
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold shadow-xs">
-          <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>Some dashboard metrics could not be retrieved: {errors.join(", ")}</span>
-          </div>
+        <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
+          {lastRefreshed && (
+            <span className="text-xs font-mono text-[#5E6C84]">
+              Refreshed {lastRefreshed}
+            </span>
+          )}
           <button
             type="button"
             onClick={() => fetchDashboardData()}
-            className="px-3 py-1 bg-white text-amber-800 border border-amber-300 rounded-lg hover:bg-amber-100 text-xs font-bold transition-colors"
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0052CC] hover:bg-[#EBECF0] px-2.5 py-1.5 rounded transition-colors disabled:opacity-50 border border-[#DFE1E6]"
           >
-            Retry
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
+            <span>Refresh</span>
           </button>
         </div>
-      )}
-
-      {/* Global KPI Summary Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <AdminStatsCard
-          title="Users"
-          value={isLoading ? "..." : metrics.totalUsers}
-          subtitle="Platform accounts"
-          icon={Users}
-          color="blue"
-        />
-        <AdminStatsCard
-          title="Suppliers"
-          value={isLoading ? "..." : metrics.totalSuppliers}
-          subtitle="Verified & onboarding"
-          icon={Building2}
-          color="purple"
-        />
-        <AdminStatsCard
-          title="Products"
-          value={isLoading ? "..." : metrics.totalProducts}
-          subtitle="Catalog chemicals"
-          icon={Package}
-          color="teal"
-        />
-        <AdminStatsCard
-          title="RFQs"
-          value={isLoading ? "..." : metrics.totalRfqs}
-          subtitle="Inquiry exchanges"
-          icon={FileText}
-          color="amber"
-        />
-        <AdminStatsCard
-          title="Orders"
-          value={isLoading ? "..." : metrics.totalOrders}
-          subtitle="Purchase orders"
-          icon={ShoppingCart}
-          color="blue"
-        />
-        <AdminStatsCard
-          title="Alerts"
-          value={isLoading ? "..." : metrics.unreadNotifications}
-          subtitle="Unread notifications"
-          icon={Bell}
-          color="rose"
-        />
       </div>
 
-      {/* Attention Required Banner */}
-      <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/80 space-y-4 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-600" />
-            <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-              Items Requiring Administrative Attention
-            </h3>
-          </div>
-          <span className="text-xs font-bold text-slate-400">Operational Highlights</span>
+      {/* 2. Operational Summary Strip */}
+      {isLoading ? (
+        <div className="bg-white p-5 border border-[#DFE1E6] rounded-lg">
+          <SkeletonLoader lines={2} />
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link
-            href="/dashboard/admin/users?status=SUSPENDED"
-            className="p-4 bg-white rounded-2xl border border-slate-200 hover:border-amber-400 transition-all flex items-center justify-between shadow-2xs"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                <UserX className="w-3.5 h-3.5 text-amber-600" />
-                Suspended Users
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 font-mono">
-                {isLoading ? "..." : metrics.suspendedUsers}
-              </p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-slate-400" />
-          </Link>
-
-          <Link
-            href="/dashboard/admin/suppliers?verified=false"
-            className="p-4 bg-white rounded-2xl border border-slate-200 hover:border-purple-400 transition-all flex items-center justify-between shadow-2xs"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                <ShieldAlert className="w-3.5 h-3.5 text-purple-600" />
-                Unverified Suppliers
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 font-mono">
-                {isLoading ? "..." : metrics.unverifiedSuppliers}
-              </p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-slate-400" />
-          </Link>
-
-          <Link
-            href="/dashboard/admin/products?availabilityStatus=HIDDEN"
-            className="p-4 bg-white rounded-2xl border border-slate-200 hover:border-slate-400 transition-all flex items-center justify-between shadow-2xs"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                <EyeOff className="w-3.5 h-3.5 text-slate-600" />
-                Hidden Catalog Products
-              </div>
-              <p className="text-2xl font-extrabold text-slate-900 font-mono">
-                {isLoading ? "..." : metrics.hiddenProducts}
-              </p>
-            </div>
-            <ArrowRight className="w-4 h-4 text-slate-400" />
-          </Link>
-        </div>
-      </div>
-
-      {/* Procurement Activity Feed (Recent RFQs & POs) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent RFQs */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-amber-600" />
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                Recent RFQ Inquiries
-              </h3>
-            </div>
+      ) : (
+        <div className="bg-white border border-[#DFE1E6] rounded-lg grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#DFE1E6]">
+          {summaryMetrics.map((m, idx) => (
             <Link
-              href="/dashboard/admin/transactions/rfqs"
-              className="text-xs font-bold text-amber-700 hover:text-amber-800 inline-flex items-center gap-1"
+              key={idx}
+              href={m.href}
+              className="p-4 sm:p-5 hover:bg-[#FAFBFC] transition-colors group block min-w-0"
             >
-              View all RFQs <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-2 py-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse" />
-              ))}
-            </div>
-          ) : recentRfqs.length === 0 ? (
-            <p className="text-xs text-slate-500 italic py-6 text-center">
-              No recent RFQ inquiries found.
-            </p>
-          ) : (
-            <div className="space-y-2.5">
-              {recentRfqs.map((rfq) => (
-                <div
-                  key={rfq.id}
-                  className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/60 flex items-center justify-between gap-3 text-xs"
-                >
-                  <div className="space-y-0.5 truncate">
-                    <p className="font-bold text-slate-900 truncate">
-                      {rfq.productName || "Product Inquiry"}
-                    </p>
-                    <p className="text-xs text-slate-500 font-medium truncate">
-                      {rfq.buyerName || "Buyer"} → {rfq.supplierName || "Supplier"} ({rfq.quantity.toLocaleString()} {rfq.unit})
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <AdminBadge type={rfq.status} />
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {new Date(rfq.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recent Purchase Orders */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4 text-sky-600" />
-              <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">
-                Recent Purchase Orders
-              </h3>
-            </div>
-            <Link
-              href="/dashboard/admin/transactions/orders"
-              className="text-xs font-bold text-sky-700 hover:text-sky-800 inline-flex items-center gap-1"
-            >
-              View all Orders <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-2 py-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-12 bg-slate-50 rounded-xl animate-pulse" />
-              ))}
-            </div>
-          ) : recentOrders.length === 0 ? (
-            <p className="text-xs text-slate-500 italic py-6 text-center">
-              No recent purchase orders found.
-            </p>
-          ) : (
-            <div className="space-y-2.5">
-              {recentOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/60 flex items-center justify-between gap-3 text-xs"
-                >
-                  <div className="space-y-0.5 truncate">
-                    <p className="font-bold text-slate-900 font-mono truncate">
-                      {order.poNumber}
-                    </p>
-                    <p className="text-xs text-slate-500 font-medium truncate">
-                      {order.currency} ${order.totalAmount.toFixed(2)} • {order.productName || "Product"}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <AdminBadge type={order.status} />
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {new Date(order.placedAt || order.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Administrative Modules Grid */}
-      <div className="space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 pl-1">
-          Governance & Moderation Modules
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((mod) => (
-            <Link
-              key={mod.title}
-              href={mod.href}
-              className="group bg-white rounded-2xl p-6 border border-slate-200/80 hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-2xl bg-slate-50 text-slate-700 border border-slate-200/80 group-hover:bg-amber-50 group-hover:text-amber-700 group-hover:border-amber-200 transition-colors">
-                    <mod.icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 uppercase tracking-wider">
-                    {mod.badge}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-slate-900 group-hover:text-amber-900 transition-colors mb-2">
-                  {mod.title}
-                </h3>
-                <p className="text-xs text-slate-600 leading-relaxed mb-6">
-                  {mod.description}
-                </p>
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#5E6C84] truncate mb-1">
+                {m.label}
               </div>
-
-              <div className="flex items-center gap-1 text-xs font-bold text-slate-700 group-hover:text-amber-700 transition-colors pt-4 border-t border-slate-100">
-                <span>Open Module</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#091E42] tracking-tight group-hover:text-[#0052CC] transition-colors">
+                {m.value}
+              </div>
+              <div className="text-xs text-[#5E6C84] truncate mt-1">
+                {m.subtext}
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* 3. Primary Focal Point: REQUIRES ATTENTION */}
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-[#091E42] tracking-tight">
+              Requires Attention
+            </h2>
+            <p className="text-[13px] text-[#5E6C84] mt-0.5">
+              Items requiring administrative review or intervention.
+            </p>
+          </div>
+          {attentionItems.length > 0 && (
+            <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#FFFAE6] text-[#974F0C] border border-[#FFE380] rounded">
+              {attentionItems.length} Action Items
+            </span>
+          )}
+        </div>
+
+        {attentionItems.length === 0 ? (
+          <div className="bg-white border border-[#DFE1E6] rounded-lg p-5 text-center text-xs text-[#5E6C84]">
+            No operations currently require administrative intervention.
+          </div>
+        ) : (
+          <div className="bg-white border border-[#DFE1E6] rounded-lg divide-y divide-[#DFE1E6] overflow-hidden">
+            {attentionItems.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#FAFBFC] transition-colors"
+              >
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="text-[10px] font-mono font-bold text-[#5E6C84] uppercase tracking-wider">
+                      {item.type}
+                    </span>
+                    <span
+                      className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border uppercase ${
+                        item.priorityVariant === "danger"
+                          ? "bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]"
+                          : item.priorityVariant === "warning"
+                          ? "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
+                          : "bg-[#F4F5F7] text-[#42526E] border-[#DFE1E6]"
+                      }`}
+                    >
+                      {item.priority}
+                    </span>
+                  </div>
+                  <div className="text-sm font-bold text-[#091E42] truncate">
+                    {item.title}
+                  </div>
+                  <p className="text-xs text-[#5E6C84] truncate">
+                    {item.detail}
+                  </p>
+                </div>
+
+                <Link
+                  href={item.href}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0052CC] hover:underline shrink-0 self-start sm:self-auto py-1 px-2.5 rounded hover:bg-[#DEEBFF]/30 transition-colors"
+                >
+                  <span>{item.actionLabel}</span>
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 4. Recent Operational Activity */}
+      <div className="space-y-2.5">
+        <h2 className="text-base font-bold text-[#091E42] tracking-tight">
+          Recent Operational Activity
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* 1. RFQ Inquiries Panel */}
+          <div className="bg-white border border-[#DFE1E6] rounded-lg overflow-hidden flex flex-col justify-between">
+            <div>
+              {/* Header */}
+              <div className="px-4 py-3 bg-[#FAFBFC] border-b border-[#DFE1E6] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+                    RFQ Inquiries
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-[#DEEBFF] text-[#0747A6] rounded">
+                    {metrics.totalRfqs}
+                  </span>
+                </div>
+                <Link
+                  href="/dashboard/admin/transactions/rfqs"
+                  className="text-xs font-semibold text-[#0052CC] hover:underline"
+                >
+                  View all →
+                </Link>
+              </div>
+
+              {/* Populated Rows vs Compact Empty State */}
+              {recentRfqs.length === 0 ? (
+                <div className="p-5 text-center space-y-1">
+                  <span className="text-xs font-bold text-[#091E42] block">
+                    No active RFQ inquiries
+                  </span>
+                  <p className="text-xs text-[#5E6C84] max-w-sm mx-auto">
+                    New procurement requests will appear here for administrative oversight.
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      href="/dashboard/admin/transactions/rfqs"
+                      className="text-xs font-semibold text-[#0052CC] hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>View RFQ Oversight</span>
+                      <span>→</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#DFE1E6]">
+                  {recentRfqs.slice(0, 4).map((rfq) => (
+                    <Link
+                      key={rfq.id}
+                      href={`/dashboard/admin/transactions/rfqs/${rfq.id}`}
+                      className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#FAFBFC] transition-colors group block"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-[#091E42] group-hover:text-[#0052CC] truncate">
+                            {rfq.productName || "Chemical Product"}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#5E6C84]">
+                            {rfq.quantity} {rfq.unit || "kg"}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-[#5E6C84] flex items-center gap-2">
+                          <span>Buyer: <strong className="text-[#172B4D]">{rfq.buyerEmail ? rfq.buyerEmail.split("@")[0] : "Buyer"}</strong></span>
+                          <span>·</span>
+                          <span className="font-mono text-[10px]">{new Date(rfq.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <StatusBadge status={rfq.status} size="sm" />
+                        <span className="text-xs font-semibold text-[#0052CC] opacity-0 group-hover:opacity-100 transition-opacity">
+                          View →
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Purchase Orders Panel */}
+          <div className="bg-white border border-[#DFE1E6] rounded-lg overflow-hidden flex flex-col justify-between">
+            <div>
+              {/* Header */}
+              <div className="px-4 py-3 bg-[#FAFBFC] border-b border-[#DFE1E6] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+                    Purchase Orders
+                  </span>
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-[#E3FCEF] text-[#006644] rounded">
+                    {metrics.totalOrders}
+                  </span>
+                </div>
+                <Link
+                  href="/dashboard/admin/transactions/orders"
+                  className="text-xs font-semibold text-[#0052CC] hover:underline"
+                >
+                  View all →
+                </Link>
+              </div>
+
+              {/* Populated Rows vs Compact Empty State */}
+              {recentOrders.length === 0 ? (
+                <div className="p-5 text-center space-y-1">
+                  <span className="text-xs font-bold text-[#091E42] block">
+                    No active purchase orders
+                  </span>
+                  <p className="text-xs text-[#5E6C84] max-w-sm mx-auto">
+                    Executed orders and fulfillment activity will appear here.
+                  </p>
+                  <div className="pt-2">
+                    <Link
+                      href="/dashboard/admin/transactions/orders"
+                      className="text-xs font-semibold text-[#0052CC] hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>View Order Oversight</span>
+                      <span>→</span>
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#DFE1E6]">
+                  {recentOrders.slice(0, 4).map((order) => (
+                    <Link
+                      key={order.id}
+                      href={`/dashboard/admin/transactions/orders/${order.id}`}
+                      className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-[#FAFBFC] transition-colors group block"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold font-mono text-[#091E42] group-hover:text-[#0052CC] truncate">
+                            {order.poNumber}
+                          </span>
+                          <span className="text-[11px] font-mono font-bold text-[#091E42]">
+                            {order.currency} {order.totalAmount.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-[#5E6C84] flex items-center gap-2">
+                          <span>Buyer: <strong className="text-[#172B4D]">{order.buyerEmail ? order.buyerEmail.split("@")[0] : "Buyer"}</strong></span>
+                          <span>·</span>
+                          <span className="font-mono text-[10px]">{new Date(order.placedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <StatusBadge status={order.status} size="sm" />
+                        <span className="text-xs font-semibold text-[#0052CC] opacity-0 group-hover:opacity-100 transition-opacity">
+                          View →
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Quick Access Directory (Workflow Grid) */}
+      <div className="space-y-2.5">
+        <h2 className="text-base font-bold text-[#091E42] tracking-tight">
+          Quick Access
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {quickAccessItems.map((item, idx) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={idx}
+                href={item.href}
+                className="p-4 bg-white border border-[#DFE1E6] hover:border-[#0052CC] rounded-lg transition-colors flex items-start gap-3.5 group text-left"
+              >
+                <Icon className="w-4.5 h-4.5 text-[#5E6C84] group-hover:text-[#0052CC] shrink-0 mt-0.5 transition-colors" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-[#091E42] group-hover:text-[#0052CC] truncate">
+                      {item.name}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#5E6C84] group-hover:text-[#0052CC] group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </div>
+                  <p className="text-xs text-[#5E6C84] truncate mt-0.5">
+                    {item.description}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

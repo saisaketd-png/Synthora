@@ -7,22 +7,35 @@ import {
   ArrowLeft,
   FlaskConical,
   CheckCircle2,
-  AlertTriangle,
-  FileText,
   Building2,
   Clock,
   ShieldCheck,
-  Package,
-  Layers,
-  HelpCircle,
-  Eye,
-  CheckCircle,
-  XCircle,
   AlertCircle,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  Upload,
+  Tag,
+  FileText,
+  Download,
 } from "lucide-react";
-import { getMasterProductDetail, verifyChemicalField, setMasterProductStatus } from "@/features/admin/api/adminCatalogApi";
+import {
+  getMasterProductDetail,
+  verifyChemicalField,
+  setMasterProductStatus,
+  addOfficialSynonym,
+  deleteSynonym,
+  reviewSynonym,
+  uploadMasterProductImage,
+  deleteMasterProductImage,
+  setPrimaryMasterProductImage,
+  uploadMasterProductDocument,
+  deleteMasterProductDocument,
+} from "@/features/admin/api/adminCatalogApi";
+import { useToast } from "@/shared/context/ToastContext";
 
 export default function MasterProductGovernanceDetailPage() {
+  const toast = useToast();
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
@@ -31,6 +44,21 @@ export default function MasterProductGovernanceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Synonyms Form State
+  const [newSynonym, setNewSynonym] = useState("");
+  const [synonymSubmitting, setSynonymSubmitting] = useState(false);
+
+  // Image Upload State
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageAlt, setImageAlt] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
+
+  // Document Upload State
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [docCategory, setDocCategory] = useState("PRODUCT_SPECIFICATION");
+  const [docNumber, setDocNumber] = useState("");
+  const [docUploading, setDocUploading] = useState(false);
 
   // Field Verification Modal
   const [selectedField, setSelectedField] = useState<string | null>(null);
@@ -66,9 +94,10 @@ export default function MasterProductGovernanceDetailPage() {
       });
       setSelectedField(null);
       setFieldNotes("");
+      toast.success("Field verification recorded");
       await loadData();
     } catch (e: any) {
-      alert("Failed to record verification: " + e.message);
+      toast.error("Failed to record verification: " + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -77,13 +106,128 @@ export default function MasterProductGovernanceDetailPage() {
   const handleToggleStatus = async () => {
     if (!detail) return;
     const newStatus = detail.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    if (!confirm(`Are you sure you want to change status to ${newStatus}?`)) return;
     try {
       setActionLoading(true);
       await setMasterProductStatus(detail.id, newStatus);
+      toast.success(`Master Chemical status updated to ${newStatus}`);
       await loadData();
     } catch (e: any) {
-      alert("Failed to change status: " + e.message);
+      toast.error("Failed to change status: " + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAddSynonym = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSynonym.trim()) return;
+    try {
+      setSynonymSubmitting(true);
+      await addOfficialSynonym(id, newSynonym.trim());
+      setNewSynonym("");
+      toast.success("Official synonym added");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to add synonym: " + e.message);
+    } finally {
+      setSynonymSubmitting(false);
+    }
+  };
+
+  const handleDeleteSynonym = async (synonymId: string) => {
+    try {
+      setActionLoading(true);
+      await deleteSynonym(id, synonymId);
+      toast.success("Synonym deleted");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to delete synonym: " + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReviewSynonym = async (synonymId: string, status: "APPROVED" | "REJECTED") => {
+    try {
+      setActionLoading(true);
+      await reviewSynonym(synonymId, status);
+      toast.success(`Synonym ${status.toLowerCase()}`);
+      await loadData();
+    } catch (e: any) {
+      toast.error(`Failed to ${status.toLowerCase()} synonym: ` + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!imageFile) return;
+    try {
+      setImageUploading(true);
+      await uploadMasterProductImage(id, imageFile, imageAlt.trim() || undefined);
+      setImageFile(null);
+      setImageAlt("");
+      toast.success("Chemical structure image uploaded");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to upload image: " + e.message);
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async (imageId: string) => {
+    try {
+      setActionLoading(true);
+      await deleteMasterProductImage(id, imageId);
+      toast.success("Product image removed");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to delete image: " + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSetPrimaryImage = async (imageId: string) => {
+    try {
+      setActionLoading(true);
+      await setPrimaryMasterProductImage(id, imageId);
+      toast.success("Primary image updated");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to set primary image: " + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDocUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!docFile) return;
+    try {
+      setDocUploading(true);
+      await uploadMasterProductDocument(id, docFile, docCategory, docNumber.trim() || undefined);
+      setDocFile(null);
+      setDocNumber("");
+      toast.success("Technical document uploaded");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to upload document: " + e.message);
+    } finally {
+      setDocUploading(false);
+    }
+  };
+
+  const handleDeleteDoc = async (documentId: string) => {
+    try {
+      setActionLoading(true);
+      await deleteMasterProductDocument(documentId);
+      toast.success("Technical document removed");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to delete document: " + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -110,22 +254,87 @@ export default function MasterProductGovernanceDetailPage() {
     );
   }
 
+  const verifiedFieldsMap = detail.verifiedFields || {};
+
   const fieldItems = [
-    { label: "01 / CHEMICAL NAME", val: detail.name, key: "NAME", req: true },
-    { label: "02 / CAS REGISTRY NUMBER", val: detail.casNumber || "N/A", key: "CAS_NUMBER", req: true },
-    { label: "03 / MOLECULAR FORMULA", val: detail.molecularFormula || "N/A", key: "MOLECULAR_FORMULA", req: true },
-    { label: "04 / PRODUCT CATEGORY", val: detail.category, key: "CATEGORY", req: true },
-    { label: "05 / TECHNICAL DESCRIPTION", val: detail.description ? "Present" : "Missing", key: "DESCRIPTION", req: false },
-    { label: "06 / CANONICAL CODE", val: detail.masterProductCode, key: "PRODUCT_CODE", req: true },
-    { label: "07 / TECHNICAL DOCUMENTS", val: detail.documents?.length ? `${detail.documents.length} Docs` : "None Uploaded", key: "DOCUMENTS", req: false },
-    { label: "08 / CANONICAL IMAGE", val: detail.images?.length ? `${detail.images.length} Images` : "Default Mesh", key: "CANONICAL_IMAGE", req: false },
-    { label: "09 / DUPLICATE RISK", val: "No Conflict Detected", key: "DUPLICATE_CHECK", req: true },
-    { label: "10 / OFFERING CONSISTENCY", val: `${detail.offeringCount || 0} Connected Offerings`, key: "OFFERING_CONSISTENCY", req: true },
+    {
+      label: "01 / CHEMICAL NAME",
+      val: detail.name,
+      key: "NAME",
+      req: true,
+      isVerified: verifiedFieldsMap.NAME === "VERIFIED" || Boolean(detail.name && detail.name.trim()),
+    },
+    {
+      label: "02 / CAS REGISTRY NUMBER",
+      val: detail.casNumber || "N/A",
+      key: "CAS_NUMBER",
+      req: true,
+      isVerified: verifiedFieldsMap.CAS_NUMBER === "VERIFIED" || Boolean(detail.casNumber && detail.casNumber !== "N/A"),
+    },
+    {
+      label: "03 / MOLECULAR FORMULA",
+      val: detail.molecularFormula || "N/A",
+      key: "MOLECULAR_FORMULA",
+      req: true,
+      isVerified: verifiedFieldsMap.MOLECULAR_FORMULA === "VERIFIED" || Boolean(detail.molecularFormula && detail.molecularFormula !== "N/A"),
+    },
+    {
+      label: "04 / PRODUCT CATEGORY",
+      val: detail.category,
+      key: "CATEGORY",
+      req: true,
+      isVerified: verifiedFieldsMap.CATEGORY === "VERIFIED" || Boolean(detail.category),
+    },
+    {
+      label: "05 / TECHNICAL DESCRIPTION",
+      val: detail.description ? "Present" : "Missing",
+      key: "DESCRIPTION",
+      req: false,
+      isVerified: verifiedFieldsMap.DESCRIPTION === "VERIFIED" || Boolean(detail.description && detail.description.trim()),
+    },
+    {
+      label: "06 / CANONICAL CODE",
+      val: detail.masterProductCode,
+      key: "PRODUCT_CODE",
+      req: true,
+      isVerified: verifiedFieldsMap.PRODUCT_CODE === "VERIFIED" || Boolean(detail.masterProductCode),
+    },
+    {
+      label: "07 / TECHNICAL DOCUMENTS",
+      val: detail.documents?.length ? `${detail.documents.length} Docs` : (verifiedFieldsMap.DOCUMENTS === "VERIFIED" ? "Verified Standard" : "None Uploaded"),
+      key: "DOCUMENTS",
+      req: false,
+      isVerified: verifiedFieldsMap.DOCUMENTS === "VERIFIED" || (detail.documents && detail.documents.length > 0),
+    },
+    {
+      label: "08 / CANONICAL IMAGE",
+      val: detail.images?.length ? `${detail.images.length} Images` : (verifiedFieldsMap.CANONICAL_IMAGE === "VERIFIED" ? "Verified Mesh" : "Default Mesh"),
+      key: "CANONICAL_IMAGE",
+      req: false,
+      isVerified: verifiedFieldsMap.CANONICAL_IMAGE === "VERIFIED" || (detail.images && detail.images.length > 0),
+    },
+    {
+      label: "09 / DUPLICATE RISK",
+      val: verifiedFieldsMap.DUPLICATE_CHECK === "REJECTED" ? "Conflict Detected" : "No Conflict Detected",
+      key: "DUPLICATE_CHECK",
+      req: true,
+      isVerified: verifiedFieldsMap.DUPLICATE_CHECK !== "REJECTED" && verifiedFieldsMap.DUPLICATE_CHECK !== "ATTENTION_REQUIRED",
+    },
+    {
+      label: "10 / OFFERING CONSISTENCY",
+      val: `${detail.offeringCount || 0} Connected Offerings`,
+      key: "OFFERING_CONSISTENCY",
+      req: true,
+      isVerified: verifiedFieldsMap.OFFERING_CONSISTENCY !== "REJECTED" && verifiedFieldsMap.OFFERING_CONSISTENCY !== "ATTENTION_REQUIRED",
+    },
   ];
 
-  const verifiedCount = fieldItems.filter(i => i.val && i.val !== "N/A" && i.val !== "Missing" && i.val !== "None Uploaded").length;
+  const verifiedCount = fieldItems.filter(i => i.isVerified).length;
   const totalFields = fieldItems.length;
   const scorePercent = Math.round((verifiedCount / totalFields) * 100);
+
+  const approvedSynonyms = detail.synonyms?.filter((s: any) => s.status === "APPROVED") || [];
+  const pendingSynonyms = detail.synonyms?.filter((s: any) => s.status === "PENDING") || [];
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
@@ -196,7 +405,7 @@ export default function MasterProductGovernanceDetailPage() {
 
       {/* Grid Layout: Governance Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column (2 Cols): Identity, Field Verification Checklist, Offerings */}
+        {/* Left Column (2 Cols): Identity, Synonyms, Images, Documents, Checklist, Offerings */}
         <div className="lg:col-span-2 space-y-6">
           {/* SECTION 01: CANONICAL CHEMICAL IDENTITY */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs space-y-4">
@@ -226,7 +435,7 @@ export default function MasterProductGovernanceDetailPage() {
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">Product Category</span>
                 <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-extrabold rounded uppercase">
-                  {detail.category.replace("_", " ")}
+                  {detail.category?.replace("_", " ")}
                 </span>
               </div>
               <div>
@@ -245,25 +454,329 @@ export default function MasterProductGovernanceDetailPage() {
             )}
           </div>
 
-          {/* SECTION 02: FIELD-LEVEL CHEMICAL VERIFICATION CHECKLIST */}
+          {/* SECTION 02: PRODUCT SYNONYMS */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <Tag className="w-4 h-4 text-indigo-600" /> 02 / PRODUCT SYNONYMS & TRADE NAMES
+              </h3>
+              <span className="text-xs font-bold text-slate-500">
+                {approvedSynonyms.length} Official / {pendingSynonyms.length} Pending
+              </span>
+            </div>
+
+            {/* Approved Synonyms Tags */}
+            <div>
+              <span className="text-slate-400 block text-[10px] uppercase font-bold mb-2">
+                Active Catalog Synonyms (Globally Searchable)
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {approvedSynonyms.length > 0 ? (
+                  approvedSynonyms.map((syn: any) => (
+                    <span
+                      key={syn.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl"
+                    >
+                      <span>{syn.synonym}</span>
+                      {syn.source === "SUPPLIER" && (
+                        <span className="text-[9px] text-indigo-600 bg-indigo-50 px-1 rounded">Supplier</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSynonym(syn.id)}
+                        disabled={actionLoading}
+                        className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors"
+                        title="Remove Synonym"
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 italic">No official synonyms configured yet.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Add Official Synonym Inline Form */}
+            <form onSubmit={handleAddSynonym} className="flex items-center gap-2 pt-2 border-t border-slate-100">
+              <input
+                type="text"
+                value={newSynonym}
+                onChange={(e) => setNewSynonym(e.target.value)}
+                placeholder="Add official synonym (e.g. Aspirin, ASA, 2-Acetoxybenzoic acid)..."
+                className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-500 font-medium"
+              />
+              <button
+                type="submit"
+                disabled={synonymSubmitting || !newSynonym.trim()}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs disabled:opacity-40 flex items-center gap-1 shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Synonym
+              </button>
+            </form>
+
+            {/* Pending Supplier Suggestions Review */}
+            {pendingSynonyms.length > 0 && (
+              <div className="pt-3 border-t border-slate-100 space-y-3">
+                <span className="text-slate-400 block text-[10px] uppercase font-bold text-amber-600">
+                  Pending Supplier Synonym Suggestions ({pendingSynonyms.length})
+                </span>
+                <div className="space-y-2">
+                  {pendingSynonyms.map((syn: any) => (
+                    <div
+                      key={syn.id}
+                      className="p-3 bg-amber-50/60 border border-amber-200 rounded-2xl flex items-center justify-between gap-4"
+                    >
+                      <div>
+                        <strong className="text-slate-900 text-xs font-bold block">{syn.synonym}</strong>
+                        <span className="text-[10px] text-slate-500">
+                          Suggested by {syn.createdByName || "Supplier User"} &bull; {new Date(syn.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleReviewSynonym(syn.id, "APPROVED")}
+                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition-all"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleReviewSynonym(syn.id, "REJECTED")}
+                          className="px-3 py-1 bg-white border border-slate-300 hover:bg-rose-50 text-rose-700 text-[11px] font-bold rounded-lg transition-all"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 03: CANONICAL CHEMICAL IMAGES */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" /> 02 / FIELD-LEVEL CHEMICAL VERIFICATION CHECKLIST
+                <ImageIcon className="w-4 h-4 text-emerald-600" /> 03 / CANONICAL PRODUCT IMAGES & MOLECULAR MESH
+              </h3>
+              <span className="text-xs font-bold text-slate-500">{detail.images?.length || 0} / 10 Assets</span>
+            </div>
+
+            {/* Images Grid / Gallery */}
+            {detail.images && detail.images.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {detail.images.map((img: any) => (
+                  <div
+                    key={img.id}
+                    className={`relative p-3 rounded-2xl border ${
+                      img.isPrimary ? "border-emerald-500 bg-emerald-50/30" : "border-slate-200 bg-slate-50"
+                    } flex flex-col items-center justify-between gap-2 text-center group`}
+                  >
+                    <div className="w-full h-24 bg-white border border-slate-200 rounded-xl overflow-hidden flex items-center justify-center">
+                      <img
+                        src={`/api/v1/master-products/${id}/images/${img.id}/content`}
+                        alt={img.altText || detail.name}
+                        className="max-h-full max-w-full object-contain"
+                        onError={(e) => {
+                          (e.target as any).src = "";
+                          (e.target as any).className = "hidden";
+                        }}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <span className="text-[11px] font-bold text-slate-900 truncate block">
+                        {img.fileName}
+                      </span>
+                      {img.isPrimary && (
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-extrabold rounded uppercase">
+                          PRIMARY IMAGE
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 w-full justify-center pt-1 border-t border-slate-200/60">
+                      {!img.isPrimary && (
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleSetPrimaryImage(img.id)}
+                          className="px-2 py-1 bg-white border border-slate-300 hover:bg-slate-100 text-[10px] font-bold rounded-lg text-slate-700"
+                        >
+                          Make Primary
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        disabled={actionLoading}
+                        onClick={() => handleDeleteImage(img.id)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded-lg"
+                        title="Delete Image"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs text-slate-500">
+                No canonical product image uploaded. Master Catalog will display default molecular mesh.
+              </div>
+            )}
+
+            {/* Image Upload Form */}
+            <form onSubmit={handleImageUpload} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                Upload New Canonical Image
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={imageAlt}
+                  onChange={(e) => setImageAlt(e.target.value)}
+                  placeholder="Image alt text / description..."
+                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={imageUploading || !imageFile}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs disabled:opacity-40 flex items-center gap-1.5"
+                >
+                  <Upload className="w-3.5 h-3.5" /> Upload Asset
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* SECTION 04: TECHNICAL COMPLIANCE DOCUMENTS */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-600" /> 04 / CANONICAL TECHNICAL COMPLIANCE DOCUMENTS
+              </h3>
+              <span className="text-xs font-bold text-slate-500">{detail.documents?.length || 0} Documents</span>
+            </div>
+
+            {/* Documents List */}
+            {detail.documents && detail.documents.length > 0 ? (
+              <div className="divide-y divide-slate-100">
+                {detail.documents.map((doc: any) => (
+                  <div key={doc.id} className="py-3 flex items-center justify-between text-xs font-medium">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <strong className="text-slate-900 font-bold">{doc.originalFileName}</strong>
+                        <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-extrabold rounded uppercase">
+                          {doc.category?.replace("_", " ")}
+                        </span>
+                      </div>
+                      <span className="text-slate-500 text-[11px] block">
+                        {(doc.fileSize / 1024).toFixed(1)} KB &bull; Uploaded {new Date(doc.createdAt).toLocaleDateString()}
+                        {doc.documentNumber && ` &bull; Ref #${doc.documentNumber}`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`/api/v1/documents/${doc.id}/download`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-bold"
+                        title="Download Document"
+                      >
+                        <Download className="w-3.5 h-3.5" /> Download
+                      </a>
+                      <button
+                        type="button"
+                        disabled={actionLoading}
+                        onClick={() => handleDeleteDoc(doc.id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
+                        title="Delete Document"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs text-slate-500">
+                No canonical technical specifications or MSDS documents uploaded.
+              </div>
+            )}
+
+            {/* Document Upload Form */}
+            <form onSubmit={handleDocUpload} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                Upload New Specification / MSDS / TDS Document
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  type="file"
+                  accept="application/pdf,image/png,image/jpeg"
+                  onChange={(e) => setDocFile(e.target.files?.[0] || null)}
+                  className="text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white hover:file:bg-slate-800 cursor-pointer"
+                />
+                <select
+                  value={docCategory}
+                  onChange={(e) => setDocCategory(e.target.value)}
+                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-bold"
+                >
+                  <option value="PRODUCT_SPECIFICATION">Product Specification</option>
+                  <option value="MSDS">Material Safety Data Sheet (MSDS)</option>
+                  <option value="TECHNICAL_DATA_SHEET">Technical Data Sheet (TDS)</option>
+                  <option value="COA">Certificate of Analysis (COA Template)</option>
+                  <option value="OTHER">Other Compliance Document</option>
+                </select>
+                <input
+                  type="text"
+                  value={docNumber}
+                  onChange={(e) => setDocNumber(e.target.value)}
+                  placeholder="Doc / Spec Number..."
+                  className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none"
+                />
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  disabled={docUploading || !docFile}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs disabled:opacity-40 flex items-center gap-1.5"
+                >
+                  <Upload className="w-3.5 h-3.5" /> Upload Document
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* SECTION 05: FIELD-LEVEL CHEMICAL VERIFICATION CHECKLIST */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> 05 / FIELD-LEVEL CHEMICAL VERIFICATION CHECKLIST
               </h3>
               <span className="text-xs font-bold text-slate-500">{verifiedCount}/{totalFields} Confirmed</span>
             </div>
 
             <div className="space-y-3 text-xs font-medium">
               {fieldItems.map((item) => {
-                const isConfirmed = item.val && item.val !== "N/A" && item.val !== "Missing" && item.val !== "None Uploaded";
                 return (
                   <div key={item.key} className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
                     <div className="space-y-0.5">
                       <span className="text-slate-400 block text-[10px] uppercase font-bold">{item.label}</span>
                       <div className="flex items-center gap-2">
                         <strong className="text-slate-900 font-bold">{item.val}</strong>
-                        {isConfirmed ? (
+                        {item.isVerified ? (
                           <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-extrabold rounded uppercase flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3 text-emerald-600" /> VERIFIED
                           </span>
@@ -287,11 +800,11 @@ export default function MasterProductGovernanceDetailPage() {
             </div>
           </div>
 
-          {/* SECTION 05: CONNECTED SUPPLIER OFFERINGS */}
+          {/* SECTION 06: CONNECTED SUPPLIER OFFERINGS */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-purple-600" /> 05 / CONNECTED SUPPLIER OFFERINGS ({detail.offerings?.length || 0})
+                <Building2 className="w-4 h-4 text-purple-600" /> 06 / CONNECTED SUPPLIER OFFERINGS ({detail.offerings?.length || 0})
               </h3>
             </div>
 
@@ -341,7 +854,7 @@ export default function MasterProductGovernanceDetailPage() {
                       <span>{log.actorName}</span>
                       <span>{new Date(log.timestamp).toLocaleString()}</span>
                     </div>
-                    <strong className="text-slate-900 block font-bold">{log.action.replace("_", " ")}</strong>
+                    <strong className="text-slate-900 block font-bold">{log.action?.replace("_", " ")}</strong>
                     {log.reason && <p className="text-slate-600 italic text-[11px]">&quot;{log.reason}&quot;</p>}
                   </div>
                 ))}

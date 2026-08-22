@@ -84,7 +84,7 @@ public class AdminSupplierVerificationController {
         ));
     }
 
-    @PostMapping("/finalize")
+    @PostMapping({"/finalize", "/verify"})
     public ResponseEntity<SupplierVerificationWorkspaceDto> finalizeVerification(
             @PathVariable Long supplierId,
             @RequestBody(required = false) FinalizeVerificationRequest request,

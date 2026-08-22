@@ -3,6 +3,7 @@ package com.synthora.rfq;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.order.PurchaseOrder;
 import com.synthora.order.PurchaseOrderRepository;
 import com.synthora.order.PurchaseOrderService;
@@ -86,6 +87,7 @@ public class MultiSupplierRfqSecurityTest {
         buyerUser.setEmail("buyer_src_" + suffix + "@synthora.com");
         buyerUser.setPasswordHash("hash");
         buyerUser.setRole(UserRole.USER);
+        buyerUser.setStatus(UserStatus.ACTIVE);
         buyerUser = userRepository.save(buyerUser);
         buyerAuth = new UsernamePasswordAuthenticationToken(buyerUser.getEmail(), null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
 
@@ -94,6 +96,7 @@ public class MultiSupplierRfqSecurityTest {
         supplierUserA.setEmail("sup_a_src_" + suffix + "@synthora.com");
         supplierUserA.setPasswordHash("hash");
         supplierUserA.setRole(UserRole.SUPPLIER);
+        supplierUserA.setStatus(UserStatus.ACTIVE);
         supplierUserA = userRepository.save(supplierUserA);
 
         supplierA = new Supplier();
@@ -108,6 +111,7 @@ public class MultiSupplierRfqSecurityTest {
         supplierUserB.setEmail("sup_b_src_" + suffix + "@synthora.com");
         supplierUserB.setPasswordHash("hash");
         supplierUserB.setRole(UserRole.SUPPLIER);
+        supplierUserB.setStatus(UserStatus.ACTIVE);
         supplierUserB = userRepository.save(supplierUserB);
 
         supplierB = new Supplier();
@@ -138,12 +142,16 @@ public class MultiSupplierRfqSecurityTest {
                 masterProduct.getId(), new BigDecimal("120.00"), "INR", 500, new BigDecimal("99.80"), "USP", new BigDecimal("50.00"), "25kg Drum", 7, true, true, true, "AVAILABLE"
         ), supplierAuthA);
         offeringA = supplierOfferingRepository.findById(offA.id()).orElseThrow();
+        offeringA.setModerationStatus("APPROVED");
+        supplierOfferingRepository.save(offeringA);
 
         SecurityContextHolder.getContext().setAuthentication(supplierAuthB);
         SupplierOfferingResponse offB = supplierOfferingService.createOffering(new CreateSupplierOfferingRequest(
                 masterProduct.getId(), new BigDecimal("125.00"), "INR", 300, new BigDecimal("99.50"), "EP", new BigDecimal("25.00"), "50kg Drum", 5, true, true, true, "AVAILABLE"
         ), supplierAuthB);
         offeringB = supplierOfferingRepository.findById(offB.id()).orElseThrow();
+        offeringB.setModerationStatus("APPROVED");
+        supplierOfferingRepository.save(offeringB);
 
         SecurityContextHolder.getContext().setAuthentication(buyerAuth);
     }
@@ -224,7 +232,7 @@ public class MultiSupplierRfqSecurityTest {
 
         SecurityContextHolder.getContext().setAuthentication(buyerAuth);
         CreateRfqRequest reqDeactivated = new CreateRfqRequest(legacyProduct.getId(), masterProduct.getId(), offeringA.getId(), supplierA.getId(), null, new BigDecimal("100.00"), "kg", "Enquiry deactivated");
-        assertThrows(IllegalStateException.class, () -> rfqService.createRfq(reqDeactivated, buyerAuth));
+        assertThrows(IllegalArgumentException.class, () -> rfqService.createRfq(reqDeactivated, buyerAuth));
     }
 
     // 9. Buyer counter-offer works

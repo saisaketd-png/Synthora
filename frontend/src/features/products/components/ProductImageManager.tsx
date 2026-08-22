@@ -23,7 +23,7 @@ interface ProductImageManagerProps {
   onImagesChange?: (images: ProductImage[]) => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ProductImageManager({
   productId,
@@ -103,8 +103,6 @@ export function ProductImageManager({
   };
 
   const handleDelete = async (imageId: string) => {
-    if (!window.confirm("Remove this product image?")) return;
-
     try {
       setActionLoadingId(imageId);
       setError(null);

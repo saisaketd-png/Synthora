@@ -115,7 +115,7 @@ public class InputValidationSecurityTest {
     @BeforeEach
     public void setup() {
         rateLimiterService.resetAll();
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         // Buyer
         buyer = createTestUser("buyer_validation@synthora.com", "Validation Buyer", UserRole.USER);
@@ -362,7 +362,7 @@ public class InputValidationSecurityTest {
         mockMvc.perform(get("/api/v1/products")
                         .param("page", "abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Invalid parameter format")));
+                .andExpect(jsonPath("$.message", containsString("Invalid parameter format")));
     }
 
     // =========================================================================
@@ -374,7 +374,7 @@ public class InputValidationSecurityTest {
     public void testMalformedProductUuid() throws Exception {
         mockMvc.perform(get("/api/v1/products/not-a-valid-uuid/suppliers"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Invalid parameter format")));
+                .andExpect(jsonPath("$.message", containsString("Invalid parameter format")));
     }
 
     @Test
@@ -383,7 +383,7 @@ public class InputValidationSecurityTest {
         mockMvc.perform(get("/api/v1/rfqs/not-a-valid-uuid")
                         .header("Authorization", "Bearer " + tokenBuyer))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Invalid parameter format")));
+                .andExpect(jsonPath("$.message", containsString("Invalid parameter format")));
     }
 
     @Test
@@ -392,7 +392,7 @@ public class InputValidationSecurityTest {
         mockMvc.perform(get("/api/v1/orders/not-a-valid-uuid")
                         .header("Authorization", "Bearer " + tokenBuyer))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Invalid parameter format")));
+                .andExpect(jsonPath("$.message", containsString("Invalid parameter format")));
     }
 
     @Test
@@ -401,7 +401,7 @@ public class InputValidationSecurityTest {
         mockMvc.perform(get("/api/v1/documents/not-a-valid-uuid")
                         .header("Authorization", "Bearer " + tokenBuyer))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Invalid parameter format")));
+                .andExpect(jsonPath("$.message", containsString("Invalid parameter format")));
     }
 
     // =========================================================================
@@ -425,7 +425,7 @@ public class InputValidationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Malformed request body or invalid field format")));
+                .andExpect(jsonPath("$.message", containsString("Malformed request body or invalid field format")));
     }
 
     @Test
@@ -461,7 +461,7 @@ public class InputValidationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.quantity", notNullValue()));
+                .andExpect(jsonPath("$.message", containsString("quantity")));
     }
 
     @Test
@@ -476,7 +476,7 @@ public class InputValidationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.quantity", notNullValue()));
+                .andExpect(jsonPath("$.message", containsString("quantity")));
     }
 
     @Test
@@ -492,7 +492,7 @@ public class InputValidationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.price", notNullValue()));
+                .andExpect(jsonPath("$.message", containsString("price")));
     }
 
     @Test
@@ -508,7 +508,7 @@ public class InputValidationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.price", notNullValue()));
+                .andExpect(jsonPath("$.message", containsString("price")));
     }
 
     @Test
@@ -550,7 +550,7 @@ public class InputValidationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(quoteReq)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.validityDate", notNullValue()));
+                .andExpect(jsonPath("$.message", containsString("validityDate")));
     }
 
     // =========================================================================
@@ -570,7 +570,7 @@ public class InputValidationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.website", notNullValue()));
+                .andExpect(jsonPath("$.message", containsString("website")));
     }
 
     @Test

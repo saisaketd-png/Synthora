@@ -1,5 +1,4 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+import { resolveApiUrl } from "@/lib/apiUrl";
 
 export type LoginRequest = {
   email: string;
@@ -20,7 +19,8 @@ export type AuthUser = {
 export async function login(
   data: LoginRequest
 ): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+  const targetUrl = resolveApiUrl("/api/v1/auth/login");
+  const response = await fetch(targetUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -29,15 +29,15 @@ export async function login(
   });
 
   if (!response.ok) {
-    let errorMessage = "Login failed";
-
+    let errorMessage = `Login failed (HTTP ${response.status})`;
     try {
       const errorData = await response.json();
-      errorMessage = errorData.error || errorData.message || errorMessage;
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
     } catch {
       // Ignore invalid/non-JSON error response
     }
-
     throw new Error(errorMessage);
   }
 
@@ -67,7 +67,8 @@ export type RegisterSupplierRequest = {
 export async function registerBuyer(
   data: RegisterBuyerRequest
 ): Promise<{ id: string; name: string; email: string; role: string }> {
-  const response = await fetch(`${API_URL}/api/v1/auth/register`, {
+  const targetUrl = resolveApiUrl("/api/v1/auth/register");
+  const response = await fetch(targetUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -76,10 +77,12 @@ export async function registerBuyer(
   });
 
   if (!response.ok) {
-    let errorMessage = "Registration failed";
+    let errorMessage = `Registration failed (HTTP ${response.status})`;
     try {
       const errorData = await response.json();
-      errorMessage = errorData.error || errorData.message || errorMessage;
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
     } catch {}
     throw new Error(errorMessage);
   }
@@ -90,7 +93,8 @@ export async function registerBuyer(
 export async function registerSupplier(
   data: RegisterSupplierRequest
 ): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/api/v1/auth/register/supplier`, {
+  const targetUrl = resolveApiUrl("/api/v1/auth/register/supplier");
+  const response = await fetch(targetUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -99,10 +103,12 @@ export async function registerSupplier(
   });
 
   if (!response.ok) {
-    let errorMessage = "Supplier registration failed";
+    let errorMessage = `Supplier registration failed (HTTP ${response.status})`;
     try {
       const errorData = await response.json();
-      errorMessage = errorData.error || errorData.message || errorMessage;
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
     } catch {}
     throw new Error(errorMessage);
   }

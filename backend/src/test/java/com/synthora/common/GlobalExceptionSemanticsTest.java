@@ -66,6 +66,9 @@ public class GlobalExceptionSemanticsTest {
     @Autowired
     private JwtService jwtService;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     private User buyer1;
     private String buyer1Token;
 
@@ -81,13 +84,7 @@ public class GlobalExceptionSemanticsTest {
 
     @BeforeEach
     public void setup() {
-        shipmentRepository.deleteAll();
-        purchaseOrderRepository.deleteAll();
-        quotationRepository.deleteAll();
-        rfqRepository.deleteAll();
-        productRepository.deleteAll();
-        supplierRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         // 1. Buyer 1
         buyer1 = new User();
@@ -149,7 +146,7 @@ public class GlobalExceptionSemanticsTest {
         mockMvc.perform(get("/api/v1/rfqs/" + randomId)
                         .header("Authorization", "Bearer " + buyer1Token))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("RFQ not found"));
+                .andExpect(jsonPath("$.message").value("RFQ not found"));
     }
 
     @Test
@@ -158,7 +155,7 @@ public class GlobalExceptionSemanticsTest {
         mockMvc.perform(get("/api/v1/rfqs/" + rfq1.getId())
                         .header("Authorization", "Bearer " + buyer2Token))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("RFQ not found"));
+                .andExpect(jsonPath("$.message").value("RFQ not found"));
     }
 
     @Test
@@ -176,7 +173,7 @@ public class GlobalExceptionSemanticsTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(duplicateRegisterPayload))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Email already registered"));
+                .andExpect(jsonPath("$.message").value("Email already registered"));
     }
 
     @Test
@@ -192,7 +189,7 @@ public class GlobalExceptionSemanticsTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidLoginPayload))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid email or password"));
+                .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 
     @Test
@@ -219,6 +216,6 @@ public class GlobalExceptionSemanticsTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(quotationPayload))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").value("Cannot submit quotation for RFQ in status: ACCEPTED"));
+                .andExpect(jsonPath("$.message").value("Cannot submit quotation for RFQ in status: ACCEPTED"));
     }
 }

@@ -3,6 +3,7 @@ package com.synthora.rfq;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.product.Supplier;
 import com.synthora.product.SupplierRepository;
 import com.synthora.rfq.quotation.Quotation;
@@ -75,6 +76,7 @@ public class QuotationNegotiationTest {
         buyer.setEmail("buyer_" + suffix + "@test.com");
         buyer.setPasswordHash("hash");
         buyer.setRole(UserRole.USER);
+        buyer.setStatus(UserStatus.ACTIVE);
         buyer = userRepository.save(buyer);
 
         unauthorizedBuyer = new User();
@@ -82,6 +84,7 @@ public class QuotationNegotiationTest {
         unauthorizedBuyer.setEmail("unauth_" + suffix + "@test.com");
         unauthorizedBuyer.setPasswordHash("hash");
         unauthorizedBuyer.setRole(UserRole.USER);
+        unauthorizedBuyer.setStatus(UserStatus.ACTIVE);
         unauthorizedBuyer = userRepository.save(unauthorizedBuyer);
 
         supplierUser = new User();
@@ -89,6 +92,7 @@ public class QuotationNegotiationTest {
         supplierUser.setEmail("supplier_" + suffix + "@test.com");
         supplierUser.setPasswordHash("hash");
         supplierUser.setRole(UserRole.SUPPLIER);
+        supplierUser.setStatus(UserStatus.ACTIVE);
         supplierUser = userRepository.save(supplierUser);
 
         supplier = new Supplier();

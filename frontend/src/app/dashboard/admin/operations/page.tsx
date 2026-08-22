@@ -2,10 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { 
-  ShieldCheck, AlertTriangle, FileText, CheckCircle2, 
-  Search, ShieldAlert, ArrowUpRight, 
-  Clock
+import {
+  ShieldCheck,
+  AlertTriangle,
+  FileText,
+  CheckCircle2,
+  Search,
+  ShieldAlert,
+  ArrowRight,
+  Clock,
+  Layers,
+  Building2,
+  Package,
+  Users,
+  Sparkles,
 } from "lucide-react";
 
 interface Kpis {
@@ -63,11 +73,11 @@ export default function AdminOperationsDashboard() {
     async function fetchData() {
       try {
         const token = localStorage.getItem("token");
-        const headers = { Authorization: `Bearer ${token}` };
+        const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
 
         const [kpiRes, actRes] = await Promise.all([
-          fetch("http://127.0.0.1:8085/api/v1/admin/operations/kpis", { headers }),
-          fetch("http://127.0.0.1:8085/api/v1/admin/operations/action-center", { headers })
+          fetch("/api/v1/admin/operations/kpis", { headers }),
+          fetch("/api/v1/admin/operations/action-center", { headers }),
         ]);
 
         if (kpiRes.ok) setKpis(await kpiRes.json());
@@ -81,207 +91,217 @@ export default function AdminOperationsDashboard() {
     fetchData();
   }, []);
 
+  const pendingSuppliers = kpis?.suppliers.pendingVerification ?? 0;
+  const pendingOfferings = kpis?.offerings.pendingReview ?? 0;
+  const activeProducts = kpis?.catalog.activeMasterProducts ?? 0;
+  const verifiedSuppliers = kpis?.suppliers.verified ?? 0;
+
   return (
-    <div className="p-8 space-y-8 bg-slate-50 min-h-screen font-sans text-slate-900">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+    <div className="max-w-[1560px] mx-auto space-y-6">
+      {/* 1. Header & Live Operational Search */}
+      <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#0A192F] tracking-tight">
-            Admin Operations & Control Center
+          <span className="text-[11px] font-mono font-bold text-[#0052CC] bg-[#DEEBFF] px-2 py-0.5 rounded uppercase">
+            Admin Operations Console
+          </span>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#091E42] mt-1.5">
+            Platform Quality & Governance Desk
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
             Real-time platform metrics, catalog quality governance, and operational priority queues.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center gap-2.5">
           <Link
             href="/dashboard/admin/search"
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-2xs transition-colors"
+            className="w-full sm:w-auto h-11 px-4 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] rounded-xl text-xs sm:text-sm font-semibold text-[#091E42] flex items-center justify-center gap-2 shadow-2xs transition-colors"
           >
-            <Search className="w-4 h-4 text-slate-500" />
-            Unified Search
-          </Link>
-          <Link
-            href="/dashboard/admin/governance"
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-xs transition-colors"
-          >
-            <ShieldAlert className="w-4 h-4" />
-            Governance Queue
+            <Search className="w-4 h-4 text-[#0052CC]" />
+            <span>Global Search</span>
           </Link>
         </div>
       </div>
 
-      {loading ? (
-        <div className="p-12 text-center text-slate-400 font-semibold animate-pulse">
-          Loading operations control metrics...
-        </div>
-      ) : (
-        <>
-          {/* Action Center Banner */}
-          {actions.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-500" />
-                  Operational Action Center
-                </h2>
-                <span className="text-xs text-slate-500 font-mono font-bold">
-                  {actions.length} Action Items
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {actions.map((act) => (
-                  <Link
-                    key={act.id}
-                    href={act.targetUrl}
-                    className="p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl flex flex-col justify-between transition-colors group"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider bg-amber-100 text-amber-800">
-                          {act.priority}
-                        </span>
-                        <span className="text-xl font-extrabold text-slate-900 font-mono">
-                          {act.count}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                        {act.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                        {act.reason}
-                      </p>
-                    </div>
-                    <div className="mt-4 flex items-center gap-1 text-xs font-bold text-blue-600">
-                      <span>Review Items</span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* 2. Priority Operational Queues: ATTENTION REQUIRED */}
+      {(pendingSuppliers > 0 || pendingOfferings > 0 || actions.length > 0) && (
+        <div className="bg-[#FFFAE6] border border-[#FFE380] rounded-2xl p-4 sm:p-5 space-y-3 shadow-sm">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#974F0C]">
+            <AlertTriangle className="w-4 h-4 text-[#FF8B00]" />
+            <span>Attention Required — Operational Action Items</span>
+          </div>
 
-          {/* Real-time KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            {/* Catalog KPIs */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Master Catalog</span>
-                <FileText className="w-4 h-4 text-blue-600" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Active Products</span>
-                  <span className="font-bold text-slate-900 font-mono">{kpis?.catalog.activeMasterProducts}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Draft Products</span>
-                  <span className="font-bold text-slate-900 font-mono">{kpis?.catalog.draftMasterProducts}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Merged Records</span>
-                  <span className="font-bold text-slate-900 font-mono">{kpis?.catalog.mergedMasterProducts}</span>
-                </div>
-              </div>
-              <Link
-                href="/dashboard/admin/catalog/quality"
-                className="block text-center w-full py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
-              >
-                Inspect Quality Center →
-              </Link>
-            </div>
-
-            {/* Supplier KPIs */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Suppliers</span>
-                <ShieldCheck className="w-4 h-4 text-teal-600" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Verified Suppliers</span>
-                  <span className="font-bold text-teal-700 font-mono">{kpis?.suppliers.verified}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Pending Verification</span>
-                  <span className="font-bold text-amber-700 font-mono">{kpis?.suppliers.pendingVerification}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Under Review</span>
-                  <span className="font-bold text-blue-700 font-mono">{kpis?.suppliers.underReview}</span>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingSuppliers > 0 && (
               <Link
                 href="/dashboard/admin/suppliers/quality"
-                className="block text-center w-full py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
+                className="p-3.5 bg-white border border-[#FFE380] rounded-xl flex items-center justify-between shadow-2xs hover:border-[#FF8B00] transition-colors block group"
               >
-                Inspect Supplier Quality →
+                <div>
+                  <strong className="text-sm text-[#091E42] group-hover:text-[#0052CC] block">
+                    Supplier Verification
+                  </strong>
+                  <span className="text-xs text-[#974F0C]">
+                    {pendingSuppliers} pending KYC & document audits
+                  </span>
+                </div>
+                <span className="px-2 py-1 rounded-md bg-[#FFE380] text-[#974F0C] font-mono font-bold text-xs">
+                  {pendingSuppliers}
+                </span>
               </Link>
-            </div>
+            )}
 
-            {/* Offering KPIs */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Offerings</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Approved Offerings</span>
-                  <span className="font-bold text-emerald-700 font-mono">{kpis?.offerings.approved}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Pending Review</span>
-                  <span className="font-bold text-amber-700 font-mono">{kpis?.offerings.pendingReview}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Flagged Offerings</span>
-                  <span className="font-bold text-rose-700 font-mono">{kpis?.offerings.flagged}</span>
-                </div>
-              </div>
+            {pendingOfferings > 0 && (
               <Link
                 href="/dashboard/admin/catalog/offerings/quality"
-                className="block text-center w-full py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
+                className="p-3.5 bg-white border border-[#FFE380] rounded-xl flex items-center justify-between shadow-2xs hover:border-[#FF8B00] transition-colors block group"
               >
-                Inspect Offering Quality →
+                <div>
+                  <strong className="text-sm text-[#091E42] group-hover:text-[#0052CC] block">
+                    Offering Moderation
+                  </strong>
+                  <span className="text-xs text-[#974F0C]">
+                    {pendingOfferings} chemical offerings to approve
+                  </span>
+                </div>
+                <span className="px-2 py-1 rounded-md bg-[#FFE380] text-[#974F0C] font-mono font-bold text-xs">
+                  {pendingOfferings}
+                </span>
               </Link>
-            </div>
+            )}
 
-            {/* Product Request KPIs */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Product Requests</span>
-                <Clock className="w-4 h-4 text-purple-600" />
+            <Link
+              href="/dashboard/admin/catalog/audit"
+              className="p-3.5 bg-white border border-[#FFE380] rounded-xl flex items-center justify-between shadow-2xs hover:border-[#FF8B00] transition-colors block group"
+            >
+              <div>
+                <strong className="text-sm text-[#091E42] group-hover:text-[#0052CC] block">
+                  Catalog Integrity
+                </strong>
+                <span className="text-xs text-[#64748B]">Verify canonical synonyms & duplicates</span>
               </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Pending Requests</span>
-                  <span className="font-bold text-purple-700 font-mono">{kpis?.requests.pendingProductRequests}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Approved</span>
-                  <span className="font-bold text-emerald-700 font-mono">{kpis?.requests.recentlyApproved}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600 font-medium">Rejected</span>
-                  <span className="font-bold text-slate-500 font-mono">{kpis?.requests.recentlyRejected}</span>
-                </div>
-              </div>
-              <Link
-                href="/dashboard/admin/catalog/requests"
-                className="block text-center w-full py-2 bg-slate-50 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 transition-colors"
-              >
-                Inspect Requests →
-              </Link>
-            </div>
-
+              <ArrowRight className="w-4 h-4 text-[#64748B] group-hover:text-[#0052CC]" />
+            </Link>
           </div>
-        </>
+        </div>
       )}
 
+      {/* 3. Platform Core KPIs (2 cols on mobile -> 4 cols on desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Link
+          href="/dashboard/admin/catalog"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] hover:border-[#0052CC] transition-all shadow-sm block group"
+        >
+          <span className="text-xs font-bold uppercase tracking-wider text-[#64748B] block">
+            Master Chemicals
+          </span>
+          <div className="flex items-baseline justify-between mt-2">
+            <strong className="text-2xl sm:text-3xl font-extrabold font-mono text-[#091E42] group-hover:text-[#0052CC]">
+              {activeProducts}
+            </strong>
+            <span className="text-[11px] text-[#00875A] font-semibold">Active</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard/admin/suppliers"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] hover:border-[#0052CC] transition-all shadow-sm block group"
+        >
+          <span className="text-xs font-bold uppercase tracking-wider text-[#64748B] block">
+            Verified Suppliers
+          </span>
+          <div className="flex items-baseline justify-between mt-2">
+            <strong className="text-2xl sm:text-3xl font-extrabold font-mono text-[#091E42] group-hover:text-[#0052CC]">
+              {verifiedSuppliers}
+            </strong>
+            <span className="text-[11px] text-[#006644] font-semibold">Audited</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard/admin/transactions/rfqs"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] hover:border-[#0052CC] transition-all shadow-sm block group"
+        >
+          <span className="text-xs font-bold uppercase tracking-wider text-[#64748B] block">
+            Pending Offerings
+          </span>
+          <div className="flex items-baseline justify-between mt-2">
+            <strong className="text-2xl sm:text-3xl font-extrabold font-mono text-[#0747A6]">
+              {pendingOfferings}
+            </strong>
+            <span className="text-[11px] text-[#0052CC] font-semibold">Review</span>
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard/admin/users"
+          className="bg-white p-4 sm:p-5 rounded-2xl border border-[#E2E8F0] hover:border-[#0052CC] transition-all shadow-sm block group"
+        >
+          <span className="text-xs font-bold uppercase tracking-wider text-[#64748B] block">
+            Supplier Queue
+          </span>
+          <div className="flex items-baseline justify-between mt-2">
+            <strong className="text-2xl sm:text-3xl font-extrabold font-mono text-[#091E42] group-hover:text-[#0052CC]">
+              {pendingSuppliers}
+            </strong>
+            <span className="text-[11px] text-[#974F0C] font-semibold">KYC</span>
+          </div>
+        </Link>
+      </div>
+
+      {/* 4. Quick Governance Navigation Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Link
+          href="/dashboard/admin/catalog"
+          className="p-4 bg-white border border-[#E2E8F0] hover:border-[#0052CC] rounded-2xl transition-all text-left shadow-2xs group flex items-start gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-[#DEEBFF] text-[#0052CC] flex items-center justify-center shrink-0">
+            <Layers className="w-5 h-5" />
+          </div>
+          <div>
+            <strong className="text-sm font-bold text-[#091E42] group-hover:text-[#0052CC] block">
+              Master Catalog Governance
+            </strong>
+            <span className="text-xs text-[#64748B] mt-0.5 block">
+              Monographs, CAS validation, images & synonym merges
+            </span>
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard/admin/suppliers/quality"
+          className="p-4 bg-white border border-[#E2E8F0] hover:border-[#0052CC] rounded-2xl transition-all text-left shadow-2xs group flex items-start gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-[#E3FCEF] text-[#00875A] flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div>
+            <strong className="text-sm font-bold text-[#091E42] group-hover:text-[#0052CC] block">
+              Supplier Quality Audits
+            </strong>
+            <span className="text-xs text-[#64748B] mt-0.5 block">
+              GMP / ISO certifications, export licenses & verification
+            </span>
+          </div>
+        </Link>
+
+        <Link
+          href="/dashboard/admin/transactions/rfqs"
+          className="p-4 bg-white border border-[#E2E8F0] hover:border-[#0052CC] rounded-2xl transition-all text-left shadow-2xs group flex items-start gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#091E42] flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5" />
+          </div>
+          <div>
+            <strong className="text-sm font-bold text-[#091E42] group-hover:text-[#0052CC] block">
+              Transaction Oversight
+            </strong>
+            <span className="text-xs text-[#64748B] mt-0.5 block">
+              Commercial RFQs, quotation responses & purchase orders
+            </span>
+          </div>
+        </Link>
+      </div>
     </div>
   );
 }

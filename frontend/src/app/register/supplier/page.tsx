@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerSupplier, getAuthUser } from "@/features/auth/api/auth";
-import { Hexagon, ArrowRight, Shield, Award, Globe, Building2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Shield, Award, Globe, Building2, CheckCircle2 } from "lucide-react";
+import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
 function SupplierRegisterForm() {
   const router = useRouter();
@@ -20,7 +21,6 @@ function SupplierRegisterForm() {
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
   const [aboutCompany, setAboutCompany] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,9 +28,9 @@ function SupplierRegisterForm() {
     const user = getAuthUser();
     if (user) {
       if (user.role === "SUPPLIER") {
-        router.push("/dashboard/supplier");
+        router.replace("/dashboard/supplier");
       } else {
-        router.push("/dashboard");
+        router.replace("/dashboard/buyer");
       }
     }
   }, [router]);
@@ -49,13 +49,8 @@ function SupplierRegisterForm() {
       return;
     }
 
-    if (!companyName.trim()) {
-      setError("Company name is required.");
-      return;
-    }
-
-    if (!country.trim()) {
-      setError("Country is required.");
+    if (!companyName.trim() || !name.trim() || !email.trim()) {
+      setError("Please fill in all required fields.");
       return;
     }
 
@@ -63,23 +58,23 @@ function SupplierRegisterForm() {
 
     try {
       const response = await registerSupplier({
+        companyName: companyName.trim(),
         name: name.trim(),
         email: email.trim(),
         password,
-        companyName: companyName.trim(),
-        country: country.trim(),
-        countryCode: countryCode.trim() || undefined,
-        phone: phone.trim() || undefined,
-        city: city.trim() || undefined,
-        website: website.trim() || undefined,
-        aboutCompany: aboutCompany.trim() || undefined,
+        country,
+        countryCode,
+        city: city.trim() ? city.trim() : undefined,
+        phone: phone.trim() ? phone.trim() : undefined,
+        website: website.trim() ? website.trim() : undefined,
+        aboutCompany: aboutCompany.trim() ? aboutCompany.trim() : undefined,
       });
 
       // Save token and trigger reactive auth update
       localStorage.setItem("synthora_token", response.token);
       window.dispatchEvent(new Event("auth-changed"));
 
-      router.push("/dashboard/supplier");
+      router.push("/dashboard/supplier/onboarding");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Supplier registration failed. Please try again."
@@ -95,19 +90,12 @@ function SupplierRegisterForm() {
         
         {/* Top Header */}
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-3 focus:outline-none">
-            <div className="relative flex items-center justify-center w-8 h-8 text-[#0A192F]">
-              <Hexagon className="w-8 h-8 fill-current absolute" />
-              <Hexagon className="w-3.5 h-3.5 text-purple-400 absolute" strokeWidth={3} />
-            </div>
-            <span className="font-extrabold tracking-tight text-2xl text-slate-900">
-              Synthora
-            </span>
-          </Link>
-          <span className="block text-[11px] font-bold uppercase tracking-widest text-purple-600 font-mono">
-            SUPPLIER NETWORK ONBOARDING
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-2">
+          <SynthoraLogo
+            href="/"
+            size="xl"
+            subtitle="Supplier Network Onboarding"
+          />
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-3">
             Expand Your Global Chemical Sales
           </h1>
           <p className="mt-2 text-sm text-slate-600 max-w-xl mx-auto">

@@ -15,6 +15,8 @@ public interface RfqRepository extends JpaRepository<Rfq, UUID>, JpaSpecificatio
 
     Optional<Rfq> findByIdAndBuyerId(UUID id, UUID buyerId);
     List<Rfq> findBySupplierIdOrderByCreatedAtDesc(Long supplierId);
+    List<Rfq> findBySupplierId(Long supplierId);
+    List<Rfq> findBySupplierIdIn(List<Long> supplierIds);
     Optional<Rfq> findByIdAndSupplierId(UUID id, Long supplierId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

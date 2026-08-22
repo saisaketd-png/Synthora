@@ -3,6 +3,7 @@ package com.synthora.order;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import com.synthora.identity.UserStatus;
 import com.synthora.product.Product;
 import com.synthora.product.ProductCategory;
 import com.synthora.product.ProductRepository;
@@ -54,6 +55,9 @@ public class ShipmentDomainTest {
     @Autowired
     private ShipmentRepository shipmentRepository;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     private User buyer;
     private User supplierUser;
     private Supplier supplier;
@@ -62,19 +66,14 @@ public class ShipmentDomainTest {
 
     @BeforeEach
     public void setup() {
-        shipmentRepository.deleteAll();
-        purchaseOrderRepository.deleteAll();
-        quotationRepository.deleteAll();
-        rfqRepository.deleteAll();
-        productRepository.deleteAll();
-        supplierRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         buyer = new User();
         buyer.setEmail("buyer@synthora.com");
         buyer.setName("Buyer");
         buyer.setPasswordHash("hash123");
         buyer.setRole(UserRole.USER);
+        buyer.setStatus(UserStatus.ACTIVE);
         buyer = userRepository.save(buyer);
 
         supplierUser = new User();
@@ -82,6 +81,7 @@ public class ShipmentDomainTest {
         supplierUser.setName("Seller");
         supplierUser.setPasswordHash("hash123");
         supplierUser.setRole(UserRole.SUPPLIER);
+        supplierUser.setStatus(UserStatus.ACTIVE);
         supplierUser = userRepository.save(supplierUser);
 
         supplier = new Supplier();

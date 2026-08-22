@@ -75,6 +75,9 @@ public class PurchaseOrderShipmentDocumentSecurityTest {
     @Autowired
     private SellerProfileRepository sellerProfileRepository;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     private User buyer1;
     private User buyer2;
     private User supplier1User;
@@ -90,21 +93,14 @@ public class PurchaseOrderShipmentDocumentSecurityTest {
 
     @BeforeEach
     public void setup() {
-        documentRepository.deleteAll();
-        shipmentRepository.deleteAll();
-        purchaseOrderRepository.deleteAll();
-        quotationRepository.deleteAll();
-        rfqRepository.deleteAll();
-        supplierRepository.deleteAll();
-        productRepository.deleteAll();
-        sellerProfileRepository.deleteAll();
-        userRepository.deleteAll();
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         buyer1 = new User();
         buyer1.setEmail("buyer1@test.com");
         buyer1.setName("Buyer 1");
         buyer1.setPasswordHash("hash");
         buyer1.setRole(UserRole.USER);
+        buyer1.setStatus(com.synthora.identity.UserStatus.ACTIVE);
         buyer1 = userRepository.save(buyer1);
         buyer1Token = jwtService.generateToken(buyer1);
 
@@ -113,6 +109,7 @@ public class PurchaseOrderShipmentDocumentSecurityTest {
         buyer2.setName("Buyer 2");
         buyer2.setPasswordHash("hash");
         buyer2.setRole(UserRole.USER);
+        buyer2.setStatus(com.synthora.identity.UserStatus.ACTIVE);
         buyer2 = userRepository.save(buyer2);
         buyer2Token = jwtService.generateToken(buyer2);
 
@@ -121,6 +118,7 @@ public class PurchaseOrderShipmentDocumentSecurityTest {
         supplier1User.setName("Supp 1");
         supplier1User.setPasswordHash("hash");
         supplier1User.setRole(UserRole.SUPPLIER);
+        supplier1User.setStatus(com.synthora.identity.UserStatus.ACTIVE);
         supplier1User = userRepository.save(supplier1User);
         supplier1Token = jwtService.generateToken(supplier1User);
 
@@ -137,6 +135,7 @@ public class PurchaseOrderShipmentDocumentSecurityTest {
         supplier2User.setName("Supp 2");
         supplier2User.setPasswordHash("hash");
         supplier2User.setRole(UserRole.SUPPLIER);
+        supplier2User.setStatus(com.synthora.identity.UserStatus.ACTIVE);
         supplier2User = userRepository.save(supplier2User);
         supplier2Token = jwtService.generateToken(supplier2User);
 

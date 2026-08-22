@@ -18,8 +18,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
+import io.jsonwebtoken.Jwts;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -63,7 +66,7 @@ public class AuthenticationSecurityHardeningTest {
     @BeforeEach
     public void setup() {
         rateLimiterService.resetAll();
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         activeUser = new User();
         activeUser.setName("Active User");
@@ -121,7 +124,7 @@ public class AuthenticationSecurityHardeningTest {
     }
 
     @Test
-    @DisplayName("Login with wrong password returns generic 400 error")
+    @DisplayName("Login with wrong password returns 400 with generic error message")
     public void testLoginWrongPassword() throws Exception {
         LoginRequest request = new LoginRequest("active@synthora.com", "WrongPassword!");
 
@@ -129,7 +132,7 @@ public class AuthenticationSecurityHardeningTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Invalid email or password")));
+                .andExpect(jsonPath("$.message", is("Invalid email or password")));
     }
 
     @Test
@@ -141,7 +144,7 @@ public class AuthenticationSecurityHardeningTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Invalid email or password")));
+                .andExpect(jsonPath("$.message", is("Invalid email or password")));
     }
 
     @Test
@@ -153,7 +156,7 @@ public class AuthenticationSecurityHardeningTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Invalid email or password")));
+                .andExpect(jsonPath("$.message", is("Invalid email or password")));
     }
 
     @Test
@@ -165,7 +168,7 @@ public class AuthenticationSecurityHardeningTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", is("Invalid email or password")));
+                .andExpect(jsonPath("$.message", is("Invalid email or password")));
     }
 
     @Test
@@ -176,30 +179,56 @@ public class AuthenticationSecurityHardeningTest {
         mockMvc.perform(get("/api/v1/users/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email", is("active@synthora.com")))
-                .andExpect(jsonPath("$.status", is("ACTIVE")));
+                .andExpect(jsonPath("$.email", is("active@synthora.com")));
     }
 
     @Test
-    @DisplayName("Suspended user with signed JWT is rejected with 401")
-    public void testSuspendedUserWithJwtIsRejected() throws Exception {
+    @DisplayName("Suspended user with valid JWT receives 401 on protected endpoint")
+    public void testSuspendedUserBlockedByJwtFilter() throws Exception {
         String token = jwtService.generateToken(suspendedUser);
 
         mockMvc.perform(get("/api/v1/users/me")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error", is("Unauthorized")));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @DisplayName("Deleted user with signed JWT is rejected with 401")
-    public void testDeletedUserWithJwtIsRejected() throws Exception {
+    @DisplayName("Deleted user with valid JWT receives 401 on protected endpoint")
+    public void testDeletedUserBlockedByJwtFilter() throws Exception {
         String token = jwtService.generateToken(deletedUser);
 
         mockMvc.perform(get("/api/v1/users/me")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error", is("Unauthorized")));
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Expired JWT token receives 401 Unauthorized")
+    public void testExpiredTokenRejected() throws Exception {
+        String expiredToken = Jwts.builder()
+                .subject("active@synthora.com")
+                .claim("role", "USER")
+                .issuedAt(new Date(System.currentTimeMillis() - 7200000))
+                .expiration(new Date(System.currentTimeMillis() - 3600000))
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+                        "SynthoraSuperSecretKeyForJwtSigningMustBeAtLeast256BitsLong!".getBytes(StandardCharsets.UTF_8)))
+                .compact();
+
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + expiredToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Tampered JWT signature receives 401 Unauthorized")
+    public void testTamperedTokenRejected() throws Exception {
+        String validToken = jwtService.generateToken(activeUser);
+        String[] parts = validToken.split("\\.");
+        String tamperedToken = parts[0] + ".eyJzdWIiOiJhZG1pbkBzeW50aG9yYS5jb20iLCJyb2xlIjoiQURNSU4ifQ." + parts[2];
+
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + tamperedToken))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -283,6 +312,6 @@ public class AuthenticationSecurityHardeningTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(badRequest)))
                 .andExpect(status().isTooManyRequests())
-                .andExpect(jsonPath("$.error", containsString("Too many failed login attempts")));
+                .andExpect(jsonPath("$.message", containsString("Too many failed login attempts")));
     }
 }

@@ -1,7 +1,7 @@
 import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 import { ProductImage } from "../types/product";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export async function getProductImages(productId: string): Promise<ProductImage[]> {
   const res = await fetch(`${API_URL}/api/v1/products/${productId}/images`, {

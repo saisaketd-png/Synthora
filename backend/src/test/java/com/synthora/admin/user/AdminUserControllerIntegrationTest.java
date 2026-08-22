@@ -66,21 +66,7 @@ public class AdminUserControllerIntegrationTest {
 
     @BeforeEach
     public void setup() {
-        jdbcTemplate.execute("DELETE FROM audit_logs");
-        jdbcTemplate.execute("DELETE FROM notifications");
-        jdbcTemplate.execute(
-                "UPDATE rfqs SET accepted_quotation_id = NULL; " +
-                "DELETE FROM shipments; " +
-                "DELETE FROM purchase_orders; " +
-                "DELETE FROM quotations; " +
-                "DELETE FROM rfqs; " +
-                "DELETE FROM documents; " +
-                "DELETE FROM product_suppliers; " +
-                "DELETE FROM products; " +
-                "DELETE FROM seller_profiles; " +
-                "DELETE FROM suppliers; " +
-                "DELETE FROM users;"
-        );
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
 
         adminUser = new User();
         adminUser.setName("Admin One");
@@ -166,7 +152,7 @@ public class AdminUserControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Invalid email or password")));
+                .andExpect(jsonPath("$.message", containsString("Invalid email or password")));
 
         // 3. Reactivate buyer
         UpdateUserStatusRequest activateReq = new UpdateUserStatusRequest(UserStatus.ACTIVE, "Reinstated");
@@ -215,6 +201,6 @@ public class AdminUserControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginReq)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error", containsString("Invalid email or password")));
+                .andExpect(jsonPath("$.message", containsString("Invalid email or password")));
     }
 }

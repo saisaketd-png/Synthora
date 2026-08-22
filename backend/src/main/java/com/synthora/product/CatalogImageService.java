@@ -2,12 +2,14 @@ package com.synthora.product;
 
 import com.synthora.common.ResourceNotFoundException;
 import com.synthora.document.FileSecurityValidator;
+import com.synthora.document.storage.StorageService;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
 import com.synthora.product.dto.CatalogImageResponse;
+import com.synthora.product.dto.ImageContentResult;
 import com.synthora.seller.SupplierIdentityResolver;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -15,9 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,9 +33,7 @@ public class CatalogImageService {
     private final UserRepository userRepository;
     private final SupplierIdentityResolver supplierIdentityResolver;
     private final FileSecurityValidator fileSecurityValidator;
-
-    @Value("${file.upload-dir:uploads}")
-    private String uploadDir;
+    private final StorageService storageService;
 
     public CatalogImageService(
             MasterProductRepository masterProductRepository,
@@ -45,7 +42,8 @@ public class CatalogImageService {
             SupplierOfferingImageRepository supplierOfferingImageRepository,
             UserRepository userRepository,
             SupplierIdentityResolver supplierIdentityResolver,
-            FileSecurityValidator fileSecurityValidator) {
+            FileSecurityValidator fileSecurityValidator,
+            StorageService storageService) {
         this.masterProductRepository = masterProductRepository;
         this.supplierOfferingRepository = supplierOfferingRepository;
         this.masterProductImageRepository = masterProductImageRepository;
@@ -53,12 +51,13 @@ public class CatalogImageService {
         this.userRepository = userRepository;
         this.supplierIdentityResolver = supplierIdentityResolver;
         this.fileSecurityValidator = fileSecurityValidator;
+        this.storageService = storageService;
     }
 
     // --- MasterProduct Canonical Image Operations ---
 
     public CatalogImageResponse uploadMasterProductImage(UUID masterProductId, MultipartFile file, String altText, Authentication auth) {
-        User admin = resolveAdmin(auth);
+        resolveAdmin(auth);
         MasterProduct mp = masterProductRepository.findById(masterProductId)
                 .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + masterProductId));
 
@@ -70,13 +69,20 @@ public class CatalogImageService {
             throw new IllegalStateException("Maximum limit of 10 images reached for MasterProduct: " + masterProductId);
         }
 
-        String storagePath = saveFileToDisk("master-products/" + mp.getId(), file);
+        String cleanRawName = fileSecurityValidator.sanitizeFilename(file.getOriginalFilename());
+        String cleanFileName = UUID.randomUUID() + "_" + cleanRawName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        String storageKey = "master-products/" + mp.getId() + "/" + cleanFileName;
 
-        String cleanName = fileSecurityValidator.sanitizeFilename(file.getOriginalFilename());
+        try {
+            storageService.store(storageKey, file.getInputStream());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read image stream: " + e.getMessage(), e);
+        }
+
         MasterProductImage image = new MasterProductImage();
         image.setMasterProduct(mp);
-        image.setStoragePath(storagePath);
-        image.setFileName(cleanName);
+        image.setStoragePath(storageKey);
+        image.setFileName(cleanRawName);
         image.setContentType(file.getContentType());
         image.setFileSize(file.getSize());
         image.setAltText(altText != null ? altText.trim() : mp.getName() + " chemical structure");
@@ -132,12 +138,29 @@ public class CatalogImageService {
         image.setStatus("DEACTIVATED");
         image.setIsPrimary(false);
 
+        try {
+            storageService.delete(image.getStoragePath());
+        } catch (Exception ignored) {}
+
         if (wasPrimary) {
             List<MasterProductImage> remaining = masterProductImageRepository.findByMasterProductIdAndStatusOrderByDisplayOrderAsc(masterProductId, "ACTIVE");
             if (!remaining.isEmpty()) {
                 remaining.get(0).setIsPrimary(true);
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    public ImageContentResult getMasterProductImageContent(UUID masterProductId, UUID imageId) {
+        MasterProductImage image = masterProductImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("MasterProduct image not found: " + imageId));
+
+        if (!image.getMasterProduct().getId().equals(masterProductId)) {
+            throw new ResourceNotFoundException("Image does not belong to specified MasterProduct");
+        }
+
+        Resource resource = storageService.loadAsResource(image.getStoragePath());
+        return new ImageContentResult(resource, image.getContentType(), image.getFileName());
     }
 
     // --- SupplierOffering Commercial Image Operations ---
@@ -161,13 +184,20 @@ public class CatalogImageService {
             throw new IllegalStateException("Maximum limit of 10 images reached for SupplierOffering: " + offeringId);
         }
 
-        String storagePath = saveFileToDisk("offerings/" + offering.getId(), file);
+        String cleanRawName = fileSecurityValidator.sanitizeFilename(file.getOriginalFilename());
+        String cleanFileName = UUID.randomUUID() + "_" + cleanRawName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        String storageKey = "offerings/" + offering.getId() + "/" + cleanFileName;
 
-        String cleanName = fileSecurityValidator.sanitizeFilename(file.getOriginalFilename());
+        try {
+            storageService.store(storageKey, file.getInputStream());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read image stream: " + e.getMessage(), e);
+        }
+
         SupplierOfferingImage image = new SupplierOfferingImage();
         image.setSupplierOffering(offering);
-        image.setStoragePath(storagePath);
-        image.setFileName(cleanName);
+        image.setStoragePath(storageKey);
+        image.setFileName(cleanRawName);
         image.setContentType(file.getContentType());
         image.setFileSize(file.getSize());
         image.setAltText(altText != null ? altText.trim() : offering.getMasterProduct().getName() + " product sample");
@@ -188,6 +218,19 @@ public class CatalogImageService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ImageContentResult getOfferingImageContent(UUID offeringId, UUID imageId) {
+        SupplierOfferingImage image = supplierOfferingImageRepository.findById(imageId)
+                .orElseThrow(() -> new ResourceNotFoundException("SupplierOffering image not found: " + imageId));
+
+        if (!image.getSupplierOffering().getId().equals(offeringId)) {
+            throw new ResourceNotFoundException("Image does not belong to specified SupplierOffering");
+        }
+
+        Resource resource = storageService.loadAsResource(image.getStoragePath());
+        return new ImageContentResult(resource, image.getContentType(), image.getFileName());
     }
 
     public CatalogImageResponse setPrimaryOfferingImage(UUID offeringId, UUID imageId, Authentication auth) {
@@ -241,6 +284,10 @@ public class CatalogImageService {
         image.setStatus("DEACTIVATED");
         image.setIsPrimary(false);
 
+        try {
+            storageService.delete(image.getStoragePath());
+        } catch (Exception ignored) {}
+
         if (wasPrimary) {
             List<SupplierOfferingImage> remaining = supplierOfferingImageRepository.findBySupplierOfferingIdAndStatusOrderByDisplayOrderAsc(offeringId, "ACTIVE");
             if (!remaining.isEmpty()) {
@@ -282,24 +329,11 @@ public class CatalogImageService {
         return user;
     }
 
-    private String saveFileToDisk(String subDir, MultipartFile file) {
-        try {
-            String cleanRawName = fileSecurityValidator.sanitizeFilename(file.getOriginalFilename());
-            String cleanFileName = UUID.randomUUID().toString() + "_" + cleanRawName.replaceAll("[^a-zA-Z0-9._-]", "_");
-            Path folderPath = Paths.get(uploadDir, subDir);
-            Files.createDirectories(folderPath);
-            Path filePath = folderPath.resolve(cleanFileName);
-            file.transferTo(filePath.toFile());
-            return "/" + uploadDir + "/" + subDir + "/" + cleanFileName;
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save image file: " + e.getMessage(), e);
-        }
-    }
-
     private CatalogImageResponse toResponse(MasterProductImage img) {
+        String url = "/api/v1/master-products/" + img.getMasterProduct().getId() + "/images/" + img.getId() + "/content";
         return new CatalogImageResponse(
                 img.getId(),
-                img.getStoragePath(),
+                url,
                 img.getFileName(),
                 img.getContentType(),
                 img.getFileSize(),
@@ -312,9 +346,10 @@ public class CatalogImageService {
     }
 
     private CatalogImageResponse toResponse(SupplierOfferingImage img) {
+        String url = "/api/v1/supplier/offerings/" + img.getSupplierOffering().getId() + "/images/" + img.getId() + "/content";
         return new CatalogImageResponse(
                 img.getId(),
-                img.getStoragePath(),
+                url,
                 img.getFileName(),
                 img.getContentType(),
                 img.getFileSize(),

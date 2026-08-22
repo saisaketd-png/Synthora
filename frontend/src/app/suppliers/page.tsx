@@ -7,7 +7,8 @@ import { SupplierSearch } from "@/features/suppliers/components/SupplierSearch";
 import { SupplierFilters } from "@/features/suppliers/components/SupplierFilters";
 import { SupplierCard } from "@/features/suppliers/components/SupplierCard";
 import Link from "next/link";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Building2, ShieldCheck, RefreshCw } from "lucide-react";
+import { PageHeader, EmptyState, ErrorState } from "@/shared/components/ui/SynthoraUI";
 
 export const dynamic = "force-dynamic";
 
@@ -63,82 +64,88 @@ export default async function SuppliersPage(props: {
   const currentPage = queryParams.page || 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased">
+    <div className="min-h-screen flex flex-col bg-[#F7F9FC] font-sans text-[#0F172A] antialiased">
       <Navbar />
-      
-      <main className="flex-1 py-12">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+
+      <main className="flex-1 py-8 sm:py-12">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
-          <div className="mb-8">
-            <h1 className="font-serif text-3xl font-bold tracking-tight text-slate-900">
-              Supplier Directory
-            </h1>
-            <p className="text-slate-500 mt-2 max-w-2xl text-sm leading-relaxed">
-              Discover verified chemical manufacturers, request audits, and streamline your onboarding process.
-            </p>
-          </div>
+          <PageHeader
+            title="Supplier Directory"
+            description="Discover verified chemical manufacturers, primary synthetic labs, and audited distributors for institutional procurement."
+            badge={
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#EFF4FF] text-[#155EEF] border border-[#D1E0FF]">
+                <ShieldCheck className="w-3.5 h-3.5" /> Verified Supplier Network
+              </span>
+            }
+          />
 
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters */}
+            {/* Filters Sidebar */}
             <div className="w-full lg:w-1/4 max-w-sm shrink-0">
               <SupplierFilters />
             </div>
 
-            {/* Main Content */}
-            <div className="w-full lg:w-3/4 flex-1 min-w-0">
+            {/* Main Content Area */}
+            <div className="w-full lg:w-3/4 flex-1 min-w-0 space-y-6">
               <SupplierSearch />
-              
+
               {error ? (
-                <div className="p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-800 text-sm font-medium">
-                  {error}
-                </div>
+                <ErrorState
+                  title="Unable to load supplier directory"
+                  message={error}
+                />
               ) : (
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between text-sm text-slate-500 mb-4">
-                    <span>Showing {suppliers.length} of {totalElements} suppliers</span>
+                  <div className="flex items-center justify-between text-xs font-semibold text-[#64748B]">
+                    <span>Showing {suppliers.length} of {totalElements} registered suppliers</span>
                   </div>
 
                   {suppliers.length === 0 ? (
-                    <div className="p-12 text-center bg-white border border-slate-200 rounded-xl">
-                      <h3 className="text-lg font-bold text-slate-900 mb-2">No suppliers found</h3>
-                      <p className="text-slate-500 text-sm">
-                        Try adjusting your search or filters to find what you're looking for.
-                      </p>
-                      <Link 
-                        href="/suppliers" 
-                        className="inline-block mt-4 text-sm font-bold text-teal-600 hover:text-teal-700"
-                      >
-                        Clear all filters
-                      </Link>
-                    </div>
+                    <EmptyState
+                      icon={<Building2 className="w-6 h-6 text-[#94A3B8]" />}
+                      title="No suppliers found"
+                      description="Try adjusting your search query, country, or verification filter to discover suppliers."
+                      action={
+                        <Link
+                          href="/suppliers"
+                          className="px-4 py-2 text-xs font-bold text-white bg-[#155EEF] hover:bg-[#104EC6] rounded-xl transition-colors shadow-2xs"
+                        >
+                          Clear All Filters
+                        </Link>
+                      }
+                    />
                   ) : (
                     <div className="space-y-4">
-                      {suppliers.map(supplier => (
+                      {suppliers.map((supplier) => (
                         <SupplierCard key={supplier.id} supplier={supplier} />
                       ))}
                     </div>
                   )}
 
                   {totalPages > 1 && (
-                    <div className="flex justify-center pt-8">
+                    <div className="flex justify-center pt-6">
                       <div className="flex items-center gap-2">
                         {currentPage > 0 ? (
                           <Link
                             href={{
                               pathname: "/suppliers",
-                              query: { ...searchParams, page: currentPage - 1 }
+                              query: { ...searchParams, page: currentPage - 1 },
                             }}
-                            className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"
+                            className="p-2 bg-white border border-[#E2E8F0] rounded-xl hover:bg-[#F8FAFC] text-[#0F172A] transition-colors shadow-2xs"
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </Link>
                         ) : (
-                          <button disabled className="p-2 border border-slate-100 text-slate-300 rounded-lg cursor-not-allowed">
+                          <button
+                            disabled
+                            className="p-2 bg-white border border-[#E2E8F0] text-[#CBD5E1] rounded-xl cursor-not-allowed"
+                          >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
                         )}
-                        
-                        <span className="text-sm font-medium text-slate-600 px-4">
+
+                        <span className="text-xs font-bold text-[#475569] px-4">
                           Page {currentPage + 1} of {totalPages}
                         </span>
 
@@ -146,14 +153,17 @@ export default async function SuppliersPage(props: {
                           <Link
                             href={{
                               pathname: "/suppliers",
-                              query: { ...searchParams, page: currentPage + 1 }
+                              query: { ...searchParams, page: currentPage + 1 },
                             }}
-                            className="p-2 border border-slate-200 rounded-lg hover:bg-slate-50"
+                            className="p-2 bg-white border border-[#E2E8F0] rounded-xl hover:bg-[#F8FAFC] text-[#0F172A] transition-colors shadow-2xs"
                           >
                             <ChevronRight className="w-4 h-4" />
                           </Link>
                         ) : (
-                          <button disabled className="p-2 border border-slate-100 text-slate-300 rounded-lg cursor-not-allowed">
+                          <button
+                            disabled
+                            className="p-2 bg-white border border-[#E2E8F0] text-[#CBD5E1] rounded-xl cursor-not-allowed"
+                          >
                             <ChevronRight className="w-4 h-4" />
                           </button>
                         )}
@@ -164,7 +174,7 @@ export default async function SuppliersPage(props: {
               )}
             </div>
           </div>
-          
+
         </div>
       </main>
 

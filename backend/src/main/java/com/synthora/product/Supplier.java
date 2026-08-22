@@ -47,6 +47,18 @@ public class Supplier {
     @Column(name = "business_phone")
     private String businessPhone;
 
+    @Column(name = "authorized_representative_name")
+    private String authorizedRepresentativeName;
+
+    @Column(name = "authorized_representative_designation")
+    private String authorizedRepresentativeDesignation;
+
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false;
+
+    @Column(name = "phone_verified")
+    private Boolean phoneVerified = false;
+
     private String website;
 
     @Column(name = "tax_vat_number")
@@ -79,6 +91,12 @@ public class Supplier {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    @Column(name = "logo_storage_path")
+    private String logoStoragePath;
+
+    @Column(name = "logo_content_type")
+    private String logoContentType;
+
     private Boolean verified;
 
     @Column(name = "years_in_business")
@@ -95,7 +113,7 @@ public class Supplier {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "verification_status")
-    private SupplierVerificationStatus verificationStatus = SupplierVerificationStatus.PENDING;
+    private SupplierVerificationStatus verificationStatus = SupplierVerificationStatus.DRAFT;
 
     @Column(name = "verification_notes", columnDefinition = "TEXT")
     private String verificationNotes;
@@ -136,6 +154,14 @@ public class Supplier {
     public void setBusinessEmail(String businessEmail) { this.businessEmail = businessEmail; }
     public String getBusinessPhone() { return businessPhone; }
     public void setBusinessPhone(String businessPhone) { this.businessPhone = businessPhone; }
+    public String getAuthorizedRepresentativeName() { return authorizedRepresentativeName; }
+    public void setAuthorizedRepresentativeName(String authorizedRepresentativeName) { this.authorizedRepresentativeName = authorizedRepresentativeName; }
+    public String getAuthorizedRepresentativeDesignation() { return authorizedRepresentativeDesignation; }
+    public void setAuthorizedRepresentativeDesignation(String authorizedRepresentativeDesignation) { this.authorizedRepresentativeDesignation = authorizedRepresentativeDesignation; }
+    public Boolean getEmailVerified() { return emailVerified != null && emailVerified; }
+    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
+    public Boolean getPhoneVerified() { return phoneVerified != null && phoneVerified; }
+    public void setPhoneVerified(Boolean phoneVerified) { this.phoneVerified = phoneVerified; }
     public String getWebsite() { return website; }
     public void setWebsite(String website) { this.website = website; }
     public String getTaxVatNumber() { return taxVatNumber; }
@@ -159,6 +185,10 @@ public class Supplier {
     public void setCountryName(String countryName) { this.countryName = countryName; }
     public String getLogoUrl() { return logoUrl; }
     public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
+    public String getLogoStoragePath() { return logoStoragePath; }
+    public void setLogoStoragePath(String logoStoragePath) { this.logoStoragePath = logoStoragePath; }
+    public String getLogoContentType() { return logoContentType; }
+    public void setLogoContentType(String logoContentType) { this.logoContentType = logoContentType; }
     public Boolean getVerified() { return verified; }
     public void setVerified(Boolean verified) { this.verified = verified; }
     public Integer getYearsInBusiness() { return yearsInBusiness; }

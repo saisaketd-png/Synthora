@@ -1,26 +1,29 @@
-import { SupplierSummary } from "../types/product";
+import { resolveApiUrl } from "@/lib/apiUrl";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8085";
-
-export async function getSuppliers(): Promise<SupplierSummary[]> {
+export async function getSuppliers(): Promise<string[]> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/suppliers`, {
+    const response = await fetch(resolveApiUrl("/api/v1/suppliers"), {
       cache: "no-store",
     });
 
     if (!response.ok) {
       if (process.env.NODE_ENV !== "production" && response.status !== 404) {
-        console.warn(`API error fetching suppliers: ${response.status}`);
+        console.warn(`API error fetching suppliers list: ${response.status}`);
       }
       return [];
     }
 
-    // Assuming it returns an array or paginated object, handle it gracefully:
     const data = await response.json();
-    return Array.isArray(data) ? data : (data.content || []);
+    if (Array.isArray(data)) {
+      return data.map((s: any) => s.name || s.companyName).filter(Boolean);
+    }
+    if (data.content && Array.isArray(data.content)) {
+      return data.content.map((s: any) => s.name || s.companyName).filter(Boolean);
+    }
+    return [];
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
-      console.error("Network error fetching suppliers:", error);
+      console.error("Network error fetching suppliers list:", error);
     }
     return [];
   }

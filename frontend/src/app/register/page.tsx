@@ -4,7 +4,8 @@ import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { registerBuyer, login, getAuthUser } from "@/features/auth/api/auth";
-import { Hexagon, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
 function RegisterForm() {
   const router = useRouter();
@@ -22,59 +23,41 @@ function RegisterForm() {
   useEffect(() => {
     const user = getAuthUser();
     if (user) {
-      if (redirectParam && redirectParam.startsWith("/")) {
-        router.push(redirectParam);
-      } else if (user.role === "SUPPLIER") {
-        router.push("/dashboard/supplier");
-      } else {
-        router.push("/dashboard");
-      }
+      router.replace("/dashboard/buyer");
     }
-  }, [router, redirectParam]);
+  }, [router]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
     setError(null);
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
-      return;
-    }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
-    setLoading(true);
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
 
     try {
-      // 1. Register Buyer Account
-      await registerBuyer({
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim() ? phone.trim() : undefined,
-        password,
-      });
-
-      // 2. Auto-authenticate session
-      const loginRes = await login({
-        email: email.trim(),
-        password,
-      });
-
+      setLoading(true);
+      await registerBuyer({ name, email, phone, password });
+      const loginRes = await login({ email, password });
       localStorage.setItem("synthora_token", loginRes.token);
-      window.dispatchEvent(new Event("auth-changed"));
 
       if (redirectParam && redirectParam.startsWith("/")) {
         router.push(redirectParam);
       } else {
-        router.push("/dashboard");
+        router.push("/dashboard/buyer");
       }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Registration failed. Please try again."
-      );
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Registration failed. Please check your inputs.");
+      }
     } finally {
       setLoading(false);
     }
@@ -86,18 +69,11 @@ function RegisterForm() {
         
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-3 focus:outline-none">
-            <div className="relative flex items-center justify-center w-8 h-8 text-[#0A192F]">
-              <Hexagon className="w-8 h-8 fill-current absolute" />
-              <Hexagon className="w-3.5 h-3.5 text-teal-400 absolute" strokeWidth={3} />
-            </div>
-            <span className="font-extrabold tracking-tight text-2xl text-slate-900">
-              Synthora
-            </span>
-          </Link>
-          <span className="block text-[11px] font-bold uppercase tracking-widest text-teal-600 font-mono">
-            BUYER PROCUREMENT PORTAL
-          </span>
+          <SynthoraLogo
+            href="/"
+            size="xl"
+            subtitle="Buyer Procurement Portal"
+          />
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 md:p-10">

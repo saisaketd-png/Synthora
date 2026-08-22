@@ -29,7 +29,7 @@ export default function SupplierQualityPage() {
     async function fetchQuality() {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://127.0.0.1:8085/api/v1/admin/operations/suppliers/quality", {
+        const res = await fetch("/api/v1/admin/operations/suppliers/quality", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -110,8 +110,8 @@ export default function SupplierQualityPage() {
                     </td>
                     <td className="py-4 px-6 text-right">
                       <Link
-                        href={`/dashboard/admin/catalog/verification/${item.supplierId}`}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                        href={`/dashboard/admin/suppliers/verification/${item.supplierId}`}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors"
                       >
                         Inspect Verification <ChevronRight className="w-3.5 h-3.5" />
                       </Link>

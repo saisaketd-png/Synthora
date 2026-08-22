@@ -1,10 +1,10 @@
 export type ProductCategory =
   | "API"
   | "INTERMEDIATE"
+  | "EXCIPIENT"
   | "SOLVENT"
   | "SPECIALTY_CHEMICAL"
-  | "FINE_CHEMICAL"
-  | "AGROCHEMICAL"
+  | "LAB_CHEMICAL"
   | string;
 
 export interface SupplierSummary {
@@ -40,6 +40,8 @@ export interface Product {
   price: number;
   stock: number;
   category: ProductCategory;
+  status?: string;
+  offeringCount?: number;
   createdAt: string;
   updatedAt: string;
   
@@ -88,8 +90,13 @@ export interface ProductQueryParams {
   verified?: boolean;
   purityMin?: string;
   purityMax?: string;
+  grade?: string;
+  currency?: string;
+  maxPrice?: string;
   moqMin?: string;
   moqMax?: string;
+  maxLeadTime?: string;
+  minStock?: string;
   inStock?: boolean;
   coa?: boolean;
   msds?: boolean;

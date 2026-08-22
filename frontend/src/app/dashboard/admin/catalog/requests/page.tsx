@@ -15,6 +15,7 @@ import {
 } from "@/features/admin/api/adminCatalogApi";
 import { ProductRequestReviewModal } from "@/features/admin/components/ProductRequestReviewModal";
 import { RequestInfoModal } from "@/features/admin/components/RequestInfoModal";
+import { useToast } from "@/shared/context/ToastContext";
 
 export default function ProductRequestsQueuePage() {
   const [status, setStatus] = useState("PENDING_REVIEW");
@@ -39,6 +40,8 @@ export default function ProductRequestsQueuePage() {
     }
   }, [status]);
 
+  const toast = useToast();
+
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
@@ -47,10 +50,11 @@ export default function ProductRequestsQueuePage() {
     try {
       setActionLoading(true);
       await approveProductRequest(id, payload);
+      toast.success("Product request approved and converted to Master Chemical");
       setSelectedRequest(null);
       await fetchRequests();
     } catch (e: any) {
-      alert("Failed to approve request: " + e.message);
+      toast.error("Failed to approve request: " + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -60,10 +64,11 @@ export default function ProductRequestsQueuePage() {
     try {
       setActionLoading(true);
       await approveAndLinkProductRequest(id, payload);
+      toast.success("Product request linked to existing Master Chemical");
       setSelectedRequest(null);
       await fetchRequests();
     } catch (e: any) {
-      alert("Failed to link request: " + e.message);
+      toast.error("Failed to link request: " + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -73,11 +78,12 @@ export default function ProductRequestsQueuePage() {
     try {
       setActionLoading(true);
       await requestProductInfo(id, { adminNotes: notes });
+      toast.success("Clarification request sent to supplier");
       setRequestInfoTarget(null);
       setSelectedRequest(null);
       await fetchRequests();
     } catch (e: any) {
-      alert("Failed to request info: " + e.message);
+      toast.error("Failed to request info: " + e.message);
     } finally {
       setActionLoading(false);
     }
@@ -87,10 +93,11 @@ export default function ProductRequestsQueuePage() {
     try {
       setActionLoading(true);
       await rejectProductRequest(id, reason);
+      toast.success("Product request rejected");
       setSelectedRequest(null);
       await fetchRequests();
     } catch (e: any) {
-      alert("Failed to reject request: " + e.message);
+      toast.error("Failed to reject request: " + e.message);
     } finally {
       setActionLoading(false);
     }
