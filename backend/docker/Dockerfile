@@ -1,9 +1,36 @@
-FROM eclipse-temurin:21-jdk
+# Multi-stage Dockerfile for Synthora Spring Boot Backend (Render & Production)
+
+# Stage 1: Build stage
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-COPY target/synthora-backend-1.0.0-SNAPSHOT.jar app.jar
+# Copy Maven descriptor and source code from repository root context
+COPY backend/pom.xml ./pom.xml
+COPY backend/src ./src
+
+# Build production executable JAR (skipping test execution)
+RUN mvn clean package -DskipTests
+
+# Stage 2: Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Create non-root application user
+RUN addgroup -S synthora && \
+    adduser -S synthora -G synthora
+
+# Create application storage directory and assign ownership
+RUN mkdir -p /app/storage && \
+    chown -R synthora:synthora /app
+
+# Copy generated executable JAR from build stage
+COPY --from=build /app/target/synthora-backend-*.jar app.jar
+
+# Run application as non-root user
+USER synthora:synthora
 
 EXPOSE 8085
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
