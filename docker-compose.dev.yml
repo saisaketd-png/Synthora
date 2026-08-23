@@ -1,0 +1,14 @@
+# ==============================================================================
+# SYNTHORA B2B MARKETPLACE - LOCAL DEVELOPMENT DOCKER OVERRIDE
+# ==============================================================================
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres
+#
+# Exposes PostgreSQL to the host on port 5435 so local 'mvn spring-boot:run'
+# (using the 'dev' Spring profile) can connect directly to the container database.
+# ==============================================================================
+
+services:
+  postgres:
+    ports:
+      - "5435:5432"
