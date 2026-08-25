@@ -33,8 +33,8 @@ USER synthora:synthora
 
 EXPOSE 8085
 
-# Conservative heap configuration for container environments (e.g. Render 512MB RAM)
-# Leaves ~128MB native headroom for metaspace, thread stacks, and OS overhead
-ENV JAVA_TOOL_OPTIONS="-Xms128m -Xmx384m -XX:+ExitOnOutOfMemoryError"
+# Conservative heap configuration for container environments (e.g. Render Free 512MB RAM)
+# Allocates 256MB max heap leaving ~256MB native headroom for metaspace, thread stacks, and OS overhead
+ENV JAVA_TOOL_OPTIONS="-Xms96m -Xmx256m -XX:+ExitOnOutOfMemoryError"
 
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
