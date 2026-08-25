@@ -161,9 +161,12 @@ export function handleUnauthorized(redirectUrl?: string): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem("synthora_token");
     window.dispatchEvent(new Event("auth-changed"));
-    const target = redirectUrl
-      ? `/login?expired=true&redirect=${encodeURIComponent(redirectUrl)}`
-      : `/login?expired=true`;
-    window.location.href = target;
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith("/dashboard")) {
+      const target = redirectUrl
+        ? `/login?expired=true&redirect=${encodeURIComponent(redirectUrl)}`
+        : `/login?expired=true`;
+      window.location.href = target;
+    }
   }
 }

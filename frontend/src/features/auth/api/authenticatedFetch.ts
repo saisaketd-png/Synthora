@@ -8,9 +8,11 @@ function handleSessionExpired() {
   localStorage.removeItem("synthora_token");
   window.dispatchEvent(new Event("auth-changed"));
 
-  if (!isRedirectingToLogin && !window.location.pathname.startsWith("/login")) {
+  const currentPath = window.location.pathname;
+  const isProtectedPath = currentPath.startsWith("/dashboard");
+
+  if (isProtectedPath && !isRedirectingToLogin) {
     isRedirectingToLogin = true;
-    const currentPath = window.location.pathname;
     const redirectUrl = `/login?session_expired=true&redirect=${encodeURIComponent(currentPath)}`;
     window.location.href = redirectUrl;
     setTimeout(() => {
