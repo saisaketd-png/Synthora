@@ -35,6 +35,7 @@ services:
 
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms128m -Xmx384m -XX:+ExitOnOutOfMemoryError}
 
       DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-synthora}}
       DB_USER: ${DB_USER:-${POSTGRES_USER:-synthora_admin}}
