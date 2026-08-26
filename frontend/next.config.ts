@@ -6,6 +6,10 @@ const backendUrl =
   process.env.NEXT_PUBLIC_API_URL ||
   "http://127.0.0.1:8085";
 
+console.log(
+  "Synthora frontend backend URL:",
+  backendUrl
+);
 const nextConfig: NextConfig = {
   output: "standalone",
   compress: true,
