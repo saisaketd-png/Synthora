@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-The Notification domain manages communication between the Synthora platform and its users.
+The Notification domain manages communication between the KemKendra platform and its users.
 
 Notifications inform users about important business events and system activities.
 

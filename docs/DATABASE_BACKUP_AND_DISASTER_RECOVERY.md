@@ -1,10 +1,10 @@
-# Synthora B2B Marketplace — Database Backup & Disaster Recovery Guide
+# KemKendra B2B Marketplace — Database Backup & Disaster Recovery Guide
 
 ---
 
 ## 1. Database Architecture Overview
 
-Synthora utilizes **PostgreSQL 15+** managed with **Flyway** database migrations and **Spring Data JPA / Hibernate**.
+KemKendra utilizes **PostgreSQL 15+** managed with **Flyway** database migrations and **Spring Data JPA / Hibernate**.
 
 ### Key Architectural Characteristics
 - **Linear Migration History**: 41 sequential migrations (`V1_001` through `V40`).
@@ -21,11 +21,11 @@ Synthora utilizes **PostgreSQL 15+** managed with **Flyway** database migrations
 
 ## 2. Storage Separation Architecture: Relational vs. Binary Data
 
-Synthora's production data is divided into two distinct storage layers:
+KemKendra's production data is divided into two distinct storage layers:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        SYNTHORA DATA LAYERS                            │
+│                        KEMKENDRA DATA LAYERS                            │
 ├───────────────────────────────────┬────────────────────────────────────┤
 │ 1. Relational Database (Postgres) │ 2. Document Binary Storage (Disk)  │
 ├───────────────────────────────────┼────────────────────────────────────┤
@@ -60,14 +60,14 @@ Synthora's production data is divided into two distinct storage layers:
 
 ## 4. Manual `pg_dump` Backup Procedures
 
-Automated scripts are located in [`scripts/backup/`](file:///d:/Saisaket/Synthora/scripts/backup/):
-- Bash (Linux/macOS): [`scripts/backup/db-backup.sh`](file:///d:/Saisaket/Synthora/scripts/backup/db-backup.sh)
-- PowerShell (Windows): [`scripts/backup/db-backup.ps1`](file:///d:/Saisaket/Synthora/scripts/backup/db-backup.ps1)
+Automated scripts are located in [`scripts/backup/`](file:///d:/Saisaket/KemKendra/scripts/backup/):
+- Bash (Linux/macOS): [`scripts/backup/db-backup.sh`](file:///d:/Saisaket/KemKendra/scripts/backup/db-backup.sh)
+- PowerShell (Windows): [`scripts/backup/db-backup.ps1`](file:///d:/Saisaket/KemKendra/scripts/backup/db-backup.ps1)
 
 ### Execution (Bash / Linux / Render CLI)
 ```bash
 # 1. Export database connection URL
-export DB_URL="postgresql://synthora_admin:<PASSWORD>@<HOST>:5432/synthora?sslmode=require"
+export DB_URL="postgresql://kemkendra_admin:<PASSWORD>@<HOST>:5432/kemkendra?sslmode=require"
 
 # 2. Run backup script
 ./scripts/backup/db-backup.sh database/backups
@@ -75,13 +75,13 @@ export DB_URL="postgresql://synthora_admin:<PASSWORD>@<HOST>:5432/synthora?sslmo
 
 ### Execution (PowerShell / Windows)
 ```powershell
-$env:DB_URL = "postgresql://synthora_admin:<PASSWORD>@<HOST>:5432/synthora?sslmode=require"
+$env:DB_URL = "postgresql://kemkendra_admin:<PASSWORD>@<HOST>:5432/kemkendra?sslmode=require"
 .\scripts\backup\db-backup.ps1 -OutputDir "database\backups"
 ```
 
 ### Manual Command Equivalent
 ```bash
-pg_dump -Fc --no-owner --no-acl -d "$DB_URL" -f "synthora_backup_$(date +%Y%m%d_%H%M%S).dump"
+pg_dump -Fc --no-owner --no-acl -d "$DB_URL" -f "kemkendra_backup_$(date +%Y%m%d_%H%M%S).dump"
 ```
 - `-Fc`: Custom compressed binary format preserving metadata, constraints, and dependencies.
 - `--no-owner --no-acl`: Ensures seamless portability across different database roles and hosting providers.
@@ -97,7 +97,7 @@ Before applying new Flyway migrations or deploying backend updates:
    ```
 2. **Verify Backup Integrity**:
    ```bash
-   pg_restore --list pre_deploy_backups/synthora_backup_*.dump | head -n 25
+   pg_restore --list pre_deploy_backups/kemkendra_backup_*.dump | head -n 25
    ```
 3. **Proceed with Deployment**: If a migration fails during deployment, restore immediately from the pre-deployment dump.
 
@@ -105,18 +105,18 @@ Before applying new Flyway migrations or deploying backend updates:
 
 ## 6. Complete Database Restore Procedure
 
-Restore scripts are provided in [`scripts/backup/`](file:///d:/Saisaket/Synthora/scripts/backup/):
-- Bash: [`scripts/backup/db-restore.sh`](file:///d:/Saisaket/Synthora/scripts/backup/db-restore.sh)
-- PowerShell: [`scripts/backup/db-restore.ps1`](file:///d:/Saisaket/Synthora/scripts/backup/db-restore.ps1)
+Restore scripts are provided in [`scripts/backup/`](file:///d:/Saisaket/KemKendra/scripts/backup/):
+- Bash: [`scripts/backup/db-restore.sh`](file:///d:/Saisaket/KemKendra/scripts/backup/db-restore.sh)
+- PowerShell: [`scripts/backup/db-restore.ps1`](file:///d:/Saisaket/KemKendra/scripts/backup/db-restore.ps1)
 
 ### Step-by-Step Restoration
 1. **Set Target Database URL**:
    ```bash
-   export DB_URL="postgresql://synthora_admin:<PASSWORD>@<TARGET_HOST>:5432/synthora?sslmode=require"
+   export DB_URL="postgresql://kemkendra_admin:<PASSWORD>@<TARGET_HOST>:5432/kemkendra?sslmode=require"
    ```
 2. **Execute Restore**:
    ```bash
-   ./scripts/backup/db-restore.sh database/backups/synthora_backup_20260829_220000.dump --confirm
+   ./scripts/backup/db-restore.sh database/backups/kemkendra_backup_20260829_220000.dump --confirm
    ```
 3. **Start Spring Boot Backend**:
    - Flyway scans `flyway_schema_history`.

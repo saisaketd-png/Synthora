@@ -1,10 +1,10 @@
-# Synthora API Rate Limiting & Abuse Protection
+# KemKendra API Rate Limiting & Abuse Protection
 
 ---
 
 ## 1. Overview & Architecture
 
-Synthora implements multi-tiered, in-memory sliding window rate limiting and abuse defense across all HTTP API surfaces. The primary defense goals are:
+KemKendra implements multi-tiered, in-memory sliding window rate limiting and abuse defense across all HTTP API surfaces. The primary defense goals are:
 - Defending against credential stuffing and brute-force login attempts.
 - Preventing automated registration flooding and bot account creation.
 - Preventing account enumeration and email spam via password reset and verification endpoints.
@@ -35,7 +35,7 @@ When a client exceeds the permitted request threshold for a given category:
 1. The filter halts execution and does not dispatch the request to backend controllers.
 2. An HTTP `429 Too Many Requests` status is returned.
 3. A `Retry-After: <seconds>` HTTP response header is attached, advising the client when requests can resume.
-4. A structured JSON error body is emitted matching Synthora's standard error schema:
+4. A structured JSON error body is emitted matching KemKendra's standard error schema:
 
 ```json
 {
@@ -54,7 +54,7 @@ For requests within the permitted threshold:
 
 ## 4. Client Identity Resolution & Proxy Handling
 
-Client IP addresses are extracted in [`RateLimitingFilter.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/ratelimit/RateLimitingFilter.java) via:
+Client IP addresses are extracted in [`RateLimitingFilter.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/ratelimit/RateLimitingFilter.java) via:
 1. `X-Forwarded-For` header: The first entry in the comma-separated proxy chain represents the client source IP.
 2. `X-Real-IP` header: Fallback reverse proxy source IP header.
 3. `request.getRemoteAddr()`: Direct TCP connection remote IP.
@@ -76,7 +76,7 @@ Rate limiting keys are formed as `<CATEGORY>:<CLIENT_IP>` (e.g. `LOGIN:203.0.113
 All rate limiting thresholds are configurable through environment variables:
 
 ```yaml
-synthora:
+kemkendra:
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     login:
@@ -100,7 +100,7 @@ synthora:
 
 ## 7. Future Distributed Scaling with Redis
 
-When Synthora scales horizontally across multiple backend container instances:
+When KemKendra scales horizontally across multiple backend container instances:
 1. `RateLimiterStorage` interface is preserved without any controller or filter modifications.
 2. A new `RedisRateLimiterStorage` component implementing `RateLimiterStorage` will use Redis sliding window sorted sets (`ZADD` / `ZREMRANGEBYSCORE` / `ZCARD`) or atomic Redis token buckets.
-3. Storage implementation can be switched conditionally via `@ConditionalOnProperty(name = "synthora.rate-limit.storage", havingValue = "redis")`.
+3. Storage implementation can be switched conditionally via `@ConditionalOnProperty(name = "kemkendra.rate-limit.storage", havingValue = "redis")`.

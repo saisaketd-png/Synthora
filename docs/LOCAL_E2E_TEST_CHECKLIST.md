@@ -1,4 +1,4 @@
-# Synthora Local Production End-to-End Test Checklist
+# KemKendra Local Production End-to-End Test Checklist
 
 ---
 
@@ -21,7 +21,7 @@
 - [x] **Resend Cooldown**: 60-second cooldown prevents token email flooding.
 - [x] **Login & JWT Issuance**: Authenticated users receive signed HMAC-SHA256 JWTs.
 - [x] **Server-Authoritative Roles**: Authorities (`ROLE_USER`, `ROLE_SUPPLIER`, `ROLE_ADMIN`) loaded directly from PostgreSQL `users` table.
-- [x] **Stateless Logout**: Clears client `localStorage` (`synthora_token`) and broadcasts `auth-changed` event.
+- [x] **Stateless Logout**: Clears client `localStorage` (`kemkendra_token`) and broadcasts `auth-changed` event.
 
 ---
 
@@ -66,5 +66,5 @@
 ## 7. Disaster Recovery & Packaging
 
 - [x] **Database Backup**: Local snapshot utility tested (`scripts/backup/db-backup.ps1`).
-- [x] **Backend Packaging**: `mvn clean package` produces runnable `synthora-backend-1.0.0-SNAPSHOT.jar`.
+- [x] **Backend Packaging**: `mvn clean package` produces runnable `kemkendra-backend-1.0.0-SNAPSHOT.jar`.
 - [x] **Frontend Production Build**: `npm run build` compiles all 51 routes cleanly.

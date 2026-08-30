@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5435/synthora}
-    username: ${DB_USER:synthora_admin}
+    url: ${DB_URL:jdbc:postgresql://localhost:5435/kemkendra}
+    username: ${DB_USER:kemkendra_admin}
     password: ${DB_PASSWORD:postgres}
 
   jpa:
@@ -20,9 +20,9 @@ spring:
 logging:
   level:
     root: INFO
-    com.synthora: DEBUG
+    com.kemkendra: DEBUG
     org.springframework.mail: DEBUG
 
 jwt:
-  secret: ${JWT_SECRET:SynthoraDevSecretKeyForJwtSigning2026!}
+  secret: ${JWT_SECRET:KemKendraDevSecretKeyForJwtSigning2026!}
   expiration: ${JWT_EXPIRATION:86400000}

@@ -18,7 +18,7 @@ import {
   FileText,
   Building2,
 } from "lucide-react";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 export default function AccountReviewPage() {
   const router = useRouter();
@@ -149,7 +149,7 @@ export default function AccountReviewPage() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <SynthoraLogo size="md" href="/dashboard/account-review" />
+            <KemKendraLogo size="md" href="/dashboard/account-review" />
             <span className="hidden sm:inline-block h-5 w-px bg-slate-200 mx-1" />
             <span className="hidden sm:inline-block text-xs font-semibold uppercase tracking-wider text-slate-500">
               Account Governance & Review

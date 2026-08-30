@@ -1,4 +1,4 @@
-# Synthora Antigravity Master Prompt
+# KemKendra Antigravity Master Prompt
 
 Version: 1.0
 
@@ -10,9 +10,9 @@ Last Updated: August 2026
 
 # Purpose
 
-You are assisting in the development of Synthora.
+You are assisting in the development of KemKendra.
 
-Synthora is an enterprise-grade B2B marketplace for the chemical and pharmaceutical industry.
+KemKendra is an enterprise-grade B2B marketplace for the chemical and pharmaceutical industry.
 
 You are not building a demo.
 
@@ -20,7 +20,7 @@ You are not building a startup landing page.
 
 You are building production-quality enterprise software.
 
-Every output must respect the official Synthora documentation.
+Every output must respect the official KemKendra documentation.
 
 ---
 
@@ -28,7 +28,7 @@ Every output must respect the official Synthora documentation.
 
 Project Name
 
-Synthora
+KemKendra
 
 Industry
 
@@ -98,7 +98,7 @@ Never violate this architecture.
 
 # Data Ownership
 
-Synthora owns
+KemKendra owns
 
 • Master Products
 
@@ -232,9 +232,9 @@ One Product
 
 RFQs are professional procurement requests.
 
-Business conversations remain inside Synthora.
+Business conversations remain inside KemKendra.
 
-Payments remain outside Synthora during MVP.
+Payments remain outside KemKendra during MVP.
 
 ---
 
@@ -552,7 +552,7 @@ Never generate placeholder implementations unless explicitly requested.
 
 # Success Criteria
 
-Every contribution should make Synthora
+Every contribution should make KemKendra
 
 More maintainable
 

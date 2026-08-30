@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { resetPassword } from "@/features/auth/api/auth";
 import { Lock, Eye, EyeOff, ArrowRight, CheckCircle2, ShieldAlert, KeyRound } from "lucide-react";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -247,7 +247,7 @@ export default function ResetPasswordPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <SynthoraLogo
+          <KemKendraLogo
             href="/"
             size="xl"
             subtitle="Enterprise Chemical & Pharmaceutical Marketplace"

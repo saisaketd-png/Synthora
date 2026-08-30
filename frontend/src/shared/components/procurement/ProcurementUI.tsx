@@ -18,7 +18,7 @@ import {
   Layers,
   Sparkles,
 } from "lucide-react";
-import { StatusBadge } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge } from "@/shared/components/ui/KemkendraUI";
 
 /* -------------------------------------------------------------------------- */
 /*                           1. PROCUREMENT BREADCRUMB                        */

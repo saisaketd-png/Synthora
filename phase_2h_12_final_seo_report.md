@@ -1,4 +1,4 @@
-# Synthora Phase 2H.12 — Final SEO, Indexing & Search Engine Discoverability Report
+# KemKendra Phase 2H.12 — Final SEO, Indexing & Search Engine Discoverability Report
 
 **Phase**: 2H.12 — Final SEO, Indexing, Crawlability, Structured Data, Canonicalization & Search Engine Discoverability  
 **Date**: August 19, 2026  
@@ -11,7 +11,7 @@
 
 ## 1. Executive Summary
 
-Phase 2H.12 completed a technical SEO audit and optimization cycle for Synthora. All public procurement surfaces — including the chemical product catalog (`/products`), product detail pages (`/products/[id]`), category classifications (`/categories`), supplier directory (`/suppliers`), supplier profile pages (`/suppliers/[id]`), industries (`/industries`), and compliance resources (`/resources`) — were hardened with environment-aware canonical tags, dynamic XML sitemaps, OpenGraph metadata, Twitter Cards, and Schema.org JSON-LD structured data (`Product`, `BreadcrumbList`, `Organization`).
+Phase 2H.12 completed a technical SEO audit and optimization cycle for KemKendra. All public procurement surfaces — including the chemical product catalog (`/products`), product detail pages (`/products/[id]`), category classifications (`/categories`), supplier directory (`/suppliers`), supplier profile pages (`/suppliers/[id]`), industries (`/industries`), and compliance resources (`/resources`) — were hardened with environment-aware canonical tags, dynamic XML sitemaps, OpenGraph metadata, Twitter Cards, and Schema.org JSON-LD structured data (`Product`, `BreadcrumbList`, `Organization`).
 
 Private dashboard surfaces (`/dashboard/*`, `/admin/*`, `/login`, `/register`) are strictly disallowed in `robots.ts` and set with explicit `noindex, follow` / `noindex, nofollow` metadata.
 
@@ -21,14 +21,14 @@ Private dashboard surfaces (`/dashboard/*`, `/admin/*`, `/login`, `/register`) a
 
 | Surface / Area | Finding Severity | Status | Technical Implementation / Evidence |
 | :--- | :--- | :--- | :--- |
-| **Robots Directives** | Low | **FIXED** | Verified in [`robots.ts`](file:///d:/Saisaket/Synthora/frontend/src/app/robots.ts). Crawlable paths allowed; `/dashboard/`, `/admin/`, `/login`, `/register`, `/api/` explicitly disallowed. |
-| **Dynamic XML Sitemap** | Medium | **FIXED** | Verified in [`sitemap.ts`](file:///d:/Saisaket/Synthora/frontend/src/app/sitemap.ts). Dynamically fetches active catalog products (`/products/${productCode}`) and verified supplier profiles (`/suppliers/${id}`) using `NEXT_PUBLIC_SITE_URL`. |
+| **Robots Directives** | Low | **FIXED** | Verified in [`robots.ts`](file:///d:/Saisaket/KemKendra/frontend/src/app/robots.ts). Crawlable paths allowed; `/dashboard/`, `/admin/`, `/login`, `/register`, `/api/` explicitly disallowed. |
+| **Dynamic XML Sitemap** | Medium | **FIXED** | Verified in [`sitemap.ts`](file:///d:/Saisaket/KemKendra/frontend/src/app/sitemap.ts). Dynamically fetches active catalog products (`/products/${productCode}`) and verified supplier profiles (`/suppliers/${id}`) using `NEXT_PUBLIC_SITE_URL`. |
 | **Canonical Architecture** | High | **FIXED** | Verified across all public pages. Absolute canonical URLs constructed via environment variable `process.env.NEXT_PUBLIC_SITE_URL`, eliminating `localhost:3000` references in production. Product detail pages emit logical product code canonicals (`/products/API-100428`). |
-| **Product Structured Data** | High | **FIXED** | Verified in [`products/[id]/page.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/products/%5Bid%5D/page.tsx). Injects valid `Product` and `BreadcrumbList` Schema.org JSON-LD schemas without null/undefined values. |
-| **Supplier SEO & JSON-LD** | High | **FIXED** | Verified in [`suppliers/[id]/page.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/suppliers/%5Bid%5D/page.tsx) and [`suppliers/page.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/suppliers/page.tsx). Exports dynamic metadata titles (`${supplier.name} | Verified Chemical Manufacturer | Synthora`), canonical URLs, and `Organization` JSON-LD. |
-| **Industry & Resource SEO** | Medium | **FIXED** | Verified in [`industries/page.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/industries/page.tsx) and [`resources/page.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/resources/page.tsx). Static metadata exports with title, description, canonicals, OpenGraph, and Twitter tags. |
-| **Private Page Protection** | Critical | **FIXED** | Verified [`login/layout.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/login/layout.tsx) and [`register/layout.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/register/layout.tsx). Sets explicit `robots: { index: false, follow: true }` metadata. |
-| **Search Parameter Indexing** | Medium | **FIXED** | Verified in [`products/page.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/products/page.tsx). Sets `robots: { index: !hasFilters, follow: true }`, ensuring query parameters do not generate duplicate indexable URL traps. |
+| **Product Structured Data** | High | **FIXED** | Verified in [`products/[id]/page.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/products/%5Bid%5D/page.tsx). Injects valid `Product` and `BreadcrumbList` Schema.org JSON-LD schemas without null/undefined values. |
+| **Supplier SEO & JSON-LD** | High | **FIXED** | Verified in [`suppliers/[id]/page.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/suppliers/%5Bid%5D/page.tsx) and [`suppliers/page.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/suppliers/page.tsx). Exports dynamic metadata titles (`${supplier.name} | Verified Chemical Manufacturer | KemKendra`), canonical URLs, and `Organization` JSON-LD. |
+| **Industry & Resource SEO** | Medium | **FIXED** | Verified in [`industries/page.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/industries/page.tsx) and [`resources/page.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/resources/page.tsx). Static metadata exports with title, description, canonicals, OpenGraph, and Twitter tags. |
+| **Private Page Protection** | Critical | **FIXED** | Verified [`login/layout.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/login/layout.tsx) and [`register/layout.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/register/layout.tsx). Sets explicit `robots: { index: false, follow: true }` metadata. |
+| **Search Parameter Indexing** | Medium | **FIXED** | Verified in [`products/page.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/products/page.tsx). Sets `robots: { index: !hasFilters, follow: true }`, ensuring query parameters do not generate duplicate indexable URL traps. |
 
 ---
 
@@ -54,9 +54,9 @@ Private dashboard surfaces (`/dashboard/*`, `/admin/*`, `/login`, `/register`) a
 
 ## 4. Google Search Console Readiness
 
-- **Sitemap Location**: `https://synthora.com/sitemap.xml`
-- **Robots Location**: `https://synthora.com/robots.txt`
-- **Property Recommendation**: Domain Property (`synthora.com`) via DNS TXT record verification.
+- **Sitemap Location**: `https://kemkendra.com/sitemap.xml`
+- **Robots Location**: `https://kemkendra.com/robots.txt`
+- **Property Recommendation**: Domain Property (`kemkendra.com`) via DNS TXT record verification.
 - **URL Inspection Procedure**: Submit sitemap XML, inspect `/products/API-100428` canonical, and request indexing for core landing pages.
 
 ---

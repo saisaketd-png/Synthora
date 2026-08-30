@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # 1. Purpose
 
-The Notification module informs users about important events occurring within Synthora.
+The Notification module informs users about important events occurring within KemKendra.
 
 Notifications should encourage users to return to the platform and continue business workflows.
 

@@ -1,4 +1,4 @@
-# Synthora Engineering Rules
+# KemKendra Engineering Rules
 
 Version: 1.0
 
@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # 1. Purpose
 
-This document defines the engineering principles for building Synthora.
+This document defines the engineering principles for building KemKendra.
 
 Every implementation should prioritize maintainability, scalability, consistency and simplicity.
 
@@ -396,8 +396,8 @@ Engineering consistency is more valuable than rapid implementation.
 
 # 25. Document Priority
 
-This document defines how Synthora must be engineered.
+This document defines how KemKendra must be engineered.
 
 If implementation conflicts with these engineering rules, implementation should be revised unless an approved engineering decision explicitly overrides them.
 
-This document is part of the official Synthora AI Context.
+This document is part of the official KemKendra AI Context.

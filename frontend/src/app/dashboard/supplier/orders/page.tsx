@@ -7,7 +7,7 @@ import { Search, RefreshCw, ArrowRight, CheckCircle2, Package } from "lucide-rea
 import { getSupplierOrders } from "@/features/order/api/getSupplierOrders";
 import { confirmOrder } from "@/features/order/api/confirmOrder";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
-import { StatusBadge, Button, SkeletonLoader } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge, Button, SkeletonLoader } from "@/shared/components/ui/KemkendraUI";
 import { useToast } from "@/shared/context/ToastContext";
 
 type StatusFilter = "ALL" | "PLACED" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";

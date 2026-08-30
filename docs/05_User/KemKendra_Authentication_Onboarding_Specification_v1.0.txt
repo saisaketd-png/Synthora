@@ -1,0 +1,24 @@
+KemKendra Authentication & Onboarding Specification v1.0
+Defines user authentication, buyer registration, supplier onboarding and account recovery flows for the MVP.
+Goals
+• Make registration fast and low-friction.• Keep marketplace publicly accessible.• Unlock features after login.• Guide eligible users into becoming suppliers.
+Authentication Pages
+• Login• Register• Forgot Password• Reset Password• Become a Supplier
+Guest Experience
+Guests may:• Browse products• Browse suppliers• Search marketplaceGuests cannot:• View contact details• Submit RFQs• Save products/suppliers• Download protected documents
+Buyer Registration
+Required:• Name• Email• Phone• PasswordOptional:• Company Name• Job TitleRegistration should take under one minute.
+Login
+Support:• Email + Password• Phone + Password (future)Redirect users back to the page they originally intended to access.
+Become a Supplier Flow
+Marketplace↓Become a Supplier↓Company Registration↓Upload Verification Documents↓Verification Pending↓Supplier Workspace
+Company Registration
+Required:• Company Name• Business Type• Country• State• CityOptional initially:• Website• GST• IEC
+Verification Workflow
+Supplier uploads documents.Admin can:• Approve• Reject• Request additional informationApproved suppliers receive a Verified badge.
+Draft Support
+Suppliers may:• Save drafts• Resume later• Submit when ready
+Security
+• Password hashing• JWT authentication• Role-based authorization• Rate limiting• Session expiration
+Acceptance Criteria
+✓ Registration is simple.✓ Buyers remain in the marketplace after login.✓ Supplier onboarding is guided.✓ Authentication never interrupts browsing unnecessarily.

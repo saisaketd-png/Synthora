@@ -1,4 +1,4 @@
-# Synthora Operational Deployment Runbook & Infrastructure Guide
+# KemKendra Operational Deployment Runbook & Infrastructure Guide
 
 ## 1. Overview
 This runbook documents production deployment, PostgreSQL database backup/restoration, Flyway migration safety, non-destructive application rollback, and monitoring.
@@ -22,9 +22,9 @@ This runbook documents production deployment, PostgreSQL database backup/restora
 #!/usr/bin/env bash
 # Database Backup Script
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILE="/backups/synthora_db_${TIMESTAMP}.sql.gz"
+BACKUP_FILE="/backups/kemkendra_db_${TIMESTAMP}.sql.gz"
 
-pg_dump -h localhost -U synthora_admin -d synthora | gzip > "${BACKUP_FILE}"
+pg_dump -h localhost -U kemkendra_admin -d kemkendra | gzip > "${BACKUP_FILE}"
 echo "Backup successfully created: ${BACKUP_FILE}"
 ```
 
@@ -32,7 +32,7 @@ echo "Backup successfully created: ${BACKUP_FILE}"
 1. Stop backend application:
    `docker-compose stop backend`
 2. Restore database dump:
-   `gunzip -c /backups/synthora_db_YYYYMMDD_HHMMSS.sql.gz | psql -h localhost -U synthora_admin -d synthora`
+   `gunzip -c /backups/kemkendra_db_YYYYMMDD_HHMMSS.sql.gz | psql -h localhost -U kemkendra_admin -d kemkendra`
 3. Restart backend application:
    `docker-compose start backend`
 4. Flyway automatically validates existing schema migrations on startup.
@@ -45,7 +45,7 @@ echo "Backup successfully created: ${BACKUP_FILE}"
 > Never perform a destructive SQL rollback of already-applied database migrations. Application rollbacks should deploy the previous immutable Docker container version while preserving transactional database tables.
 
 1. Identify current container tag:
-   `docker ps --filter "name=synthora-backend"`
+   `docker ps --filter "name=kemkendra-backend"`
 2. Redeploy previous image version:
    `docker-compose pull backend && docker-compose up -d backend`
 3. Verify application health:

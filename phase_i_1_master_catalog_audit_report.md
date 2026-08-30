@@ -1,4 +1,4 @@
-# SYNTHORA — PHASE I.1: MASTER CATALOG & PRODUCT GOVERNANCE AUDIT REPORT
+# KEMKENDRA — PHASE I.1: MASTER CATALOG & PRODUCT GOVERNANCE AUDIT REPORT
 
 **Phase**: Phase I.1 — Master Catalog & Product Governance Architecture Audit  
 **Date**: August 19, 2026  
@@ -195,7 +195,7 @@ Current `AdminProductService` capabilities:
 
 - **Current Behavior**: `/products/{productCode}` points to a supplier-specific Product record.
 - **Target Master Catalog Behavior**:
-  - **Canonical URL**: `https://synthora.com/products/{masterProductCode}` or `https://synthora.com/products/cas/{casNumber}` represents the canonical chemical compound.
+  - **Canonical URL**: `https://kemkendra.com/products/{masterProductCode}` or `https://kemkendra.com/products/cas/{casNumber}` represents the canonical chemical compound.
   - **Structured Data**: Injects `Product` Schema.org JSON-LD with an `offers` array containing all verified `Offer` / `Organization` listings.
   - **Search Consolidation**: Search engines index 1 authoritative page per chemical compound instead of N duplicate pages across suppliers, dramatically improving search ranking and domain authority.
 

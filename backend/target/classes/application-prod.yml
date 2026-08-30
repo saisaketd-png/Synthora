@@ -10,7 +10,7 @@ spring:
       idle-timeout: 300000
       connection-timeout: 20000
       max-lifetime: 1200000
-      pool-name: SynthoraHikariPool
+      pool-name: KemKendraHikariPool
 
   jpa:
     hibernate:
@@ -36,7 +36,7 @@ management:
 logging:
   level:
     root: INFO
-    com.synthora: INFO
+    com.kemkendra: INFO
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql: WARN
     org.springframework.web: INFO
@@ -46,7 +46,7 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
-synthora:
+kemkendra:
   storage:
     local:
       root: ${STORAGE_ROOT:/app/storage}

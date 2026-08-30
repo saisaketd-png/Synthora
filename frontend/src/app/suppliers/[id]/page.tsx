@@ -6,7 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupplierPublicProfile, getSupplierProducts } from "@/features/suppliers/api";
 import { SupplierProductCatalog } from "@/features/suppliers/components/SupplierProductCatalog";
-import { Badge, Button, Card, PageHeader } from "@/shared/components/ui/SynthoraUI";
+import { Badge, Button, Card, PageHeader } from "@/shared/components/ui/KemkendraUI";
 
 export const dynamic = "force-dynamic";
 

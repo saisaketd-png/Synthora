@@ -2,22 +2,22 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: synthora-prod-postgres
+    container_name: kemkendra-prod-postgres
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-synthora}
-      POSTGRES_USER: ${POSTGRES_USER:-synthora_admin}
+      POSTGRES_DB: ${POSTGRES_DB:-kemkendra}
+      POSTGRES_USER: ${POSTGRES_USER:-kemkendra_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     volumes:
-      - synthora-prod-pgdata:/var/lib/postgresql/data
+      - kemkendra-prod-pgdata:/var/lib/postgresql/data
 
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-synthora_admin} -d ${POSTGRES_DB:-synthora}"
+          "pg_isready -U ${POSTGRES_USER:-kemkendra_admin} -d ${POSTGRES_DB:-kemkendra}"
         ]
       interval: 10s
       timeout: 5s
@@ -30,15 +30,15 @@ services:
       context: .
       dockerfile: infrastructure/docker/Dockerfile.backend
 
-    container_name: synthora-prod-backend
+    container_name: kemkendra-prod-backend
     restart: unless-stopped
 
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
       JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms96m -Xmx256m -XX:+ExitOnOutOfMemoryError}
 
-      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-synthora}}
-      DB_USER: ${DB_USER:-${POSTGRES_USER:-synthora_admin}}
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-kemkendra}}
+      DB_USER: ${DB_USER:-${POSTGRES_USER:-kemkendra_admin}}
       DB_PASSWORD: ${DB_PASSWORD:-${POSTGRES_PASSWORD}}
 
       JWT_SECRET: ${JWT_SECRET}
@@ -46,7 +46,7 @@ services:
 
       MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
 
-      SYNTHORA_CORS_ALLOWED_ORIGINS: ${SYNTHORA_CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      KEMKENDRA_CORS_ALLOWED_ORIGINS: ${KEMKENDRA_CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
 
       MAIL_ENABLED: ${MAIL_ENABLED:-true}
@@ -85,7 +85,7 @@ services:
       context: .
       dockerfile: infrastructure/docker/Dockerfile.frontend
 
-    container_name: synthora-prod-frontend
+    container_name: kemkendra-prod-frontend
     restart: unless-stopped
 
     environment:
@@ -113,7 +113,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: synthora-prod-nginx
+    container_name: kemkendra-prod-nginx
     restart: unless-stopped
 
     ports:
@@ -142,4 +142,4 @@ services:
 
 
 volumes:
-  synthora-prod-pgdata:
+  kemkendra-prod-pgdata:

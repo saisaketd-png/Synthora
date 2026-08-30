@@ -1,8 +1,8 @@
-# Synthora — Master Catalog & Supplier Offering Management (Phase 1.10)
+# KemKendra — Master Catalog & Supplier Offering Management (Phase 1.10)
 
 ## Overview
 
-Synthora implements a two-tier chemical catalog architecture designed for B2B industrial transactions:
+KemKendra implements a two-tier chemical catalog architecture designed for B2B industrial transactions:
 
 1. **Master Catalog (`MasterProduct`)**:
    - Represents canonical chemical identities and universal specifications (Canonical Name, CAS Registry Number, Molecular Formula, Category, Synonyms, Canonical Images, Technical Compliance Sheets).
@@ -11,7 +11,7 @@ Synthora implements a two-tier chemical catalog architecture designed for B2B in
 2. **Supplier Commercial Offerings (`SupplierOffering`)**:
    - Represents commercial parameters (Pricing, Currency, Available Stock, MOQ, Packaging, Assay Purity, Grade, Lead Time, Certification Flags).
    - Owned by the Supplier company.
-   - Can be created either directly by authorized supplier users or on their behalf by platform operators (Synthora Admins).
+   - Can be created either directly by authorized supplier users or on their behalf by platform operators (KemKendra Admins).
 
 ---
 
@@ -24,8 +24,8 @@ A critical design requirement is strict distinction between **Business Ownership
 | **Commercial Owner** | `Supplier` (Resolved from JWT) | `Supplier` (Selected by Admin) |
 | **Creation Provenance** | `created_by_role = 'SUPPLIER'` | `created_by_role = 'ADMIN'` |
 | **Audit Identity** | Supplier User Principal | `created_by_admin_id`, `created_by_admin_name` |
-| **Visibility on Supplier Portal** | Visible & Managed | Visible & Managed with "Listed by Synthora Admin" badge |
-| **Visibility on Admin Portal** | Displayed as "🏢 Created by Supplier" | Displayed as "🛡️ Created by Synthora Admin (Admin Name)" |
+| **Visibility on Supplier Portal** | Visible & Managed | Visible & Managed with "Listed by KemKendra Admin" badge |
+| **Visibility on Admin Portal** | Displayed as "🏢 Created by Supplier" | Displayed as "🛡️ Created by KemKendra Admin (Admin Name)" |
 | **Buyer Marketplace Sourcing** | Quoting, RFQ, and orders bind to Supplier | Quoting, RFQ, and orders bind to Supplier |
 
 ---
@@ -79,7 +79,7 @@ CREATE INDEX IF NOT EXISTS idx_supplier_offerings_created_by_role ON supplier_of
 
 ## Automated Security & Validation Test Suite
 
-Class: `com.synthora.product.AdminCatalogAndOfferingSecurityTest` (15/15 tests passing):
+Class: `com.kemkendra.product.AdminCatalogAndOfferingSecurityTest` (15/15 tests passing):
 
 1. `adminCanCreateMasterProduct` — Verifies HTTP 201 Created and master product attribute persistence.
 2. `adminCanEditMasterProduct` — Verifies administrative specification updates.

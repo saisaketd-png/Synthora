@@ -2,25 +2,25 @@
 
 ## Executive Summary
 
-Phase I.8.5 successfully integrates Synthora's Master Catalog (`MasterProduct` & `SupplierOffering`) into the end-to-end B2B procurement workflow (`RFQ` -> `Quotation` -> `Counter Offer / Revision` -> `Acceptance` -> `Purchase Order` -> `Fulfillment`), enforcing server-side supplier identity spoofing defenses, supplier privacy isolation, negotiation state machine boundaries, and immutable transaction snapshots.
+Phase I.8.5 successfully integrates KemKendra's Master Catalog (`MasterProduct` & `SupplierOffering`) into the end-to-end B2B procurement workflow (`RFQ` -> `Quotation` -> `Counter Offer / Revision` -> `Acceptance` -> `Purchase Order` -> `Fulfillment`), enforcing server-side supplier identity spoofing defenses, supplier privacy isolation, negotiation state machine boundaries, and immutable transaction snapshots.
 
 ---
 
 ## Key Achievements
 
 ### 1. Database Schema Migration `V25`
-- Created [`V25__add_master_product_and_offering_to_rfqs.sql`](file:///d:/Saisaket/Synthora/backend/src/main/resources/db/migration/V25__add_master_product_and_offering_to_rfqs.sql).
+- Created [`V25__add_master_product_and_offering_to_rfqs.sql`](file:///d:/Saisaket/KemKendra/backend/src/main/resources/db/migration/V25__add_master_product_and_offering_to_rfqs.sql).
 - Added `master_product_id` (UUID) and `supplier_offering_id` (UUID) foreign key columns to `rfqs` table with indexes (`idx_rfqs_master_product`, `idx_rfqs_supplier_offering`).
 
 ### 2. Multi-Supplier Sourcing & Identity Spoofing Defense
-- Updated [`Rfq.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/Rfq.java), [`CreateRfqRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/dto/CreateRfqRequest.java), and [`RfqResponse.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/dto/RfqResponse.java).
-- Implemented zero-trust verification in [`RfqService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/RfqService.java):
+- Updated [`Rfq.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/Rfq.java), [`CreateRfqRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/dto/CreateRfqRequest.java), and [`RfqResponse.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/dto/RfqResponse.java).
+- Implemented zero-trust verification in [`RfqService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/RfqService.java):
   - Validates `supplierOffering.getSupplier().getId().equals(request.supplierId())`. Rejects mismatched identity requests with `IllegalArgumentException`.
   - Supports multi-supplier sourcing arrays (`targetSupplierIds`), creating strictly isolated `Rfq` records for each target supplier.
   - Auto-resolves `masterProductId` from target `SupplierOffering`.
 
 ### 3. Multi-Supplier Security & Privacy Suite (`MultiSupplierRfqSecurityTest.java`)
-- Created [`MultiSupplierRfqSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/rfq/MultiSupplierRfqSecurityTest.java) containing 30 test scenarios covering:
+- Created [`MultiSupplierRfqSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/rfq/MultiSupplierRfqSecurityTest.java) containing 30 test scenarios covering:
   1. Buyer can view own RFQ.
   2. Supplier can view their participation.
   3. Supplier A cannot view Supplier B participation.

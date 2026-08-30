@@ -1,8 +1,8 @@
-# Synthora Phase 2H.9 Verification Report: Catalog Search, Product Architecture & SEO Foundation
+# KemKendra Phase 2H.9 Verification Report: Catalog Search, Product Architecture & SEO Foundation
 
 ## 1. Executive Summary
 
-Phase 2H.9 delivers a complete architectural overhaul and hardening of Synthora's public chemical catalog search, product code routing, and search-engine optimization (SEO) indexing subsystem.
+Phase 2H.9 delivers a complete architectural overhaul and hardening of KemKendra's public chemical catalog search, product code routing, and search-engine optimization (SEO) indexing subsystem.
 
 - **Unified JPA Specification Engine**: Created `ProductSpecification.java` supporting unified multi-field search (`name`, `productCode`, `casNumber`, `molecularFormula`, `description`), multi-category filtering, CAS exact matches, purity/MOQ ranges, in-stock checks, and quality documentation flags (`coaAvailable`, `msdsAvailable`, `exportReady`).
 - **Product Code & UUID Dual Resolution**: Public catalog endpoints and frontend detail pages now seamlessly resolve both logical business product codes (`API-100428`, `api-100428`) and legacy UUIDs (`46bb6f76-4d1a-4c28-9a4f-a9cb6e093d58`), with proper 404 responses for missing/discontinued/suspended products.
@@ -21,18 +21,18 @@ Phase 2H.9 delivers a complete architectural overhaul and hardening of Synthora'
 ## 2. Key Components Implemented
 
 ### Backend Architecture:
-1. `backend/src/main/java/com/synthora/product/ProductSpecification.java`:
+1. `backend/src/main/java/com/kemkendra/product/ProductSpecification.java`:
    - `publicVisibilitySpec()`: Filters for active products with active, non-suspended sellers.
    - `buildCatalogSpec(...)`: Dynamic conjunction of keyword, multi-category, CAS, purity range, MOQ range, stock, and document flags.
-2. `backend/src/main/java/com/synthora/product/ProductRepository.java`:
+2. `backend/src/main/java/com/kemkendra/product/ProductRepository.java`:
    - Added `findByProductCodeIgnoreCase(String productCode)`.
-3. `backend/src/main/java/com/synthora/product/ProductService.java`:
+3. `backend/src/main/java/com/kemkendra/product/ProductService.java`:
    - Added `searchCatalogProducts(...)` with bounded pagination and safe sort field allowlisting.
    - Added `getProductDetailByIdOrCode(String idOrCode)` with fallback resolution and seller status checks.
-4. `backend/src/main/java/com/synthora/product/apis/ProductController.java`:
+4. `backend/src/main/java/com/kemkendra/product/apis/ProductController.java`:
    - Enhanced `GET /api/v1/products` to accept all catalog filter/search parameters.
    - Enhanced `GET /api/v1/products/{idOrCode}/detail` to accept string codes/UUIDs.
-5. `backend/src/test/java/com/synthora/product/CatalogSearchAndProductCodeTest.java`:
+5. `backend/src/test/java/com/kemkendra/product/CatalogSearchAndProductCodeTest.java`:
    - 20 comprehensive test scenarios covering search, CAS, productCode, multi-category AND logic, SQL injection defense, sort injection defense, and 404 behavior.
 
 ### Frontend Architecture:

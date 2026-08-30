@@ -1,7 +1,7 @@
 # Phase 1D-C Visual Design & Anti-AI-Slop Critique
 
 ## 1. Executive Summary
-This report provides a deep visual design critique of the Synthora frontend. While the platform is technically compliant with the `DESIGN_SYSTEM.md` token values, it currently suffers from severe genericism. The interface leans heavily on consumer SaaS design tropes—often referred to as "AI slop"—such as repetitive floating cards, pastel icon backgrounds, generic KPI grids, and decorative gradients. It fails to convey the gravitas, technical density, and serious nature of a global B2B pharmaceutical and chemical procurement platform. A strategic architectural redesign of key layouts is required to establish enterprise credibility.
+This report provides a deep visual design critique of the KemKendra frontend. While the platform is technically compliant with the `DESIGN_SYSTEM.md` token values, it currently suffers from severe genericism. The interface leans heavily on consumer SaaS design tropes—often referred to as "AI slop"—such as repetitive floating cards, pastel icon backgrounds, generic KPI grids, and decorative gradients. It fails to convey the gravitas, technical density, and serious nature of a global B2B pharmaceutical and chemical procurement platform. A strategic architectural redesign of key layouts is required to establish enterprise credibility.
 
 ## 2. Why the current UI doesn't feel premium
 Premium enterprise design is characterized by **restraint, hierarchy, and information density**. The current UI feels like a template because it treats every piece of information equally, wrapping everything in isolated, rounded-corner boxes. 

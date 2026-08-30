@@ -1,4 +1,4 @@
-# Synthora Phase 2H.4 — Input Validation, Sanitization & Injection Defense Report
+# KemKendra Phase 2H.4 — Input Validation, Sanitization & Injection Defense Report
 
 **Execution Date:** 2026-08-18  
 **Scope:** Input Boundary Inventory, Bean Validation, XSS Mitigation, SQL/JPQL Injection Defense, Search/Filter Hardening, Pagination Abuse Protection, UUID/Enum/Numeric Safety, URL & Path Traversal Validation, Chemical Notation Preservation  
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Phase 2H.4 comprehensively audited and hardened all frontend and backend input boundaries across Synthora. Building on the authentication (2H.2) and authorization (2H.3) hardening, this phase eliminated vulnerabilities related to injection attacks, pagination abuse, numeric overflow, path traversal, malformed types, and unhandled parser exceptions.
+Phase 2H.4 comprehensively audited and hardened all frontend and backend input boundaries across KemKendra. Building on the authentication (2H.2) and authorization (2H.3) hardening, this phase eliminated vulnerabilities related to injection attacks, pagination abuse, numeric overflow, path traversal, malformed types, and unhandled parser exceptions.
 
 Crucially, all validations preserve **legitimate chemical marketplace nomenclature** (e.g. chemical names with hyphens, parentheses, Greek letters, CAS numbers, molecular formulas, percentages, and technical grades) without resorting to naive string stripping.
 
@@ -120,7 +120,7 @@ The following request boundaries were audited and hardened:
 
 ```
 ========================================================================
-Synthora Build & Verification Pipeline
+KemKendra Build & Verification Pipeline
 ========================================================================
 [Previous Backend Test Count] : 337 tests
 [New Security Tests Added]    : 31 tests (InputValidationSecurityTest)
@@ -136,24 +136,24 @@ Synthora Build & Verification Pipeline
 ## 6. List of Modified & Added Files
 
 ### Backend Source Files Modified:
-- [`com/synthora/common/GlobalExceptionHandler.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/common/GlobalExceptionHandler.java): Added handlers for `MethodArgumentTypeMismatchException`, `HttpMessageNotReadableException`, `ConstraintViolationException`, `HandlerMethodValidationException`, `MissingServletRequestParameterException`, `MaxUploadSizeExceededException`, and `PropertyReferenceException`.
-- [`com/synthora/product/ProductService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/ProductService.java): Added bounded pageable creation (`createBoundedPageable`) and allowlisted product sort fields.
-- [`com/synthora/product/apis/SupplierPublicController.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/apis/SupplierPublicController.java): Added bounded pageable sanitization (`sanitizePageable`) and allowlisted supplier sort fields.
-- [`com/synthora/document/DocumentService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/DocumentService.java): Enhanced `normalizeFileName()` to strip Windows path separators, encoded traversals, control characters, and null bytes.
-- [`com/synthora/identity/dto/RegisterRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/identity/dto/RegisterRequest.java): Added `@Size` string length bounds.
-- [`com/synthora/product/dto/CreateProductRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/dto/CreateProductRequest.java): Added `@Size`, `@DecimalMax`, and `@Max` bounds.
-- [`com/synthora/product/dto/UpdateProductRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/dto/UpdateProductRequest.java): Added `@Size`, `@DecimalMax`, and `@Max` bounds.
-- [`com/synthora/product/dto/ProductSupplierRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/dto/ProductSupplierRequest.java): Added `@Size`, `@DecimalMin`, `@DecimalMax`, and `@Max` bounds.
-- [`com/synthora/rfq/dto/CreateRfqRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/dto/CreateRfqRequest.java): Added `@Size` and `@DecimalMax` bounds.
-- [`com/synthora/rfq/dto/CreateQuotationRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/dto/CreateQuotationRequest.java): Added `@Size`, `@DecimalMax`, `@Max`, and `@Digits` constraints.
-- [`com/synthora/rfq/dto/AcceptQuotationRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/dto/AcceptQuotationRequest.java): Added `@Size(max=2000)` constraint.
-- [`com/synthora/rfq/dto/RejectQuotationRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/dto/RejectQuotationRequest.java): Added `@Size(max=2000)` constraint.
-- [`com/synthora/order/dto/ShipOrderRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/order/dto/ShipOrderRequest.java): Added `@Size(max=100)` constraints.
-- [`com/synthora/seller/dto/UpdateSellerProfileRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/seller/dto/UpdateSellerProfileRequest.java): Added `@Pattern` URL format validation and `@Size` bounds.
-- [`resources/application.yml`](file:///d:/Saisaket/Synthora/backend/src/main/resources/application.yml): Configured `server.max-http-request-header-size: 16KB`.
+- [`com/kemkendra/common/GlobalExceptionHandler.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/common/GlobalExceptionHandler.java): Added handlers for `MethodArgumentTypeMismatchException`, `HttpMessageNotReadableException`, `ConstraintViolationException`, `HandlerMethodValidationException`, `MissingServletRequestParameterException`, `MaxUploadSizeExceededException`, and `PropertyReferenceException`.
+- [`com/kemkendra/product/ProductService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/ProductService.java): Added bounded pageable creation (`createBoundedPageable`) and allowlisted product sort fields.
+- [`com/kemkendra/product/apis/SupplierPublicController.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/apis/SupplierPublicController.java): Added bounded pageable sanitization (`sanitizePageable`) and allowlisted supplier sort fields.
+- [`com/kemkendra/document/DocumentService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/DocumentService.java): Enhanced `normalizeFileName()` to strip Windows path separators, encoded traversals, control characters, and null bytes.
+- [`com/kemkendra/identity/dto/RegisterRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/identity/dto/RegisterRequest.java): Added `@Size` string length bounds.
+- [`com/kemkendra/product/dto/CreateProductRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/dto/CreateProductRequest.java): Added `@Size`, `@DecimalMax`, and `@Max` bounds.
+- [`com/kemkendra/product/dto/UpdateProductRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/dto/UpdateProductRequest.java): Added `@Size`, `@DecimalMax`, and `@Max` bounds.
+- [`com/kemkendra/product/dto/ProductSupplierRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/dto/ProductSupplierRequest.java): Added `@Size`, `@DecimalMin`, `@DecimalMax`, and `@Max` bounds.
+- [`com/kemkendra/rfq/dto/CreateRfqRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/dto/CreateRfqRequest.java): Added `@Size` and `@DecimalMax` bounds.
+- [`com/kemkendra/rfq/dto/CreateQuotationRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/dto/CreateQuotationRequest.java): Added `@Size`, `@DecimalMax`, `@Max`, and `@Digits` constraints.
+- [`com/kemkendra/rfq/dto/AcceptQuotationRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/dto/AcceptQuotationRequest.java): Added `@Size(max=2000)` constraint.
+- [`com/kemkendra/rfq/dto/RejectQuotationRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/dto/RejectQuotationRequest.java): Added `@Size(max=2000)` constraint.
+- [`com/kemkendra/order/dto/ShipOrderRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/order/dto/ShipOrderRequest.java): Added `@Size(max=100)` constraints.
+- [`com/kemkendra/seller/dto/UpdateSellerProfileRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/seller/dto/UpdateSellerProfileRequest.java): Added `@Pattern` URL format validation and `@Size` bounds.
+- [`resources/application.yml`](file:///d:/Saisaket/KemKendra/backend/src/main/resources/application.yml): Configured `server.max-http-request-header-size: 16KB`.
 
 ### New Test Suites Created:
-- [`com/synthora/security/InputValidationSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/security/InputValidationSecurityTest.java): 31 automated security test cases.
+- [`com/kemkendra/security/InputValidationSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/security/InputValidationSecurityTest.java): 31 automated security test cases.
 
 ---
 

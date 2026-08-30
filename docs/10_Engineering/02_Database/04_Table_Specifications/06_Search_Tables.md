@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-The Search domain supports intelligent product discovery across the Synthora marketplace.
+The Search domain supports intelligent product discovery across the KemKendra marketplace.
 
 Search is Product-First.
 

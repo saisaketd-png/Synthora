@@ -1,15 +1,15 @@
-# Synthora JWT Security & Session Architecture Review
+# KemKendra JWT Security & Session Architecture Review
 
 ---
 
 ## 1. Overview & Architecture
 
-Synthora employs stateless JSON Web Tokens (JWT) for authenticating REST API requests between the client frontend (Next.js 16) and backend services (Spring Boot 3.4).
+KemKendra employs stateless JSON Web Tokens (JWT) for authenticating REST API requests between the client frontend (Next.js 16) and backend services (Spring Boot 3.4).
 
 ### Key Architectural Characteristics:
 1. **Stateless Bearer Tokens**: Tokens are generated on successful `POST /api/v1/auth/login` and sent via `Authorization: Bearer <token>` HTTP headers.
 2. **Server-Authoritative Role Resolution**: Authorities (`ROLE_USER`, `ROLE_SUPPLIER`, `ROLE_ADMIN`) are resolved **from the PostgreSQL database directly** during each authenticated request, rather than trusting client-provided claims in the JWT payload.
-3. **Active Account Verification**: Suspended or soft-deleted user accounts are instantly blocked by [`JwtAuthenticationFilter.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/JwtAuthenticationFilter.java) even if a mathematically valid JWT is presented.
+3. **Active Account Verification**: Suspended or soft-deleted user accounts are instantly blocked by [`JwtAuthenticationFilter.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/JwtAuthenticationFilter.java) even if a mathematically valid JWT is presented.
 
 > [!NOTE]
 > **Single-Instance & Stateless Scope**:
@@ -23,8 +23,8 @@ Synthora employs stateless JSON Web Tokens (JWT) for authenticating REST API req
 | :--- | :--- | :--- |
 | **Signing Algorithm** | HMAC-SHA256 (`HS256`) | Cryptographically enforced via `Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8))`. |
 | **Key Length** | Minimum 256 bits (32+ bytes) | Validated at startup in `JwtService.validateConfiguration()`. Fails fast if secret is short or weak. |
-| **Issuer (`iss`)** | `synthora` | Attached to all issued tokens. |
-| **Audience (`aud`)** | `synthora-api` | Configured for API resource verification. |
+| **Issuer (`iss`)** | `kemkendra` | Attached to all issued tokens. |
+| **Audience (`aud`)** | `kemkendra-api` | Configured for API resource verification. |
 | **Token Lifetime** | 24 Hours (`86,400,000 ms`) | Configurable via `JWT_EXPIRATION` environment variable. |
 | **Production Fail-Fast** | `jwt.secret: ${JWT_SECRET}` | No default fallback in `application.yml` or `application-prod.yml`. Missing secret blocks production container startup. |
 
@@ -54,7 +54,7 @@ graph TD
 
 ## 4. Frontend Token Storage & XSS Mitigation
 
-- **Current Mechanism**: Stored in `localStorage` (`synthora_token`) and dispatched via `authenticatedFetch.ts`.
+- **Current Mechanism**: Stored in `localStorage` (`kemkendra_token`) and dispatched via `authenticatedFetch.ts`.
 - **Mitigation Layers**:
   - Strict Content Security Policy (CSP) with `default-src 'self'`, `object-src 'none'`, and `frame-ancestors 'none'` prevents external script injection.
   - Sanitized React virtual DOM renders prevent stored XSS across marketplace product listings and supplier profiles.
@@ -65,7 +65,7 @@ graph TD
 ## 5. Session Lifecycle & Interactions
 
 ### A. Logout
-- **Client Action**: Clears `synthora_token` from browser `localStorage` and triggers the `auth-changed` event, redirecting to login.
+- **Client Action**: Clears `kemkendra_token` from browser `localStorage` and triggers the `auth-changed` event, redirecting to login.
 - **Server Action**: Stateless; token expires naturally at its expiration timestamp.
 
 ### B. Password Change / Reset
@@ -80,7 +80,7 @@ graph TD
 
 ## 6. Verification & Automated Test Coverage
 
-The JWT security hardening is validated by [`JwtSecurityHardeningTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/security/JwtSecurityHardeningTest.java):
+The JWT security hardening is validated by [`JwtSecurityHardeningTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/security/JwtSecurityHardeningTest.java):
 1. Valid JWT grants access with correct role mapping.
 2. Expired JWT is rejected with 401.
 3. Tampered payload is rejected with 401.

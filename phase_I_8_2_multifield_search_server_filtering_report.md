@@ -1,4 +1,4 @@
-# SYNTHORA — PHASE I.8.2 COMPLETION REPORT
+# KEMKENDRA — PHASE I.8.2 COMPLETION REPORT
 ## MULTI-FIELD MASTER CATALOG SEARCH & SERVER-SIDE FILTERING
 
 **Execution Date**: August 19, 2026  
@@ -8,7 +8,7 @@
 
 ### Executive Summary
 
-Phase I.8.2 upgrades Synthora's Master Catalog public search & discovery engine from single-field name matching to multi-field chemical search across Chemical Name, CAS Registry Number (raw and normalized), Master Product Code, Molecular Formula, and Description.
+Phase I.8.2 upgrades KemKendra's Master Catalog public search & discovery engine from single-field name matching to multi-field chemical search across Chemical Name, CAS Registry Number (raw and normalized), Master Product Code, Molecular Formula, and Description.
 
 In addition, a server-side multi-criteria filtering engine (`MasterProductSpecification`) was introduced, supporting commercial boundaries (Category, Purity %, Max Price, Currency, MOQ, Lead Time, Availability, Stock, COA availability, MSDS availability, Export Readiness, Verified Supplier) with allowlisted sorting and bounded pagination (max 100).
 

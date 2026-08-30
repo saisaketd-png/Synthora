@@ -12,7 +12,7 @@ Last Updated: August 2026
 
 The RFQ (Request for Quotation) module enables buyers to request quotations from suppliers through a structured procurement workflow.
 
-The RFQ system is the primary communication channel between buyers and suppliers on Synthora.
+The RFQ system is the primary communication channel between buyers and suppliers on KemKendra.
 
 The objective is to replace unstructured communication with a professional and traceable procurement process.
 
@@ -79,9 +79,9 @@ One Master Product
 
 Every RFQ creates one procurement thread.
 
-Business communication remains inside Synthora.
+Business communication remains inside KemKendra.
 
-Deals are finalized outside Synthora during the MVP.
+Deals are finalized outside KemKendra during the MVP.
 
 ---
 

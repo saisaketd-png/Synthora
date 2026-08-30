@@ -1,5 +1,5 @@
 # ==============================================================================
-# SYNTHORA B2B MARKETPLACE - LOCAL DEVELOPMENT DOCKER OVERRIDE
+# KEMKENDRA B2B MARKETPLACE - LOCAL DEVELOPMENT DOCKER OVERRIDE
 # ==============================================================================
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres

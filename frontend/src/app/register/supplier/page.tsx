@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerSupplier, getAuthUser } from "@/features/auth/api/auth";
 import { ArrowRight, Shield, Award, Globe, Building2, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 function SupplierRegisterForm() {
   const router = useRouter();
@@ -97,7 +97,7 @@ function SupplierRegisterForm() {
       <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg">
           <div className="text-center mb-8">
-            <SynthoraLogo href="/" size="xl" subtitle="Supplier Account Provisioned" />
+            <KemKendraLogo href="/" size="xl" subtitle="Supplier Account Provisioned" />
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 sm:p-10 text-center space-y-6">
@@ -151,7 +151,7 @@ function SupplierRegisterForm() {
         
         {/* Top Header */}
         <div className="text-center mb-10">
-          <SynthoraLogo
+          <KemKendraLogo
             href="/"
             size="xl"
             subtitle="Supplier Network Onboarding"

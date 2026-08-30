@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Phase 2H.7 delivers public registration and supplier onboarding workflows for the Synthora B2B marketplace.
+Phase 2H.7 delivers public registration and supplier onboarding workflows for the KemKendra B2B marketplace.
 
 Before this phase:
 - Authentication & Sessions were hardened (Phase 2H.2).
@@ -69,7 +69,7 @@ This phase implemented:
 ## 4. Verification Results
 
 ### 4.1 Automated Security & Registration Test Suite
-- Suite: [`UserRegistrationSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/security/UserRegistrationSecurityTest.java)
+- Suite: [`UserRegistrationSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/security/UserRegistrationSecurityTest.java)
 - **8/8 Tests Passing** covering:
   - Buyer registration creates active user with `ROLE_USER` (201 Created).
   - Duplicate email on buyer registration rejected (400 Bad Request).

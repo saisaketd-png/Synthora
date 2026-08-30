@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { verifyEmail, resendVerification } from "@/features/auth/api/auth";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 import { CheckCircle2, AlertTriangle, Mail, ArrowRight, RefreshCw } from "lucide-react";
 
 function VerifyEmailContent() {
@@ -71,7 +71,7 @@ function VerifyEmailContent() {
     <div className="w-full max-w-md">
       {/* Brand Header */}
       <div className="text-center mb-8">
-        <SynthoraLogo href="/" size="xl" subtitle="Email Verification" />
+        <KemKendraLogo href="/" size="xl" subtitle="Email Verification" />
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 sm:p-10 space-y-6">

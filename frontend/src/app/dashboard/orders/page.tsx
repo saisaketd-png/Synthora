@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Search, RefreshCw, ArrowRight, ShoppingBag, Package } from "lucide-react";
 import { getBuyerOrders } from "@/features/order/api/getBuyerOrders";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
-import { StatusBadge, SkeletonLoader } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge, SkeletonLoader } from "@/shared/components/ui/KemkendraUI";
 
 type StatusFilter = "ALL" | "PLACED" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 type SortOption = "DATE_DESC" | "DATE_ASC" | "VALUE_DESC" | "VALUE_ASC";

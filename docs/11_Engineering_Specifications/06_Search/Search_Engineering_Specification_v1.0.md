@@ -12,7 +12,7 @@ Last Updated: August 2026
 
 The Search module enables buyers and suppliers to quickly discover Master Products, Supplier Listings and Companies using intelligent search capabilities.
 
-Search is one of Synthora's primary competitive advantages and should prioritize speed, accuracy and relevance.
+Search is one of KemKendra's primary competitive advantages and should prioritize speed, accuracy and relevance.
 
 ---
 

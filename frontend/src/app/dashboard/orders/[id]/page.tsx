@@ -21,7 +21,7 @@ import {
   WorkflowStepper,
   ShipmentTrackingCard,
 } from "@/shared/components/procurement/ProcurementUI";
-import { StatusBadge } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge } from "@/shared/components/ui/KemkendraUI";
 import {
   Building2,
   Calendar,

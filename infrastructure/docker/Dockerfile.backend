@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Synthora Spring Boot Backend with Layered JAR Caching
+# Multi-stage Dockerfile for KemKendra Spring Boot Backend with Layered JAR Caching
 
 # Stage 1: Build stage
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
@@ -24,21 +24,21 @@ FROM eclipse-temurin:21-jre-alpine AS runner
 WORKDIR /app
 
 # Create non-root application user & group
-RUN addgroup -S synthora && \
-    adduser -S synthora -G synthora
+RUN addgroup -S kemkendra && \
+    adduser -S kemkendra -G kemkendra
 
 # Create application storage directory and set ownership
 RUN mkdir -p /app/storage && \
-    chown -R synthora:synthora /app
+    chown -R kemkendra:kemkendra /app
 
 # Copy layered JAR components (Docker caches dependencies and loader layers)
-COPY --from=extractor --chown=synthora:synthora /app/extracted/dependencies/ ./
-COPY --from=extractor --chown=synthora:synthora /app/extracted/spring-boot-loader/ ./
-COPY --from=extractor --chown=synthora:synthora /app/extracted/snapshot-dependencies/ ./
-COPY --from=extractor --chown=synthora:synthora /app/extracted/application/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/dependencies/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/spring-boot-loader/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/snapshot-dependencies/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/application/ ./
 
 # Run application as non-root user
-USER synthora:synthora
+USER kemkendra:kemkendra
 
 EXPOSE 8085
 

@@ -1,4 +1,4 @@
-# Synthora Project Decision Log
+# KemKendra Project Decision Log
 
 Version: 1.0
 
@@ -6,7 +6,7 @@ Status: Active
 
 Purpose
 
-This document records all major architectural, business and engineering decisions made during the development of Synthora.
+This document records all major architectural, business and engineering decisions made during the development of KemKendra.
 
 The objective is to preserve the reasoning behind important decisions so future development remains consistent.
 
@@ -77,7 +77,7 @@ Master Product Architecture
 
 Decision
 
-Synthora will follow a Product-First marketplace architecture.
+KemKendra will follow a Product-First marketplace architecture.
 
 One Master Product can have multiple Supplier Listings.
 
@@ -117,7 +117,7 @@ Product Ownership
 
 Decision
 
-Master Products are owned by Synthora.
+Master Products are owned by KemKendra.
 
 Supplier Listings are owned by Companies.
 
@@ -273,7 +273,7 @@ No notification preference settings will be provided in the MVP.
 
 Reason
 
-Keep the user experience simple and encourage users to return to Synthora.
+Keep the user experience simple and encourage users to return to KemKendra.
 
 Status
 

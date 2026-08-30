@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Phase 2H.6 successfully implements and hardens the complete Purchase Order (PO) fulfillment and rejection lifecycle in Synthora. Prior to this phase, purchase orders concluded at `CONFIRMED` without operational fulfillment transitions.
+Phase 2H.6 successfully implements and hardens the complete Purchase Order (PO) fulfillment and rejection lifecycle in KemKendra. Prior to this phase, purchase orders concluded at `CONFIRMED` without operational fulfillment transitions.
 
 This phase implemented the deterministic state machine:
 ```
@@ -66,7 +66,7 @@ All state transitions are strictly validated on the backend with zero client tru
 ## 3. Implementation Details
 
 ### 3.1 Database Migration
-- Migration file: [`V17__add_po_rejection_and_lifecycle_fields.sql`](file:///d:/Saisaket/Synthora/backend/src/main/resources/db/migration/V17__add_po_rejection_and_lifecycle_fields.sql)
+- Migration file: [`V17__add_po_rejection_and_lifecycle_fields.sql`](file:///d:/Saisaket/KemKendra/backend/src/main/resources/db/migration/V17__add_po_rejection_and_lifecycle_fields.sql)
 - Added columns to table `purchase_orders`:
   - `rejection_reason VARCHAR(1000)`
   - `rejected_at TIMESTAMP`
@@ -107,7 +107,7 @@ All state transitions are strictly validated on the backend with zero client tru
 ## 4. Verification Results
 
 ### 4.1 Automated Security & Workflow Test Suite
-- Suite: [`PurchaseOrderFulfillmentSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/security/PurchaseOrderFulfillmentSecurityTest.java)
+- Suite: [`PurchaseOrderFulfillmentSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/security/PurchaseOrderFulfillmentSecurityTest.java)
 - **33/33 Tests Passing** covering:
   - Complete forward lifecycle: `PLACED` $\rightarrow$ `CONFIRMED` $\rightarrow$ `PROCESSING` $\rightarrow$ `SHIPPED` $\rightarrow$ `DELIVERED`.
   - Illegal skips (e.g. `PLACED` $\rightarrow$ `SHIPPED`, `CONFIRMED` $\rightarrow$ `SHIPPED` rejected with 409).

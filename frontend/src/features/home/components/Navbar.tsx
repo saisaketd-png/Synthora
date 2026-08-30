@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 export function Navbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -133,7 +133,7 @@ export function Navbar() {
         {/* 1. LEFT: KEMKENDRA BRAND & PRIMARY NAV */}
         <div className="flex items-center gap-4 lg:gap-5 shrink-0">
           <div className="flex items-center gap-2">
-            <SynthoraLogo
+            <KemKendraLogo
               href="/"
               size="md"
               layout="horizontal"

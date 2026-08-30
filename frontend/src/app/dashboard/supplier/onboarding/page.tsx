@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getAuthToken } from "@/features/auth/api/auth";
 import {
   Building2,
   MapPin,
@@ -140,7 +141,7 @@ export default function SupplierOnboardingPage() {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
       if (!token) {
         router.push("/login");
         return;
@@ -221,7 +222,7 @@ export default function SupplierOnboardingPage() {
       setSaving(true);
       setError(null);
       if (!silent) setSuccessMessage(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
 
       const payload = {
         name,
@@ -287,7 +288,7 @@ export default function SupplierOnboardingPage() {
     try {
       setLogoUploading(true);
       setError(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
 
       const formData = new FormData();
       formData.append("file", file);
@@ -320,7 +321,7 @@ export default function SupplierOnboardingPage() {
     try {
       setLogoUploading(true);
       setError(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
 
       const res = await fetch("/api/v1/supplier/profile/logo", {
         method: "DELETE",
@@ -348,7 +349,7 @@ export default function SupplierOnboardingPage() {
   async function handleVerifyEmail() {
     try {
       setError(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
       const res = await fetch("/api/v1/supplier/verification/verify-email", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -366,7 +367,7 @@ export default function SupplierOnboardingPage() {
   async function handleVerifyPhone() {
     try {
       setError(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
       const res = await fetch("/api/v1/supplier/verification/verify-phone", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
@@ -388,7 +389,7 @@ export default function SupplierOnboardingPage() {
     try {
       setDocUploading(true);
       setError(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
 
       const formData = new FormData();
       formData.append("file", file);
@@ -428,7 +429,7 @@ export default function SupplierOnboardingPage() {
     try {
       setSubmitting(true);
       setError(null);
-      const token = localStorage.getItem("synthora_token");
+      const token = getAuthToken();
 
       // First save draft silently
       await handleSaveDraft(true);

@@ -1,4 +1,4 @@
-# Synthora Phase I.3 — Master Catalog Backfill & Non-Destructive Data Migration Analysis Report
+# KemKendra Phase I.3 — Master Catalog Backfill & Non-Destructive Data Migration Analysis Report
 
 **Phase**: Phase I.3 — Master Catalog Backfill & Non-Destructive Data Migration Analysis  
 **Date**: August 19, 2026  

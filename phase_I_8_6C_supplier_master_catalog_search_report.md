@@ -1,4 +1,4 @@
-# Synthora Phase I.8.6C — Supplier Master Catalog Search End-to-End Fix & Hardening Report
+# KemKendra Phase I.8.6C — Supplier Master Catalog Search End-to-End Fix & Hardening Report
 
 ## 1. Executive Summary & Root Cause Analysis
 

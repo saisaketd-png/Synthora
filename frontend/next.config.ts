@@ -7,7 +7,7 @@ const backendUrl =
   "http://127.0.0.1:8085";
 
 console.log(
-  "Synthora frontend backend URL:",
+  "KemKendra frontend backend URL:",
   backendUrl
 );
 const nextConfig: NextConfig = {

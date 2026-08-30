@@ -28,7 +28,7 @@ import {
   deactivateSupplierOffering,
   SupplierOffering,
 } from "@/features/supplier-products/api/masterCatalogApi";
-import { StatusBadge, Modal } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge, Modal } from "@/shared/components/ui/KemkendraUI";
 import { useToast } from "@/shared/context/ToastContext";
 
 type StatusFilter = "ALL" | "APPROVED" | "PENDING_REVIEW" | "REJECTED";

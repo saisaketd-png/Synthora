@@ -1,4 +1,4 @@
-﻿# Synthora Backend
+﻿# KemKendra Backend
 
 Enterprise B2B Chemical & Pharmaceutical Marketplace.
 

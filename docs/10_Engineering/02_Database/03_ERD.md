@@ -1,4 +1,4 @@
-# Synthora Entity Relationship Diagram
+# KemKendra Entity Relationship Diagram
 
 Version: 1.0
 
@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-This document defines the high-level Entity Relationship Diagram (ERD) for Synthora.
+This document defines the high-level Entity Relationship Diagram (ERD) for KemKendra.
 
 It establishes the ownership, relationships and cardinality between all major business entities.
 
@@ -251,11 +251,11 @@ Administration
 
 # 5. Ownership Principles
 
-Master Products are owned by Synthora.
+Master Products are owned by KemKendra.
 
 Supplier Listings are owned by Companies.
 
-Scientific information belongs to Synthora.
+Scientific information belongs to KemKendra.
 
 Commercial information belongs to Companies.
 

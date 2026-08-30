@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Synthora Spring Boot Backend (Render & Production)
+# Multi-stage Dockerfile for KemKendra Spring Boot Backend (Render & Production)
 
 # Stage 1: Build stage
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
@@ -15,7 +15,7 @@ RUN mvn clean package -DskipTests -B
 # Stage 2: Extract Spring Boot layered jar
 FROM eclipse-temurin:21-jre-alpine AS extractor
 WORKDIR /app
-COPY --from=build /app/target/synthora-backend-*.jar app.jar
+COPY --from=build /app/target/kemkendra-backend-*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted || \
     java -Djarmode=layertools -jar app.jar extract --destination extracted
 
@@ -24,21 +24,21 @@ FROM eclipse-temurin:21-jre-alpine AS runner
 WORKDIR /app
 
 # Create non-root application user & group
-RUN addgroup -S synthora && \
-    adduser -S synthora -G synthora
+RUN addgroup -S kemkendra && \
+    adduser -S kemkendra -G kemkendra
 
 # Create application storage directory and assign ownership
 RUN mkdir -p /app/storage && \
-    chown -R synthora:synthora /app
+    chown -R kemkendra:kemkendra /app
 
 # Copy layered components
-COPY --from=extractor --chown=synthora:synthora /app/extracted/dependencies/ ./
-COPY --from=extractor --chown=synthora:synthora /app/extracted/spring-boot-loader/ ./
-COPY --from=extractor --chown=synthora:synthora /app/extracted/snapshot-dependencies/ ./
-COPY --from=extractor --chown=synthora:synthora /app/extracted/application/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/dependencies/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/spring-boot-loader/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/snapshot-dependencies/ ./
+COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/application/ ./
 
 # Run application as non-root user
-USER synthora:synthora
+USER kemkendra:kemkendra
 
 EXPOSE 8085
 

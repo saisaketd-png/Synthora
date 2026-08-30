@@ -1,4 +1,4 @@
-# Synthora Design System
+# KemKendra Design System
 
 Version: 1.0
 
@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # 1. Design Philosophy
 
-Synthora is an enterprise-grade B2B marketplace built exclusively for the chemical and pharmaceutical industries.
+KemKendra is an enterprise-grade B2B marketplace built exclusively for the chemical and pharmaceutical industries.
 
 The interface must communicate:
 
@@ -171,7 +171,7 @@ Primary actions should always be visually distinguishable.
 
 # 12. Forms
 
-Forms are a major part of Synthora.
+Forms are a major part of KemKendra.
 
 Requirements
 
@@ -221,7 +221,7 @@ Do not overload suggestions with unnecessary metadata.
 
 # 15. Product Pages
 
-Product pages are owned by Synthora.
+Product pages are owned by KemKendra.
 
 Requirements
 
@@ -343,7 +343,7 @@ Never create:
 - Cluttered dashboards
 - Rainbow color palettes
 
-Synthora must always look like premium enterprise software.
+KemKendra must always look like premium enterprise software.
 
 ---
 

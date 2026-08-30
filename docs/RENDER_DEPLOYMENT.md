@@ -1,10 +1,10 @@
-# Synthora Production Deployment Runbook (Render)
+# KemKendra Production Deployment Runbook (Render)
 
 ---
 
 ## 1. Overview & Architecture on Render
 
-Synthora is architected for single-instance container deployment on [Render](https://render.com) consisting of three managed components:
+KemKendra is architected for single-instance container deployment on [Render](https://render.com) consisting of three managed components:
 1. **Managed PostgreSQL Database**: Backing relational database with Flyway schema migration validation (through `V40`).
 2. **Spring Boot Backend Web Service**: Dockerized Java 21 runtime exposing REST endpoints on port `8085` with attached Persistent Disk at `/app/storage`.
 3. **Next.js Frontend Web Service**: Dockerized Node.js 20 standalone runtime serving the marketplace frontend on port `3000`.
@@ -22,20 +22,20 @@ graph LR
 ## 2. Step 1: Create Render PostgreSQL Database
 
 1. In the Render Dashboard, click **New +** → **PostgreSQL**.
-2. **Name**: `synthora-db`
-3. **Database**: `synthora`
-4. **User**: `synthora_admin`
+2. **Name**: `kemkendra-db`
+3. **Database**: `kemkendra`
+4. **User**: `kemkendra_admin`
 5. **Region**: Choose the closest region (e.g. `Frankfurt (EU Central)` or `Oregon (US West)`).
 6. **Plan**: Free or Starter.
 7. Click **Create Database**.
-8. Note the **Internal Database URL** (e.g. `postgres://synthora_admin:PASSWORD@dpg-xxxx-a:5432/synthora`).
+8. Note the **Internal Database URL** (e.g. `postgres://kemkendra_admin:PASSWORD@dpg-xxxx-a:5432/kemkendra`).
 
 ---
 
 ## 3. Step 2: Create Backend Web Service
 
 1. Click **New +** → **Web Service** → Connect your GitHub repository.
-2. **Name**: `synthora-backend`
+2. **Name**: `kemkendra-backend`
 3. **Region**: *Same region as PostgreSQL database*.
 4. **Environment**: `Docker`
 5. **Dockerfile Path**: `infrastructure/docker/Dockerfile.backend`
@@ -46,20 +46,20 @@ graph LR
 | Variable | Value | Notes |
 | :--- | :--- | :--- |
 | `SPRING_PROFILES_ACTIVE` | `prod` | Activates `application-prod.yml`. |
-| `DB_URL` | `jdbc:postgresql://dpg-xxxx-a:5432/synthora?sslmode=require` | Use Render Internal DB Host/Port. |
-| `DB_USER` | `synthora_admin` | Database username. |
+| `DB_URL` | `jdbc:postgresql://dpg-xxxx-a:5432/kemkendra?sslmode=require` | Use Render Internal DB Host/Port. |
+| `DB_USER` | `kemkendra_admin` | Database username. |
 | `DB_PASSWORD` | `YOUR_POSTGRES_PASSWORD` | Database password. |
 | `JWT_SECRET` | `YOUR_32_CHAR_CRYPTOGRAPHIC_SECRET` | Minimum 256-bit entropy. |
 | `JWT_EXPIRATION` | `86400000` | 24 Hours. |
-| `APP_BASE_URL` | `https://synthora-frontend.onrender.com` | (Update to custom domain when attached). |
-| `CORS_ALLOWED_ORIGINS` | `https://synthora-frontend.onrender.com` | (Update to custom domain when attached). |
+| `APP_BASE_URL` | `https://kemkendra-frontend.onrender.com` | (Update to custom domain when attached). |
+| `CORS_ALLOWED_ORIGINS` | `https://kemkendra-frontend.onrender.com` | (Update to custom domain when attached). |
 | `MAIL_ENABLED` | `false` | (Set to `true` when SMTP is configured). |
 | `ADMIN_BOOTSTRAP_ENABLED` | `false` | (Set `true` with `ADMIN_EMAIL`/`ADMIN_PASSWORD` on initial boot if required). |
 
 ### Attach Persistent Disk:
-1. Navigate to **Disks** under the `synthora-backend` service settings.
+1. Navigate to **Disks** under the `kemkendra-backend` service settings.
 2. Click **Add Disk**.
-3. **Name**: `synthora-storage`
+3. **Name**: `kemkendra-storage`
 4. **Mount Path**: `/app/storage`
 5. **Size**: `10 GB` (or desired volume).
 
@@ -68,7 +68,7 @@ graph LR
 ## 4. Step 3: Create Frontend Web Service
 
 1. Click **New +** → **Web Service** → Connect your GitHub repository.
-2. **Name**: `synthora-frontend`
+2. **Name**: `kemkendra-frontend`
 3. **Region**: *Same region as backend*.
 4. **Environment**: `Docker`
 5. **Dockerfile Path**: `infrastructure/docker/Dockerfile.frontend`
@@ -78,9 +78,9 @@ graph LR
 | Variable | Value | Notes |
 | :--- | :--- | :--- |
 | `NODE_ENV` | `production` | Production Next.js runtime. |
-| `NEXT_PUBLIC_API_URL` | `https://synthora-backend.onrender.com` | Public backend URL. |
-| `NEXT_PUBLIC_SITE_URL` | `https://synthora-frontend.onrender.com` | Public frontend URL. |
-| `BACKEND_API_URL` | `https://synthora-backend.onrender.com` | Server-side API endpoint. |
+| `NEXT_PUBLIC_API_URL` | `https://kemkendra-backend.onrender.com` | Public backend URL. |
+| `NEXT_PUBLIC_SITE_URL` | `https://kemkendra-frontend.onrender.com` | Public frontend URL. |
+| `BACKEND_API_URL` | `https://kemkendra-backend.onrender.com` | Server-side API endpoint. |
 
 ---
 
@@ -88,16 +88,16 @@ graph LR
 
 1. **Health Check**:
    ```bash
-   curl -I https://synthora-backend.onrender.com/actuator/health
+   curl -I https://kemkendra-backend.onrender.com/actuator/health
    # Expected: HTTP/2 200 OK
    ```
 2. **Security Headers & CSP**:
    ```bash
-   curl -I https://synthora-frontend.onrender.com/
+   curl -I https://kemkendra-frontend.onrender.com/
    # Expected: Content-Security-Policy, X-Frame-Options: DENY, Strict-Transport-Security
    ```
 3. **Registration & Login**:
-   - Register a new buyer at `https://synthora-frontend.onrender.com/register`.
+   - Register a new buyer at `https://kemkendra-frontend.onrender.com/register`.
    - Access user dashboard and update profile.
 4. **Rate Limiting**:
    - Rapidly send 12 POST requests to `/api/v1/auth/login` to confirm HTTP 429 response with `Retry-After`.
@@ -112,7 +112,7 @@ graph LR
 ### Database Recovery:
 - To restore from a pg_dump backup:
   ```powershell
-  # Using Synthora restore utility:
+  # Using KemKendra restore utility:
   $env:PGPASSWORD="YOUR_POSTGRES_PASSWORD"
-  ./scripts/backup/db-restore.ps1 -BackupFile database/backups/synthora_backup_TIMESTAMP.dump -DbHost dpg-xxxx-a.render.com -DbUser synthora_admin -DbName synthora -DbPort 5432 -SslMode require -Confirm
+  ./scripts/backup/db-restore.ps1 -BackupFile database/backups/kemkendra_backup_TIMESTAMP.dump -DbHost dpg-xxxx-a.render.com -DbUser kemkendra_admin -DbName kemkendra -DbPort 5432 -SslMode require -Confirm
   ```

@@ -1,11 +1,11 @@
-# Synthora Phase I.8.6D — Test Data Reset, Master Catalog Operations, Field-Level Chemical Verification & Deep Supplier Verification Report
+# KemKendra Phase I.8.6D — Test Data Reset, Master Catalog Operations, Field-Level Chemical Verification & Deep Supplier Verification Report
 
 ## 1. Executive Summary
 
 Phase I.8.6D successfully delivered the complete enterprise-grade administration, governance, data management, and due-diligence lifecycle across 5 major functional modules:
 
 1. **PART A — Controlled Test / Demo Data Reset System**:
-   - Exposed `POST /api/v1/admin/system/test-data-reset` guarded by `ROLE_ADMIN` and environment feature flag `synthora.test-data-reset.enabled=true`.
+   - Exposed `POST /api/v1/admin/system/test-data-reset` guarded by `ROLE_ADMIN` and environment feature flag `kemkendra.test-data-reset.enabled=true`.
    - Executed FK-safe sequential deletion of development test records (Notifications &rarr; Documents &rarr; Purchase Orders &rarr; Quotations &rarr; RFQs &rarr; Product Requests &rarr; Offering Documents/Images &rarr; Supplier Offerings &rarr; Product Master Mappings &rarr; Legacy Product Images &rarr; Legacy ProductSuppliers &rarr; Legacy Products &rarr; Master Product Images &rarr; Test Master Products).
    - Preserved core schema, Flyway migrations, and non-test user/admin accounts.
 2. **PART B — Supplier Search Result Display & Selection Fix**:
@@ -27,7 +27,7 @@ Phase I.8.6D successfully delivered the complete enterprise-grade administration
 ```
 ADMIN POST /api/v1/admin/system/test-data-reset
        ↓
-CHECK ROLE_ADMIN &synthora.test-data-reset.enabled
+CHECK ROLE_ADMIN &kemkendra.test-data-reset.enabled
        ↓
 FK-SAFE SEQUENTIAL DELETION OF TEST TRANSACTIONS & TEST CATALOG
        ↓
@@ -80,7 +80,7 @@ TRANSITION STATE MACHINE (UNDER_REVIEW -> VERIFIED) -> RECORD AUDIT ENTRY
 ## 4. Verification Checklist
 
 [x] Controlled test data reset endpoint (`POST /api/v1/admin/system/test-data-reset`) implemented  
-[x] Reset feature flag (`synthora.test-data-reset.enabled=true`) enforced  
+[x] Reset feature flag (`kemkendra.test-data-reset.enabled=true`) enforced  
 [x] FK-safe sequential deletion order respected  
 [x] Real non-test users and Flyway schema preserved  
 [x] Supplier search result card visibly renders name, code, CAS, formula, category  

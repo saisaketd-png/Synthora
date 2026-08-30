@@ -1,4 +1,4 @@
-# Synthora Phase I.8.6A — Admin Master Catalog Operations, Product Creation, Search & Governance Workflow Report
+# KemKendra Phase I.8.6A — Admin Master Catalog Operations, Product Creation, Search & Governance Workflow Report
 
 ## 1. Executive Summary & Critical P0 Fix
 
@@ -9,9 +9,9 @@ During Phase I.8.6A, a comprehensive root cause analysis was conducted on the Ad
 2. **Hardcoded Public Status Restriction**: `MasterProductSpecification` contained a hardcoded constraint `predicates.add(cb.equal(cb.upper(root.get("status")), "ACTIVE"));`, which strictly excluded `DRAFT`, `INACTIVE`, `MERGED`, or custom status criteria required for administrative governance.
 
 ### Resolution Implemented:
-- Created [`AdminMasterProductSpecification.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/AdminMasterProductSpecification.java) removing the hardcoded active-only constraint and adding multi-field searching (Name, CAS, stripped normalized CAS, Code, Formula, Description) alongside status, category, supplier ID, and supplier verification status filters.
-- Exposed dedicated endpoint `GET /api/v1/admin/catalog/master-products` on [`AdminMasterCatalogController.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/apis/AdminMasterCatalogController.java).
-- Connected frontend API client [`adminCatalogApi.ts`](file:///d:/Saisaket/Synthora/frontend/src/features/admin/api/adminCatalogApi.ts) and updated `/dashboard/admin/catalog/page.tsx` to handle debounced server-side multi-field searches with pagination and filter combinations.
+- Created [`AdminMasterProductSpecification.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/AdminMasterProductSpecification.java) removing the hardcoded active-only constraint and adding multi-field searching (Name, CAS, stripped normalized CAS, Code, Formula, Description) alongside status, category, supplier ID, and supplier verification status filters.
+- Exposed dedicated endpoint `GET /api/v1/admin/catalog/master-products` on [`AdminMasterCatalogController.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/apis/AdminMasterCatalogController.java).
+- Connected frontend API client [`adminCatalogApi.ts`](file:///d:/Saisaket/KemKendra/frontend/src/features/admin/api/adminCatalogApi.ts) and updated `/dashboard/admin/catalog/page.tsx` to handle debounced server-side multi-field searches with pagination and filter combinations.
 
 ---
 
@@ -94,7 +94,7 @@ Flyway migration `V27__admin_governance_and_supplier_verification.sql`:
 
 ## 7. Integration & Security Test Suite
 
-Authored [`AdminCatalogOperationsSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/admin/AdminCatalogOperationsSecurityTest.java) featuring **48 / 48 PASSED** tests:
+Authored [`AdminCatalogOperationsSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/admin/AdminCatalogOperationsSecurityTest.java) featuring **48 / 48 PASSED** tests:
 1. Search by name
 2. Partial name search
 3. CAS search

@@ -1,4 +1,4 @@
-# Synthora Phase 2H.3 — Authorization, Ownership & IDOR/BOLA Hardening Report
+# KemKendra Phase 2H.3 — Authorization, Ownership & IDOR/BOLA Hardening Report
 
 **Execution Date:** 2026-08-18  
 **Scope:** Server-Side Authorization, Tenant Isolation, RBAC Enforcement, IDOR/BOLA Mitigation, Principal Derivation, State Machine Security  
@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Phase 2H.3 successfully audited, validated, and hardened Synthora's server-side authorization architecture, object-level access controls (BOLA/IDOR mitigations), cross-tenant data isolation, and state machine transition guards. 
+Phase 2H.3 successfully audited, validated, and hardened KemKendra's server-side authorization architecture, object-level access controls (BOLA/IDOR mitigations), cross-tenant data isolation, and state machine transition guards. 
 
 Following the strict **Zero Client Trust** security posture:
 - **Server-Side Enforcement**: All authorization and tenancy constraints are enforced at the service and persistence layers. Client-side state, hidden UI elements, and route guards are treated purely as UX helpers.
@@ -102,7 +102,7 @@ Document access follows strict parent entity authorization checks:
 
 ## 7. Automated Test Suite Matrix (`AuthorizationIdorSecurityTest`)
 
-A dedicated security test suite ([`AuthorizationIdorSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/security/AuthorizationIdorSecurityTest.java)) was authored and executed:
+A dedicated security test suite ([`AuthorizationIdorSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/security/AuthorizationIdorSecurityTest.java)) was authored and executed:
 
 | Test # | Test Name / Scenario | Actor | Expected Result | Status |
 | :---: | :--- | :--- | :--- | :---: |
@@ -141,7 +141,7 @@ A dedicated security test suite ([`AuthorizationIdorSecurityTest.java`](file:///
 
 ```
 ========================================================================
-Synthora Build & Verification Pipeline
+KemKendra Build & Verification Pipeline
 ========================================================================
 [Backend Test Suite] : 337 Tests Run, 0 Failures, 0 Errors, 0 Skipped
 [Backend Status]     : BUILD SUCCESS (Total time: 45.794 s)

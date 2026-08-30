@@ -1,4 +1,4 @@
-# Synthora Database Standards
+# KemKendra Database Standards
 
 Version: 1.0
 
@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-This document defines the database standards used throughout Synthora.
+This document defines the database standards used throughout KemKendra.
 
 Every table, column, relationship, index and migration must comply with these standards.
 
@@ -502,7 +502,7 @@ This documentation should remain synchronized with the schema.
 
 # 27. Success Criteria
 
-The Synthora database must be
+The KemKendra database must be
 
 Consistent
 

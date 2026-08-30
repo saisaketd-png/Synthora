@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { forgotPassword } from "@/features/auth/api/auth";
 import { Mail, ArrowRight, ArrowLeft, CheckCircle2, ShieldAlert } from "lucide-react";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <SynthoraLogo
+          <KemKendraLogo
             href="/"
             size="xl"
             subtitle="Enterprise Chemical & Pharmaceutical Marketplace"

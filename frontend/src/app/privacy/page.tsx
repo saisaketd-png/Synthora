@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 import { ArrowLeft, Shield, Lock, Eye, CheckCircle2 } from "lucide-react";
 
 export const metadata = {
@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Navigation & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6">
-          <SynthoraLogo href="/" size="md" subtitle="Data Privacy & Compliance" />
+          <KemKendraLogo href="/" size="md" subtitle="Data Privacy & Compliance" />
           <Link
             href="/register"
             className="inline-flex items-center gap-2 text-xs font-semibold text-[#0052CC] hover:underline"

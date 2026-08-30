@@ -1,4 +1,4 @@
-# Synthora Production Deployment Checklist
+# KemKendra Production Deployment Checklist
 
 ---
 
@@ -17,18 +17,18 @@
 ## 2. Deployment Execution Checklist (Render)
 
 ### A. Database Service
-- [ ] Create Render Managed PostgreSQL instance `synthora-db`.
+- [ ] Create Render Managed PostgreSQL instance `kemkendra-db`.
 - [ ] Record internal connection string, user, database name, and password.
 
-### B. Backend Web Service (`synthora-backend`)
+### B. Backend Web Service (`kemkendra-backend`)
 - [ ] Connect repo and set Dockerfile path to `infrastructure/docker/Dockerfile.backend`.
 - [ ] Configure `SPRING_PROFILES_ACTIVE=prod`.
 - [ ] Inject required secrets: `DB_URL`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`.
 - [ ] Configure `APP_BASE_URL` and `CORS_ALLOWED_ORIGINS` to the frontend URL.
 - [ ] Attach Render Persistent Disk at `/app/storage` (10 GB).
-- [ ] Verify startup logs: Flyway applies `V1`–`V40` and Spring Boot reports `Started SynthoraApplication in ... seconds`.
+- [ ] Verify startup logs: Flyway applies `V1`–`V40` and Spring Boot reports `Started KemKendraApplication in ... seconds`.
 
-### C. Frontend Web Service (`synthora-frontend`)
+### C. Frontend Web Service (`kemkendra-frontend`)
 - [ ] Connect repo and set Dockerfile path to `infrastructure/docker/Dockerfile.frontend`.
 - [ ] Configure `NEXT_PUBLIC_API_URL` and `BACKEND_API_URL` to backend service URL.
 - [ ] Verify frontend build finishes and starts on port `3000`.
@@ -49,6 +49,6 @@
 
 ## 4. Future Post-Launch Milestones (Manual)
 
-- [ ] **Custom Domain**: Attach `synthora.com` and `api.synthora.com`, configure DNS CNAME records, and update `APP_BASE_URL` / `CORS_ALLOWED_ORIGINS`.
+- [ ] **Custom Domain**: Attach `kemkendra.com` and `api.kemkendra.com`, configure DNS CNAME records, and update `APP_BASE_URL` / `CORS_ALLOWED_ORIGINS`.
 - [ ] **Transactional Email (SMTP)**: Verify domain SPF/DKIM/DMARC in Resend/SendGrid, configure SMTP credentials in Render backend, and set `MAIL_ENABLED=true`.
 - [ ] **Object Storage**: Migrate `/app/storage/documents` to AWS S3 or Cloudflare R2 when multi-instance horizontal scaling is required.

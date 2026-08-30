@@ -10,9 +10,9 @@ Last Updated: August 2026
 
 # 1. Purpose
 
-The Product module defines the scientific product catalogue of Synthora.
+The Product module defines the scientific product catalogue of KemKendra.
 
-Products are owned and managed by Synthora.
+Products are owned and managed by KemKendra.
 
 Suppliers do not own products.
 
@@ -69,7 +69,7 @@ Supporting search.
 
 One chemical = One Master Product.
 
-Every Master Product belongs to Synthora.
+Every Master Product belongs to KemKendra.
 
 Suppliers cannot edit scientific information.
 
@@ -203,7 +203,7 @@ Regulatory Information (Future)
 
 Owned by:
 
-Synthora
+KemKendra
 
 Editable by:
 

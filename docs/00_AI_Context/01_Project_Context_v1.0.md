@@ -1,4 +1,4 @@
-# Synthora - Project Context
+# KemKendra - Project Context
 
 Version: 1.0
 Status: Active
@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 ## Project Name
 
-Synthora
+KemKendra
 
 ## Project Type
 
@@ -30,7 +30,7 @@ This is a procurement-focused enterprise platform.
 
 # 2. Vision
 
-Synthora aims to become the preferred sourcing platform for procurement managers, manufacturers, traders, exporters and distributors operating in the chemical and pharmaceutical industries.
+KemKendra aims to become the preferred sourcing platform for procurement managers, manufacturers, traders, exporters and distributors operating in the chemical and pharmaceutical industries.
 
 The platform focuses on trust, structured product information, verified suppliers and efficient RFQ-based procurement.
 
@@ -61,7 +61,7 @@ The architecture should remain globally scalable while the MVP focuses only on I
 
 # 4. Industry Focus
 
-Synthora currently supports:
+KemKendra currently supports:
 
 - API Intermediates
 - Pharmaceutical Intermediates
@@ -84,7 +84,7 @@ The platform intentionally excludes:
 
 # 5. Marketplace Philosophy
 
-Synthora follows a Product-First Marketplace architecture.
+KemKendra follows a Product-First Marketplace architecture.
 
 One Master Product
 
@@ -92,7 +92,7 @@ One Master Product
 
 Multiple Supplier Listings
 
-Products are owned by Synthora.
+Products are owned by KemKendra.
 
 Supplier listings are owned by supplier companies.
 
@@ -130,13 +130,13 @@ Supplier Responds
 
 ↓
 
-Conversation Continues Inside Synthora
+Conversation Continues Inside KemKendra
 
 ↓
 
 Deal Completed Offline
 
-Synthora is not involved in logistics or payment during the MVP.
+KemKendra is not involved in logistics or payment during the MVP.
 
 ---
 
@@ -168,7 +168,7 @@ Moderates and manages the marketplace.
 
 • Suppliers cannot edit scientific information.
 
-• Scientific information belongs to Synthora.
+• Scientific information belongs to KemKendra.
 
 • Commercial information belongs to suppliers.
 
@@ -178,7 +178,7 @@ Moderates and manages the marketplace.
 
 • RFQ is the primary procurement workflow.
 
-• Product pages are owned by Synthora.
+• Product pages are owned by KemKendra.
 
 • Company profile pages are owned by suppliers.
 

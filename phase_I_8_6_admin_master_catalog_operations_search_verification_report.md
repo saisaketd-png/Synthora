@@ -1,4 +1,4 @@
-# Synthora Phase I.8.6 — Combined Admin Master Catalog Operations, Search, Direct Creation, Deep Verification & Governance Report
+# KemKendra Phase I.8.6 — Combined Admin Master Catalog Operations, Search, Direct Creation, Deep Verification & Governance Report
 
 ## 1. Executive Summary & Combined Phase Execution
 
@@ -22,7 +22,7 @@ Phase I.8.6 was executed as a single, combined phase uniting:
 2. The search button in frontend form components was missing explicit form submission handling (`onSubmit={handleSearchSubmit}`), resulting in silent non-execution or page reloads without network dispatches.
 
 ### Resolution:
-- Implemented [`AdminMasterProductSpecification.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/product/AdminMasterProductSpecification.java) removing the active-only constraint and adding multi-field criteria (Name, CAS, stripped normalized CAS, Code, Formula, Description, Category, Status, Supplier, Verified Supplier).
+- Implemented [`AdminMasterProductSpecification.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/product/AdminMasterProductSpecification.java) removing the active-only constraint and adding multi-field criteria (Name, CAS, stripped normalized CAS, Code, Formula, Description, Category, Status, Supplier, Verified Supplier).
 - Exposed dedicated endpoint `GET /api/v1/admin/catalog/master-products`.
 - Configured frontend search form in `/dashboard/admin/catalog/page.tsx` with explicit `onSubmit={handleSearchSubmit}`, state transitions (`SEARCH` -> `SEARCHING...` -> `SEARCH`), and Enter key handling.
 

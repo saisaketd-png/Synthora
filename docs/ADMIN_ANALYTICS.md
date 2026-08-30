@@ -2,7 +2,7 @@
 
 ## 1. Purpose & Scope
 
-The Admin Analytics and Platform Operations subsystem provides platform administrators with real-time operational telemetry, transactional throughput metrics, conversion funnel efficiency, and active governance queues across the Synthora B2B chemical marketplace.
+The Admin Analytics and Platform Operations subsystem provides platform administrators with real-time operational telemetry, transactional throughput metrics, conversion funnel efficiency, and active governance queues across the KemKendra B2B chemical marketplace.
 
 All calculations execute against live PostgreSQL domain records using database-level aggregation queries (`COUNT`, `SUM`, `AVG`, `GROUP BY`). No mock data, placeholder metrics, or client-side assumptions are used.
 
@@ -13,9 +13,9 @@ All calculations execute against live PostgreSQL domain records using database-l
 ### Endpoint Specification
 
 - **URI**: `GET /api/v1/admin/analytics/overview`
-- **Controller**: `com.synthora.admin.analytics.api.AdminAnalyticsController`
-- **Service**: `com.synthora.admin.analytics.AdminAnalyticsService`
-- **Repository**: `com.synthora.admin.analytics.AdminAnalyticsRepository`
+- **Controller**: `com.kemkendra.admin.analytics.api.AdminAnalyticsController`
+- **Service**: `com.kemkendra.admin.analytics.AdminAnalyticsService`
+- **Repository**: `com.kemkendra.admin.analytics.AdminAnalyticsRepository`
 - **Authorization**: `@PreAuthorize("hasRole('ADMIN')")`
   - `ROLE_ADMIN`: **200 OK**
   - `ROLE_USER` / Buyer: **403 Forbidden**

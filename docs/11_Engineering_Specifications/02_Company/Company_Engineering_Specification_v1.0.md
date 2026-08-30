@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # 1. Purpose
 
-The Company module represents every business organization operating on Synthora.
+The Company module represents every business organization operating on KemKendra.
 
 A Company is the primary commercial entity within the platform.
 

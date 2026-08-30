@@ -1,4 +1,4 @@
-# Synthora Phase I.4 — Supplier Catalog & Offering Management Report
+# KemKendra Phase I.4 — Supplier Catalog & Offering Management Report
 
 **Phase**: Phase I.4 — Supplier Catalog & Offering Management (Master Catalog Supplier Workflow)  
 **Date**: August 19, 2026  

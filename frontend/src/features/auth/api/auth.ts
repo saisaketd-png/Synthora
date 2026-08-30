@@ -128,32 +128,21 @@ export async function registerSupplier(
 }
 
 const TOKEN_KEY = "kemkendra_token";
-const LEGACY_TOKEN_KEY = "synthora_token";
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  let token = localStorage.getItem(TOKEN_KEY);
-  if (!token) {
-    token = localStorage.getItem(LEGACY_TOKEN_KEY);
-    if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
-      localStorage.removeItem(LEGACY_TOKEN_KEY);
-    }
-  }
-  return token;
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 export function setAuthToken(token: string): void {
   if (typeof window !== "undefined") {
     localStorage.setItem(TOKEN_KEY, token);
-    localStorage.removeItem(LEGACY_TOKEN_KEY);
   }
 }
 
 export function removeAuthToken(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(LEGACY_TOKEN_KEY);
   }
 }
 

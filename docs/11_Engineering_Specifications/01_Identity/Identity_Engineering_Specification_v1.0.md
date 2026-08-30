@@ -8,7 +8,7 @@ Status: Active
 
 # 1. Purpose
 
-The Identity module manages authentication, account lifecycle and user identity within Synthora.
+The Identity module manages authentication, account lifecycle and user identity within KemKendra.
 
 It is responsible for identifying users but not for managing company business data.
 

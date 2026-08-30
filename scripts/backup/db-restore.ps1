@@ -1,5 +1,5 @@
 # ==============================================================================
-# Synthora B2B Marketplace - PostgreSQL Database Restore Script (PowerShell)
+# KemKendra B2B Marketplace - PostgreSQL Database Restore Script (PowerShell)
 # ==============================================================================
 # Restores a compressed, custom-format (-Fc) dump file into a target PostgreSQL database.
 # Preserves all UUIDs, schema definitions, constraints, foreign keys, indexes,

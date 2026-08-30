@@ -1,4 +1,4 @@
-# Synthora Architecture Rules
+# KemKendra Architecture Rules
 
 Version: 1.0
 
@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # 1. Purpose
 
-This document defines the permanent software architecture rules of Synthora.
+This document defines the permanent software architecture rules of KemKendra.
 
 These rules are considered the foundation of the platform.
 
@@ -20,7 +20,7 @@ Any implementation that violates these rules must be rejected unless the archite
 
 # 2. Architecture Philosophy
 
-Synthora is designed using a modular domain-driven architecture.
+KemKendra is designed using a modular domain-driven architecture.
 
 Business domains remain independent while communicating through well-defined interfaces.
 
@@ -52,7 +52,7 @@ Quotation
 
 Business Conversation
 
-Products belong to Synthora.
+Products belong to KemKendra.
 
 Supplier Listings belong to Companies.
 
@@ -172,7 +172,7 @@ Supplier quotations belong to RFQs.
 
 Negotiation happens inside the RFQ thread.
 
-Payments happen outside Synthora during the MVP.
+Payments happen outside KemKendra during the MVP.
 
 ---
 
@@ -202,7 +202,7 @@ Supplier Listings appear inside Master Products.
 
 # 11. Notification Architecture
 
-Notifications exist only to bring users back into Synthora.
+Notifications exist only to bring users back into KemKendra.
 
 Supported channels:
 
@@ -239,7 +239,7 @@ Review scores should represent the supplier's offering.
 
 # 14. SEO Architecture
 
-Synthora owns every Master Product page.
+KemKendra owns every Master Product page.
 
 Each Master Product has one canonical URL.
 
@@ -253,7 +253,7 @@ Never generate multiple product pages for identical chemicals.
 
 # 15. Data Ownership
 
-Synthora owns:
+KemKendra owns:
 
 - Master Products
 - Categories
@@ -390,11 +390,11 @@ Never change:
 
 • RFQ-based procurement
 
-• Synthora-owned product pages
+• KemKendra-owned product pages
 
 • Supplier-owned profile pages
 
-• Scientific data owned by Synthora
+• Scientific data owned by KemKendra
 
 • Commercial data owned by Suppliers
 

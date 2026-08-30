@@ -28,7 +28,7 @@ import {
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { useUnreadNotificationCount } from "@/features/notifications/hooks/useUnreadNotificationCount";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 interface NavSection {
   title?: string;
@@ -359,7 +359,7 @@ export default function DashboardLayout({
           </button>
 
           <div className="flex items-center gap-2">
-            <SynthoraLogo
+            <KemKendraLogo
               href="/"
               size="md"
               layout="horizontal"

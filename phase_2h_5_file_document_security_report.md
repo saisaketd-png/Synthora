@@ -1,4 +1,4 @@
-# Synthora Phase 2H.5 — File Upload & Document Security Hardening Report
+# KemKendra Phase 2H.5 — File Upload & Document Security Hardening Report
 
 **Execution Date:** 2026-08-18  
 **Scope:** Document Architecture Audit, Magic-Byte & File Signature Validation, MIME Spoofing Mitigation, Double Extension Defense, Filename Path Traversal Sanitization, Server-Generated Storage Keys, File Size Enforcement, IDOR/BOLA Download & Deletion Authorization, Response Header Hardening, Cache Isolation  
@@ -8,7 +8,7 @@
 
 ## A. Executive Summary
 
-Phase 2H.5 comprehensively hardened file upload, storage, download, and deletion mechanisms across the Synthora B2B marketplace. Uploaded chemical and commercial documents (COAs, MSDS, TDS, Technical Specifications, Quotation Attachments, Invoices, Purchase Orders, and Delivery Confirmations) are now strictly inspected at the binary level using **Apache Tika Core** (`2.9.2`) and deterministic **magic-byte signature validation** before any file is saved to disk or referenced in the database.
+Phase 2H.5 comprehensively hardened file upload, storage, download, and deletion mechanisms across the KemKendra B2B marketplace. Uploaded chemical and commercial documents (COAs, MSDS, TDS, Technical Specifications, Quotation Attachments, Invoices, Purchase Orders, and Delivery Confirmations) are now strictly inspected at the binary level using **Apache Tika Core** (`2.9.2`) and deterministic **magic-byte signature validation** before any file is saved to disk or referenced in the database.
 
 Client-controlled metadata (such as file extensions and browser-supplied `Content-Type` request headers) is no longer trusted. Files with mismatched binary content, double extensions (e.g. `invoice.pdf.exe`), path traversal sequences, or active executable/script signatures (`MZ`, `\x7fELF`, `\xca\xfe\xba\xbe`, `#!`, `<html`, `<script`, `<svg`) are immediately rejected with clean `HTTP 400 Bad Request` errors.
 
@@ -22,7 +22,7 @@ Client-controlled metadata (such as file extensions and browser-supplied `Conten
 
 | Architectural Question | Implementation Detail & Verification |
 | :--- | :--- |
-| **1. Physical Storage Location** | Local storage directory configured via `synthora.storage.local.root` (default `./storage/documents` in production, `./target/test-storage` in test profile). Stored outside of web server root. |
+| **1. Physical Storage Location** | Local storage directory configured via `kemkendra.storage.local.root` (default `./storage/documents` in production, `./target/test-storage` in test profile). Stored outside of web server root. |
 | **2. Storage Key Generation** | Server-generated random UUID + sanitized extension: `documents/<UUID>.<safe-extension>`. Never user-controlled. |
 | **3. Original Filename Storage** | Sanitized base filename (up to 255 chars) stored in `documents.original_file_name`. Control chars, null bytes, traversal tokens, and Windows reserved prefixes are stripped. |
 | **4. MIME Type Storage** | Canonical MIME type detected directly from content bytes (via Apache Tika and signature validator) stored in `documents.mime_type`. |
@@ -85,13 +85,13 @@ The server rejects uploads where the file extension and MIME type do not align w
 ## G. Storage Isolation
 
 - **Server-Generated Physical Identifiers**: Physical files are stored at `documents/<UUID>.<extension>` under `LocalStorageService`.
-- **Zero Client Overwrite**: The client has no ability to choose or influence the target filesystem path. Directory escape attempts outside `synthora.storage.local.root` throw immediate security exceptions.
+- **Zero Client Overwrite**: The client has no ability to choose or influence the target filesystem path. Directory escape attempts outside `kemkendra.storage.local.root` throw immediate security exceptions.
 
 ---
 
 ## H. File Size Limits
 
-- **Multipart File Limit**: `synthora.documents.max-file-size: 10485760` (10 MB).
+- **Multipart File Limit**: `kemkendra.documents.max-file-size: 10485760` (10 MB).
 - **Spring Servlet Limits**: `spring.servlet.multipart.max-file-size: 50MB` / `max-request-size: 50MB`.
 - **Validation**: Rejects empty files (`0 bytes`) and files exceeding 10 MB with clean `HTTP 400 Bad Request` messages.
 
@@ -122,7 +122,7 @@ The download endpoint `/api/v1/documents/{id}/download` attaches the following h
 
 ## K. Archive & Command Execution Security
 
-- **No Archive Extraction**: Synthora does not decompress, unpack, or execute ZIP/TAR/RAR archive files on the server.
+- **No Archive Extraction**: KemKendra does not decompress, unpack, or execute ZIP/TAR/RAR archive files on the server.
 - **No Command Execution**: Audited backend codebase confirms zero usage of `Runtime.getRuntime().exec()`, `ProcessBuilder`, or native shell invocations. Uploaded documents are treated strictly as inert binary blobs.
 
 ---
@@ -174,7 +174,7 @@ The download endpoint `/api/v1/documents/{id}/download` attaches the following h
 
 ```
 ========================================================================
-Synthora Build & Verification Pipeline
+KemKendra Build & Verification Pipeline
 ========================================================================
 [Previous Backend Test Count] : 368 tests
 [New Security Tests Added]    : 36 tests (FileSecurityTest.java)
@@ -198,19 +198,19 @@ Synthora Build & Verification Pipeline
 ## O. Modified & Added Files
 
 ### Backend Source Files Added/Modified:
-- [`backend/pom.xml`](file:///d:/Saisaket/Synthora/backend/pom.xml): Added `org.apache.tika:tika-core:2.9.2`.
-- [`com/synthora/document/FileSecurityValidator.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/FileSecurityValidator.java): **[NEW]** Enterprise file validator with magic-byte validation, MIME allowlisting, double-extension defense, traversal sanitization, and executable/script blocking.
-- [`com/synthora/document/DocumentService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/DocumentService.java): Integrated `FileSecurityValidator`, enforced safe storage keys, and returned controlled 404s when physical storage files are missing.
-- [`com/synthora/document/DocumentController.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/DocumentController.java): Attached secure headers (`Cache-Control: private, no-cache, no-store`, `Pragma: no-cache`, `X-Content-Type-Options: nosniff`, `Content-Disposition: attachment`).
+- [`backend/pom.xml`](file:///d:/Saisaket/KemKendra/backend/pom.xml): Added `org.apache.tika:tika-core:2.9.2`.
+- [`com/kemkendra/document/FileSecurityValidator.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/FileSecurityValidator.java): **[NEW]** Enterprise file validator with magic-byte validation, MIME allowlisting, double-extension defense, traversal sanitization, and executable/script blocking.
+- [`com/kemkendra/document/DocumentService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/DocumentService.java): Integrated `FileSecurityValidator`, enforced safe storage keys, and returned controlled 404s when physical storage files are missing.
+- [`com/kemkendra/document/DocumentController.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/DocumentController.java): Attached secure headers (`Cache-Control: private, no-cache, no-store`, `Pragma: no-cache`, `X-Content-Type-Options: nosniff`, `Content-Disposition: attachment`).
 
 ### Test Files Added/Modified:
-- [`com/synthora/security/FileSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/security/FileSecurityTest.java): **[NEW]** 36 comprehensive file security tests.
-- [`com/synthora/document/DocumentApiTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/document/DocumentApiTest.java): Updated mock files with valid PDF byte signatures.
-- [`com/synthora/document/ProductDocumentSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/document/ProductDocumentSecurityTest.java): Updated mock files with valid PDF byte signatures.
-- [`com/synthora/document/RfqQuotationDocumentSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/document/RfqQuotationDocumentSecurityTest.java): Updated mock files with valid PDF byte signatures.
-- [`com/synthora/document/PurchaseOrderShipmentDocumentSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/document/PurchaseOrderShipmentDocumentSecurityTest.java): Updated mock files with valid PDF byte signatures.
-- [`com/synthora/notification/NotificationEmailIntegrationTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/notification/NotificationEmailIntegrationTest.java): Updated mock files with valid PDF byte signatures.
-- [`com/synthora/notification/NotificationEventIntegrationTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/notification/NotificationEventIntegrationTest.java): Updated mock files with valid PDF byte signatures.
+- [`com/kemkendra/security/FileSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/security/FileSecurityTest.java): **[NEW]** 36 comprehensive file security tests.
+- [`com/kemkendra/document/DocumentApiTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/document/DocumentApiTest.java): Updated mock files with valid PDF byte signatures.
+- [`com/kemkendra/document/ProductDocumentSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/document/ProductDocumentSecurityTest.java): Updated mock files with valid PDF byte signatures.
+- [`com/kemkendra/document/RfqQuotationDocumentSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/document/RfqQuotationDocumentSecurityTest.java): Updated mock files with valid PDF byte signatures.
+- [`com/kemkendra/document/PurchaseOrderShipmentDocumentSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/document/PurchaseOrderShipmentDocumentSecurityTest.java): Updated mock files with valid PDF byte signatures.
+- [`com/kemkendra/notification/NotificationEmailIntegrationTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/notification/NotificationEmailIntegrationTest.java): Updated mock files with valid PDF byte signatures.
+- [`com/kemkendra/notification/NotificationEventIntegrationTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/notification/NotificationEventIntegrationTest.java): Updated mock files with valid PDF byte signatures.
 
 ---
 

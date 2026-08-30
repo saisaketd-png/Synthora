@@ -23,7 +23,7 @@ import {
   Clock,
   CheckCircle2,
 } from "lucide-react";
-import { StatusBadge } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge } from "@/shared/components/ui/KemkendraUI";
 
 export default function SupplierDashboardOverviewPage() {
   const [rfqs, setRfqs] = useState<SupplierRfq[]>([]);

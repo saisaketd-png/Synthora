@@ -1,4 +1,4 @@
-# Synthora Database Blueprint
+# KemKendra Database Blueprint
 
 Version: 1.0
 
@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-This document defines the overall database architecture of Synthora.
+This document defines the overall database architecture of KemKendra.
 
 It establishes the principles, ownership boundaries, entity relationships and design philosophy before detailed table design begins.
 
@@ -25,7 +25,7 @@ This blueprint serves as the foundation for:
 
 # Database Philosophy
 
-Synthora uses a normalized relational database.
+KemKendra uses a normalized relational database.
 
 Primary goals:
 
@@ -144,7 +144,7 @@ RFQs
 
 Reviews
 
-Master Products remain independent and owned by Synthora.
+Master Products remain independent and owned by KemKendra.
 
 ---
 

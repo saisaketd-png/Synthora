@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-The Review domain manages buyer feedback and supplier reputation across the Synthora marketplace.
+The Review domain manages buyer feedback and supplier reputation across the KemKendra marketplace.
 
 Reviews help buyers evaluate suppliers based on product quality, communication, delivery experience and overall satisfaction.
 

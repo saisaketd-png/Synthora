@@ -1,4 +1,4 @@
-# Synthora Phase 2H.2 — Authentication & Session Hardening Report
+# KemKendra Phase 2H.2 — Authentication & Session Hardening Report
 
 **Phase Status**: Completed  
 **Executed By**: DeepMind Antigravity Pair Programmer  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-In **Phase 2H.2**, we executed the targeted security hardening of Synthora's authentication layer, session management, and access controls as identified in the forensic audit (Phase 2H.1).
+In **Phase 2H.2**, we executed the targeted security hardening of KemKendra's authentication layer, session management, and access controls as identified in the forensic audit (Phase 2H.1).
 
 All enhancements adhere strictly to **Zero Client Trust** architectural principles without introducing unmanaged external dependencies. The core improvements include:
 1. **Database-Backed Active Account Validation on Every Request**: Rejecting requests from soft-deleted, suspended, or non-existent accounts immediately—even if their JWT signature is cryptographically valid.
@@ -58,7 +58,7 @@ All 309 backend unit, integration, and security tests pass cleanly (`mvn clean t
 ### E. Frontend Session Handling & UI Feedback
 - **`authenticatedFetch.ts`**:
   - Checks response status for `401`.
-  - On 401: Clears `localStorage.getItem("synthora_token")`, dispatches `auth-changed` event, and triggers a single-flight redirect to `/login?session_expired=true&redirect=<path>`.
+  - On 401: Clears `localStorage.getItem("kemkendra_token")`, dispatches `auth-changed` event, and triggers a single-flight redirect to `/login?session_expired=true&redirect=<path>`.
 - **`app/login/page.tsx`**:
   - Detects `session_expired=true` URL search parameter.
   - Displays a clean amber alert: *"Your session has expired. Please sign in again."*

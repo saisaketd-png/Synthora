@@ -1,4 +1,4 @@
-# Synthora Phase 2H.1 — Security Forensic Audit Report
+# KemKendra Phase 2H.1 — Security Forensic Audit Report
 
 **Date of Audit:** 2026-08-18  
 **Audit Scope:** Full-Stack Architecture (Spring Boot Backend, Next.js Frontend, PostgreSQL, Storage, Authentication & RBAC)  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-A comprehensive security forensic audit of the Synthora B2B Marketplace codebase was performed. The evaluation encompassed authentication, session management, RBAC and authorization boundaries, IDOR/BOLA protections, business logic state machines, REST APIs, file upload/download pipelines, CORS/CSRF configurations, security headers, frontend route guards, error handling, database security, secrets management, rate limiting, audit logging, and dependency posture.
+A comprehensive security forensic audit of the KemKendra B2B Marketplace codebase was performed. The evaluation encompassed authentication, session management, RBAC and authorization boundaries, IDOR/BOLA protections, business logic state machines, REST APIs, file upload/download pipelines, CORS/CSRF configurations, security headers, frontend route guards, error handling, database security, secrets management, rate limiting, audit logging, and dependency posture.
 
 ### Overall Posture Assessment: **MEDIUM RISK (Production-Hardening Phase)**
 
@@ -21,7 +21,7 @@ A comprehensive security forensic audit of the Synthora B2B Marketplace codebase
 
 **Key Vulnerabilities and Security Gaps Requiring Remediation:**
 1. **Stateless JWT De-synchronization with User Lifecycle (HIGH):** `JwtAuthenticationFilter` validates token signatures purely offline without checking whether the user account has been suspended (`UserStatus.SUSPENDED`) or soft-deleted (`deleted_at != null`). A revoked or suspended user retains active API access until the 24-hour token expires.
-2. **Client-Accessible Token Storage in `localStorage` (MEDIUM-HIGH):** Authentication tokens (`synthora_token`) are stored in browser `localStorage`, rendering them accessible to JavaScript and vulnerable to token exfiltration if an XSS vulnerability occurs.
+2. **Client-Accessible Token Storage in `localStorage` (MEDIUM-HIGH):** Authentication tokens (`kemkendra_token`) are stored in browser `localStorage`, rendering them accessible to JavaScript and vulnerable to token exfiltration if an XSS vulnerability occurs.
 3. **File MIME-Type Trust & Missing Magic-Byte Validation (MEDIUM-HIGH):** `DocumentService` validates file types based on the client-supplied HTTP `Content-Type` header and file extension, without inspecting the file magic bytes (file signature).
 4. **Missing Production Security Headers & Overexposed Health Actuator (MEDIUM):** HTTP security headers (`Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`) are absent in `SecurityConfig`. Furthermore, `management.endpoint.health.show-details: always` is configured, leaking database and infrastructure details unauthenticated.
 5. **Absence of API Rate Limiting (MEDIUM):** Critical endpoints such as `/api/v1/auth/login`, `/api/v1/auth/register`, and `/api/v1/documents` lack rate limiting or brute-force throttling mechanisms.
@@ -35,7 +35,7 @@ A comprehensive security forensic audit of the Synthora B2B Marketplace codebase
 +-----------------------------------------------------------------------------------+
 |                                 CLIENT TIER                                       |
 |  Next.js 16.3.0 App Router / React 19.2.8 / TypeScript 5 / Tailwind CSS v4        |
-|  - Token Storage: localStorage ("synthora_token")                                  |
+|  - Token Storage: localStorage ("kemkendra_token")                                  |
 |  - Auth Client: authenticatedFetch / getAuthUser() / logout()                     |
 |  - Route Guards: DashboardLayout client-side redirection                          |
 +----------------------------------------+------------------------------------------+
@@ -81,21 +81,21 @@ A comprehensive security forensic audit of the Synthora B2B Marketplace codebase
 ## 3. Authentication Security Audit
 
 ### 3.1 Registration Flow (`UserService.register`)
-- **Location:** [`backend/src/main/java/com/synthora/identity/service/UserService.java:34-57`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/identity/service/UserService.java#L34-L57)
-- **Input Validation:** Enforces `@NotBlank` and `@Email` on email, `@Size(min = 8)` on password ([`RegisterRequest.java:18-20`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/identity/dto/RegisterRequest.java#L18-L20)).
+- **Location:** [`backend/src/main/java/com/kemkendra/identity/service/UserService.java:34-57`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/identity/service/UserService.java#L34-L57)
+- **Input Validation:** Enforces `@NotBlank` and `@Email` on email, `@Size(min = 8)` on password ([`RegisterRequest.java:18-20`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/identity/dto/RegisterRequest.java#L18-L20)).
 - **Password Hashing:** Hashes passwords via `BCryptPasswordEncoder` (default 10 rounds). Plaintext passwords are never persisted.
 - **Account Defaults:** Newly registered accounts are assigned `UserRole.USER` and `UserStatus.ACTIVE` by default.
 - **Enumeration Risk:** Returns `"Email already registered"` with HTTP 400 when an email already exists. While typical in B2B systems, it allows unauthenticated email enumeration.
 - **Missing Controls:** No email verification/activation loop (e.g. email confirmation token) and no password complexity checks (uppercase, lowercase, digits, symbols).
 
 ### 3.2 Login Flow (`UserService.login`)
-- **Location:** [`backend/src/main/java/com/synthora/identity/service/UserService.java:59-77`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/identity/service/UserService.java#L59-L77)
+- **Location:** [`backend/src/main/java/com/kemkendra/identity/service/UserService.java:59-77`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/identity/service/UserService.java#L59-L77)
 - **Credential Verification:** Uses `passwordEncoder.matches(request.password(), user.getPasswordHash())`.
 - **Lifecycle Checks:** Correctly verifies `user.getDeletedAt() == null` and `user.getStatus() != UserStatus.SUSPENDED` prior to issuing a JWT.
 - **Failure Message:** Throws generic `"Invalid email or password"` for both missing email and invalid password, preventing timing/response discrepancy during login verification.
 
 ### 3.3 JWT Generation & Signing (`JwtService`)
-- **Location:** [`backend/src/main/java/com/synthora/security/JwtService.java:27-36`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/JwtService.java#L27-L36)
+- **Location:** [`backend/src/main/java/com/kemkendra/security/JwtService.java:27-36`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/JwtService.java#L27-L36)
 - **Algorithm:** `SignatureAlgorithm.HS256` using HMAC-SHA key generated from `jwtSecret.getBytes()`.
 - **Token Claims:**
   - `sub`: `user.getEmail()`
@@ -110,18 +110,18 @@ A comprehensive security forensic audit of the Synthora B2B Marketplace codebase
 ## 4. JWT & Session Security Audit
 
 ### 4.1 Token Storage & Client Exposure
-- **Storage Location:** `localStorage` (`synthora_token`).
+- **Storage Location:** `localStorage` (`kemkendra_token`).
 - **XSS Exposure:** HIGH. Because `localStorage` is accessible to browser JavaScript, any client-side cross-site scripting flaw would allow complete session theft.
 - **Recommendation:** In Phase 2H.2, evaluate transition to `HttpOnly`, `Secure`, `SameSite=Lax/Strict` session cookies with CSRF defense.
 
 ### 4.2 Token Validation Filter (`JwtAuthenticationFilter`)
-- **Location:** [`backend/src/main/java/com/synthora/security/JwtAuthenticationFilter.java:27-57`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/JwtAuthenticationFilter.java#L27-L57)
+- **Location:** [`backend/src/main/java/com/kemkendra/security/JwtAuthenticationFilter.java:27-57`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/JwtAuthenticationFilter.java#L27-L57)
 - **Validation Logic:** Parses the token using JJWT `Jwts.parser().verifyWith(key).build().parseSignedClaims(token)`.
 - **CRITICAL FLAW — Disconnected User State:** Once a JWT is signed, `JwtAuthenticationFilter` creates a Spring Security `UsernamePasswordAuthenticationToken` using only the claims (`sub` and `role`). It does **not** check whether the user has been deactivated (`deletedAt != null`) or suspended (`UserStatus.SUSPENDED`) in the database.
 - **Impact:** An administrator can suspend or delete a malicious or compromised user in `AdminUserController`, but that user remains fully authorized to invoke APIs until their 24-hour JWT expires.
 
 ### 4.3 Invalidation & Logout
-- **Logout:** Handled purely on the frontend via `localStorage.removeItem("synthora_token")`.
+- **Logout:** Handled purely on the frontend via `localStorage.removeItem("kemkendra_token")`.
 - **Server-Side Revocation:** No token revocation, denylist, or version tracking (`tokenVersion` / `iat` invalidation) exists on the backend.
 
 ---
@@ -129,7 +129,7 @@ A comprehensive security forensic audit of the Synthora B2B Marketplace codebase
 ## 5. Authorization & RBAC Audit
 
 ### 5.1 Role Hierarchy & Granted Authorities
-- Roles: `USER`, `SUPPLIER`, `ADMIN` ([`UserRole.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/identity/UserRole.java)).
+- Roles: `USER`, `SUPPLIER`, `ADMIN` ([`UserRole.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/identity/UserRole.java)).
 - In `JwtAuthenticationFilter.java:50`, the authority is mapped to `ROLE_` + `role` (e.g. `ROLE_USER`, `ROLE_SUPPLIER`, `ROLE_ADMIN`).
 
 ### 5.2 Endpoint Authorization Breakdown
@@ -179,12 +179,12 @@ Each resource endpoint was audited against unauthorized cross-tenant object acce
 ## 7. Business Logic Security
 
 ### 7.1 RFQ State Transitions
-- States: `PENDING`, `CONTACTED`, `QUOTED`, `ACCEPTED`, `REJECTED`, `CLOSED`, `CANCELLED` ([`RfqStatus.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/RfqStatus.java)).
+- States: `PENDING`, `CONTACTED`, `QUOTED`, `ACCEPTED`, `REJECTED`, `CLOSED`, `CANCELLED` ([`RfqStatus.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/RfqStatus.java)).
 - `submitQuotation` validates that RFQ is not in terminal states (`ACCEPTED`, `REJECTED`, `CLOSED`, `CANCELLED`).
 - `acceptQuotation` and `rejectQuotation` require `status == QUOTED` and strictly enforce acceptance of only the latest quotation version (`maxVersion`).
 
 ### 7.2 Purchase Order State Transitions
-- States: `PLACED`, `CONFIRMED`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED` ([`OrderStatus.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/order/OrderStatus.java)).
+- States: `PLACED`, `CONFIRMED`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED` ([`OrderStatus.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/order/OrderStatus.java)).
 - Order creation requires `rfq.getStatus() == RfqStatus.ACCEPTED` and prevents duplicate PO issuance via `existsByRfqId(rfq.getId())`.
 - Total amount is calculated server-side from `rfq.getQuantity().multiply(quotation.getUnitPrice())` — client cannot tamper with pricing.
 - State transitions are strictly progressive: `confirm` requires `PLACED`, `process` requires `CONFIRMED`, `ship` requires `PROCESSING`, `deliver` requires `SHIPPED`.
@@ -195,8 +195,8 @@ Each resource endpoint was audited against unauthorized cross-tenant object acce
 ## 8. File Upload & Storage Security Audit
 
 ### 8.1 Inspection of `DocumentService` & `LocalStorageService`
-- **Location:** [`backend/src/main/java/com/synthora/document/DocumentService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/DocumentService.java)
-- **Max File Size:** Configured to 10 MB (`synthora.documents.max-file-size: 10485760`).
+- **Location:** [`backend/src/main/java/com/kemkendra/document/DocumentService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/DocumentService.java)
+- **Max File Size:** Configured to 10 MB (`kemkendra.documents.max-file-size: 10485760`).
 - **Filename Sanitization:** `normalizeFileName()` strips path components, control characters, and truncates length to 255 chars.
 - **Physical Key Generation:** `"documents/" + UUID.randomUUID().toString() + extension`.
 - **Path Traversal Defense:** `LocalStorageService.resolveSafePath(key)` enforces `targetPath.startsWith(this.rootLocation)`.
@@ -210,7 +210,7 @@ Each resource endpoint was audited against unauthorized cross-tenant object acce
 ## 9. CORS, CSRF, and HTTP Security
 
 ### 9.1 CORS Configuration
-- **Location:** [`backend/src/main/java/com/synthora/config/SecurityConfig.java:37-61`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/config/SecurityConfig.java#L37-L61)
+- **Location:** [`backend/src/main/java/com/kemkendra/config/SecurityConfig.java:37-61`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/config/SecurityConfig.java#L37-L61)
 - Allowed Origins: `List.of("http://localhost:3000")`.
 - Allowed Methods: `GET, POST, PUT, DELETE, OPTIONS`.
 - Allowed Headers: `*`.
@@ -257,7 +257,7 @@ Inspection of `SecurityConfig.java` reveals that Spring Security standard respon
 ## 12. Error Handling & Information Leakage
 
 ### 12.1 Backend Exception Handler (`GlobalExceptionHandler`)
-- **Location:** [`backend/src/main/java/com/synthora/common/GlobalExceptionHandler.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/common/GlobalExceptionHandler.java)
+- **Location:** [`backend/src/main/java/com/kemkendra/common/GlobalExceptionHandler.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/common/GlobalExceptionHandler.java)
 - Handled Exceptions:
   - `ResourceNotFoundException` -> HTTP 404 `{"error": "..."}`
   - `IllegalArgumentException` -> HTTP 400 `{"error": "..."}`
@@ -267,7 +267,7 @@ Inspection of `SecurityConfig.java` reveals that Spring Security standard respon
 - **Security Gap:** Missing a global fallback `@ExceptionHandler(Exception.class)` for uncaught runtime exceptions (e.g. `NullPointerException`, `DataIntegrityViolationException`). Uncaught exceptions will return Spring Boot default error attributes which may leak internal package structure or SQL error details.
 
 ### 12.2 Actuator Information Exposure
-- In [`application.yml:48`](file:///d:/Saisaket/Synthora/backend/src/main/resources/application.yml#L48):
+- In [`application.yml:48`](file:///d:/Saisaket/KemKendra/backend/src/main/resources/application.yml#L48):
   ```yaml
   management:
     endpoint:
@@ -292,7 +292,7 @@ Inspection of `SecurityConfig.java` reveals that Spring Security standard respon
 
 - **Dev Profile (`application-dev.yml`):**
   - Database password configured with development default.
-  - JWT secret configured with development fallback: `${JWT_SECRET:SynthoraDevSecretKeyForJwtSigning2026!}`.
+  - JWT secret configured with development fallback: `${JWT_SECRET:KemKendraDevSecretKeyForJwtSigning2026!}`.
 - **Production Profile (`application-prod.yml`):**
   - Properly parameterizes `${DB_URL}`, `${DB_USER}`, `${DB_PASSWORD}`, and `${JWT_SECRET}`.
   - No production credentials hardcoded.
@@ -325,7 +325,7 @@ Inspection of `SecurityConfig.java` reveals that Spring Security standard respon
 ## 17. Audit Logging Forensic Review
 
 - **Table:** `audit_logs` (Flyway `V16__create_audit_logs_table.sql`).
-- **Service:** [`com.synthora.admin.audit.AuditService`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/admin/audit/AuditService.java).
+- **Service:** [`com.kemkendra.admin.audit.AuditService`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/admin/audit/AuditService.java).
 - **Coverage:** Intercepts administrative mutations:
   - User status/role updates & soft deletes
   - Supplier verification & export-readiness toggles
@@ -396,22 +396,22 @@ PRIVATE ROUTES (Authenticated / Role-Restricted / Non-Indexable):
 
 | ID | Severity | Area | Finding | Evidence | Impact | Recommended Fix |
 |---|---|---|---|---|---|---|
-| **SEC-01** | **HIGH** | Authentication | JWT filter does not verify account status (active/suspended/deleted) against database | [`JwtAuthenticationFilter.java:41-55`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/JwtAuthenticationFilter.java#L41-L55) | Suspended or deleted users retain API access until token expiration (24h) | Query DB or implement token revocation check in filter |
-| **SEC-02** | **MEDIUM-HIGH** | Session | Auth token stored in browser `localStorage` | [`auth.ts:49`](file:///d:/Saisaket/Synthora/frontend/src/features/auth/api/auth.ts#L49) | Vulnerable to token exfiltration if XSS occurs | Migrate to `HttpOnly`, `Secure`, `SameSite` cookies (Phase 2H.2) |
-| **SEC-03** | **MEDIUM-HIGH** | File Upload | Document upload lacks magic-byte validation | [`DocumentService.java:210-222`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/DocumentService.java#L210-L222) | Malicious files disguised with spoofed MIME headers could be uploaded | Implement Apache Tika / magic byte inspection (Phase 2H.4) |
-| **SEC-04** | **MEDIUM** | API Security | Actuator health details exposed publicly (`show-details: always`) | [`application.yml:48`](file:///d:/Saisaket/Synthora/backend/src/main/resources/application.yml#L48) | Leaks database connection and internal subsystem status | Change to `when-authorized` or `never` for public users |
-| **SEC-05** | **MEDIUM** | Security Headers | Standard HTTP security headers missing from Spring Security chain | [`SecurityConfig.java:64-158`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/config/SecurityConfig.java#L64-L158) | Missing clickjacking (X-Frame-Options), MIME-sniffing, and CSP protections | Configure explicit headers block in `SecurityFilterChain` |
+| **SEC-01** | **HIGH** | Authentication | JWT filter does not verify account status (active/suspended/deleted) against database | [`JwtAuthenticationFilter.java:41-55`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/JwtAuthenticationFilter.java#L41-L55) | Suspended or deleted users retain API access until token expiration (24h) | Query DB or implement token revocation check in filter |
+| **SEC-02** | **MEDIUM-HIGH** | Session | Auth token stored in browser `localStorage` | [`auth.ts:49`](file:///d:/Saisaket/KemKendra/frontend/src/features/auth/api/auth.ts#L49) | Vulnerable to token exfiltration if XSS occurs | Migrate to `HttpOnly`, `Secure`, `SameSite` cookies (Phase 2H.2) |
+| **SEC-03** | **MEDIUM-HIGH** | File Upload | Document upload lacks magic-byte validation | [`DocumentService.java:210-222`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/DocumentService.java#L210-L222) | Malicious files disguised with spoofed MIME headers could be uploaded | Implement Apache Tika / magic byte inspection (Phase 2H.4) |
+| **SEC-04** | **MEDIUM** | API Security | Actuator health details exposed publicly (`show-details: always`) | [`application.yml:48`](file:///d:/Saisaket/KemKendra/backend/src/main/resources/application.yml#L48) | Leaks database connection and internal subsystem status | Change to `when-authorized` or `never` for public users |
+| **SEC-05** | **MEDIUM** | Security Headers | Standard HTTP security headers missing from Spring Security chain | [`SecurityConfig.java:64-158`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/config/SecurityConfig.java#L64-L158) | Missing clickjacking (X-Frame-Options), MIME-sniffing, and CSP protections | Configure explicit headers block in `SecurityFilterChain` |
 | **SEC-06** | **MEDIUM** | Abuse Protection | No rate limiting on authentication or document upload endpoints | Entire API surface | Vulnerable to brute-force credential stuffing and storage exhaustion | Introduce Bucket4j / rate-limiting filter on auth & upload |
-| **SEC-07** | **MEDIUM-LOW** | Error Handling | Missing global fallback exception handler in backend | [`GlobalExceptionHandler.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/common/GlobalExceptionHandler.java) | Unhandled runtime errors may leak stack traces or internal exception classes | Add generic `@ExceptionHandler(Exception.class)` |
-| **SEC-08** | **MEDIUM-LOW** | Frontend Auth | `authenticatedFetch` does not handle HTTP 401 responses | [`authenticatedFetch.ts:4-28`](file:///d:/Saisaket/Synthora/frontend/src/features/auth/api/authenticatedFetch.ts#L4-L28) | Stale UI remains active when token expires or is rejected | Automatically clear storage and redirect on 401 |
-| **SEC-09** | **LOW** | CORS | CORS allowed origin hardcoded to `localhost:3000` | [`SecurityConfig.java:42`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/config/SecurityConfig.java#L42) | Hinders multi-environment deployment flexibility | Make CORS allowed origins configurable via properties |
-| **SEC-10** | **INFORMATIONAL** | JWT Claims | JWT subject uses mutable `email` instead of immutable `user.id` | [`JwtService.java:30`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/JwtService.java#L30) | Email updates break or desynchronize JWT identity | Use user UUID as `sub` and include `email` as a claim |
+| **SEC-07** | **MEDIUM-LOW** | Error Handling | Missing global fallback exception handler in backend | [`GlobalExceptionHandler.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/common/GlobalExceptionHandler.java) | Unhandled runtime errors may leak stack traces or internal exception classes | Add generic `@ExceptionHandler(Exception.class)` |
+| **SEC-08** | **MEDIUM-LOW** | Frontend Auth | `authenticatedFetch` does not handle HTTP 401 responses | [`authenticatedFetch.ts:4-28`](file:///d:/Saisaket/KemKendra/frontend/src/features/auth/api/authenticatedFetch.ts#L4-L28) | Stale UI remains active when token expires or is rejected | Automatically clear storage and redirect on 401 |
+| **SEC-09** | **LOW** | CORS | CORS allowed origin hardcoded to `localhost:3000` | [`SecurityConfig.java:42`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/config/SecurityConfig.java#L42) | Hinders multi-environment deployment flexibility | Make CORS allowed origins configurable via properties |
+| **SEC-10** | **INFORMATIONAL** | JWT Claims | JWT subject uses mutable `email` instead of immutable `user.id` | [`JwtService.java:30`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/JwtService.java#L30) | Email updates break or desynchronize JWT identity | Use user UUID as `sub` and include `email` as a claim |
 
 ---
 
 ## 21. Immediate Fixes Required Before Staging
 
-Before deploying Synthora to any public staging environment, the following baseline hardening steps must be executed:
+Before deploying KemKendra to any public staging environment, the following baseline hardening steps must be executed:
 1. **Sanitize Actuator Health Details:** Change `management.endpoint.health.show-details` to `never` or restrict access to administrators.
 2. **Add Missing Security Headers:** Add `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and basic CSP to `SecurityConfig`.
 3. **Add Global Fallback Error Handler:** Ensure all unhandled backend exceptions return sanitized HTTP 500 JSON without stack traces.
@@ -493,12 +493,12 @@ Before deploying Synthora to any public staging environment, the following basel
 
 ## 23. Final Security Posture Summary
 
-Synthora demonstrates strong foundational security engineering:
+KemKendra demonstrates strong foundational security engineering:
 - **Zero Client Trust** is maintained across all transactional domains (RFQ, Quotation, PO, Seller Offering).
 - **IDOR / BOLA** defenses are structurally sound through server-side ownership scoping.
 - **Administrative Governance** is auditable, role-restricted, and immutable.
 
-Addressing the findings identified in this audit—specifically active account validation in the JWT filter, magic-byte upload validation, rate limiting, security headers, and session storage hardening—will elevate Synthora to full enterprise-grade commercial readiness.
+Addressing the findings identified in this audit—specifically active account validation in the JWT filter, magic-byte upload validation, rate limiting, security headers, and session storage hardening—will elevate KemKendra to full enterprise-grade commercial readiness.
 
 ---
 *Report completed under Phase 2H.1. No modifications were made to application code or database schema during this phase.*

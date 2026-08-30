@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Synthora B2B Marketplace - PostgreSQL Backup Script
+# KemKendra B2B Marketplace - PostgreSQL Backup Script
 # ==============================================================================
 # Creates a compressed, custom-format (-Fc) logical dump of the PostgreSQL database.
 # Preserves all UUIDs, schema definitions, constraints, foreign keys, indexes,
@@ -58,7 +58,7 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_FILE="${OUTPUT_DIR}/synthora_backup_${TIMESTAMP}.dump"
 
 echo "================================================================="
-echo " Starting Synthora Database Backup"
+echo " Starting KemKendra Database Backup"
 echo " Destination: ${BACKUP_FILE}"
 echo " Timestamp:   $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
 echo " Format:      Custom Binary Archive (-Fc, compressed)"

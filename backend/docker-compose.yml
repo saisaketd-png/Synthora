@@ -1,45 +1,45 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: synthora-postgres
+    container_name: kemkendra-postgres
     restart: always
     environment:
-      POSTGRES_USER: synthora_admin
+      POSTGRES_USER: kemkendra_admin
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: synthora
+      POSTGRES_DB: kemkendra
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - synthora-network
+      - kemkendra-network
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: synthora-pgadmin
+    container_name: kemkendra-pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@synthora.com
+      PGADMIN_DEFAULT_EMAIL: admin@kemkendra.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
     depends_on:
       - postgres
     networks:
-      - synthora-network
+      - kemkendra-network
 
   backend:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: synthora-backend
+    container_name: kemkendra-backend
     restart: always
     depends_on:
       - postgres
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/synthora
-      SPRING_DATASOURCE_USERNAME: synthora_admin
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kemkendra
+      SPRING_DATASOURCE_USERNAME: kemkendra_admin
       SPRING_DATASOURCE_PASSWORD: postgres
       JWT_SECRET: ThisIsAVeryLongSecretKeyForJwtSigning123456789
       JWT_EXPIRATION: 86400000
@@ -47,11 +47,11 @@ services:
     ports:
       - "8085:8085"
     networks:
-      - synthora-network
+      - kemkendra-network
 
 volumes:
   postgres_data:
 
 networks:
-  synthora-network:
+  kemkendra-network:
     driver: bridge

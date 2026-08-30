@@ -1,12 +1,12 @@
-# Synthora — Professional Supplier Verification Center Architecture
+# KemKendra — Professional Supplier Verification Center Architecture
 
-This document specifies the architecture, compliance lifecycle, domain model, security controls, and operational workflows for the **Synthora B2B Chemical Marketplace Supplier Verification Center** (Phase 1.9).
+This document specifies the architecture, compliance lifecycle, domain model, security controls, and operational workflows for the **KemKendra B2B Chemical Marketplace Supplier Verification Center** (Phase 1.9).
 
 ---
 
 ## 1. Architecture & Domain Model Overview
 
-Supplier verification in Synthora provides evidence-based corporate identity verification, tax identity validation, authorized representative authentication, and commercial compliance assurance before suppliers are authorized to participate in enterprise chemical cataloging and transaction workflows.
+Supplier verification in KemKendra provides evidence-based corporate identity verification, tax identity validation, authorized representative authentication, and commercial compliance assurance before suppliers are authorized to participate in enterprise chemical cataloging and transaction workflows.
 
 ### Entity & Schema Mapping Matrix
 

@@ -13,10 +13,10 @@ spring:
     enabled: false
 
 jwt:
-  secret: ${JWT_SECRET:SynthoraDevSecretKeyForJwtSigning2026!}
+  secret: ${JWT_SECRET:KemKendraDevSecretKeyForJwtSigning2026!}
   expiration: 86400000
 
-synthora:
+kemkendra:
   storage:
     local:
       root: ./target/test-storage

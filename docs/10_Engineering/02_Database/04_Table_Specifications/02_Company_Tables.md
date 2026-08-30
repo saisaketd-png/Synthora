@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-The Company domain manages all business organizations operating on Synthora.
+The Company domain manages all business organizations operating on KemKendra.
 
 Companies represent legal business entities.
 
@@ -100,7 +100,7 @@ COMPANY ||--|| COMPANY_SUBSCRIPTION : owns
 
 ## Purpose
 
-Represents a registered business organization on Synthora.
+Represents a registered business organization on KemKendra.
 
 Every supplier and buyer organization is represented as a Company.
 

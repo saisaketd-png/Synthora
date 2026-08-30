@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Synthora B2B Marketplace - PostgreSQL Database Restore Script
+# KemKendra B2B Marketplace - PostgreSQL Database Restore Script
 # ==============================================================================
 # Restores a compressed, custom-format (-Fc) dump file into a target PostgreSQL database.
 # Preserves all UUIDs, schema definitions, constraints, foreign keys, indexes,

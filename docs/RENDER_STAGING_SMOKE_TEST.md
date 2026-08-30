@@ -1,4 +1,4 @@
-# Synthora Render Staging Deployment & Cloud Smoke Testing Guide
+# KemKendra Render Staging Deployment & Cloud Smoke Testing Guide
 
 ---
 
@@ -43,9 +43,9 @@ The initial cloud staging deployment on Render utilizes a dedicated, three-tier 
 
 1. In the [Render Dashboard](https://dashboard.render.com), click **New +** → **PostgreSQL**.
 2. **Configuration**:
-   - **Name**: `synthora-db`
-   - **Database**: `synthora`
-   - **User**: `synthora_user`
+   - **Name**: `kemkendra-db`
+   - **Database**: `kemkendra`
+   - **User**: `kemkendra_user`
    - **Region**: Choose closest to your target audience (e.g., `Frankfurt (EU Central)` or `Oregon (US West)`). Keep backend and frontend in the **same region**.
    - **PostgreSQL Version**: `16`
 3. Click **Create Database**.
@@ -55,19 +55,19 @@ The initial cloud staging deployment on Render utilizes a dedicated, three-tier 
 
 ### JDBC URL Format Requirement
 Render displays connection URLs in the standard URI format:
-`postgresql://synthora_user:PASSWORD@dpg-xxxx.render.com/synthora`
+`postgresql://kemkendra_user:PASSWORD@dpg-xxxx.render.com/kemkendra`
 
 Spring Boot and HikariCP require the JDBC driver prefix with SSL mode:
-`jdbc:postgresql://dpg-xxxx.render.com:5432/synthora?sslmode=require`
+`jdbc:postgresql://dpg-xxxx.render.com:5432/kemkendra?sslmode=require`
 
 ---
 
 ## 3. Step 2: Create Render Backend Web Service
 
 1. Click **New +** → **Web Service**.
-2. Connect your Synthora Git repository.
+2. Connect your KemKendra Git repository.
 3. **Basic Settings**:
-   - **Name**: `synthora-backend`
+   - **Name**: `kemkendra-backend`
    - **Region**: Same region as PostgreSQL database.
    - **Branch**: `main`
    - **Runtime**: `Docker`
@@ -79,7 +79,7 @@ Spring Boot and HikariCP require the JDBC driver prefix with SSL mode:
 ### Attach Persistent Disk
 1. Scroll to **Disks** section (or click **Disks** tab after creation).
 2. Click **Add Disk**:
-   - **Name**: `synthora-storage-disk`
+   - **Name**: `kemkendra-storage-disk`
    - **Mount Path**: `/app/storage`
    - **Size**: `10 GB`
 
@@ -88,13 +88,13 @@ Spring Boot and HikariCP require the JDBC driver prefix with SSL mode:
 | Variable Name | Value / Description | Required |
 | :--- | :--- | :--- |
 | `SPRING_PROFILES_ACTIVE` | `prod` | **Yes** |
-| `DB_URL` | `jdbc:postgresql://<INTERNAL_HOST>:5432/synthora?sslmode=require` | **Yes** |
-| `DB_USER` | `synthora_user` (from Render PostgreSQL) | **Yes** |
+| `DB_URL` | `jdbc:postgresql://<INTERNAL_HOST>:5432/kemkendra?sslmode=require` | **Yes** |
+| `DB_USER` | `kemkendra_user` (from Render PostgreSQL) | **Yes** |
 | `DB_PASSWORD` | `<RENDER_POSTGRES_PASSWORD>` | **Yes** |
 | `JWT_SECRET` | 64+ char random hex/base64 string (e.g. generated via `openssl rand -hex 64`) | **Yes** |
 | `JWT_EXPIRATION` | `86400000` (24 hours in ms) | **Yes** |
-| `APP_BASE_URL` | `https://synthora-frontend.onrender.com` (Frontend URL) | **Yes** |
-| `CORS_ALLOWED_ORIGINS` | `https://synthora-frontend.onrender.com` | **Yes** |
+| `APP_BASE_URL` | `https://kemkendra-frontend.onrender.com` (Frontend URL) | **Yes** |
+| `CORS_ALLOWED_ORIGINS` | `https://kemkendra-frontend.onrender.com` | **Yes** |
 | `MAIL_ENABLED` | `false` | **Yes** |
 | `STORAGE_ROOT` | `/app/storage` | **Yes** |
 | `RATE_LIMIT_ENABLED` | `true` | Optional (default: `true`) |
@@ -105,9 +105,9 @@ Spring Boot and HikariCP require the JDBC driver prefix with SSL mode:
 ## 4. Step 3: Create Render Frontend Web Service
 
 1. Click **New +** → **Web Service**.
-2. Connect your Synthora Git repository.
+2. Connect your KemKendra Git repository.
 3. **Basic Settings**:
-   - **Name**: `synthora-frontend`
+   - **Name**: `kemkendra-frontend`
    - **Region**: Same region as backend and database.
    - **Branch**: `main`
    - **Runtime**: `Docker`
@@ -119,8 +119,8 @@ Spring Boot and HikariCP require the JDBC driver prefix with SSL mode:
 
 | Variable Name | Value / Description | Required |
 | :--- | :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | `https://synthora-backend.onrender.com` | **Yes** |
-| `BACKEND_API_URL` | `https://synthora-backend.onrender.com` (or internal URL if applicable) | **Yes** |
+| `NEXT_PUBLIC_API_URL` | `https://kemkendra-backend.onrender.com` | **Yes** |
+| `BACKEND_API_URL` | `https://kemkendra-backend.onrender.com` (or internal URL if applicable) | **Yes** |
 | `NODE_ENV` | `production` | **Yes** |
 | `PORT` | `3000` | Optional |
 
@@ -128,13 +128,13 @@ Spring Boot and HikariCP require the JDBC driver prefix with SSL mode:
 
 ## 5. Cloud Smoke Test Execution Plan
 
-Once deployment builds succeed and services report **Live**, execute the following test suite directly in the browser and via curl against your real Render URLs (`https://synthora-frontend.onrender.com` and `https://synthora-backend.onrender.com`).
+Once deployment builds succeed and services report **Live**, execute the following test suite directly in the browser and via curl against your real Render URLs (`https://kemkendra-frontend.onrender.com` and `https://kemkendra-backend.onrender.com`).
 
 ### 5.1 Infrastructure & Health Verification
 
 ```bash
 # 1. Verify Backend Health & HTTP Security Headers
-curl -i https://synthora-backend.onrender.com/actuator/health
+curl -i https://kemkendra-backend.onrender.com/actuator/health
 ```
 - [ ] Returns HTTP `200 OK` with `{"status":"UP"}`.
 - [ ] Returns header `X-Content-Type-Options: nosniff`.
@@ -144,7 +144,7 @@ curl -i https://synthora-backend.onrender.com/actuator/health
 
 ```bash
 # 2. Verify Frontend HTTP Security Headers & HTTPS
-curl -i https://synthora-frontend.onrender.com/
+curl -i https://kemkendra-frontend.onrender.com/
 ```
 - [ ] Returns HTTP `200 OK`.
 - [ ] Returns `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
@@ -167,7 +167,7 @@ curl -i https://synthora-frontend.onrender.com/
   - Receives valid JWT in response.
   - Redirects to `/dashboard/buyer`.
 - [ ] **Protected Route**: Reload `/dashboard/buyer`. Page loads without authentication failure.
-- [ ] **Logout**: Click Logout. `synthora_token` cleared from client storage; user redirected to `/auth/login`.
+- [ ] **Logout**: Click Logout. `kemkendra_token` cleared from client storage; user redirected to `/auth/login`.
 
 ---
 
@@ -209,7 +209,7 @@ curl -i https://synthora-frontend.onrender.com/
 ```bash
 # Execute rapid failed login attempts to trigger rate limiter
 for i in {1..12}; do
-  curl -s -o /dev/null -w "%{http_code}\n" -X POST https://synthora-backend.onrender.com/api/v1/auth/login \
+  curl -s -o /dev/null -w "%{http_code}\n" -X POST https://kemkendra-backend.onrender.com/api/v1/auth/login \
     -H "Content-Type: application/json" \
     -d '{"email":"throttletest@example.com","password":"wrongpassword"}'
 done
@@ -233,7 +233,7 @@ If a breaking issue occurs during deployment:
 | :--- | :--- | :--- |
 | **Backend crash on startup** | Database connection timeout or wrong password | Check `DB_URL` uses internal host `dpg-xxxx:5432` with `?sslmode=require`. |
 | **Flyway checksum mismatch** | Schema modified out-of-order | Never edit applied migration files; Flyway operates in strict forward-only mode. |
-| **Frontend displays CORS errors** | `CORS_ALLOWED_ORIGINS` mismatch | Ensure `CORS_ALLOWED_ORIGINS` exactly matches `https://synthora-frontend.onrender.com` (no trailing slash). |
+| **Frontend displays CORS errors** | `CORS_ALLOWED_ORIGINS` mismatch | Ensure `CORS_ALLOWED_ORIGINS` exactly matches `https://kemkendra-frontend.onrender.com` (no trailing slash). |
 | **Uploaded files disappear on redeploy** | Persistent Disk not mounted to `/app/storage` | Verify Render Disk settings under Backend → Disks tab. |
 | **Out of Memory (OOM) error** | Memory limit exceeded | Verify `JAVA_TOOL_OPTIONS="-Xms96m -Xmx256m -XX:+ExitOnOutOfMemoryError"` is active. |
 

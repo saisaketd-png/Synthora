@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Phone, Mail, MapPin, ShieldCheck, Building2 } from "lucide-react";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 export function Footer() {
   return (
@@ -10,7 +10,7 @@ export function Footer() {
           
           {/* Brand & Enterprise Procurement Contacts (4 cols) */}
           <div className="lg:col-span-4 space-y-6">
-            <SynthoraLogo
+            <KemKendraLogo
               href="/"
               variant="dark"
               size="lg"

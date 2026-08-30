@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerBuyer, getAuthUser } from "@/features/auth/api/auth";
 import { ArrowRight, Mail, CheckCircle2, ShieldCheck } from "lucide-react";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 function RegisterForm() {
   const router = useRouter();
@@ -76,7 +76,7 @@ function RegisterForm() {
       <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-lg">
           <div className="text-center mb-8">
-            <SynthoraLogo href="/" size="xl" subtitle="Account Provisioned" />
+            <KemKendraLogo href="/" size="xl" subtitle="Account Provisioned" />
           </div>
 
           <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 sm:p-10 text-center space-y-6">
@@ -130,7 +130,7 @@ function RegisterForm() {
         
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <SynthoraLogo
+          <KemKendraLogo
             href="/"
             size="xl"
             subtitle="Buyer Procurement Portal"

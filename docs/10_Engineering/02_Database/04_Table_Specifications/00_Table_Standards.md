@@ -365,7 +365,7 @@ Track Administrative History
 
 Assign Moderation Tasks
 
-The Admin domain provides complete governance, auditing and operational control for the Synthora platform.
+The Admin domain provides complete governance, auditing and operational control for the KemKendra platform.
 
 ---
 

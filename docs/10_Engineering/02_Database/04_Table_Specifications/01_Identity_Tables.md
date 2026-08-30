@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # Purpose
 
-The Identity domain manages user authentication, authorization, account lifecycle and secure access to Synthora.
+The Identity domain manages user authentication, authorization, account lifecycle and secure access to KemKendra.
 
 This specification defines all database tables related to user identity.
 
@@ -84,7 +84,7 @@ USER ||--o{ PASSWORD_RESET : requests
 
 ### Purpose
 
-Represents a person using Synthora.
+Represents a person using KemKendra.
 
 A User is an individual identity.
 

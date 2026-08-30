@@ -27,7 +27,7 @@ import { getAdminAnalyticsOverview } from "@/features/admin/api/adminApi";
 import { PlatformTrendChart, MarketplaceFunnelChart } from "@/features/admin/components/AnalyticsCharts";
 import { ActionCenterAlerts } from "@/features/admin/components/ActionCenterAlerts";
 import { RecentActivityFeed } from "@/features/admin/components/RecentActivityFeed";
-import { Button, SkeletonLoader } from "@/shared/components/ui/SynthoraUI";
+import { Button, SkeletonLoader } from "@/shared/components/ui/KemkendraUI";
 
 export default function AdminDashboardPage() {
   const [period, setPeriod] = useState<string>("30d");

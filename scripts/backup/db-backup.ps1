@@ -1,5 +1,5 @@
 # ==============================================================================
-# Synthora B2B Marketplace - PostgreSQL Backup Script (PowerShell)
+# KemKendra B2B Marketplace - PostgreSQL Backup Script (PowerShell)
 # ==============================================================================
 # Creates a compressed, custom-format (-Fc) logical dump of the PostgreSQL database.
 # Preserves all UUIDs, schema definitions, constraints, foreign keys, indexes,
@@ -46,7 +46,7 @@ $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $backupFilePath = Join-Path -Path $OutputDir -ChildPath "synthora_backup_$timestamp.dump"
 
 Write-Host "=================================================================" -ForegroundColor Cyan
-Write-Host " Starting Synthora Database Backup" -ForegroundColor Cyan
+Write-Host " Starting KemKendra Database Backup" -ForegroundColor Cyan
 Write-Host " Destination: $backupFilePath" -ForegroundColor Cyan
 Write-Host " Timestamp:   $((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss UTC'))" -ForegroundColor Cyan
 Write-Host " Format:      Custom Binary Archive (-Fc, compressed)" -ForegroundColor Cyan

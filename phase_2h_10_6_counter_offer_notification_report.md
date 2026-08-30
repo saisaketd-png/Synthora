@@ -1,4 +1,4 @@
-# Synthora Phase 2H.10.6 Execution & Final Completion Report
+# KemKendra Phase 2H.10.6 Execution & Final Completion Report
 
 **Phase**: 2H.10.6 — Counter-Offer Notification Fix + Notification Center UX + Negotiation UI Refinement  
 **Date**: August 19, 2026  
@@ -32,29 +32,29 @@ Key Achievements:
 ## 2. Technical Implementation Details
 
 ### Backend
-- **Events**: Created [`CounterOfferSubmittedEvent.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/events/CounterOfferSubmittedEvent.java).
-- **Notification Types**: Updated [`NotificationType.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/NotificationType.java) with `COUNTER_OFFER_RECEIVED` and `QUOTATION_REVISED`.
-- **RfqService**: Updated `submitCounterOffer` in [`RfqService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/RfqService.java) to publish `CounterOfferSubmittedEvent`.
-- **EventListener**: Updated [`NotificationEventListener.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/NotificationEventListener.java) to listen for `CounterOfferSubmittedEvent`, resolve the supplier's user ID via `resolveSupplierUserId`, and save persistent notifications with `entityType = RFQ` and `entityId = rfqId`.
-- **Notification Repository**: Added `findByRecipientIdOrderByCreatedAtDesc` to [`NotificationRepository.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/NotificationRepository.java).
+- **Events**: Created [`CounterOfferSubmittedEvent.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/events/CounterOfferSubmittedEvent.java).
+- **Notification Types**: Updated [`NotificationType.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/NotificationType.java) with `COUNTER_OFFER_RECEIVED` and `QUOTATION_REVISED`.
+- **RfqService**: Updated `submitCounterOffer` in [`RfqService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/RfqService.java) to publish `CounterOfferSubmittedEvent`.
+- **EventListener**: Updated [`NotificationEventListener.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/NotificationEventListener.java) to listen for `CounterOfferSubmittedEvent`, resolve the supplier's user ID via `resolveSupplierUserId`, and save persistent notifications with `entityType = RFQ` and `entityId = rfqId`.
+- **Notification Repository**: Added `findByRecipientIdOrderByCreatedAtDesc` to [`NotificationRepository.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/NotificationRepository.java).
 
 ### Frontend
 - **Types & Utils**:
-  - Updated [`notification.ts`](file:///d:/Saisaket/Synthora/frontend/src/features/notifications/types/notification.ts) with `COUNTER_OFFER_RECEIVED` and `QUOTATION_REVISED`.
-  - Updated [`navigation.ts`](file:///d:/Saisaket/Synthora/frontend/src/features/notifications/utils/navigation.ts) `resolveNotificationRoute` to map `RFQ` and `QUOTATION` entity types to `/dashboard/supplier/rfqs/${entityId}` for suppliers and `/dashboard/rfqs/${entityId}` for buyers.
+  - Updated [`notification.ts`](file:///d:/Saisaket/KemKendra/frontend/src/features/notifications/types/notification.ts) with `COUNTER_OFFER_RECEIVED` and `QUOTATION_REVISED`.
+  - Updated [`navigation.ts`](file:///d:/Saisaket/KemKendra/frontend/src/features/notifications/utils/navigation.ts) `resolveNotificationRoute` to map `RFQ` and `QUOTATION` entity types to `/dashboard/supplier/rfqs/${entityId}` for suppliers and `/dashboard/rfqs/${entityId}` for buyers.
 - **Notification Components**:
-  - Updated [`NotificationItem.tsx`](file:///d:/Saisaket/Synthora/frontend/src/features/notifications/components/NotificationItem.tsx) with icons for counter offers and revisions.
-  - Refined [`NotificationDropdown.tsx`](file:///d:/Saisaket/Synthora/frontend/src/features/notifications/components/NotificationDropdown.tsx) with fixed width, z-index, max-height, and mobile responsiveness.
+  - Updated [`NotificationItem.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/features/notifications/components/NotificationItem.tsx) with icons for counter offers and revisions.
+  - Refined [`NotificationDropdown.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/features/notifications/components/NotificationDropdown.tsx) with fixed width, z-index, max-height, and mobile responsiveness.
 - **Negotiation UI**:
-  - Redesigned [`QuotationComparison.tsx`](file:///d:/Saisaket/Synthora/frontend/src/features/rfq/components/QuotationComparison.tsx) into a vertical commercial timeline with summary card, actor badges, version tags, and state-dependent action buttons.
-  - Updated controlled error message on [`supplier/rfqs/[id]/page.tsx`](file:///d:/Saisaket/Synthora/frontend/src/app/dashboard/supplier/rfqs/%5Bid%5D/page.tsx) to `"RFQ No Longer Available"`.
+  - Redesigned [`QuotationComparison.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/features/rfq/components/QuotationComparison.tsx) into a vertical commercial timeline with summary card, actor badges, version tags, and state-dependent action buttons.
+  - Updated controlled error message on [`supplier/rfqs/[id]/page.tsx`](file:///d:/Saisaket/KemKendra/frontend/src/app/dashboard/supplier/rfqs/%5Bid%5D/page.tsx) to `"RFQ No Longer Available"`.
 
 ---
 
 ## 3. Automated & End-to-End Verification
 
 ### Automated Integration Tests
-- Added `testCounterOfferAndRevisionNotificationDelivery` to [`QuotationNegotiationTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/rfq/QuotationNegotiationTest.java):
+- Added `testCounterOfferAndRevisionNotificationDelivery` to [`QuotationNegotiationTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/rfq/QuotationNegotiationTest.java):
   - Verified buyer counter offer creates persistent `COUNTER_OFFER_RECEIVED` notification for supplier.
   - Verified notification `entityId` is the RFQ UUID for navigation.
   - Verified buyer is NOT notified of their own counter offer.

@@ -1,8 +1,8 @@
-# Synthora Account Governance & Formal Appeals Architecture (Phase 1.11)
+# KemKendra Account Governance & Formal Appeals Architecture (Phase 1.11)
 
 ## 1. Overview
 
-Phase 1.11 implements an institutional account-governance, suspension, reinstatement, and formal appeals system for the Synthora B2B chemical marketplace. It enables administrators to moderate user and supplier accounts, maintain immutable audit histories, request additional compliance information, and review formal user appeals with automatic reinstatement workflows.
+Phase 1.11 implements an institutional account-governance, suspension, reinstatement, and formal appeals system for the KemKendra B2B chemical marketplace. It enables administrators to moderate user and supplier accounts, maintain immutable audit histories, request additional compliance information, and review formal user appeals with automatic reinstatement workflows.
 
 ---
 

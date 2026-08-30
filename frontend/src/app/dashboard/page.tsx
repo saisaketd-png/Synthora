@@ -20,7 +20,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
-import { StatusBadge } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge } from "@/shared/components/ui/KemkendraUI";
 
 export default function BuyerDashboardOverviewPage() {
   const [rfqs, setRfqs] = useState<BuyerRfq[]>([]);

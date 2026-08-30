@@ -1,4 +1,4 @@
-# Synthora Phase 2H.10.5 — Marketplace Feature Completion & Commercial UX Closure Report
+# KemKendra Phase 2H.10.5 — Marketplace Feature Completion & Commercial UX Closure Report
 
 **Date**: August 19, 2026  
 **Status**: COMPLETE  
@@ -41,7 +41,7 @@ All identified frontend gaps have been fixed, tested, and verified against produ
 
 ### Item 6: Supplier Name Resolution on Buyer PO Details
 - **Problem**: Buyer PO detail view (`/dashboard/orders/[id]`) displayed `Supplier #12` raw integer ID.
-- **Fix**: Integrated `getSupplierPublicProfile()` call to asynchronously resolve and render the actual supplier company name (e.g., `Synthora Specialty Chemicals`).
+- **Fix**: Integrated `getSupplierPublicProfile()` call to asynchronously resolve and render the actual supplier company name (e.g., `KemKendra Specialty Chemicals`).
 
 ### Item 7: Supplier Quotation Revision History
 - **Problem**: Supplier RFQ page did not fetch or display prior quotation versions upon page refresh.

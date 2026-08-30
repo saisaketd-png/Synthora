@@ -1,8 +1,8 @@
-# Synthora Phase I.8.5A — Multi-Supplier RFQ Architecture Audit & Hardening Report
+# KemKendra Phase I.8.5A — Multi-Supplier RFQ Architecture Audit & Hardening Report
 
 ## 1. Architecture Finding
 
-When a buyer selects multiple suppliers for the same MasterProduct/SupplierOffering sourcing request, Synthora represents the sourcing action through:
+When a buyer selects multiple suppliers for the same MasterProduct/SupplierOffering sourcing request, KemKendra represents the sourcing action through:
 - **Parent Level**: A single logical `SourcingRequest` (`sourcing_requests` table) identified by a human-friendly business reference code (`SRQ-YYYY-XXXX`).
 - **Child Level**: Multiple isolated `Rfq` records (`rfqs` table) created per targeted supplier, identified by individual participation references (`RFQ-YYYY-XXXX`).
 
@@ -42,12 +42,12 @@ Existing single RFQs and historical transaction records remain 100% valid with `
 ## 4. Changes Implemented
 
 - Created Flyway migration `V26__create_sourcing_requests_table.sql`.
-- Implemented [`SourcingRequest.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/sourcing/SourcingRequest.java), [`SourcingRequestStatus.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/sourcing/SourcingRequestStatus.java), and [`SourcingRequestRepository.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/sourcing/SourcingRequestRepository.java).
-- Updated [`Rfq.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/Rfq.java) with `sourcingRequestId`, `sourcingRequestReference`, and `expiresAt`.
-- Added `RFQ_CANCELLED` and `RFQ_EXPIRED` to [`NotificationType.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/NotificationType.java).
-- Created [`RfqCancelledEvent.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/events/RfqCancelledEvent.java) and [`RfqExpiredEvent.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/events/RfqExpiredEvent.java), updating [`NotificationEventListener.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/notification/NotificationEventListener.java).
-- Updated [`RfqService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/RfqService.java) and [`RfqController.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/apis/RfqController.java) to support `SourcingRequest` queries, `cancelRfq`, `cancelSourcingRequest`, and server-side expiry validation.
-- Created 30-scenario test suite [`MultiSupplierRfqHardeningSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/rfq/MultiSupplierRfqHardeningSecurityTest.java).
+- Implemented [`SourcingRequest.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/sourcing/SourcingRequest.java), [`SourcingRequestStatus.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/sourcing/SourcingRequestStatus.java), and [`SourcingRequestRepository.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/sourcing/SourcingRequestRepository.java).
+- Updated [`Rfq.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/Rfq.java) with `sourcingRequestId`, `sourcingRequestReference`, and `expiresAt`.
+- Added `RFQ_CANCELLED` and `RFQ_EXPIRED` to [`NotificationType.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/NotificationType.java).
+- Created [`RfqCancelledEvent.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/events/RfqCancelledEvent.java) and [`RfqExpiredEvent.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/events/RfqExpiredEvent.java), updating [`NotificationEventListener.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/notification/NotificationEventListener.java).
+- Updated [`RfqService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/RfqService.java) and [`RfqController.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/apis/RfqController.java) to support `SourcingRequest` queries, `cancelRfq`, `cancelSourcingRequest`, and server-side expiry validation.
+- Created 30-scenario test suite [`MultiSupplierRfqHardeningSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/rfq/MultiSupplierRfqHardeningSecurityTest.java).
 
 ---
 
@@ -179,7 +179,7 @@ Every major procurement event is recorded as an immutable domain entity or event
 
 ## 14. Integration Tests
 
-Authored [`MultiSupplierRfqHardeningSecurityTest.java`](file:///d:/Saisaket/Synthora/backend/src/test/java/com/synthora/rfq/MultiSupplierRfqHardeningSecurityTest.java) containing **30 / 30 PASSED** tests:
+Authored [`MultiSupplierRfqHardeningSecurityTest.java`](file:///d:/Saisaket/KemKendra/backend/src/test/java/com/kemkendra/rfq/MultiSupplierRfqHardeningSecurityTest.java) containing **30 / 30 PASSED** tests:
 1. Parent SourcingRequest creation and reference formatting.
 2. Isolated child Rfq creation for targeted suppliers.
 3. Supplier A privacy isolation.
@@ -235,7 +235,7 @@ Authored [`MultiSupplierRfqHardeningSecurityTest.java`](file:///d:/Saisaket/Synt
 
 ## 17. Recommendation for Phase I.9
 
-With Phase I.8.5A complete, Synthora now has a hardened, isolated, and scalable multi-supplier RFQ foundation.
+With Phase I.8.5A complete, KemKendra now has a hardened, isolated, and scalable multi-supplier RFQ foundation.
 
 **Recommended Next Phase**:
 **Phase I.9 — B2B Procurement Analytics, Supplier Performance Scoring & Sourcing Intelligence**.

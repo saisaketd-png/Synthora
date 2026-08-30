@@ -1,14 +1,14 @@
-# Synthora — Admin Audit & Governance Engine Architecture (Phase 1.12)
+# KemKendra — Admin Audit & Governance Engine Architecture (Phase 1.12)
 
 ---
 
 ## 1. Overview & Objectives
 
-Phase 1.12 delivers a centralized, immutable, and searchable **Admin Audit & Governance Engine** for the Synthora B2B marketplace. It unifies moderation, identity, security, product catalog, offering lifecycle, supplier verification, and transaction oversight events into a high-performance administrative audit stream.
+Phase 1.12 delivers a centralized, immutable, and searchable **Admin Audit & Governance Engine** for the KemKendra B2B marketplace. It unifies moderation, identity, security, product catalog, offering lifecycle, supplier verification, and transaction oversight events into a high-performance administrative audit stream.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                SYNTHORA AUDIT & GOVERNANCE STACK                            │
+│                                KEMKENDRA AUDIT & GOVERNANCE STACK                            │
 └─────────────────────────────────────────────────────────────────────────────────────────────┘
                                                 │
          ┌──────────────────────────────────────┼──────────────────────────────────────┐
@@ -62,7 +62,7 @@ Phase 1.12 delivers a centralized, immutable, and searchable **Admin Audit & Gov
 
 ## 2. Database Schema: `audit_logs` (Flyway `V16`)
 
-Synthora reuses the production-grade `audit_logs` table schema without requiring Flyway migration V43:
+KemKendra reuses the production-grade `audit_logs` table schema without requiring Flyway migration V43:
 
 | Column Name | SQL Type | Nullable | Description / Constraints |
 |---|---|---|---|
@@ -139,7 +139,7 @@ Searches and paginates administrative audit events with multi-criteria specifica
       "id": "27e9447e-5ace-407f-bd37-b59069881d1f",
       "adminId": "8ff54eb7-f3d0-4350-8d40-002d5ce1196b",
       "adminName": "Platform Administrator",
-      "adminEmail": "admin@synthora.com",
+      "adminEmail": "admin@kemkendra.com",
       "action": "USER_SUSPENDED",
       "targetType": "USER",
       "targetId": "7993fc08-07cd-4720-8dad-3242309a1c92",

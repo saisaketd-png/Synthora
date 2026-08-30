@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search, RefreshCw, ArrowRight, Package, AlertCircle } from "lucide-react";
 import { getSupplierRfqs, SupplierRfq } from "@/features/rfq/api/getSupplierRfqs";
-import { StatusBadge, Button, SkeletonLoader } from "@/shared/components/ui/SynthoraUI";
+import { StatusBadge, Button, SkeletonLoader } from "@/shared/components/ui/KemkendraUI";
 
 type StatusFilter = "ALL" | "PENDING" | "COUNTERED" | "QUOTED" | "ACCEPTED" | "REJECTED";
 type SortOption = "DATE_DESC" | "DATE_ASC" | "QTY_DESC" | "QTY_ASC";

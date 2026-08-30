@@ -1,4 +1,4 @@
-# Synthora Phase 2H.11 — Production Security Hardening & Penetration Verification Report
+# KemKendra Phase 2H.11 — Production Security Hardening & Penetration Verification Report
 
 **Phase**: 2H.11 — Production Security Hardening & Penetration Verification  
 **Date**: August 19, 2026  
@@ -11,7 +11,7 @@
 
 ## 1. Executive Summary
 
-Phase 2H.11 established a complete production security hardening baseline for Synthora. All critical threat surfaces — including JWT signature validation, active account verification, role escalation prevention, IDOR/BOLA ownership, file upload magic-byte verification, state machine enforcement, rate limiting, security headers, CORS restrictions, and production error sanitization — were systematically audited, verified, and automated in `SecurityHardeningIntegrationTest.java`.
+Phase 2H.11 established a complete production security hardening baseline for KemKendra. All critical threat surfaces — including JWT signature validation, active account verification, role escalation prevention, IDOR/BOLA ownership, file upload magic-byte verification, state machine enforcement, rate limiting, security headers, CORS restrictions, and production error sanitization — were systematically audited, verified, and automated in `SecurityHardeningIntegrationTest.java`.
 
 ---
 
@@ -19,14 +19,14 @@ Phase 2H.11 established a complete production security hardening baseline for Sy
 
 | Finding Category | Severity | Status | Evidence / Mitigation |
 | :--- | :--- | :--- | :--- |
-| **JWT Signature & Claims** | Low | **FIXED** | Verified in [`JwtService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/JwtService.java). Cryptographic HMAC-SHA256 signature verification enforced. |
-| **Active User Account Verification** | Critical | **FIXED** | Verified in [`JwtAuthenticationFilter.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/JwtAuthenticationFilter.java). Tokens belonging to suspended or deleted accounts are immediately rejected with HTTP 401. |
-| **Role Escalation Protection** | High | **FIXED** | Verified in [`SecurityConfig.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/config/SecurityConfig.java). Roles are assigned server-side during registration; request payload role overrides are strictly ignored. |
-| **IDOR / BOLA Protections** | High | **FIXED** | Verified across [`RfqService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/rfq/RfqService.java), [`PurchaseOrderService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/order/PurchaseOrderService.java), and [`DocumentAuthorizationServiceImpl.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/DocumentAuthorizationServiceImpl.java). Server-side recipient and owner checks enforce strict multi-tenant boundary isolation. |
-| **File Upload Security** | Critical | **FIXED** | Verified in [`FileSecurityValidator.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/document/FileSecurityValidator.java). Enforces magic-byte file signature validation (PDF `%PDF-`, PNG `0x89 0x50 0x4E 0x47`, JPEG `0xFF 0xD8 0xFF`), blocks path traversal (`..`), and rejects executable files (`.exe`, `.sh`, `.php`, `.jsp`, `.html`, `.svg`). |
-| **Rate Limiting** | Medium | **FIXED** | Verified in [`LoginRateLimiterService.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/security/LoginRateLimiterService.java). Brute-force protection triggers HTTP 429 Too Many Requests upon authentication threshold breach. |
-| **CORS & Security Headers** | Medium | **FIXED** | Verified in [`SecurityConfig.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/config/SecurityConfig.java). Configured explicit allowed origins, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy`. |
-| **Production Exception Handling** | Medium | **FIXED** | Verified in [`GlobalExceptionHandler.java`](file:///d:/Saisaket/Synthora/backend/src/main/java/com/synthora/common/GlobalExceptionHandler.java). All uncaught exceptions map to sanitized JSON error objects without exposing stack traces or database details. |
+| **JWT Signature & Claims** | Low | **FIXED** | Verified in [`JwtService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/JwtService.java). Cryptographic HMAC-SHA256 signature verification enforced. |
+| **Active User Account Verification** | Critical | **FIXED** | Verified in [`JwtAuthenticationFilter.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/JwtAuthenticationFilter.java). Tokens belonging to suspended or deleted accounts are immediately rejected with HTTP 401. |
+| **Role Escalation Protection** | High | **FIXED** | Verified in [`SecurityConfig.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/config/SecurityConfig.java). Roles are assigned server-side during registration; request payload role overrides are strictly ignored. |
+| **IDOR / BOLA Protections** | High | **FIXED** | Verified across [`RfqService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/rfq/RfqService.java), [`PurchaseOrderService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/order/PurchaseOrderService.java), and [`DocumentAuthorizationServiceImpl.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/DocumentAuthorizationServiceImpl.java). Server-side recipient and owner checks enforce strict multi-tenant boundary isolation. |
+| **File Upload Security** | Critical | **FIXED** | Verified in [`FileSecurityValidator.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/document/FileSecurityValidator.java). Enforces magic-byte file signature validation (PDF `%PDF-`, PNG `0x89 0x50 0x4E 0x47`, JPEG `0xFF 0xD8 0xFF`), blocks path traversal (`..`), and rejects executable files (`.exe`, `.sh`, `.php`, `.jsp`, `.html`, `.svg`). |
+| **Rate Limiting** | Medium | **FIXED** | Verified in [`LoginRateLimiterService.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/security/LoginRateLimiterService.java). Brute-force protection triggers HTTP 429 Too Many Requests upon authentication threshold breach. |
+| **CORS & Security Headers** | Medium | **FIXED** | Verified in [`SecurityConfig.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/config/SecurityConfig.java). Configured explicit allowed origins, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy`. |
+| **Production Exception Handling** | Medium | **FIXED** | Verified in [`GlobalExceptionHandler.java`](file:///d:/Saisaket/KemKendra/backend/src/main/java/com/kemkendra/common/GlobalExceptionHandler.java). All uncaught exceptions map to sanitized JSON error objects without exposing stack traces or database details. |
 
 ---
 
@@ -60,4 +60,4 @@ Phase 2H.11 established a complete production security hardening baseline for Sy
 ## 4. Production Readiness Assessment
 
 - **STATUS**: **READY FOR PRODUCTION**
-- **Security Posture**: Synthora is production-hardened with verified defenses against JWT forgery, active status bypass, role escalation, IDOR/BOLA, binary executable uploads, path traversal, state machine manipulation, rate-limit abuse, and information disclosure.
+- **Security Posture**: KemKendra is production-hardened with verified defenses against JWT forgery, active status bypass, role escalation, IDOR/BOLA, binary executable uploads, path traversal, state machine manipulation, rate-limit abuse, and information disclosure.

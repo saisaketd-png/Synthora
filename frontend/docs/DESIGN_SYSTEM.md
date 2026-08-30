@@ -1,11 +1,11 @@
-# Synthora Design System
+# KemKendra Design System
 
-This document outlines the visual language, design patterns, and engineering conventions for the Synthora frontend. It serves as the single source of truth for creating cohesive, premium, and buyer-first B2B pharmaceutical and specialty chemical procurement interfaces.
+This document outlines the visual language, design patterns, and engineering conventions for the KemKendra frontend. It serves as the single source of truth for creating cohesive, premium, and buyer-first B2B pharmaceutical and specialty chemical procurement interfaces.
 
 ## 1. Brand Positioning & Visual Principles
 
 **Core Identity:**
-Synthora is a premium, global B2B procurement platform. The interface must feel like a serious, high-trust sourcing platform used by procurement teams, QA managers, regulatory teams, and pharmaceutical manufacturers.
+KemKendra is a premium, global B2B procurement platform. The interface must feel like a serious, high-trust sourcing platform used by procurement teams, QA managers, regulatory teams, and pharmaceutical manufacturers.
 
 **Visual Principles:**
 - **Scientific & Credible:** High information density, clinical cleanliness, and clear typography.

@@ -1,4 +1,4 @@
-# Synthora Domain Map
+# KemKendra Domain Map
 
 Version: 1.0
 
@@ -8,7 +8,7 @@ Status: Active
 
 # Purpose
 
-This document defines the high-level business domains of Synthora and their dependencies.
+This document defines the high-level business domains of KemKendra and their dependencies.
 
 It serves as the blueprint for backend architecture, service boundaries and future microservice extraction.
 

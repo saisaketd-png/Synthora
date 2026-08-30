@@ -8,7 +8,7 @@ import { SupplierFilters } from "@/features/suppliers/components/SupplierFilters
 import { SupplierCard } from "@/features/suppliers/components/SupplierCard";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft, Building2, ShieldCheck, RefreshCw } from "lucide-react";
-import { PageHeader, EmptyState, ErrorState } from "@/shared/components/ui/SynthoraUI";
+import { PageHeader, EmptyState, ErrorState } from "@/shared/components/ui/KemkendraUI";
 
 export const dynamic = "force-dynamic";
 

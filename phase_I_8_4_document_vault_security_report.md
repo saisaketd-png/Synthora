@@ -1,4 +1,4 @@
-# SYNTHORA — PHASE I.8.4 COMPLETION REPORT
+# KEMKENDRA — PHASE I.8.4 COMPLETION REPORT
 ## DOCUMENT VAULT, MASTER PRODUCT DOCUMENTS & SUPPLIER OFFERING COA/MSDS SECURITY
 
 **Execution Date**: August 19, 2026  
@@ -8,7 +8,7 @@
 
 ### Executive Summary
 
-Phase I.8.4 implements enterprise-grade zero-trust document security across Synthora's Master Catalog. The document architecture distinguishes five clear domain scopes:
+Phase I.8.4 implements enterprise-grade zero-trust document security across KemKendra's Master Catalog. The document architecture distinguishes five clear domain scopes:
 
 1. **MasterProduct Documents** (Canonical technical documents such as TDS and SDS controlled exclusively by Admin).
 2. **SupplierOffering Documents** (Commercial compliance documents such as COA, SDS, and TDS controlled by the owning Supplier).
@@ -52,7 +52,7 @@ All 30 test scenarios in `DocumentVaultSecurityTest.java` passed cleanly, and fu
 
 - **Magic-Byte Validation**: Enforced via `FileSecurityValidator` using Apache Tika content detection.
 - **Executable & Script Defense**: Headers `MZ`, `#!`, `\x7fELF`, `\xCA\xFE\xBA\xBE`, HTML tags, SVG script payloads, double extensions (`.pdf.exe`), and path traversal sequences (`..`) are strictly rejected.
-- **File Size Limits**: Enforced at 10 MB ceiling (`synthora.documents.max-file-size=10485760`).
+- **File Size Limits**: Enforced at 10 MB ceiling (`kemkendra.documents.max-file-size=10485760`).
 - **Path Isolation**: Internal storage keys (`documents/UUID.ext`) are stored on disk; private filesystem paths (`C:\...`, `D:\...`) are never exposed in API responses.
 
 ---

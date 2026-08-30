@@ -10,7 +10,7 @@ Last Updated: August 2026
 
 # 1. Purpose
 
-The Admin module manages the operational activities of the Synthora marketplace.
+The Admin module manages the operational activities of the KemKendra marketplace.
 
 It provides administrators with the tools required to maintain marketplace quality, trust, compliance and system stability.
 

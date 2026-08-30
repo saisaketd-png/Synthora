@@ -10,9 +10,9 @@ Last Updated: August 2026
 
 # Purpose
 
-The Product domain manages the scientific product catalog of Synthora.
+The Product domain manages the scientific product catalog of KemKendra.
 
-Master Products are owned and maintained exclusively by Synthora.
+Master Products are owned and maintained exclusively by KemKendra.
 
 Suppliers cannot modify Master Product information.
 
@@ -59,7 +59,7 @@ Admin
 
 # Database Design Principles
 
-Scientific information belongs to Synthora.
+Scientific information belongs to KemKendra.
 
 Commercial information belongs to Supplier Listings.
 

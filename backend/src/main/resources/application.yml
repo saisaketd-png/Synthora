@@ -6,8 +6,8 @@ spring:
     name: kemkendra
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/synthora
-    username: synthora_admin
+    url: jdbc:postgresql://localhost:5433/${POSTGRES_DB:kemkendra}
+    username: ${POSTGRES_USER:kemkendra_admin}
     password: postgres
 
   jpa:
@@ -61,7 +61,7 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
-synthora:
+kemkendra:
   storage:
     local:
       root: ./storage/documents

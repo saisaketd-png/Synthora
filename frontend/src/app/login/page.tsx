@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { login, getAuthUser, setAuthToken } from "@/features/auth/api/auth";
 import { Lock, Mail, ShieldAlert, ArrowRight } from "lucide-react";
-import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
+import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
 function LoginForm() {
   const router = useRouter();
@@ -82,7 +82,7 @@ function LoginForm() {
         
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-8 space-y-3">
-          <SynthoraLogo
+          <KemKendraLogo
             href="/"
             size="xl"
             subtitle="Enterprise Chemical & Pharmaceutical Marketplace"
