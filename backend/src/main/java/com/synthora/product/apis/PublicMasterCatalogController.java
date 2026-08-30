@@ -150,6 +150,9 @@ public class PublicMasterCatalogController {
                         o.responseRate(),
                         o.averageResponseTimeSeconds(),
                         o.formattedResponseTime(),
+                        o.createdByRole(),
+                        o.createdByAdminId(),
+                        o.createdByAdminName(),
                         o.createdAt(),
                         o.updatedAt()
                 ))

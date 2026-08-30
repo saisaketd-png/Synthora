@@ -234,3 +234,29 @@ export async function cancelAdminOrder(
   });
   return parseResponse<AdminPurchaseOrderResponse>(res, "Failed to cancel purchase order");
 }
+
+// ---------------------------------------------------------------------------
+// 5. Admin Analytics Overview API Client (Phase 1.8)
+// ---------------------------------------------------------------------------
+
+export interface AnalyticsFilterParams {
+  period?: "7d" | "30d" | "90d" | "12m" | "custom" | string;
+  from?: string;
+  to?: string;
+}
+
+export async function getAdminAnalyticsOverview(
+  params: AnalyticsFilterParams = {}
+): Promise<import("../types").AdminAnalyticsOverviewResponse> {
+  const query = new URLSearchParams();
+  if (params.period) query.set("period", params.period);
+  if (params.from) query.set("from", params.from);
+  if (params.to) query.set("to", params.to);
+
+  const res = await authenticatedFetch(`/api/v1/admin/analytics/overview?${query.toString()}`);
+  return parseResponse<import("../types").AdminAnalyticsOverviewResponse>(
+    res,
+    "Failed to fetch admin analytics overview"
+  );
+}
+

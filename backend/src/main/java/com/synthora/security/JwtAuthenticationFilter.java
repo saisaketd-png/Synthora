@@ -66,10 +66,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (userOpt.isPresent()) {
                         User user = userOpt.get();
 
-                        // Active Account Validation (Phase 2H.2)
+                        // Active Account Validation (Phase 1.11 / 2H.2)
                         // 1. Account must not be soft-deleted
-                        // 2. Account must not be suspended
-                        if (user.getDeletedAt() == null && user.getStatus() != UserStatus.SUSPENDED) {
+                        // 2. If account is suspended, only permit appeal & suspension governance endpoints (/api/v1/account/**)
+                        String requestUri = request.getRequestURI();
+                        boolean isAllowedSuspensionEndpoint = requestUri != null &&
+                                (requestUri.startsWith("/api/v1/account/appeals") || requestUri.startsWith("/api/v1/account/suspension"));
+
+                        if (user.getDeletedAt() == null && (user.getStatus() != UserStatus.SUSPENDED || isAllowedSuspensionEndpoint)) {
                             UsernamePasswordAuthenticationToken authentication =
                                     new UsernamePasswordAuthenticationToken(
                                             user.getEmail(),
@@ -79,8 +83,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                         } else {
-                            log.warn("Blocked request with valid JWT for inactive user: {} (Status: {}, Deleted: {})",
-                                    email, user.getStatus(), user.getDeletedAt() != null);
+                            log.warn("Blocked request with valid JWT for inactive/suspended user: {} (Status: {}, Deleted: {}, Path: {})",
+                                    email, user.getStatus(), user.getDeletedAt() != null, requestUri);
                             SecurityContextHolder.clearContext();
                         }
                     } else {

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@org.springframework.transaction.annotation.Transactional
 public class AuditLogDomainTest {
 
     @Autowired
@@ -35,7 +36,40 @@ public class AuditLogDomainTest {
 
     @BeforeEach
     public void setup() {
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        for (String sql : List.of(
+                "UPDATE rfqs SET accepted_quotation_id = NULL",
+                "DELETE FROM buyer_shortlist_items",
+                "DELETE FROM buyer_shortlists",
+                "DELETE FROM governance_audit_logs",
+                "DELETE FROM audit_logs",
+                "DELETE FROM notifications",
+                "DELETE FROM supplier_offering_verification_evidences",
+                "DELETE FROM supplier_offering_audits",
+                "DELETE FROM supplier_verification_evidences",
+                "DELETE FROM supplier_verification_audits",
+                "DELETE FROM product_requests",
+                "DELETE FROM sourcing_requests",
+                "DELETE FROM documents",
+                "DELETE FROM shipments",
+                "DELETE FROM purchase_orders",
+                "DELETE FROM quotations",
+                "DELETE FROM rfqs",
+                "DELETE FROM supplier_offerings",
+                "DELETE FROM product_master_mappings",
+                "DELETE FROM master_products",
+                "DELETE FROM product_images",
+                "DELETE FROM product_suppliers",
+                "DELETE FROM products",
+                "DELETE FROM seller_profiles",
+                "DELETE FROM suppliers",
+                "DELETE FROM email_verification_tokens",
+                "DELETE FROM password_reset_tokens",
+                "DELETE FROM users"
+        )) {
+            try {
+                jdbcTemplate.execute(sql);
+            } catch (Exception ignored) {}
+        }
 
         admin = new User();
         admin.setEmail("admin@synthora.com");
@@ -114,7 +148,7 @@ public class AuditLogDomainTest {
     }
 
     @Test
-    public void testAuditLog_QueryByTargetTypeAndTargetId() {
+    public void testAuditLog_QueryByTargetTypeAndTargetId() throws Exception {
         String targetUserId = UUID.randomUUID().toString();
 
         auditLogRepository.save(new AuditLog(
@@ -125,6 +159,8 @@ public class AuditLogDomainTest {
                 "Activated account",
                 "127.0.0.1"
         ));
+
+        Thread.sleep(20);
 
         auditLogRepository.save(new AuditLog(
                 admin.getId(),

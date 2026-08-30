@@ -1,23 +1,29 @@
 # Multi-stage Dockerfile for Synthora Spring Boot Backend (Render & Production)
 
 # Stage 1: Build stage
-FROM maven:3.9.6-eclipse-temurin-21 AS build
-
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copy Maven descriptor and source code from repository root context
+# Cache Maven dependencies layer
 COPY backend/pom.xml ./pom.xml
+RUN mvn dependency:go-offline -B || true
+
+# Copy source code and build executable jar
 COPY backend/src ./src
+RUN mvn clean package -DskipTests -B
 
-# Build production executable JAR (skipping test execution)
-RUN mvn clean package -DskipTests
+# Stage 2: Extract Spring Boot layered jar
+FROM eclipse-temurin:21-jre-alpine AS extractor
+WORKDIR /app
+COPY --from=build /app/target/synthora-backend-*.jar app.jar
+RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted || \
+    java -Djarmode=layertools -jar app.jar extract --destination extracted
 
-# Stage 2: Runtime stage
-FROM eclipse-temurin:21-jre-alpine
-
+# Stage 3: Minimal runtime image
+FROM eclipse-temurin:21-jre-alpine AS runner
 WORKDIR /app
 
-# Create non-root application user
+# Create non-root application user & group
 RUN addgroup -S synthora && \
     adduser -S synthora -G synthora
 
@@ -25,8 +31,11 @@ RUN addgroup -S synthora && \
 RUN mkdir -p /app/storage && \
     chown -R synthora:synthora /app
 
-# Copy generated executable JAR from build stage
-COPY --from=build /app/target/synthora-backend-*.jar app.jar
+# Copy layered components
+COPY --from=extractor --chown=synthora:synthora /app/extracted/dependencies/ ./
+COPY --from=extractor --chown=synthora:synthora /app/extracted/spring-boot-loader/ ./
+COPY --from=extractor --chown=synthora:synthora /app/extracted/snapshot-dependencies/ ./
+COPY --from=extractor --chown=synthora:synthora /app/extracted/application/ ./
 
 # Run application as non-root user
 USER synthora:synthora
@@ -37,4 +46,4 @@ EXPOSE 8085
 # Allocates 256MB max heap leaving ~256MB native headroom for metaspace, thread stacks, and OS overhead
 ENV JAVA_TOOL_OPTIONS="-Xms96m -Xmx256m -XX:+ExitOnOutOfMemoryError"
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "org.springframework.boot.loader.launch.JarLauncher"]

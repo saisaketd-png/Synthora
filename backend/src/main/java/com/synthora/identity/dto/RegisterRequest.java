@@ -1,7 +1,9 @@
 package com.synthora.identity.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record RegisterRequest(
@@ -20,6 +22,17 @@ public record RegisterRequest(
 
         @NotBlank(message = "Password is required")
         @Size(min = 8, max = 128, message = "Password must be between 8 and 128 characters")
-        String password
+        String password,
+
+        @NotNull(message = "Terms of Service must be accepted")
+        @AssertTrue(message = "Terms of Service must be accepted")
+        Boolean termsAccepted,
+
+        @NotNull(message = "Privacy Policy must be accepted")
+        @AssertTrue(message = "Privacy Policy must be accepted")
+        Boolean privacyAccepted
 ) {
+    public RegisterRequest(String name, String email, String phone, String password) {
+        this(name, email, phone, password, false, false);
+    }
 }

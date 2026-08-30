@@ -38,6 +38,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Instant;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -100,7 +101,7 @@ public class SupplierOnboardingAndVerificationSecurityTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM email_verification_tokens; DELETE FROM password_reset_tokens; DELETE FROM users;");
 
         // Create Admin
         adminUser = new User();
@@ -168,15 +169,23 @@ public class SupplierOnboardingAndVerificationSecurityTest {
                 "+919876543210",
                 "Hyderabad",
                 "https://pharmasynthetics.example.com",
-                "Specialized active ingredient manufacturer"
+                "Specialized active ingredient manufacturer",
+                true,
+                true
         );
 
-        var loginResponse = userService.registerSupplier(request);
-        assertNotNull(loginResponse);
-        assertNotNull(loginResponse.token());
+        var registerResponse = userService.registerSupplier(request);
+        assertNotNull(registerResponse);
+        assertNotNull(registerResponse.supplierId());
+        assertEquals("Supplier registered successfully. Please verify your email before logging in.", registerResponse.message());
 
         User registeredUser = userRepository.findByEmail(email).orElseThrow();
         assertEquals(UserRole.SUPPLIER, registeredUser.getRole());
+        assertNull(registeredUser.getEmailVerifiedAt());
+
+        // Verify email to allow authenticated access in later workflows
+        registeredUser.setEmailVerifiedAt(Instant.now());
+        userRepository.save(registeredUser);
 
         Supplier createdSupplier = supplierRepository.findByUser(registeredUser).orElseThrow();
         assertEquals("Pharma Synthetics Ltd", createdSupplier.getName());

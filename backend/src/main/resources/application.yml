@@ -31,9 +31,9 @@ spring:
           starttls:
             enable: ${SMTP_STARTTLS_ENABLE:false}
             required: ${SMTP_STARTTLS_REQUIRED:false}
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+          connectiontimeout: ${SMTP_CONNECTION_TIMEOUT:5000}
+          timeout: ${SMTP_TIMEOUT:5000}
+          writetimeout: ${SMTP_WRITE_TIMEOUT:5000}
 
 server:
   port: ${PORT:8085}
@@ -67,12 +67,31 @@ synthora:
       root: ./storage/documents
   documents:
     max-file-size: 10485760
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:${APP_BASE_URL:http://localhost:3000}}
   mail:
     enabled: ${MAIL_ENABLED:true}
     from: ${MAIL_FROM:notifications@synthora.com}
     from-name: ${MAIL_FROM_NAME:Synthora B2B Marketplace}
   app:
     base-url: ${APP_BASE_URL:http://localhost:3000}
+  rate-limit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    login:
+      limit: ${RATE_LIMIT_LOGIN:10}
+      window-seconds: ${RATE_LIMIT_LOGIN_WINDOW:60}
+    registration:
+      limit: ${RATE_LIMIT_REGISTRATION:10}
+      window-seconds: ${RATE_LIMIT_REGISTRATION_WINDOW:60}
+    password-reset:
+      limit: ${RATE_LIMIT_PASSWORD_RESET:10}
+      window-seconds: ${RATE_LIMIT_PASSWORD_RESET_WINDOW:60}
+    email-verification:
+      limit: ${RATE_LIMIT_EMAIL_VERIFICATION:15}
+      window-seconds: ${RATE_LIMIT_EMAIL_VERIFICATION_WINDOW:60}
+    public-api:
+      limit: ${RATE_LIMIT_PUBLIC_API:120}
+      window-seconds: ${RATE_LIMIT_PUBLIC_API_WINDOW:60}
 
 spring.servlet.multipart.max-file-size: 50MB
 spring.servlet.multipart.max-request-size: 50MB

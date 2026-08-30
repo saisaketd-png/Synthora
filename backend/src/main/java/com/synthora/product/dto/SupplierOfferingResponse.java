@@ -33,6 +33,9 @@ public record SupplierOfferingResponse(
         Integer responseRate,
         Long averageResponseTimeSeconds,
         String formattedResponseTime,
+        String createdByRole,
+        UUID createdByAdminId,
+        String createdByAdminName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}

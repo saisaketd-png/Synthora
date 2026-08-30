@@ -39,6 +39,7 @@ public class SupplierVerificationService {
     private final DocumentRepository documentRepository;
     private final SupplierOfferingRepository supplierOfferingRepository;
     private final NotificationService notificationService;
+    private final com.synthora.admin.audit.AuditService auditService;
 
     public SupplierVerificationService(
             SupplierRepository supplierRepository,
@@ -49,7 +50,8 @@ public class SupplierVerificationService {
             UserRepository userRepository,
             DocumentRepository documentRepository,
             SupplierOfferingRepository supplierOfferingRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            com.synthora.admin.audit.AuditService auditService) {
         this.supplierRepository = supplierRepository;
         this.evidenceRepository = evidenceRepository;
         this.auditRepository = auditRepository;
@@ -59,6 +61,7 @@ public class SupplierVerificationService {
         this.documentRepository = documentRepository;
         this.supplierOfferingRepository = supplierOfferingRepository;
         this.notificationService = notificationService;
+        this.auditService = auditService;
     }
 
     public SupplierVerificationWorkspaceDto getVerificationDetails(Long supplierId) {
@@ -186,6 +189,17 @@ public class SupplierVerificationService {
         evidence.setRejectionReason(null);
         evidenceRepository.save(evidence);
 
+        try {
+            auditService.recordInternal(
+                    admin.getId(),
+                    com.synthora.admin.audit.AuditAction.SUPPLIER_EVIDENCE_UPDATED,
+                    com.synthora.admin.audit.AuditTargetType.SUPPLIER,
+                    supplierId.toString(),
+                    "Verified compliance item " + type.name() + (notes != null ? ": " + notes : ""),
+                    "127.0.0.1"
+            );
+        } catch (Exception ignored) {}
+
         return getVerificationDetails(supplierId);
     }
 
@@ -193,6 +207,7 @@ public class SupplierVerificationService {
     public SupplierVerificationWorkspaceDto flagItem(Long supplierId, VerificationType type, String notes, Authentication authentication) {
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + supplierId));
+        User admin = getAuthenticatedUser(authentication);
 
         SupplierVerificationEvidence evidence = evidenceRepository.findBySupplierIdAndVerificationType(supplierId, type)
                 .orElse(new SupplierVerificationEvidence(supplierId, type, EvidenceStatus.UNVERIFIED));
@@ -201,6 +216,17 @@ public class SupplierVerificationService {
         evidence.setAdminNotes(notes);
         evidenceRepository.save(evidence);
 
+        try {
+            auditService.recordInternal(
+                    admin.getId(),
+                    com.synthora.admin.audit.AuditAction.SUPPLIER_EVIDENCE_UPDATED,
+                    com.synthora.admin.audit.AuditTargetType.SUPPLIER,
+                    supplierId.toString(),
+                    "Flagged compliance item " + type.name() + (notes != null ? ": " + notes : ""),
+                    "127.0.0.1"
+            );
+        } catch (Exception ignored) {}
+
         return getVerificationDetails(supplierId);
     }
 
@@ -208,6 +234,7 @@ public class SupplierVerificationService {
     public SupplierVerificationWorkspaceDto rejectItem(Long supplierId, VerificationType type, String reason, Authentication authentication) {
         Supplier supplier = supplierRepository.findById(supplierId)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + supplierId));
+        User admin = getAuthenticatedUser(authentication);
 
         SupplierVerificationEvidence evidence = evidenceRepository.findBySupplierIdAndVerificationType(supplierId, type)
                 .orElse(new SupplierVerificationEvidence(supplierId, type, EvidenceStatus.UNVERIFIED));
@@ -215,6 +242,17 @@ public class SupplierVerificationService {
         evidence.setStatus(EvidenceStatus.REJECTED);
         evidence.setRejectionReason(reason);
         evidenceRepository.save(evidence);
+
+        try {
+            auditService.recordInternal(
+                    admin.getId(),
+                    com.synthora.admin.audit.AuditAction.SUPPLIER_EVIDENCE_UPDATED,
+                    com.synthora.admin.audit.AuditTargetType.SUPPLIER,
+                    supplierId.toString(),
+                    "Rejected compliance item " + type.name() + (reason != null ? ": " + reason : ""),
+                    "127.0.0.1"
+            );
+        } catch (Exception ignored) {}
 
         return getVerificationDetails(supplierId);
     }
@@ -270,6 +308,70 @@ public class SupplierVerificationService {
                     UUID.nameUUIDFromBytes(("supplier:" + supplier.getId()).getBytes())
             );
         }
+
+        return getVerificationDetails(supplier.getId());
+    }
+
+    public SupplierVerificationWorkspaceDto submitInitialVerification(Authentication authentication) {
+        User supplierUser = getAuthenticatedUser(authentication);
+        Supplier supplier = supplierRepository.findByUser(supplierUser)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found for user"));
+
+        if (supplier.getVerificationStatus() == SupplierVerificationStatus.VERIFIED && Boolean.TRUE.equals(supplier.getVerified())) {
+            throw new IllegalStateException("Supplier is already verified: " + supplier.getId());
+        }
+
+        SupplierVerificationStatus oldStatus = supplier.getVerificationStatus() != null
+                ? supplier.getVerificationStatus()
+                : SupplierVerificationStatus.DRAFT;
+
+        supplier.setVerificationStatus(SupplierVerificationStatus.PENDING);
+        supplier.setVerificationUpdatedAt(LocalDateTime.now());
+        supplierRepository.save(supplier);
+
+        recordAudit(supplier, supplierUser, oldStatus, SupplierVerificationStatus.PENDING, "Supplier submitted initial company verification application.");
+
+        try {
+            notificationService.createNotification(
+                    supplierUser.getId(),
+                    NotificationType.SUPPLIER_VERIFICATION_SUBMITTED,
+                    "Verification Application Submitted",
+                    "Your company verification application has been submitted for review.",
+                    NotificationEntityType.SUPPLIER,
+                    UUID.nameUUIDFromBytes(("supplier:" + supplier.getId()).getBytes())
+            );
+
+            List<User> admins = userRepository.findByRole(com.synthora.identity.UserRole.ADMIN);
+            for (User admin : admins) {
+                notificationService.createNotification(
+                        admin.getId(),
+                        NotificationType.SUPPLIER_VERIFICATION_SUBMITTED,
+                        "New Supplier Verification Pending",
+                        "Supplier " + supplier.getName() + " has submitted company profile for verification.",
+                        NotificationEntityType.SUPPLIER,
+                        UUID.nameUUIDFromBytes(("supplier:" + supplier.getId()).getBytes())
+                );
+            }
+        } catch (Exception e) {
+            // Notification / email failures must not roll back the verification transaction
+        }
+
+        return getVerificationDetails(supplier.getId());
+    }
+
+    public SupplierVerificationWorkspaceDto attachEvidenceDocument(Authentication authentication, VerificationType type, UUID documentId) {
+        User supplierUser = getAuthenticatedUser(authentication);
+        Supplier supplier = supplierRepository.findByUser(supplierUser)
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier profile not found for user"));
+
+        SupplierVerificationEvidence evidence = evidenceRepository.findBySupplierIdAndVerificationType(supplier.getId(), type)
+                .orElse(new SupplierVerificationEvidence(supplier.getId(), type, EvidenceStatus.UNVERIFIED));
+
+        evidence.setEvidenceDocumentId(documentId);
+        if (evidence.getStatus() == EvidenceStatus.REJECTED || evidence.getStatus() == EvidenceStatus.FLAGGED || evidence.getStatus() == EvidenceStatus.MISSING) {
+            evidence.setStatus(EvidenceStatus.UNVERIFIED);
+        }
+        evidenceRepository.save(evidence);
 
         return getVerificationDetails(supplier.getId());
     }
@@ -408,5 +510,26 @@ public class SupplierVerificationService {
         audit.setNotes(notes);
         audit.setTimestamp(LocalDateTime.now());
         auditRepository.save(audit);
+
+        com.synthora.admin.audit.AuditAction auditAction = switch (newStatus) {
+            case PENDING -> com.synthora.admin.audit.AuditAction.SUPPLIER_VERIFICATION_SUBMITTED;
+            case UNDER_REVIEW -> com.synthora.admin.audit.AuditAction.SUPPLIER_REVIEW_STARTED;
+            case INFORMATION_REQUIRED -> com.synthora.admin.audit.AuditAction.SUPPLIER_INFORMATION_REQUESTED;
+            case VERIFIED -> com.synthora.admin.audit.AuditAction.SUPPLIER_VERIFIED;
+            case REJECTED -> com.synthora.admin.audit.AuditAction.SUPPLIER_REJECTED;
+            case SUSPENDED -> com.synthora.admin.audit.AuditAction.SUPPLIER_SUSPENDED;
+            default -> com.synthora.admin.audit.AuditAction.SUPPLIER_UNVERIFIED;
+        };
+
+        try {
+            auditService.recordInternal(
+                    admin.getId(),
+                    auditAction,
+                    com.synthora.admin.audit.AuditTargetType.SUPPLIER,
+                    supplier.getId().toString(),
+                    notes != null ? notes : ("Supplier verification status transitioned to " + newStatus.name()),
+                    "127.0.0.1"
+            );
+        } catch (Exception ignored) {}
     }
 }

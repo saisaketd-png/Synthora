@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Service
 public class UserService {
@@ -38,23 +39,36 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final LoginRateLimiterService rateLimiterService;
+    private final com.synthora.identity.PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailVerificationService emailVerificationService;
+    private final com.synthora.admin.audit.AuditService auditService;
 
     public UserService(UserRepository userRepository,
                        SupplierRepository supplierRepository,
                        SellerProfileRepository sellerProfileRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
-                       LoginRateLimiterService rateLimiterService) {
+                       LoginRateLimiterService rateLimiterService,
+                       com.synthora.identity.PasswordResetTokenRepository passwordResetTokenRepository,
+                       EmailVerificationService emailVerificationService,
+                       com.synthora.admin.audit.AuditService auditService) {
         this.userRepository = userRepository;
         this.supplierRepository = supplierRepository;
         this.sellerProfileRepository = sellerProfileRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.rateLimiterService = rateLimiterService;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.emailVerificationService = emailVerificationService;
+        this.auditService = auditService;
     }
 
     @Transactional
     public UserResponse register(RegisterRequest request) {
+        if (!Boolean.TRUE.equals(request.termsAccepted()) || !Boolean.TRUE.equals(request.privacyAccepted())) {
+            throw new IllegalArgumentException("Terms of Service and Privacy Policy must be accepted.");
+        }
+
         String email = request.email().trim().toLowerCase();
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already registered");
@@ -67,8 +81,27 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(UserRole.USER);
         user.setStatus(UserStatus.ACTIVE);
+        user.setTermsAcceptedAt(Instant.now());
+        user.setTermsVersion(com.synthora.common.LegalConstants.CURRENT_TERMS_VERSION);
+        user.setPrivacyAcceptedAt(Instant.now());
+        user.setPrivacyVersion(com.synthora.common.LegalConstants.CURRENT_PRIVACY_VERSION);
 
         User saved = userRepository.save(user);
+
+        // Audit log
+        try {
+            auditService.recordInternal(
+                    saved.getId(),
+                    com.synthora.admin.audit.AuditAction.USER_CREATED,
+                    com.synthora.admin.audit.AuditTargetType.USER,
+                    saved.getId().toString(),
+                    "User account created for " + saved.getEmail() + " with role " + saved.getRole(),
+                    "127.0.0.1"
+            );
+        } catch (Exception ignored) {}
+
+        // Dispatch verification email with secure token
+        emailVerificationService.createAndSendVerificationToken(saved);
 
         return new UserResponse(
                 saved.getId(),
@@ -81,7 +114,11 @@ public class UserService {
     }
 
     @Transactional
-    public LoginResponse registerSupplier(SupplierRegisterRequest request) {
+    public com.synthora.identity.dto.SupplierRegisterResponse registerSupplier(SupplierRegisterRequest request) {
+        if (!Boolean.TRUE.equals(request.termsAccepted()) || !Boolean.TRUE.equals(request.privacyAccepted())) {
+            throw new IllegalArgumentException("Terms of Service and Privacy Policy must be accepted.");
+        }
+
         String email = request.email().trim().toLowerCase();
         if (userRepository.findByEmail(email).isPresent()) {
             throw new IllegalArgumentException("Email already registered");
@@ -95,7 +132,23 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(UserRole.SUPPLIER);
         user.setStatus(UserStatus.ACTIVE);
+        user.setTermsAcceptedAt(Instant.now());
+        user.setTermsVersion(com.synthora.common.LegalConstants.CURRENT_TERMS_VERSION);
+        user.setPrivacyAcceptedAt(Instant.now());
+        user.setPrivacyVersion(com.synthora.common.LegalConstants.CURRENT_PRIVACY_VERSION);
         User savedUser = userRepository.save(user);
+
+        // Audit log
+        try {
+            auditService.recordInternal(
+                    savedUser.getId(),
+                    com.synthora.admin.audit.AuditAction.USER_CREATED,
+                    com.synthora.admin.audit.AuditTargetType.USER,
+                    savedUser.getId().toString(),
+                    "Supplier user account created for " + savedUser.getEmail(),
+                    "127.0.0.1"
+            );
+        } catch (Exception ignored) {}
 
         // 2. Generate slug
         String rawSlug = request.companyName().trim().toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
@@ -115,7 +168,7 @@ public class UserService {
         supplier.setVerificationStatus(com.synthora.seller.SupplierVerificationStatus.DRAFT);
         supplier.setExportReady(false);
         supplier.setCreatedAt(LocalDateTime.now());
-        supplierRepository.save(supplier);
+        Supplier savedSupplier = supplierRepository.save(supplier);
 
         // 4. Create Editable SellerProfile entity
         SellerProfile profile = new SellerProfile();
@@ -127,11 +180,17 @@ public class UserService {
         profile.setAboutCompany(request.aboutCompany() != null ? request.aboutCompany().trim() : null);
         sellerProfileRepository.save(profile);
 
-        log.info("Supplier onboarding completed for user: {} (Company: {})", savedUser.getEmail(), request.companyName());
+        // 5. Dispatch verification email (no automatic login token issued)
+        emailVerificationService.createAndSendVerificationToken(savedUser);
 
-        // 5. Generate token for immediate onboarding session
-        String token = jwtService.generateToken(savedUser);
-        return new LoginResponse("Supplier registered successfully", token);
+        log.info("Supplier registration completed for user: {} (Company: {})", savedUser.getEmail(), request.companyName());
+
+        return new com.synthora.identity.dto.SupplierRegisterResponse(
+                "Supplier registered successfully. Please verify your email before logging in.",
+                savedUser.getId(),
+                savedUser.getEmail(),
+                savedSupplier.getId()
+        );
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -165,9 +224,16 @@ public class UserService {
         }
 
         if (user.getStatus() == UserStatus.SUSPENDED) {
+            rateLimiterService.recordSuccessfulLogin(clientIp, request.email());
+            log.info("Suspended user authenticated for account review: {}", user.getEmail());
+            String token = jwtService.generateToken(user);
+            return new LoginResponse("Your Synthora account is currently suspended. You can request an account review.", token);
+        }
+
+        if (user.getEmailVerifiedAt() == null && user.getRole() != UserRole.ADMIN) {
             rateLimiterService.recordFailedAttempt(clientIp, request.email());
-            log.warn("Failed login attempt on suspended user: {}", user.getEmail());
-            throw new IllegalArgumentException("Invalid email or password");
+            log.warn("Failed login attempt on unverified email: {}", user.getEmail());
+            throw new IllegalArgumentException("Please verify your email address before logging in. Check your inbox for the verification link.");
         }
 
         // Login success - clear failed rate limit counter
@@ -220,5 +286,64 @@ public class UserService {
                 user.getRole(),
                 user.getStatus()
         );
+    }
+
+    @Transactional
+    public UserResponse updateProfile(Authentication authentication, com.synthora.identity.dto.UpdateProfileRequest request) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        user.setName(request.name().trim());
+
+        String newPhone = request.phone() != null && !request.phone().isBlank()
+                ? request.phone().trim()
+                : null;
+
+        if (newPhone != null) {
+            Optional<User> existingUserWithPhone = userRepository.findByPhone(newPhone);
+            if (existingUserWithPhone.isPresent() && !existingUserWithPhone.get().getId().equals(user.getId())) {
+                throw new IllegalArgumentException("Phone number is already registered by another account.");
+            }
+        }
+        user.setPhone(newPhone);
+
+        User saved = userRepository.save(user);
+        log.info("Profile updated successfully for user ID: {}", saved.getId());
+
+        return new UserResponse(
+                saved.getId(),
+                saved.getName(),
+                saved.getEmail(),
+                saved.getPhone(),
+                saved.getRole(),
+                saved.getStatus()
+        );
+    }
+
+    @Transactional
+    public com.synthora.identity.dto.ChangePasswordResponse changePassword(
+            Authentication authentication,
+            com.synthora.identity.dto.ChangePasswordRequest request) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Current password is incorrect.");
+        }
+
+        if (request.currentPassword().equals(request.newPassword())) {
+            throw new IllegalArgumentException("New password cannot be the same as current password.");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        // Invalidate any active password-reset tokens
+        passwordResetTokenRepository.invalidateActiveTokensForUser(user, java.time.Instant.now());
+
+        log.info("Password changed successfully for user ID: {}", user.getId());
+        return com.synthora.identity.dto.ChangePasswordResponse.ofDefault();
     }
 }

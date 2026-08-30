@@ -172,6 +172,31 @@ public class AdminMasterCatalogController {
         return ResponseEntity.ok(adminMasterCatalogService.searchSupplierOfferings(query, moderationStatus, flagged, supplierId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")), authentication));
     }
 
+    @PostMapping("/offerings")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<SupplierOfferingResponse> createOfferingOnBehalfOfSupplier(
+            @Valid @RequestBody com.synthora.product.dto.AdminCreateSupplierOfferingRequest request,
+            Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(supplierOfferingService.createOfferingOnBehalfOfSupplier(request, authentication));
+    }
+
+    @PutMapping("/offerings/{id}")
+    public ResponseEntity<SupplierOfferingResponse> updateOffering(
+            @PathVariable UUID id,
+            @Valid @RequestBody com.synthora.product.dto.AdminUpdateSupplierOfferingRequest request,
+            Authentication authentication) {
+        return ResponseEntity.ok(supplierOfferingService.adminUpdateOffering(id, request, authentication));
+    }
+
+    @PutMapping("/offerings/{id}/status")
+    public ResponseEntity<SupplierOfferingResponse> setOfferingStatus(
+            @PathVariable UUID id,
+            @RequestParam String status,
+            Authentication authentication) {
+        return ResponseEntity.ok(supplierOfferingService.adminSetOfferingStatus(id, status, authentication));
+    }
+
     @GetMapping("/offerings/{id}")
     public ResponseEntity<SupplierOfferingResponse> getOfferingById(
             @PathVariable UUID id,

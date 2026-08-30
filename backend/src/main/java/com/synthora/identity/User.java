@@ -44,6 +44,21 @@ public class User {
     @Column(name = "deleted_by")
     private UUID deletedBy;
 
+    @Column(name = "terms_accepted_at")
+    private Instant termsAcceptedAt;
+
+    @Column(name = "terms_version", length = 20)
+    private String termsVersion;
+
+    @Column(name = "privacy_accepted_at")
+    private Instant privacyAcceptedAt;
+
+    @Column(name = "privacy_version", length = 20)
+    private String privacyVersion;
+
+    @Column(name = "email_verified_at")
+    private Instant emailVerifiedAt;
+
     public User() {
     }
 
@@ -158,5 +173,49 @@ public class User {
 
     public void setDeletedBy(UUID deletedBy) {
         this.deletedBy = deletedBy;
+    }
+
+    public Instant getTermsAcceptedAt() {
+        return termsAcceptedAt;
+    }
+
+    public void setTermsAcceptedAt(Instant termsAcceptedAt) {
+        this.termsAcceptedAt = termsAcceptedAt;
+    }
+
+    public String getTermsVersion() {
+        return termsVersion;
+    }
+
+    public void setTermsVersion(String termsVersion) {
+        this.termsVersion = termsVersion;
+    }
+
+    public Instant getPrivacyAcceptedAt() {
+        return privacyAcceptedAt;
+    }
+
+    public void setPrivacyAcceptedAt(Instant privacyAcceptedAt) {
+        this.privacyAcceptedAt = privacyAcceptedAt;
+    }
+
+    public String getPrivacyVersion() {
+        return privacyVersion;
+    }
+
+    public void setPrivacyVersion(String privacyVersion) {
+        this.privacyVersion = privacyVersion;
+    }
+
+    public Instant getEmailVerifiedAt() {
+        return emailVerifiedAt;
+    }
+
+    public void setEmailVerifiedAt(Instant emailVerifiedAt) {
+        this.emailVerifiedAt = emailVerifiedAt;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerifiedAt != null;
     }
 }

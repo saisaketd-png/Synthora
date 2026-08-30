@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
@@ -66,7 +67,7 @@ public class AdminUserControllerIntegrationTest {
 
     @BeforeEach
     public void setup() {
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM email_verification_tokens; DELETE FROM password_reset_tokens; DELETE FROM users;");
 
         adminUser = new User();
         adminUser.setName("Admin One");
@@ -74,6 +75,7 @@ public class AdminUserControllerIntegrationTest {
         adminUser.setPasswordHash(passwordEncoder.encode("Password123!"));
         adminUser.setRole(UserRole.ADMIN);
         adminUser.setStatus(UserStatus.ACTIVE);
+        adminUser.setEmailVerifiedAt(Instant.now());
         adminUser = userRepository.save(adminUser);
         adminToken = jwtService.generateToken(adminUser);
 
@@ -83,6 +85,7 @@ public class AdminUserControllerIntegrationTest {
         buyerUser.setPasswordHash(passwordEncoder.encode("Password123!"));
         buyerUser.setRole(UserRole.USER);
         buyerUser.setStatus(UserStatus.ACTIVE);
+        buyerUser.setEmailVerifiedAt(Instant.now());
         buyerUser = userRepository.save(buyerUser);
         buyerToken = jwtService.generateToken(buyerUser);
 
@@ -92,6 +95,7 @@ public class AdminUserControllerIntegrationTest {
         supplierUser.setPasswordHash(passwordEncoder.encode("Password123!"));
         supplierUser.setRole(UserRole.SUPPLIER);
         supplierUser.setStatus(UserStatus.ACTIVE);
+        supplierUser.setEmailVerifiedAt(Instant.now());
         supplierUser = userRepository.save(supplierUser);
         supplierToken = jwtService.generateToken(supplierUser);
     }
@@ -146,13 +150,14 @@ public class AdminUserControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUSPENDED"));
 
-        // 2. Buyer attempts login -> Rejected with generic error
+        // 2. Buyer attempts login -> Authenticated with suspension review message
         LoginRequest loginReq = new LoginRequest(buyerUser.getEmail(), "Password123!");
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginReq)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", containsString("Invalid email or password")));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", containsString("Your Synthora account is currently suspended")))
+                .andExpect(jsonPath("$.token").exists());
 
         // 3. Reactivate buyer
         UpdateUserStatusRequest activateReq = new UpdateUserStatusRequest(UserStatus.ACTIVE, "Reinstated");

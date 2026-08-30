@@ -18,6 +18,10 @@ uploads/
 **/uploads/
 *.log
 logs/
+*.dump
+*.sql.gz
+database/backups/
+**/backups/
 scratch*.json
 replace_urls.py
 graphify-out/

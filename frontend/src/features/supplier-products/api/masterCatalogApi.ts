@@ -55,6 +55,9 @@ export interface SupplierOffering {
   masterProductStatus?: string | null;
   supplierLogoUrl?: string | null;
   supplierVerified?: boolean;
+  createdByRole?: string | null;
+  createdByAdminId?: string | null;
+  createdByAdminName?: string | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -235,3 +235,145 @@ export interface OrderFilterParams {
   poNumber?: string;
   query?: string;
 }
+
+// ---------------------------------------------------------------------------
+// 5. Admin Analytics & Overview Types (Phase 1.8)
+// ---------------------------------------------------------------------------
+
+export interface UserAnalyticsDto {
+  totalUsers: number;
+  totalBuyers: number;
+  totalSuppliers: number;
+  activeUsers: number;
+  suspendedUsers: number;
+  pendingUsers: number;
+  unverifiedEmailUsers: number;
+  periodRegistrations: number;
+  previousPeriodRegistrations: number;
+  registrationsGrowthPercentage?: number | null;
+}
+
+export interface SupplierAnalyticsDto {
+  totalSuppliers: number;
+  pendingVerification: number;
+  underReview: number;
+  informationRequired: number;
+  verifiedSuppliers: number;
+  rejectedSuppliers: number;
+  suspendedSuppliers: number;
+  draftSuppliers: number;
+  periodRegistrations: number;
+}
+
+export interface MarketplaceAnalyticsDto {
+  totalRfqs: number;
+  openRfqs: number;
+  acceptedRfqs: number;
+  rejectedRfqs: number;
+  closedRfqs: number;
+  cancelledRfqs: number;
+  periodRfqs: number;
+  totalQuotations: number;
+  periodQuotations: number;
+  acceptedQuotations: number;
+  rejectedQuotations: number;
+}
+
+export interface OrderAnalyticsDto {
+  totalOrders: number;
+  periodOrders: number;
+  placedOrders: number;
+  confirmedOrders: number;
+  processingOrders: number;
+  shippedOrders: number;
+  deliveredOrders: number;
+  completedOrders: number;
+  cancelledOrders: number;
+  rejectedOrders: number;
+}
+
+export interface CommercialAnalyticsDto {
+  totalGmv: number;
+  periodGmv: number;
+  previousPeriodGmv: number;
+  gmvGrowthPercentage?: number | null;
+  averageOrderValue: number;
+  rfqToQuotationConversionRate: number;
+  quotationToOrderConversionRate: number;
+  rfqToOrderConversionRate: number;
+}
+
+export interface ShipmentAnalyticsDto {
+  totalShipments: number;
+  activeShipments: number;
+  deliveredShipments: number;
+  delayedShipments: number;
+}
+
+export interface FunnelStageDto {
+  stage: string;
+  label: string;
+  count: number;
+  conversionPercentage: number;
+  dropOffPercentage: number;
+}
+
+export interface MarketplaceFunnelDto {
+  stages: FunnelStageDto[];
+  overallConversionRate: number;
+}
+
+export interface DataPointDto {
+  date: string;
+  value: number;
+}
+
+export interface AnalyticsTrendsDto {
+  userRegistrations: DataPointDto[];
+  rfqs: DataPointDto[];
+  quotations: DataPointDto[];
+  orders: DataPointDto[];
+  gmv: DataPointDto[];
+}
+
+export interface ActionCenterCounterDto {
+  id: string;
+  category: string;
+  severity: "HIGH" | "MEDIUM" | "LOW";
+  title: string;
+  description: string;
+  count: number;
+  actionUrl: string;
+}
+
+export interface RecentActivityDto {
+  id: string;
+  eventType: string;
+  title: string;
+  description: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  actorName: string;
+  actorRole: string;
+  timestamp: string;
+  link?: string | null;
+}
+
+export interface AdminAnalyticsOverviewResponse {
+  period: string;
+  startDate: string;
+  endDate: string;
+  previousStartDate: string;
+  previousEndDate: string;
+  users: UserAnalyticsDto;
+  suppliers: SupplierAnalyticsDto;
+  marketplace: MarketplaceAnalyticsDto;
+  orders: OrderAnalyticsDto;
+  commercial: CommercialAnalyticsDto;
+  shipments: ShipmentAnalyticsDto;
+  funnel: MarketplaceFunnelDto;
+  trends: AnalyticsTrendsDto;
+  actionCenter: ActionCenterCounterDto[];
+  recentActivity: RecentActivityDto[];
+}
+

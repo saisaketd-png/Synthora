@@ -29,11 +29,12 @@ export const metadata: Metadata = {
     "Global sourcing for pharmaceutical intermediates, APIs, specialty chemicals, and industrial raw materials with verified supplier documentation.",
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/kemkendra-icon.png", type: "image/png" },
+      { url: "/favicon.png", type: "image/png" },
       { url: "/favicon.ico" },
     ],
-    apple: [{ url: "/icon.svg" }],
+    apple: [{ url: "/kemkendra-icon.png" }],
+    shortcut: ["/favicon.ico"],
   },
   robots: {
     index: true,

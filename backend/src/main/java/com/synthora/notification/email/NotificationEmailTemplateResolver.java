@@ -48,6 +48,7 @@ public class NotificationEmailTemplateResolver {
             case MASTER_PRODUCT -> appBaseUrl + "/products/" + entityId;
             case SUPPLIER_OFFERING -> appBaseUrl + "/dashboard/admin/catalog/offerings/" + entityId;
             case SUPPLIER -> appBaseUrl + "/dashboard/admin/catalog/verification/" + entityId;
+            case ACCOUNT_SUSPENSION, ACCOUNT_SUSPENSION_APPEAL -> appBaseUrl + "/dashboard/account-review";
         };
     }
 
@@ -67,6 +68,8 @@ public class NotificationEmailTemplateResolver {
             case MASTER_PRODUCT -> "View Master Product";
             case SUPPLIER_OFFERING -> "View Supplier Offering";
             case SUPPLIER -> "View Supplier Profile";
+            case ACCOUNT_SUSPENSION -> "Review Account Status";
+            case ACCOUNT_SUSPENSION_APPEAL -> "View Appeal Status";
         };
     }
 

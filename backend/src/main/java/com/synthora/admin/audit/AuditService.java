@@ -1,22 +1,36 @@
 package com.synthora.admin.audit;
 
+import com.synthora.admin.audit.dto.AdminAuditLogResponse;
+import com.synthora.admin.audit.dto.AuditKpiSummaryResponse;
 import com.synthora.identity.User;
 import com.synthora.identity.UserRepository;
 import com.synthora.identity.UserRole;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Service for recording immutable administrative audit log entries.
- * Enforces defensive server-side role validation and resolves the actor identity directly from UserRepository.
+ * Service for recording and querying immutable administrative audit log entries.
+ * Enforces defensive server-side role validation, extracts actor identities directly,
+ * and executes dynamic multi-criteria searches without N+1 query overhead.
  */
 @Service
 @Transactional
@@ -57,6 +71,24 @@ public class AuditService {
     }
 
     /**
+     * Records a governance audit log entry triggered by a user (such as appeal submission or evidence uploads).
+     */
+    public AuditLog recordUserAction(
+            User user,
+            AuditAction action,
+            AuditTargetType targetType,
+            String targetId,
+            String details,
+            HttpServletRequest request) {
+
+        if (user == null) {
+            throw new AccessDeniedException("User required to record audit log");
+        }
+        String ipAddress = extractClientIp(request);
+        return recordInternal(user.getId(), action, targetType, targetId, details, ipAddress);
+    }
+
+    /**
      * Records an administrative audit log entry with an explicit IP address string.
      */
     public AuditLog record(
@@ -84,7 +116,7 @@ public class AuditService {
     }
 
     /**
-     * Internal persistence method for recording an audit entry directly by admin UUID.
+     * Internal persistence method for recording an audit entry directly by admin/user UUID.
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public AuditLog recordInternal(
@@ -118,10 +150,166 @@ public class AuditService {
         );
 
         AuditLog saved = auditLogRepository.save(auditLog);
-        log.info("AUDIT: Admin {} performed {} on {}::{} [IP: {}]",
+        log.info("AUDIT: Actor {} performed {} on {}::{} [IP: {}]",
                 adminId, action, targetType, targetId, auditLog.getIpAddress());
 
         return saved;
+    }
+
+    /**
+     * Dynamic multi-criteria search and pagination across platform audit records.
+     * Prevents N+1 queries by batch-resolving actor user names and emails.
+     */
+    @Transactional(readOnly = true)
+    public Page<AdminAuditLogResponse> searchAuditLogs(
+            AuditAction action,
+            UUID adminId,
+            AuditTargetType targetType,
+            String targetId,
+            Instant from,
+            Instant to,
+            String query,
+            int page,
+            int size) {
+
+        int boundedPage = Math.max(0, page);
+        int boundedSize = Math.min(Math.max(1, size), 100);
+
+        Pageable pageable = PageRequest.of(
+                boundedPage,
+                boundedSize,
+                Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"))
+        );
+
+        Specification<AuditLog> spec = (root, cq, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (action != null) {
+                predicates.add(cb.equal(root.get("action"), action));
+            }
+            if (adminId != null) {
+                predicates.add(cb.equal(root.get("adminId"), adminId));
+            }
+            if (targetType != null) {
+                predicates.add(cb.equal(root.get("targetType"), targetType));
+            }
+            if (targetId != null && !targetId.isBlank()) {
+                predicates.add(cb.equal(root.get("targetId"), targetId.trim()));
+            }
+            if (from != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), LocalDateTime.ofInstant(from, java.time.ZoneId.systemDefault())));
+            }
+            if (to != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), LocalDateTime.ofInstant(to, java.time.ZoneId.systemDefault())));
+            }
+            if (query != null && !query.trim().isEmpty()) {
+                String pattern = "%" + query.trim().toLowerCase() + "%";
+                Predicate detailsMatch = cb.like(cb.lower(root.get("details")), pattern);
+                Predicate targetIdMatch = cb.like(cb.lower(root.get("targetId")), pattern);
+                Predicate ipMatch = cb.like(cb.lower(root.get("ipAddress")), pattern);
+                predicates.add(cb.or(detailsMatch, targetIdMatch, ipMatch));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<AuditLog> pageResult = auditLogRepository.findAll(spec, pageable);
+
+        // Batch resolve actor users to prevent N+1 queries
+        Set<UUID> actorIds = pageResult.getContent().stream()
+                .map(AuditLog::getAdminId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<UUID, User> actorMap = actorIds.isEmpty() ? Collections.emptyMap() :
+                userRepository.findAllById(actorIds).stream()
+                        .collect(Collectors.toMap(User::getId, u -> u));
+
+        return pageResult.map(auditLog -> {
+            User actor = actorMap.get(auditLog.getAdminId());
+            String actorName = actor != null ? (actor.getName() != null ? actor.getName() : actor.getEmail()) : "System / Unknown";
+            String actorEmail = actor != null ? actor.getEmail() : "system@synthora.com";
+
+            return new AdminAuditLogResponse(
+                    auditLog.getId(),
+                    auditLog.getAdminId(),
+                    actorName,
+                    actorEmail,
+                    auditLog.getAction(),
+                    auditLog.getTargetType(),
+                    auditLog.getTargetId(),
+                    auditLog.getDetails(),
+                    auditLog.getIpAddress(),
+                    auditLog.getCreatedAt()
+            );
+        });
+    }
+
+    /**
+     * Calculates summary KPI counts across governance categories using indexed count queries.
+     */
+    @Transactional(readOnly = true)
+    public AuditKpiSummaryResponse getAuditKpiSummary() {
+        long totalEvents = auditLogRepository.count();
+        LocalDateTime todayStart = LocalDate.now(ZoneOffset.UTC).atStartOfDay();
+        long todayEvents = auditLogRepository.countByCreatedAtGreaterThanEqual(todayStart);
+
+        long userGovernanceEvents = auditLogRepository.countByActionIn(List.of(
+                AuditAction.USER_CREATED,
+                AuditAction.USER_SUSPENDED,
+                AuditAction.USER_ACTIVATED,
+                AuditAction.USER_REINSTATED,
+                AuditAction.USER_ROLE_CHANGED,
+                AuditAction.USER_DELETED,
+                AuditAction.APPEAL_SUBMITTED,
+                AuditAction.APPEAL_REVIEW_STARTED,
+                AuditAction.APPEAL_INFORMATION_REQUESTED,
+                AuditAction.APPEAL_INFORMATION_RESPONDED,
+                AuditAction.APPEAL_APPROVED,
+                AuditAction.APPEAL_REJECTED
+        ));
+
+        long supplierGovernanceEvents = auditLogRepository.countByActionIn(List.of(
+                AuditAction.SUPPLIER_VERIFICATION_SUBMITTED,
+                AuditAction.SUPPLIER_REVIEW_STARTED,
+                AuditAction.SUPPLIER_INFORMATION_REQUESTED,
+                AuditAction.SUPPLIER_VERIFIED,
+                AuditAction.SUPPLIER_UNVERIFIED,
+                AuditAction.SUPPLIER_REJECTED,
+                AuditAction.SUPPLIER_EXPORT_READY_CHANGED,
+                AuditAction.SUPPLIER_SUSPENDED,
+                AuditAction.SUPPLIER_ACTIVATED,
+                AuditAction.SUPPLIER_LOGO_UPLOADED,
+                AuditAction.SUPPLIER_EVIDENCE_UPDATED
+        ));
+
+        long catalogGovernanceEvents = auditLogRepository.countByActionIn(List.of(
+                AuditAction.PRODUCT_REQUEST_APPROVED,
+                AuditAction.PRODUCT_REQUEST_REJECTED,
+                AuditAction.MASTER_PRODUCT_CREATED,
+                AuditAction.MASTER_PRODUCT_UPDATED,
+                AuditAction.MASTER_PRODUCT_ACTIVATED,
+                AuditAction.MASTER_PRODUCT_DEACTIVATED,
+                AuditAction.MASTER_PRODUCT_MERGED,
+                AuditAction.SUPPLIER_OFFERING_CREATED,
+                AuditAction.SUPPLIER_OFFERING_CREATED_BY_ADMIN,
+                AuditAction.SUPPLIER_OFFERING_UPDATED,
+                AuditAction.SUPPLIER_OFFERING_ACTIVATED,
+                AuditAction.SUPPLIER_OFFERING_DEACTIVATED,
+                AuditAction.SUPPLIER_OFFERING_APPROVED,
+                AuditAction.SUPPLIER_OFFERING_REJECTED,
+                AuditAction.SUPPLIER_OFFERING_FLAGGED,
+                AuditAction.PRODUCT_UPDATED,
+                AuditAction.PRODUCT_DELETED
+        ));
+
+        return new AuditKpiSummaryResponse(
+                totalEvents,
+                todayEvents,
+                userGovernanceEvents,
+                supplierGovernanceEvents,
+                catalogGovernanceEvents
+        );
     }
 
     /**

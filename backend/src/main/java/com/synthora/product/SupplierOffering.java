@@ -86,6 +86,15 @@ public class SupplierOffering {
     @Column(name = "verified_by")
     private UUID verifiedBy;
 
+    @Column(name = "created_by_role", length = 50)
+    private String createdByRole = "SUPPLIER";
+
+    @Column(name = "created_by_admin_id")
+    private UUID createdByAdminId;
+
+    @Column(name = "created_by_admin_name")
+    private String createdByAdminName;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -144,6 +153,13 @@ public class SupplierOffering {
     public void setVerifiedAt(LocalDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
     public UUID getVerifiedBy() { return verifiedBy; }
     public void setVerifiedBy(UUID verifiedBy) { this.verifiedBy = verifiedBy; }
+
+    public String getCreatedByRole() { return createdByRole; }
+    public void setCreatedByRole(String createdByRole) { this.createdByRole = createdByRole; }
+    public UUID getCreatedByAdminId() { return createdByAdminId; }
+    public void setCreatedByAdminId(UUID createdByAdminId) { this.createdByAdminId = createdByAdminId; }
+    public String getCreatedByAdminName() { return createdByAdminName; }
+    public void setCreatedByAdminName(String createdByAdminName) { this.createdByAdminName = createdByAdminName; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

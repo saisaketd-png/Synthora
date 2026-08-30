@@ -181,9 +181,10 @@ export default function AdminOfferingGovernanceDashboardPage() {
             <thead className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="px-4 py-3">Master Chemical</th>
-                <th className="px-4 py-3">Supplier</th>
+                <th className="px-4 py-3">Supplier & Ownership</th>
                 <th className="px-4 py-3">Commercial Terms</th>
                 <th className="px-4 py-3">Specs</th>
+                <th className="px-4 py-3">Provenance</th>
                 <th className="px-4 py-3">Moderation & Verification</th>
                 <th className="px-4 py-3 text-right">Inspection</th>
               </tr>
@@ -191,7 +192,7 @@ export default function AdminOfferingGovernanceDashboardPage() {
             <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">Loading Supplier Offerings Queue...</td>
+                  <td colSpan={7} className="p-8 text-center text-slate-500">Loading Supplier Offerings Queue...</td>
                 </tr>
               ) : filteredOfferings.length > 0 ? (
                 filteredOfferings.map((off) => {
@@ -207,7 +208,9 @@ export default function AdminOfferingGovernanceDashboardPage() {
                         <strong className="text-slate-900 font-bold block">{off.supplierName}</strong>
                         <div className="flex items-center gap-1 mt-0.5">
                           <span className="text-[10px] text-slate-400">Supplier #{off.supplierId}</span>
-                          <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 text-[9px] font-extrabold rounded">VERIFIED</span>
+                          {off.supplierVerified && (
+                            <span className="px-1.5 py-0.2 bg-emerald-50 text-emerald-800 text-[9px] font-extrabold rounded">VERIFIED</span>
+                          )}
                         </div>
                       </td>
                       <td className="px-4 py-3.5 font-mono">
@@ -230,6 +233,17 @@ export default function AdminOfferingGovernanceDashboardPage() {
                             <span className="px-1.5 py-0.2 bg-slate-100 text-slate-500 text-[9px] font-bold rounded">MSDS: None</span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {off.createdByRole === "ADMIN" ? (
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-extrabold rounded-md inline-flex items-center gap-1">
+                            <ShieldCheck className="w-3 h-3 text-purple-600" /> Admin ({off.createdByAdminName || "Admin"})
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md inline-block">
+                            🏢 Supplier
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3.5 space-y-1">
                         <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase inline-block ${
@@ -256,7 +270,7 @@ export default function AdminOfferingGovernanceDashboardPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">No Supplier Offerings found matching current governance criteria.</td>
+                  <td colSpan={7} className="p-8 text-center text-slate-500">No Supplier Offerings found matching current governance criteria.</td>
                 </tr>
               )}
             </tbody>

@@ -1,7 +1,9 @@
 package com.synthora.identity.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record SupplierRegisterRequest(
@@ -40,6 +42,27 @@ public record SupplierRegisterRequest(
         String website,
 
         @Size(max = 2000, message = "About company must not exceed 2000 characters")
-        String aboutCompany
+        String aboutCompany,
+
+        @NotNull(message = "Terms of Service must be accepted")
+        @AssertTrue(message = "Terms of Service must be accepted")
+        Boolean termsAccepted,
+
+        @NotNull(message = "Privacy Policy must be accepted")
+        @AssertTrue(message = "Privacy Policy must be accepted")
+        Boolean privacyAccepted
 ) {
+    public SupplierRegisterRequest(
+            String name,
+            String email,
+            String password,
+            String companyName,
+            String country,
+            String countryCode,
+            String phone,
+            String city,
+            String website,
+            String aboutCompany) {
+        this(name, email, password, companyName, country, countryCode, phone, city, website, aboutCompany, false, false);
+    }
 }

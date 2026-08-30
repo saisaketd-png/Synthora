@@ -1,6 +1,7 @@
 package com.synthora.config;
 
 import com.synthora.security.JwtAuthenticationFilter;
+import com.synthora.security.ratelimit.RateLimitingFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,12 +30,17 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RateLimitingFilter rateLimitingFilter;
+    private final String allowedOrigins;
 
-    @Value("${synthora.cors.allowed-origins:http://localhost:3000}")
-    private String allowedOrigins;
-
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            RateLimitingFilter rateLimitingFilter,
+            @Value("${synthora.cors.allowed-origins:http://localhost:3000}") String allowedOrigins
+    ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.rateLimitingFilter = rateLimitingFilter;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Bean
@@ -94,12 +100,13 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler())
                 )
-                .headers(headers -> headers
-                        .contentTypeOptions(Customizer.withDefaults())
-                        .frameOptions(frame -> frame.deny())
-                        .referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                        .permissionsPolicy(perm -> perm.policy("camera=(), microphone=(), geolocation=()"))
-                )
+                .headers(headers -> {
+                    headers.contentTypeOptions(Customizer.withDefaults());
+                    headers.frameOptions(frame -> frame.deny());
+                    headers.referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
+                    headers.permissionsPolicy(perm -> perm.policy("camera=(), microphone=(), geolocation=(), payment=()"));
+                    headers.contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"));
+                })
                 .authorizeHttpRequests(auth -> auth
                         // Public authentication & docs & public endpoints
                         .requestMatchers(
@@ -107,6 +114,10 @@ public class SecurityConfig {
                                 "/api/v1/auth/register",
                                 "/api/v1/auth/register/**",
                                 "/api/v1/auth/login",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/reset-password",
+                                "/api/v1/auth/verify-email",
+                                "/api/v1/auth/resend-verification",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
@@ -167,6 +178,10 @@ public class SecurityConfig {
 
                         // Everything else
                         .anyRequest().authenticated()
+                )
+                .addFilterBefore(
+                        rateLimitingFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 )
                 .addFilterBefore(
                         jwtAuthenticationFilter,

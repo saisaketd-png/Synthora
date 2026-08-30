@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
 
   flyway:
     enabled: false
@@ -28,6 +28,8 @@ synthora:
     from-name: Synthora B2B Marketplace
   app:
     base-url: http://localhost:3000
+  rate-limit:
+    enabled: false
 
 spring.servlet.multipart.max-file-size: 50MB
 spring.servlet.multipart.max-request-size: 50MB

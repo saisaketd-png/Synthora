@@ -66,7 +66,7 @@ public class AuthenticationSecurityHardeningTest {
     @BeforeEach
     public void setup() {
         rateLimiterService.resetAll();
-        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM users;");
+        jdbcTemplate.execute("UPDATE rfqs SET accepted_quotation_id = NULL; DELETE FROM buyer_shortlist_items; DELETE FROM buyer_shortlists; DELETE FROM governance_audit_logs; DELETE FROM audit_logs; DELETE FROM notifications; DELETE FROM supplier_offering_verification_evidences; DELETE FROM supplier_offering_audits; DELETE FROM supplier_verification_evidences; DELETE FROM supplier_verification_audits; DELETE FROM product_requests; DELETE FROM sourcing_requests; DELETE FROM documents; DELETE FROM shipments; DELETE FROM purchase_orders; DELETE FROM quotations; DELETE FROM rfqs; DELETE FROM supplier_offerings; DELETE FROM product_master_mappings; DELETE FROM master_products; DELETE FROM product_images; DELETE FROM product_suppliers; DELETE FROM products; DELETE FROM seller_profiles; DELETE FROM suppliers; DELETE FROM email_verification_tokens; DELETE FROM password_reset_tokens; DELETE FROM users;");
 
         activeUser = new User();
         activeUser.setName("Active User");
@@ -74,6 +74,7 @@ public class AuthenticationSecurityHardeningTest {
         activeUser.setPasswordHash(passwordEncoder.encode("Password123!"));
         activeUser.setRole(UserRole.USER);
         activeUser.setStatus(UserStatus.ACTIVE);
+        activeUser.setEmailVerifiedAt(Instant.now());
         activeUser = userRepository.save(activeUser);
 
         suspendedUser = new User();
@@ -82,6 +83,7 @@ public class AuthenticationSecurityHardeningTest {
         suspendedUser.setPasswordHash(passwordEncoder.encode("Password123!"));
         suspendedUser.setRole(UserRole.USER);
         suspendedUser.setStatus(UserStatus.SUSPENDED);
+        suspendedUser.setEmailVerifiedAt(Instant.now());
         suspendedUser = userRepository.save(suspendedUser);
 
         deletedUser = new User();
@@ -90,6 +92,7 @@ public class AuthenticationSecurityHardeningTest {
         deletedUser.setPasswordHash(passwordEncoder.encode("Password123!"));
         deletedUser.setRole(UserRole.USER);
         deletedUser.setStatus(UserStatus.ACTIVE);
+        deletedUser.setEmailVerifiedAt(Instant.now());
         deletedUser.setDeletedAt(Instant.now());
         deletedUser = userRepository.save(deletedUser);
 
@@ -99,6 +102,7 @@ public class AuthenticationSecurityHardeningTest {
         adminUser.setPasswordHash(passwordEncoder.encode("AdminPass123!"));
         adminUser.setRole(UserRole.ADMIN);
         adminUser.setStatus(UserStatus.ACTIVE);
+        adminUser.setEmailVerifiedAt(Instant.now());
         adminUser = userRepository.save(adminUser);
 
         supplierUser = new User();
@@ -107,6 +111,7 @@ public class AuthenticationSecurityHardeningTest {
         supplierUser.setPasswordHash(passwordEncoder.encode("SupplierPass123!"));
         supplierUser.setRole(UserRole.SUPPLIER);
         supplierUser.setStatus(UserStatus.ACTIVE);
+        supplierUser.setEmailVerifiedAt(Instant.now());
         supplierUser = userRepository.save(supplierUser);
     }
 
@@ -148,15 +153,16 @@ public class AuthenticationSecurityHardeningTest {
     }
 
     @Test
-    @DisplayName("Login with suspended user returns identical generic 400 error")
+    @DisplayName("Login with suspended user returns suspension notice and restricted token for appeals")
     public void testLoginSuspendedUser() throws Exception {
         LoginRequest request = new LoginRequest("suspended@synthora.com", "Password123!");
 
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message", is("Invalid email or password")));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", containsString("Your Synthora account is currently suspended")))
+                .andExpect(jsonPath("$.token").exists());
     }
 
     @Test

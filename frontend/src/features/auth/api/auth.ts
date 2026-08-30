@@ -49,6 +49,8 @@ export type RegisterBuyerRequest = {
   email: string;
   phone?: string;
   password: string;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
 };
 
 export type RegisterSupplierRequest = {
@@ -62,6 +64,8 @@ export type RegisterSupplierRequest = {
   city?: string;
   website?: string;
   aboutCompany?: string;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
 };
 
 export async function registerBuyer(
@@ -90,9 +94,16 @@ export async function registerBuyer(
   return response.json();
 }
 
+export type SupplierRegisterResponse = {
+  message: string;
+  userId: string;
+  email: string;
+  supplierId: number;
+};
+
 export async function registerSupplier(
   data: RegisterSupplierRequest
-): Promise<LoginResponse> {
+): Promise<SupplierRegisterResponse> {
   const targetUrl = resolveApiUrl("/api/v1/auth/register/supplier");
   const response = await fetch(targetUrl, {
     method: "POST",
@@ -169,4 +180,208 @@ export function handleUnauthorized(redirectUrl?: string): void {
       window.location.href = target;
     }
   }
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  const targetUrl = resolveApiUrl("/api/v1/auth/forgot-password");
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Request failed (HTTP ${response.status})`;
+    try {
+      const errorData = await response.json();
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<{ message: string }> {
+  const targetUrl = resolveApiUrl("/api/v1/auth/reset-password");
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ token, newPassword }),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Password reset failed (HTTP ${response.status})`;
+    try {
+      const errorData = await response.json();
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  role: string;
+  status: string;
+};
+
+export async function getCurrentUserProfile(): Promise<UserProfile> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+  const targetUrl = resolveApiUrl("/api/v1/users/me");
+  const response = await fetch(targetUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
+    let errorMessage = `Failed to fetch profile (HTTP ${response.status})`;
+    try {
+      const errorData = await response.json();
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function updateUserProfile(data: {
+  name: string;
+  phone?: string;
+}): Promise<UserProfile> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+  const targetUrl = resolveApiUrl("/api/v1/users/me");
+  const response = await fetch(targetUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
+    let errorMessage = `Failed to update profile (HTTP ${response.status})`;
+    try {
+      const errorData = await response.json();
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<{ message: string }> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+  const targetUrl = resolveApiUrl("/api/v1/users/me/change-password");
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      handleUnauthorized();
+    }
+    let errorMessage = `Failed to change password (HTTP ${response.status})`;
+    try {
+      const errorData = await response.json();
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function verifyEmail(data: {
+  token: string;
+}): Promise<{ message: string }> {
+  const targetUrl = resolveApiUrl("/api/v1/auth/verify-email");
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Email verification failed (HTTP ${response.status})`;
+    try {
+      const errorData = await response.json();
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
+}
+
+export async function resendVerification(data: {
+  email: string;
+}): Promise<{ message: string }> {
+  const targetUrl = resolveApiUrl("/api/v1/auth/resend-verification");
+  const response = await fetch(targetUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Resend verification failed (HTTP ${response.status})`;
+    try {
+      const errorData = await response.json();
+      const requestId = response.headers.get("X-Request-ID");
+      const msg = errorData.error || errorData.message || "Unknown error";
+      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
+    } catch {}
+    throw new Error(errorMessage);
+  }
+
+  return response.json();
 }

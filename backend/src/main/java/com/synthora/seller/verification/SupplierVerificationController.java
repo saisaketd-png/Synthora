@@ -51,4 +51,12 @@ public class SupplierVerificationController {
                 request.responseNotes()
         ));
     }
+
+    @PutMapping("/evidence/{type}")
+    public ResponseEntity<SupplierVerificationWorkspaceDto> attachEvidenceDocument(
+            @PathVariable VerificationType type,
+            @RequestParam java.util.UUID documentId,
+            Authentication authentication) {
+        return ResponseEntity.ok(verificationService.attachEvidenceDocument(authentication, type, documentId));
+    }
 }

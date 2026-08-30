@@ -81,6 +81,43 @@ export interface MergePayload {
   adminNotes?: string;
 }
 
+export interface AdminCreateSupplierOfferingPayload {
+  supplierId: number;
+  masterProductId: string;
+  price: number;
+  currency?: string;
+  stock?: number;
+  purity?: number;
+  grade?: string;
+  moqKg?: number;
+  packaging?: string;
+  leadTimeDays?: number;
+  coaAvailable?: boolean;
+  msdsAvailable?: boolean;
+  exportReady?: boolean;
+  availabilityStatus?: string;
+  moderationStatus?: string;
+  adminNotes?: string;
+}
+
+export interface AdminUpdateSupplierOfferingPayload {
+  price?: number;
+  currency?: string;
+  stock?: number;
+  purity?: number;
+  grade?: string;
+  moqKg?: number;
+  packaging?: string;
+  leadTimeDays?: number;
+  coaAvailable?: boolean;
+  msdsAvailable?: boolean;
+  exportReady?: boolean;
+  availabilityStatus?: string;
+  moderationStatus?: string;
+  moderationNotes?: string;
+  adminNotes?: string;
+}
+
 export interface AdminCatalogSearchParams {
   query?: string;
   casNumber?: string;
@@ -282,16 +319,65 @@ export async function verifyChemicalField(id: string, payload: { fieldName: stri
   return res.json();
 }
 
-export async function getAdminOfferings(params: { query?: string; flagged?: boolean; page?: number; size?: number } = {}): Promise<PageResponse<any>> {
+export async function getAdminOfferings(params: { query?: string; flagged?: boolean; supplierId?: number; moderationStatus?: string; page?: number; size?: number } = {}): Promise<PageResponse<any>> {
   const searchParams = new URLSearchParams();
   if (params.query) searchParams.append("query", params.query);
   if (params.flagged !== undefined) searchParams.append("flagged", params.flagged.toString());
+  if (params.supplierId !== undefined) searchParams.append("supplierId", params.supplierId.toString());
+  if (params.moderationStatus) searchParams.append("moderationStatus", params.moderationStatus);
   if (params.page !== undefined) searchParams.append("page", params.page.toString());
   if (params.size !== undefined) searchParams.append("size", params.size.toString());
 
   const res = await authenticatedFetch(`/api/v1/admin/catalog/offerings?${searchParams.toString()}`);
   if (!res.ok) throw new Error("Failed to load supplier offerings");
   return res.json();
+}
+
+export async function createOfferingOnBehalfOfSupplier(payload: AdminCreateSupplierOfferingPayload): Promise<any> {
+  const res = await authenticatedFetch("/api/v1/admin/catalog/offerings", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let err = "Failed to create offering on behalf of supplier";
+    try { err = (await res.json()).message || err; } catch {}
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+export async function updateAdminOffering(id: string, payload: AdminUpdateSupplierOfferingPayload): Promise<any> {
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/offerings/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    let err = "Failed to update supplier offering";
+    try { err = (await res.json()).message || err; } catch {}
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+export async function setAdminOfferingStatus(id: string, status: string): Promise<any> {
+  const params = new URLSearchParams({ status });
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/offerings/${id}/status?${params.toString()}`, {
+    method: "PUT",
+  });
+  if (!res.ok) {
+    let err = "Failed to set offering status";
+    try { err = (await res.json()).message || err; } catch {}
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+export async function getAdminSuppliersList(query?: string): Promise<any[]> {
+  const params = query ? `?query=${encodeURIComponent(query)}` : "";
+  const res = await authenticatedFetch(`/api/v1/admin/suppliers/verification/queue${params}`);
+  if (!res.ok) throw new Error("Failed to load suppliers");
+  const data = await res.json();
+  return Array.isArray(data) ? data : data.content || [];
 }
 
 export async function flagSupplierOffering(id: string, payload: { reason: string; flagged: boolean }): Promise<any> {

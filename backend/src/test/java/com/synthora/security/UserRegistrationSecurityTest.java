@@ -23,6 +23,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
@@ -52,14 +53,21 @@ public class UserRegistrationSecurityTest {
     @Autowired
     private SellerProfileRepository sellerProfileRepository;
 
+    @Autowired
+    private com.synthora.identity.EmailVerificationTokenRepository emailVerificationTokenRepository;
+
     @BeforeEach
     public void setup() {
         // Clean up test specific users if present
         Optional<User> existingBuyer = userRepository.findByEmail("newbuyer@example.com");
-        existingBuyer.ifPresent(u -> userRepository.delete(u));
+        existingBuyer.ifPresent(u -> {
+            emailVerificationTokenRepository.findByUserAndUsedAtIsNull(u).forEach(emailVerificationTokenRepository::delete);
+            userRepository.delete(u);
+        });
 
         Optional<User> existingSupplier = userRepository.findByEmail("newsupplier@chemcorp.com");
         existingSupplier.ifPresent(u -> {
+            emailVerificationTokenRepository.findByUserAndUsedAtIsNull(u).forEach(emailVerificationTokenRepository::delete);
             sellerProfileRepository.findByUser(u).ifPresent(sellerProfileRepository::delete);
             supplierRepository.findByUser(u).ifPresent(supplierRepository::delete);
             userRepository.delete(u);
@@ -77,7 +85,9 @@ public class UserRegistrationSecurityTest {
                 "Jane Buyer",
                 "newbuyer@example.com",
                 "+1-555-0199",
-                "StrongPassword123!"
+                "StrongPassword123!",
+                true,
+                true
         );
 
         mockMvc.perform(post("/api/v1/auth/register")
@@ -103,7 +113,9 @@ public class UserRegistrationSecurityTest {
                 "First User",
                 "newbuyer@example.com",
                 "+1-555-0199",
-                "StrongPassword123!"
+                "StrongPassword123!",
+                true,
+                true
         );
 
         mockMvc.perform(post("/api/v1/auth/register")
@@ -115,7 +127,9 @@ public class UserRegistrationSecurityTest {
                 "Second User",
                 "newbuyer@example.com",
                 "+1-555-0200",
-                "AnotherPassword123!"
+                "AnotherPassword123!",
+                true,
+                true
         );
 
         mockMvc.perform(post("/api/v1/auth/register")
@@ -157,7 +171,9 @@ public class UserRegistrationSecurityTest {
                     "name": "Attacker",
                     "email": "newbuyer@example.com",
                     "password": "StrongPassword123!",
-                    "role": "ADMIN"
+                    "role": "ADMIN",
+                    "termsAccepted": true,
+                    "privacyAccepted": true
                 }
                 """;
 
@@ -188,14 +204,16 @@ public class UserRegistrationSecurityTest {
                 "+49-30-123456",
                 "Berlin",
                 "https://vance-chem.de",
-                "Leading European manufacturer of pharmaceutical intermediates and fine chemicals."
+                "Leading European manufacturer of pharmaceutical intermediates and fine chemicals.",
+                true,
+                true
         );
 
         MvcResult result = mockMvc.perform(post("/api/v1/auth/register/supplier")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.token").isNotEmpty())
+                .andExpect(jsonPath("$.token").doesNotExist())
                 .andExpect(jsonPath("$.message", containsString("registered successfully")))
                 .andReturn();
 
@@ -204,6 +222,7 @@ public class UserRegistrationSecurityTest {
         assertEquals("Marcus Vance", user.getName());
         assertEquals(UserRole.SUPPLIER, user.getRole());
         assertEquals(UserStatus.ACTIVE, user.getStatus());
+        assertNull(user.getEmailVerifiedAt());
 
         // 2. Verify Operational Supplier entity
         Supplier supplier = supplierRepository.findByUser(user).orElseThrow();
@@ -222,8 +241,19 @@ public class UserRegistrationSecurityTest {
         assertEquals("https://vance-chem.de", profile.getWebsite());
         assertEquals("Leading European manufacturer of pharmaceutical intermediates and fine chemicals.", profile.getAboutCompany());
 
-        // 4. Verify Immediate Authenticated Access with Token
-        String token = objectMapper.readTree(result.getResponse().getContentAsString()).get("token").asText();
+        // 4. Verify email to enable authenticated login
+        user.setEmailVerifiedAt(Instant.now());
+        userRepository.save(user);
+
+        // 5. Authenticate via login and retrieve profile
+        LoginRequest loginReq = new LoginRequest("newsupplier@chemcorp.com", "SupplierSecurePass123!");
+        MvcResult loginResult = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("token").asText();
         mockMvc.perform(get("/api/v1/sellers/me")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -241,7 +271,8 @@ public class UserRegistrationSecurityTest {
                 "Vance Chemical Solutions",
                 "Germany",
                 "DE",
-                null, null, null, null
+                null, null, null, null,
+                true, true
         );
 
         mockMvc.perform(post("/api/v1/auth/register/supplier")
@@ -256,7 +287,8 @@ public class UserRegistrationSecurityTest {
                 "Another Company",
                 "France",
                 "FR",
-                null, null, null, null
+                null, null, null, null,
+                true, true
         );
 
         mockMvc.perform(post("/api/v1/auth/register/supplier")
@@ -270,7 +302,7 @@ public class UserRegistrationSecurityTest {
     public void testSupplierRegistrationValidation() throws Exception {
         // Missing company name
         SupplierRegisterRequest noCompany = new SupplierRegisterRequest(
-                "Name", "newsupplier@chemcorp.com", "Password123!", "", "Germany", "DE", null, null, null, null
+                "Name", "newsupplier@chemcorp.com", "Password123!", "", "Germany", "DE", null, null, null, null, true, true
         );
         mockMvc.perform(post("/api/v1/auth/register/supplier")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -279,7 +311,7 @@ public class UserRegistrationSecurityTest {
 
         // Missing country
         SupplierRegisterRequest noCountry = new SupplierRegisterRequest(
-                "Name", "newsupplier@chemcorp.com", "Password123!", "Company", "", "DE", null, null, null, null
+                "Name", "newsupplier@chemcorp.com", "Password123!", "Company", "", "DE", null, null, null, null, true, true
         );
         mockMvc.perform(post("/api/v1/auth/register/supplier")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -288,7 +320,7 @@ public class UserRegistrationSecurityTest {
 
         // Password too short
         SupplierRegisterRequest shortPw = new SupplierRegisterRequest(
-                "Name", "newsupplier@chemcorp.com", "short", "Company", "Germany", "DE", null, null, null, null
+                "Name", "newsupplier@chemcorp.com", "short", "Company", "Germany", "DE", null, null, null, null, true, true
         );
         mockMvc.perform(post("/api/v1/auth/register/supplier")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -301,15 +333,20 @@ public class UserRegistrationSecurityTest {
     // =========================================================================
 
     @Test
-    @DisplayName("8. Newly registered buyer and supplier can log in via standard /api/v1/auth/login")
+    @DisplayName("8. Newly registered buyer and supplier can log in via standard /api/v1/auth/login after email verification")
     public void testLoginWithRegisteredCredentials() throws Exception {
         // Register Buyer
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new RegisterRequest(
-                                "Buyer User", "newbuyer@example.com", null, "ValidPassword123!"
+                                "Buyer User", "newbuyer@example.com", null, "ValidPassword123!", true, true
                         ))))
                 .andExpect(status().isCreated());
+
+        // Verify buyer email
+        User buyerUser = userRepository.findByEmail("newbuyer@example.com").orElseThrow();
+        buyerUser.setEmailVerifiedAt(Instant.now());
+        userRepository.save(buyerUser);
 
         // Login as Buyer
         mockMvc.perform(post("/api/v1/auth/login")
@@ -325,9 +362,14 @@ public class UserRegistrationSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new SupplierRegisterRequest(
                                 "Supplier User", "newsupplier@chemcorp.com", "SupplierPassword123!",
-                                "ChemCorp Global", "USA", "US", null, null, null, null
+                                "ChemCorp Global", "USA", "US", null, null, null, null, true, true
                         ))))
                 .andExpect(status().isCreated());
+
+        // Verify supplier email
+        User supplierUser = userRepository.findByEmail("newsupplier@chemcorp.com").orElseThrow();
+        supplierUser.setEmailVerifiedAt(Instant.now());
+        userRepository.save(supplierUser);
 
         // Login as Supplier
         mockMvc.perform(post("/api/v1/auth/login")

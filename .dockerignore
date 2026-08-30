@@ -37,6 +37,10 @@ logs
 # Archives & Temporary files
 *.zip
 *.tar.gz
+*.dump
+*.sql.gz
+database/backups
+**/backups
 *.pyc
 __pycache__
 scratch*.json

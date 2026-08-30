@@ -388,8 +388,17 @@ export default function SupplierProductsPage() {
                     </div>
                   </div>
 
-                  {/* Status Badge */}
-                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                  {/* Status & Provenance Badges */}
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                    {off.createdByRole === "ADMIN" ? (
+                      <span className="px-2.5 py-1 bg-purple-50 border border-purple-200 text-purple-800 text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-2xs">
+                        <ShieldCheck className="w-3.5 h-3.5 text-purple-600" /> Listed by Synthora Admin
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium rounded-lg">
+                        🏢 Self-Listed
+                      </span>
+                    )}
                     <StatusBadge status={modStatus} size="md" />
                   </div>
                 </div>

@@ -22,6 +22,8 @@ import {
   ArrowUpRight,
   Activity,
   Bookmark,
+  Settings,
+  ShieldAlert,
 } from "lucide-react";
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
@@ -156,6 +158,16 @@ export default function DashboardLayout({
         },
       ],
     },
+    {
+      title: "ACCOUNT",
+      items: [
+        {
+          name: "Account Settings",
+          href: "/dashboard/settings",
+          icon: Settings,
+        },
+      ],
+    },
   ];
 
   const supplierNavSections: NavSection[] = [
@@ -198,6 +210,11 @@ export default function DashboardLayout({
           href: "/dashboard/supplier/verification",
           icon: ShieldCheck,
         },
+        {
+          name: "Account Settings",
+          href: "/dashboard/settings",
+          icon: Settings,
+        },
       ],
     },
     {
@@ -214,14 +231,25 @@ export default function DashboardLayout({
 
   const adminNavSections: NavSection[] = [
     {
-      title: "OPERATIONS",
+      title: "OVERVIEW & ANALYTICS",
       items: [
+        {
+          name: "Platform Analytics",
+          href: "/dashboard/admin",
+          icon: Activity,
+          exact: true,
+        },
         {
           name: "Operations Console",
           href: "/dashboard/admin/operations",
           icon: LayoutDashboard,
           exact: true,
         },
+      ],
+    },
+    {
+      title: "CATALOG & MODERATION",
+      items: [
         {
           name: "Master Catalog",
           href: "/dashboard/admin/catalog",
@@ -246,6 +274,11 @@ export default function DashboardLayout({
           name: "User Management",
           href: "/dashboard/admin/users",
           icon: Users,
+        },
+        {
+          name: "Account Governance",
+          href: "/dashboard/admin/account-governance",
+          icon: ShieldAlert,
         },
       ],
     },
@@ -275,12 +308,22 @@ export default function DashboardLayout({
       ],
     },
     {
-      title: "SYSTEM",
+      title: "SYSTEM & GOVERNANCE",
       items: [
         {
-          name: "Audit Logs",
+          name: "Audit & Governance",
+          href: "/dashboard/admin/audit",
+          icon: ShieldCheck,
+        },
+        {
+          name: "Activity Trail",
           href: "/dashboard/admin/activity",
           icon: Activity,
+        },
+        {
+          name: "Account Settings",
+          href: "/dashboard/settings",
+          icon: Settings,
         },
       ],
     },
@@ -351,6 +394,15 @@ export default function DashboardLayout({
             </div>
 
             <div className="h-4 w-px bg-[#DFE1E6]" />
+
+            <Link
+              href="/dashboard/settings"
+              className="p-1.5 text-[#5E6C84] hover:text-[#0052CC] hover:bg-[#EBECF0] rounded-lg transition-colors"
+              title="Account Settings"
+              aria-label="Account Settings"
+            >
+              <Settings className="w-4 h-4" />
+            </Link>
 
             <button
               onClick={handleSignOut}

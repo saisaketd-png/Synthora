@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerSupplier, getAuthUser } from "@/features/auth/api/auth";
-import { ArrowRight, Shield, Award, Globe, Building2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Shield, Award, Globe, Building2, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
 import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
 function SupplierRegisterForm() {
@@ -21,8 +21,11 @@ function SupplierRegisterForm() {
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
   const [aboutCompany, setAboutCompany] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const user = getAuthUser();
@@ -54,10 +57,15 @@ function SupplierRegisterForm() {
       return;
     }
 
+    if (!termsAccepted || !privacyAccepted) {
+      setError("You must agree to the Terms of Service and acknowledge the Privacy Policy.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await registerSupplier({
+      await registerSupplier({
         companyName: companyName.trim(),
         name: name.trim(),
         email: email.trim(),
@@ -68,13 +76,12 @@ function SupplierRegisterForm() {
         phone: phone.trim() ? phone.trim() : undefined,
         website: website.trim() ? website.trim() : undefined,
         aboutCompany: aboutCompany.trim() ? aboutCompany.trim() : undefined,
+        termsAccepted,
+        privacyAccepted,
       });
 
-      // Save token and trigger reactive auth update
-      localStorage.setItem("synthora_token", response.token);
-      window.dispatchEvent(new Event("auth-changed"));
-
-      router.push("/dashboard/supplier/onboarding");
+      // Do NOT auto-login. Require email verification before authenticated access.
+      setRegisteredEmail(email.trim());
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Supplier registration failed. Please try again."
@@ -82,6 +89,60 @@ function SupplierRegisterForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Registration Confirmation / Check Inbox State
+  if (registeredEmail) {
+    return (
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-8">
+            <SynthoraLogo href="/" size="xl" subtitle="Supplier Account Provisioned" />
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 sm:p-10 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center mx-auto">
+              <Mail className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                Verify Your Supplier Email
+              </h1>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
+                We have dispatched an activation link to <strong className="text-slate-900 font-mono">{registeredEmail}</strong>. Please check your inbox and click the link to activate your account.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs text-slate-500 space-y-1 text-left">
+              <p className="font-semibold text-slate-700 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-purple-600" />
+                Next Steps After Verification
+              </p>
+              <p>
+                Once verified, sign in to your dashboard to complete company verification, upload quality certificates (ISO/GMP), and list chemical catalog offerings.
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href="/login"
+                className="w-full rounded-lg bg-[#0A192F] hover:bg-slate-800 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                Proceed to Sign In
+                <ArrowRight className="w-4 h-4 text-purple-400" />
+              </Link>
+              <Link
+                href="/verify-email"
+                className="block text-xs font-semibold text-purple-600 hover:underline"
+              >
+                Need to resend verification link?
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -359,25 +420,72 @@ function SupplierRegisterForm() {
                 </div>
               </div>
 
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full rounded-lg bg-purple-600 hover:bg-purple-700 px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-60"
-                >
-                  {loading ? (
-                    <>
-                      <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ONBOARDING SUPPLIER...
-                    </>
-                  ) : (
-                    <>
-                      COMPLETE SUPPLIER ONBOARDING
-                      <ArrowRight className="w-4 h-4 text-purple-200" />
-                    </>
-                  )}
-                </button>
-              </div>
+                {/* Terms of Service and Privacy Policy Required Checkboxes */}
+                <div className="pt-4 pb-2 space-y-2.5 border-t border-slate-100">
+                  <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      disabled={loading}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-2 focus:ring-purple-600/20"
+                    />
+                    <span>
+                      I agree to the{" "}
+                      <Link
+                        href="/terms"
+                        target="_blank"
+                        className="font-bold text-purple-600 hover:underline"
+                      >
+                        Terms of Service
+                      </Link>{" "}
+                      <span className="text-red-500">*</span>
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={privacyAccepted}
+                      onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                      disabled={loading}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-2 focus:ring-purple-600/20"
+                    />
+                    <span>
+                      I acknowledge the{" "}
+                      <Link
+                        href="/privacy"
+                        target="_blank"
+                        className="font-bold text-purple-600 hover:underline"
+                      >
+                        Privacy Policy
+                      </Link>{" "}
+                      <span className="text-red-500">*</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading || !termsAccepted || !privacyAccepted}
+                    className="w-full rounded-lg bg-purple-600 hover:bg-purple-700 px-4 py-3.5 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                  >
+                    {loading ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ONBOARDING SUPPLIER...
+                      </>
+                    ) : (
+                      <>
+                        COMPLETE SUPPLIER ONBOARDING
+                        <ArrowRight className="w-4 h-4 text-purple-200" />
+                      </>
+                    )}
+                  </button>
+                </div>
             </form>
           </div>
 

@@ -1,0 +1,24 @@
+# Java / Maven build artifacts
+target/
+.mvn/
+
+# Storage, uploads & logs
+storage/
+uploads/
+logs/
+*.log
+
+# Environment & config
+.env*
+!.env.example
+
+# IDE & version control
+.git
+.gitignore
+.idea
+.vscode
+
+# Docs & reports
+*.md
+docs/
+output*.json

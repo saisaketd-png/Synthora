@@ -45,7 +45,13 @@ function LoginForm() {
       });
 
       localStorage.setItem("synthora_token", response.token);
+      localStorage.setItem("token", response.token);
       window.dispatchEvent(new Event("auth-changed"));
+
+      if (response.message && response.message.toLowerCase().includes("suspended")) {
+        router.push("/dashboard/account-review");
+        return;
+      }
 
       const user = getAuthUser();
 
@@ -110,6 +116,14 @@ function LoginForm() {
               <div className="space-y-1">
                 <span>Authentication Failure</span>
                 <p className="text-[11px] font-normal text-rose-700">{error}</p>
+                {error.toLowerCase().includes("verify your email") && (
+                  <Link
+                    href="/verify-email"
+                    className="inline-block mt-1.5 font-bold text-[#0052CC] hover:underline"
+                  >
+                    Resend verification link →
+                  </Link>
+                )}
               </div>
             </div>
           )}
@@ -141,12 +155,20 @@ function LoginForm() {
             </div>
 
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-xs font-bold uppercase tracking-wider text-slate-700"
-              >
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="block text-xs font-bold uppercase tracking-wider text-slate-700"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />

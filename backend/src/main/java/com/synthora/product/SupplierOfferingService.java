@@ -30,6 +30,7 @@ public class SupplierOfferingService {
     private final SupplierOfferingRepository supplierOfferingRepository;
     private final MasterProductRepository masterProductRepository;
     private final UserRepository userRepository;
+    private final SupplierRepository supplierRepository;
     private final SupplierIdentityResolver identityResolver;
     private final NotificationService notificationService;
     private final com.synthora.admin.audit.AuditService auditService;
@@ -39,6 +40,7 @@ public class SupplierOfferingService {
             SupplierOfferingRepository supplierOfferingRepository,
             MasterProductRepository masterProductRepository,
             UserRepository userRepository,
+            SupplierRepository supplierRepository,
             SupplierIdentityResolver identityResolver,
             NotificationService notificationService,
             com.synthora.admin.audit.AuditService auditService,
@@ -46,6 +48,7 @@ public class SupplierOfferingService {
         this.supplierOfferingRepository = supplierOfferingRepository;
         this.masterProductRepository = masterProductRepository;
         this.userRepository = userRepository;
+        this.supplierRepository = supplierRepository;
         this.identityResolver = identityResolver;
         this.notificationService = notificationService;
         this.auditService = auditService;
@@ -89,6 +92,18 @@ public class SupplierOfferingService {
         offering.setModerationStatus("PENDING_REVIEW");
 
         SupplierOffering saved = supplierOfferingRepository.save(offering);
+
+        // Audit Log
+        try {
+            auditService.recordUserAction(
+                    user,
+                    com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_CREATED,
+                    com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                    saved.getId().toString(),
+                    "Supplier " + supplier.getName() + " created commercial offering for " + masterProduct.getName() + " (" + masterProduct.getMasterProductCode() + ").",
+                    null
+            );
+        } catch (Exception ignored) {}
 
         // Notify Admins
         notificationService.notifyAdmins(
@@ -187,6 +202,18 @@ public class SupplierOfferingService {
 
         SupplierOffering updated = supplierOfferingRepository.save(offering);
 
+        // Audit Log
+        try {
+            auditService.recordUserAction(
+                    user,
+                    com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_UPDATED,
+                    com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                    updated.getId().toString(),
+                    "Supplier " + supplier.getName() + " updated commercial parameters for offering " + offering.getMasterProduct().getName() + ".",
+                    null
+            );
+        } catch (Exception ignored) {}
+
         // Notify Admins
         notificationService.notifyAdmins(
                 NotificationType.SUPPLIER_OFFERING_UPDATED,
@@ -216,6 +243,19 @@ public class SupplierOfferingService {
         offering.setAvailabilityStatus("HIDDEN");
         offering.setModerationStatus("DEACTIVATED");
         SupplierOffering updated = supplierOfferingRepository.save(offering);
+
+        // Audit Log
+        try {
+            auditService.recordUserAction(
+                    user,
+                    com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_DEACTIVATED,
+                    com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                    updated.getId().toString(),
+                    "Supplier " + supplier.getName() + " deactivated commercial offering for " + offering.getMasterProduct().getName() + ".",
+                    null
+            );
+        } catch (Exception ignored) {}
+
         return toResponse(updated);
     }
 
@@ -325,6 +365,156 @@ public class SupplierOfferingService {
         return toResponse(saved);
     }
 
+    /**
+     * Admin creates a commercial offering on behalf of a specific Supplier.
+     * Supplier owns the offering; provenance is attributed to Admin.
+     */
+    public SupplierOfferingResponse createOfferingOnBehalfOfSupplier(
+            com.synthora.product.dto.AdminCreateSupplierOfferingRequest request,
+            Authentication authentication) {
+
+        verifyAdmin(authentication);
+        User adminUser = resolveUser(authentication);
+
+        Supplier supplier = supplierRepository.findById(request.supplierId())
+                .orElseThrow(() -> new ResourceNotFoundException("Supplier not found: " + request.supplierId()));
+
+        MasterProduct masterProduct = masterProductRepository.findById(request.masterProductId())
+                .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + request.masterProductId()));
+
+        if (supplierOfferingRepository.existsByMasterProductIdAndSupplierId(masterProduct.getId(), supplier.getId())) {
+            throw new IllegalStateException("Supplier '" + supplier.getName() + "' already has an offering for MasterProduct '" + masterProduct.getName() + "'.");
+        }
+
+        String currency = validateCurrency(request.currency());
+
+        SupplierOffering offering = new SupplierOffering();
+        offering.setMasterProduct(masterProduct);
+        offering.setSupplier(supplier);
+        offering.setPrice(request.price());
+        offering.setCurrency(currency);
+        offering.setStock(request.stock() != null ? request.stock() : 0);
+        offering.setPurity(request.purity());
+        offering.setGrade(request.grade());
+        offering.setMoqKg(request.moqKg());
+        offering.setPackaging(request.packaging());
+        offering.setLeadTimeDays(request.leadTimeDays());
+        offering.setCoaAvailable(request.coaAvailable() != null ? request.coaAvailable() : false);
+        offering.setMsdsAvailable(request.msdsAvailable() != null ? request.msdsAvailable() : false);
+        offering.setExportReady(request.exportReady() != null ? request.exportReady() : false);
+        offering.setAvailabilityStatus(request.availabilityStatus() != null ? request.availabilityStatus() : "AVAILABLE");
+        offering.setModerationStatus(request.moderationStatus() != null ? request.moderationStatus() : "APPROVED");
+        if (request.adminNotes() != null) {
+            offering.setModerationNotes(request.adminNotes());
+        }
+
+        // Provenance attribution
+        offering.setCreatedByRole("ADMIN");
+        offering.setCreatedByAdminId(adminUser.getId());
+        offering.setCreatedByAdminName(adminUser.getName());
+
+        SupplierOffering saved = supplierOfferingRepository.save(offering);
+
+        // Audit log
+        auditService.record(
+                authentication,
+                com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_CREATED_BY_ADMIN,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                saved.getId().toString(),
+                "Created commercial offering on behalf of supplier " + supplier.getName() + " for " + masterProduct.getName() + " (" + masterProduct.getMasterProductCode() + "). Notes: " + (request.adminNotes() != null ? request.adminNotes() : "Admin created on behalf of supplier"),
+                "127.0.0.1"
+        );
+
+        // Notify Supplier User (non-blocking)
+        try {
+            notifySupplier(saved, "New Offering Listed by Platform Operator",
+                    "A commercial offering for " + masterProduct.getName() + " (" + masterProduct.getMasterProductCode() + ") has been listed on your behalf by Synthora Admin.");
+        } catch (Exception ignored) {}
+
+        return toResponse(saved);
+    }
+
+    /**
+     * Admin updates offering parameters on behalf of supplier.
+     */
+    public SupplierOfferingResponse adminUpdateOffering(
+            UUID offeringId,
+            com.synthora.product.dto.AdminUpdateSupplierOfferingRequest request,
+            Authentication authentication) {
+
+        verifyAdmin(authentication);
+        SupplierOffering offering = getOfferingOrThrow(offeringId);
+
+        if (request.price() != null) offering.setPrice(request.price());
+        if (request.currency() != null) offering.setCurrency(validateCurrency(request.currency()));
+        if (request.stock() != null) offering.setStock(request.stock());
+        if (request.purity() != null) offering.setPurity(request.purity());
+        if (request.grade() != null) offering.setGrade(request.grade());
+        if (request.moqKg() != null) offering.setMoqKg(request.moqKg());
+        if (request.packaging() != null) offering.setPackaging(request.packaging());
+        if (request.leadTimeDays() != null) offering.setLeadTimeDays(request.leadTimeDays());
+        if (request.coaAvailable() != null) offering.setCoaAvailable(request.coaAvailable());
+        if (request.msdsAvailable() != null) offering.setMsdsAvailable(request.msdsAvailable());
+        if (request.exportReady() != null) offering.setExportReady(request.exportReady());
+        if (request.availabilityStatus() != null) offering.setAvailabilityStatus(request.availabilityStatus());
+        if (request.moderationStatus() != null) offering.setModerationStatus(request.moderationStatus());
+        if (request.moderationNotes() != null) offering.setModerationNotes(request.moderationNotes());
+        if (request.adminNotes() != null) offering.setAdminRequestInfoNotes(request.adminNotes());
+
+        SupplierOffering updated = supplierOfferingRepository.save(offering);
+
+        auditService.record(
+                authentication,
+                com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_UPDATED,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                updated.getId().toString(),
+                "Admin updated commercial offering for " + updated.getMasterProduct().getName() + " (Supplier: " + (updated.getSupplier() != null ? updated.getSupplier().getName() : "N/A") + ").",
+                "127.0.0.1"
+        );
+
+        return toResponse(updated);
+    }
+
+    /**
+     * Admin activates or deactivates an offering.
+     */
+    public SupplierOfferingResponse adminSetOfferingStatus(
+            UUID offeringId,
+            String status,
+            Authentication authentication) {
+
+        verifyAdmin(authentication);
+        SupplierOffering offering = getOfferingOrThrow(offeringId);
+
+        String normalizedStatus = status != null ? status.trim().toUpperCase() : "AVAILABLE";
+        com.synthora.admin.audit.AuditAction auditAction;
+        if ("INACTIVE".equals(normalizedStatus) || "HIDDEN".equals(normalizedStatus) || "DEACTIVATED".equals(normalizedStatus)) {
+            offering.setAvailabilityStatus("HIDDEN");
+            offering.setModerationStatus("DEACTIVATED");
+            auditAction = com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_DEACTIVATED;
+        } else if ("ACTIVE".equals(normalizedStatus) || "AVAILABLE".equals(normalizedStatus) || "APPROVED".equals(normalizedStatus)) {
+            offering.setAvailabilityStatus("AVAILABLE");
+            offering.setModerationStatus("APPROVED");
+            auditAction = com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_ACTIVATED;
+        } else {
+            offering.setAvailabilityStatus(normalizedStatus);
+            auditAction = com.synthora.admin.audit.AuditAction.SUPPLIER_OFFERING_UPDATED;
+        }
+
+        SupplierOffering saved = supplierOfferingRepository.save(offering);
+
+        auditService.record(
+                authentication,
+                auditAction,
+                com.synthora.admin.audit.AuditTargetType.SUPPLIER_OFFERING,
+                saved.getId().toString(),
+                "Admin set offering status to " + normalizedStatus + " for " + saved.getMasterProduct().getName() + " (Supplier: " + (saved.getSupplier() != null ? saved.getSupplier().getName() : "N/A") + ").",
+                "127.0.0.1"
+        );
+
+        return toResponse(saved);
+    }
+
     private void verifyAdmin(Authentication authentication) {
         User user = resolveUser(authentication);
         if (user.getRole() != UserRole.ADMIN) {
@@ -407,6 +597,9 @@ public class SupplierOfferingService {
                 perf != null ? perf.responseRate() : null,
                 perf != null ? perf.averageResponseTimeSeconds() : null,
                 perf != null ? perf.formattedResponseTime() : null,
+                offering.getCreatedByRole(),
+                offering.getCreatedByAdminId(),
+                offering.getCreatedByAdminName(),
                 offering.getCreatedAt(),
                 offering.getUpdatedAt()
         );

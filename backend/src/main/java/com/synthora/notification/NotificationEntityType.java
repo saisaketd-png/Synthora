@@ -43,5 +43,11 @@ public enum NotificationEntityType {
     SUPPLIER_OFFERING,
 
     /** A supplier profile/verification — maps to /dashboard/admin/catalog/verification/{entityId} */
-    SUPPLIER
+    SUPPLIER,
+
+    /** An account suspension — maps to /dashboard/account-review */
+    ACCOUNT_SUSPENSION,
+
+    /** An account suspension appeal — maps to /dashboard/account-review or admin governance */
+    ACCOUNT_SUSPENSION_APPEAL
 }

@@ -1,24 +1,25 @@
 "use client";
 
 import { FormEvent, useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { registerBuyer, login, getAuthUser } from "@/features/auth/api/auth";
-import { ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { registerBuyer, getAuthUser } from "@/features/auth/api/auth";
+import { ArrowRight, Mail, CheckCircle2, ShieldCheck } from "lucide-react";
 import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
 function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectParam = searchParams.get("redirect");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const user = getAuthUser();
@@ -41,17 +42,23 @@ function RegisterForm() {
       return;
     }
 
+    if (!termsAccepted || !privacyAccepted) {
+      setError("You must agree to the Terms of Service and acknowledge the Privacy Policy.");
+      return;
+    }
+
     try {
       setLoading(true);
-      await registerBuyer({ name, email, phone, password });
-      const loginRes = await login({ email, password });
-      localStorage.setItem("synthora_token", loginRes.token);
-
-      if (redirectParam && redirectParam.startsWith("/")) {
-        router.push(redirectParam);
-      } else {
-        router.push("/products");
-      }
+      await registerBuyer({
+        name,
+        email,
+        phone: phone.trim() ? phone.trim() : undefined,
+        password,
+        termsAccepted,
+        privacyAccepted,
+      });
+      // Do NOT auto-login. Require email verification before authenticated access.
+      setRegisteredEmail(email);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -61,6 +68,60 @@ function RegisterForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Registration Confirmation / Check Inbox State
+  if (registeredEmail) {
+    return (
+      <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-8">
+            <SynthoraLogo href="/" size="xl" subtitle="Account Provisioned" />
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 sm:p-10 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto">
+              <Mail className="w-8 h-8" />
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                Verify Your Email Address
+              </h1>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
+                We have sent an activation link to <strong className="text-slate-900 font-mono">{registeredEmail}</strong>. Please check your inbox and click the link to activate your account.
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs text-slate-500 space-y-1 text-left">
+              <p className="font-semibold text-slate-700 flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-teal-600" />
+                Security Note
+              </p>
+              <p>
+                Verification links expire in 24 hours. If you do not see the email in a few minutes, check your spam or junk folder.
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Link
+                href="/login"
+                className="w-full rounded-lg bg-[#0A192F] hover:bg-slate-800 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                Proceed to Sign In
+                <ArrowRight className="w-4 h-4 text-teal-400" />
+              </Link>
+              <Link
+                href="/verify-email"
+                className="block text-xs font-semibold text-[#0052CC] hover:underline"
+              >
+                Need to resend verification link?
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -110,7 +171,7 @@ function RegisterForm() {
                   onChange={(e) => setName(e.target.value)}
                   disabled={loading}
                   className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100"
-                  placeholder="e.g. Dr. Jane Doe"
+                  placeholder="e.g. Dr. Aris Thorne"
                 />
               </div>
 
@@ -125,12 +186,11 @@ function RegisterForm() {
                   id="email"
                   type="email"
                   required
-                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                   className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100"
-                  placeholder="jane@pharma-corp.com"
+                  placeholder="name@company.com"
                 />
               </div>
             </div>
@@ -140,7 +200,7 @@ function RegisterForm() {
                 htmlFor="phone"
                 className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider"
               >
-                Contact Phone <span className="text-slate-400 font-normal">(Optional)</span>
+                Direct Phone (Optional)
               </label>
               <input
                 id="phone"
@@ -149,7 +209,7 @@ function RegisterForm() {
                 onChange={(e) => setPhone(e.target.value)}
                 disabled={loading}
                 className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100"
-                placeholder="+1 (555) 019-2834"
+                placeholder="+1 (555) 000-0000"
               />
             </div>
 
@@ -170,7 +230,7 @@ function RegisterForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   className="w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100"
-                  placeholder="Min 8 characters"
+                  placeholder="Min. 8 characters"
                 />
               </div>
 
@@ -195,11 +255,58 @@ function RegisterForm() {
               </div>
             </div>
 
+            {/* Terms of Service and Privacy Policy Required Checkboxes */}
+            <div className="pt-3 pb-1 space-y-2.5 border-t border-slate-100">
+              <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  required
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  disabled={loading}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20"
+                />
+                <span>
+                  I agree to the{" "}
+                  <Link
+                    href="/terms"
+                    target="_blank"
+                    className="font-bold text-[#0052CC] hover:underline"
+                  >
+                    Terms of Service
+                  </Link>{" "}
+                  <span className="text-red-500">*</span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  required
+                  checked={privacyAccepted}
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  disabled={loading}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20"
+                />
+                <span>
+                  I acknowledge the{" "}
+                  <Link
+                    href="/privacy"
+                    target="_blank"
+                    className="font-bold text-[#0052CC] hover:underline"
+                  >
+                    Privacy Policy
+                  </Link>{" "}
+                  <span className="text-red-500">*</span>
+                </span>
+              </label>
+            </div>
+
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-[#0A192F] hover:bg-slate-800 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-60"
+                disabled={loading || !termsAccepted || !privacyAccepted}
+                className="w-full rounded-lg bg-[#0A192F] hover:bg-slate-800 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
               >
                 {loading ? (
                   <>

@@ -18,6 +18,12 @@ import {
   Tag,
   FileText,
   Download,
+  DollarSign,
+  Package,
+  Layers,
+  Edit2,
+  Power,
+  Shield,
 } from "lucide-react";
 import {
   getMasterProductDetail,
@@ -31,6 +37,10 @@ import {
   setPrimaryMasterProductImage,
   uploadMasterProductDocument,
   deleteMasterProductDocument,
+  createOfferingOnBehalfOfSupplier,
+  updateAdminOffering,
+  setAdminOfferingStatus,
+  getAdminSuppliersList,
 } from "@/features/admin/api/adminCatalogApi";
 import { useToast } from "@/shared/context/ToastContext";
 
@@ -64,6 +74,36 @@ export default function MasterProductGovernanceDetailPage() {
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [fieldStatus, setFieldStatus] = useState("VERIFIED");
   const [fieldNotes, setFieldNotes] = useState("");
+
+  // Create Offering on Behalf of Supplier Modal State
+  const [showCreateOfferingModal, setShowCreateOfferingModal] = useState(false);
+  const [suppliersList, setSuppliersList] = useState<any[]>([]);
+  const [suppliersLoading, setSuppliersLoading] = useState(false);
+  const [selectedSupplierId, setSelectedSupplierId] = useState<number | "">("");
+  const [offeringPrice, setOfferingPrice] = useState("");
+  const [offeringCurrency, setOfferingCurrency] = useState("INR");
+  const [offeringStock, setOfferingStock] = useState("");
+  const [offeringPurity, setOfferingPurity] = useState("");
+  const [offeringGrade, setOfferingGrade] = useState("");
+  const [offeringMoq, setOfferingMoq] = useState("");
+  const [offeringPackaging, setOfferingPackaging] = useState("");
+  const [offeringLeadTime, setOfferingLeadTime] = useState("");
+  const [offeringCoa, setOfferingCoa] = useState(true);
+  const [offeringMsds, setOfferingMsds] = useState(true);
+  const [offeringExportReady, setOfferingExportReady] = useState(true);
+  const [offeringAdminNotes, setOfferingAdminNotes] = useState("");
+  const [createOfferingSubmitting, setCreateOfferingSubmitting] = useState(false);
+
+  // Edit Offering Modal State
+  const [editingOffering, setEditingOffering] = useState<any | null>(null);
+  const [editPrice, setEditPrice] = useState("");
+  const [editStock, setEditStock] = useState("");
+  const [editPurity, setEditPurity] = useState("");
+  const [editGrade, setEditGrade] = useState("");
+  const [editAvailabilityStatus, setEditAvailabilityStatus] = useState("AVAILABLE");
+  const [editModerationStatus, setEditModerationStatus] = useState("APPROVED");
+  const [editNotes, setEditNotes] = useState("");
+  const [editOfferingSubmitting, setEditOfferingSubmitting] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -230,6 +270,112 @@ export default function MasterProductGovernanceDetailPage() {
       toast.error("Failed to delete document: " + e.message);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const openCreateOfferingModal = async () => {
+    setShowCreateOfferingModal(true);
+    try {
+      setSuppliersLoading(true);
+      const suppliers = await getAdminSuppliersList();
+      setSuppliersList(suppliers);
+      if (suppliers.length > 0 && selectedSupplierId === "") {
+        setSelectedSupplierId(suppliers[0].id);
+      }
+    } catch (e: any) {
+      toast.error("Failed to load suppliers: " + e.message);
+    } finally {
+      setSuppliersLoading(false);
+    }
+  };
+
+  const handleCreateOfferingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedSupplierId || !offeringPrice) {
+      toast.error("Please select a supplier and enter offering price");
+      return;
+    }
+    try {
+      setCreateOfferingSubmitting(true);
+      await createOfferingOnBehalfOfSupplier({
+        supplierId: Number(selectedSupplierId),
+        masterProductId: id,
+        price: parseFloat(offeringPrice),
+        currency: offeringCurrency,
+        stock: offeringStock ? parseInt(offeringStock, 10) : 0,
+        purity: offeringPurity ? parseFloat(offeringPurity) : undefined,
+        grade: offeringGrade.trim() || undefined,
+        moqKg: offeringMoq ? parseFloat(offeringMoq) : undefined,
+        packaging: offeringPackaging.trim() || undefined,
+        leadTimeDays: offeringLeadTime ? parseInt(offeringLeadTime, 10) : undefined,
+        coaAvailable: offeringCoa,
+        msdsAvailable: offeringMsds,
+        exportReady: offeringExportReady,
+        availabilityStatus: "AVAILABLE",
+        moderationStatus: "APPROVED",
+        adminNotes: offeringAdminNotes.trim() || "Created by Synthora Admin on behalf of supplier",
+      });
+      toast.success("Commercial offering created on behalf of supplier");
+      setShowCreateOfferingModal(false);
+      setOfferingPrice("");
+      setOfferingStock("");
+      setOfferingPurity("");
+      setOfferingGrade("");
+      setOfferingAdminNotes("");
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to create offering: " + e.message);
+    } finally {
+      setCreateOfferingSubmitting(false);
+    }
+  };
+
+  const handleToggleOfferingStatus = async (offering: any) => {
+    const newStatus = offering.availabilityStatus === "AVAILABLE" ? "HIDDEN" : "AVAILABLE";
+    try {
+      setActionLoading(true);
+      await setAdminOfferingStatus(offering.id, newStatus);
+      toast.success(`Offering status updated to ${newStatus}`);
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to update status: " + e.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const openEditOfferingModal = (offering: any) => {
+    setEditingOffering(offering);
+    setEditPrice(offering.price?.toString() || "");
+    setEditStock(offering.stock?.toString() || "0");
+    setEditPurity(offering.purity?.toString() || "");
+    setEditGrade(offering.grade || "");
+    setEditAvailabilityStatus(offering.availabilityStatus || "AVAILABLE");
+    setEditModerationStatus(offering.moderationStatus || "APPROVED");
+    setEditNotes(offering.moderationNotes || "");
+  };
+
+  const handleEditOfferingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOffering) return;
+    try {
+      setEditOfferingSubmitting(true);
+      await updateAdminOffering(editingOffering.id, {
+        price: editPrice ? parseFloat(editPrice) : undefined,
+        stock: editStock ? parseInt(editStock, 10) : undefined,
+        purity: editPurity ? parseFloat(editPurity) : undefined,
+        grade: editGrade.trim() || undefined,
+        availabilityStatus: editAvailabilityStatus,
+        moderationStatus: editModerationStatus,
+        moderationNotes: editNotes.trim() || undefined,
+      });
+      toast.success("Offering updated successfully");
+      setEditingOffering(null);
+      await loadData();
+    } catch (e: any) {
+      toast.error("Failed to update offering: " + e.message);
+    } finally {
+      setEditOfferingSubmitting(false);
     }
   };
 
@@ -802,36 +948,134 @@ export default function MasterProductGovernanceDetailPage() {
 
           {/* SECTION 06: CONNECTED SUPPLIER OFFERINGS */}
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-purple-600" /> 06 / CONNECTED SUPPLIER OFFERINGS ({detail.offerings?.length || 0})
-              </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-purple-600" /> 06 / CONNECTED SUPPLIER OFFERINGS ({detail.offerings?.length || 0})
+                </h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Commercial listings active across verified supplier partners for this chemical identity.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={openCreateOfferingModal}
+                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" /> Create Offering on Behalf of Supplier
+              </button>
             </div>
 
             {detail.offerings && detail.offerings.length > 0 ? (
-              <div className="divide-y divide-slate-100">
+              <div className="space-y-3">
                 {detail.offerings.map((offering: any) => (
-                  <div key={offering.id} className="py-3 flex items-center justify-between text-xs font-medium">
-                    <div>
-                      <strong className="text-slate-900 font-bold block">{offering.supplierName}</strong>
-                      <span className="text-slate-500 text-[11px]">
-                        Purity: {offering.purity || "N/A"} | Grade: {offering.grade || "N/A"} | Stock: {offering.stock}
-                      </span>
+                  <div
+                    key={offering.id}
+                    className="p-4 bg-slate-50/80 hover:bg-slate-50 border border-slate-200/80 rounded-2xl transition-all space-y-3"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <strong className="text-slate-900 font-bold text-xs">{offering.supplierName}</strong>
+                          {offering.supplierVerified && (
+                            <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-extrabold rounded">
+                              VERIFIED
+                            </span>
+                          )}
+                          {offering.createdByRole === "ADMIN" ? (
+                            <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-extrabold rounded-md flex items-center gap-1">
+                              <Shield className="w-3 h-3 text-purple-600" /> Created by Synthora Admin ({offering.createdByAdminName || "Admin"})
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-slate-200/70 text-slate-700 text-[10px] font-extrabold rounded-md flex items-center gap-1">
+                              🏢 Created by Supplier
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-slate-500 text-[11px] flex-wrap">
+                          <span>Purity: <strong className="text-slate-700 font-semibold">{offering.purity ? `${offering.purity}%` : "N/A"}</strong></span>
+                          <span>&bull;</span>
+                          <span>Grade: <strong className="text-slate-700 font-semibold">{offering.grade || "N/A"}</strong></span>
+                          <span>&bull;</span>
+                          <span>Stock: <strong className="text-slate-700 font-semibold">{offering.stock} kg</strong></span>
+                          <span>&bull;</span>
+                          <span>MOQ: <strong className="text-slate-700 font-semibold">{offering.moqKg ? `${offering.moqKg} kg` : "N/A"}</strong></span>
+                          {offering.leadTimeDays && (
+                            <>
+                              <span>&bull;</span>
+                              <span>Lead Time: <strong className="text-slate-700 font-semibold">{offering.leadTimeDays}d</strong></span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 self-end sm:self-center">
+                        <div className="text-right">
+                          <strong className="text-slate-900 font-mono font-bold text-sm block">
+                            {offering.currency} {offering.price?.toLocaleString()}
+                          </strong>
+                          <div className="flex items-center gap-1.5 justify-end mt-0.5">
+                            <span
+                              className={`px-2 py-0.5 text-[9px] font-extrabold rounded uppercase ${
+                                offering.availabilityStatus === "AVAILABLE"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-rose-100 text-rose-800"
+                              }`}
+                            >
+                              {offering.availabilityStatus}
+                            </span>
+                            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded uppercase">
+                              {offering.moderationStatus || "APPROVED"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 pl-3 border-l border-slate-200">
+                          <button
+                            type="button"
+                            disabled={actionLoading}
+                            onClick={() => openEditOfferingModal(offering)}
+                            className="p-1.5 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold transition-all shadow-2xs"
+                            title="Edit Offering Parameters"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={actionLoading}
+                            onClick={() => handleToggleOfferingStatus(offering)}
+                            className={`p-1.5 border rounded-lg text-xs font-bold transition-all shadow-2xs ${
+                              offering.availabilityStatus === "AVAILABLE"
+                                ? "bg-white border-slate-300 hover:bg-rose-50 text-rose-700"
+                                : "bg-emerald-50 border-emerald-300 hover:bg-emerald-100 text-emerald-800"
+                            }`}
+                            title={offering.availabilityStatus === "AVAILABLE" ? "Deactivate Offering" : "Activate Offering"}
+                          >
+                            <Power className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <strong className="text-slate-900 font-mono font-bold block">
-                        {offering.currency} {offering.price}
-                      </strong>
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 text-[10px] font-extrabold rounded uppercase">
-                        {offering.availabilityStatus}
-                      </span>
-                    </div>
+
+                    {offering.moderationNotes && (
+                      <div className="p-2.5 bg-white border border-slate-200/60 rounded-xl text-[11px] text-slate-600 italic">
+                        &quot;{offering.moderationNotes}&quot;
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="p-6 text-center text-slate-500 text-xs">
-                No active supplier commercial offerings linked to this Master Product.
+              <div className="p-8 text-center text-slate-500 text-xs border border-dashed border-slate-200 rounded-2xl space-y-2">
+                <p className="font-semibold text-slate-700">No supplier offerings linked to this Master Chemical yet.</p>
+                <p className="text-[11px]">You can list an offering on behalf of an authorized supplier partner.</p>
+                <button
+                  type="button"
+                  onClick={openCreateOfferingModal}
+                  className="mt-2 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 rounded-xl text-xs font-bold inline-flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Create First Offering
+                </button>
               </div>
             )}
           </div>
@@ -913,6 +1157,351 @@ export default function MasterProductGovernanceDetailPage() {
                   className="px-5 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow-2xs"
                 >
                   Save Verification
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create Offering on Behalf of Supplier */}
+      {showCreateOfferingModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-100 my-8">
+            <div className="border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-purple-600" />
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Create Commercial Offering on Behalf of Supplier
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Listing chemical offering for <strong>{detail.name}</strong> ({detail.masterProductCode}).
+              </p>
+            </div>
+
+            {/* Governance Attribution Banner */}
+            <div className="p-3.5 bg-purple-50/70 border border-purple-200 rounded-2xl text-xs text-purple-900 space-y-1">
+              <strong className="font-bold flex items-center gap-1.5 text-purple-800">
+                <ShieldCheck className="w-4 h-4 text-purple-600" /> Ownership & Governance Notice
+              </strong>
+              <p className="text-[11px] leading-relaxed text-purple-800/90">
+                The selected Supplier will remain the legal business owner of this commercial offering. Provenance will be preserved as &quot;Created by Synthora Admin&quot; in the audit ledger and visible on supplier and buyer portals.
+              </p>
+            </div>
+
+            <form onSubmit={handleCreateOfferingSubmit} className="space-y-4 text-xs font-medium">
+              {/* Supplier Selection */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Select Supplier Partner *</label>
+                {suppliersLoading ? (
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 text-xs">
+                    Loading verified suppliers...
+                  </div>
+                ) : suppliersList.length > 0 ? (
+                  <select
+                    value={selectedSupplierId}
+                    onChange={(e) => setSelectedSupplierId(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
+                    required
+                  >
+                    <option value="" disabled>-- Select Verified Supplier --</option>
+                    {suppliersList.map((sup: any) => (
+                      <option key={sup.id} value={sup.id}>
+                        {sup.name} {sup.legalName ? `(${sup.legalName})` : ""} {sup.verified ? "✓ Verified" : ""}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="space-y-2">
+                    <input
+                      type="number"
+                      value={selectedSupplierId}
+                      onChange={(e) => setSelectedSupplierId(e.target.value === "" ? "" : Number(e.target.value))}
+                      placeholder="Enter Supplier ID..."
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                      required
+                    />
+                    <span className="text-[10px] text-slate-400">Enter numerical Supplier ID</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Price and Currency */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-slate-700 mb-1">Unit Price (per kg) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    value={offeringPrice}
+                    onChange={(e) => setOfferingPrice(e.target.value)}
+                    placeholder="e.g. 1250.00"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Currency *</label>
+                  <select
+                    value={offeringCurrency}
+                    onChange={(e) => setOfferingCurrency(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
+                  >
+                    <option value="INR">INR (₹)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Stock, Purity, Grade */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Stock (kg)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={offeringStock}
+                    onChange={(e) => setOfferingStock(e.target.value)}
+                    placeholder="e.g. 5000"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Purity (%)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={offeringPurity}
+                    onChange={(e) => setOfferingPurity(e.target.value)}
+                    placeholder="e.g. 99.5"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Grade</label>
+                  <input
+                    type="text"
+                    value={offeringGrade}
+                    onChange={(e) => setOfferingGrade(e.target.value)}
+                    placeholder="e.g. Pharma / USP"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* MOQ, Packaging, Lead Time */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">MOQ (kg)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={offeringMoq}
+                    onChange={(e) => setOfferingMoq(e.target.value)}
+                    placeholder="e.g. 100"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Packaging</label>
+                  <input
+                    type="text"
+                    value={offeringPackaging}
+                    onChange={(e) => setOfferingPackaging(e.target.value)}
+                    placeholder="e.g. 200L HDPE Drums"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Lead Time (days)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={offeringLeadTime}
+                    onChange={(e) => setOfferingLeadTime(e.target.value)}
+                    placeholder="e.g. 7"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              {/* Document Availability Checkboxes */}
+              <div className="flex items-center gap-6 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={offeringCoa}
+                    onChange={(e) => setOfferingCoa(e.target.checked)}
+                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  COA Available
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={offeringMsds}
+                    onChange={(e) => setOfferingMsds(e.target.checked)}
+                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  MSDS Available
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={offeringExportReady}
+                    onChange={(e) => setOfferingExportReady(e.target.checked)}
+                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  Export Ready
+                </label>
+              </div>
+
+              {/* Admin Notes */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Administrative Notes / Context</label>
+                <textarea
+                  rows={2}
+                  value={offeringAdminNotes}
+                  onChange={(e) => setOfferingAdminNotes(e.target.value)}
+                  placeholder="Record onboarding agreements, sourcing reference, or governance notes..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateOfferingModal(false)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createOfferingSubmitting}
+                  className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-2xs disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-4 h-4" /> List Offering on Behalf of Supplier
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Offering */}
+      {editingOffering && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <h3 className="text-base font-extrabold text-slate-900">
+              Edit Offering: {editingOffering.supplierName}
+            </h3>
+            <form onSubmit={handleEditOfferingSubmit} className="space-y-4 text-xs font-medium">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Unit Price ({editingOffering.currency}) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Stock (kg)</label>
+                  <input
+                    type="number"
+                    value={editStock}
+                    onChange={(e) => setEditStock(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Purity (%)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editPurity}
+                    onChange={(e) => setEditPurity(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Grade</label>
+                  <input
+                    type="text"
+                    value={editGrade}
+                    onChange={(e) => setEditGrade(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Availability Status</label>
+                  <select
+                    value={editAvailabilityStatus}
+                    onChange={(e) => setEditAvailabilityStatus(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                  >
+                    <option value="AVAILABLE">AVAILABLE</option>
+                    <option value="HIDDEN">HIDDEN</option>
+                    <option value="FLAGGED">FLAGGED</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Moderation Status</label>
+                  <select
+                    value={editModerationStatus}
+                    onChange={(e) => setEditModerationStatus(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                  >
+                    <option value="APPROVED">APPROVED</option>
+                    <option value="PENDING_REVIEW">PENDING REVIEW</option>
+                    <option value="DEACTIVATED">DEACTIVATED</option>
+                    <option value="FLAGGED">FLAGGED</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Moderation / Governance Notes</label>
+                <textarea
+                  rows={2}
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Record adjustment reason..."
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingOffering(null)}
+                  className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editOfferingSubmitting}
+                  className="px-5 py-2 bg-purple-600 text-white font-bold rounded-xl shadow-2xs"
+                >
+                  Save Changes
                 </button>
               </div>
             </form>

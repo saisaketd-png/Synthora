@@ -148,6 +148,15 @@ public class AdminMasterCatalogService {
 
         recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_CREATED, "MASTER_PRODUCT", savedMp.getId().toString(), null, savedMp.getStatus(), "Created canonical Master Product: " + savedMp.getName());
 
+        auditService.record(
+                authentication,
+                AuditAction.MASTER_PRODUCT_CREATED,
+                AuditTargetType.MASTER_PRODUCT,
+                savedMp.getId().toString(),
+                "Created canonical Master Product: " + savedMp.getName() + " (" + savedMp.getMasterProductCode() + ")",
+                "127.0.0.1"
+        );
+
         return toMasterProductResponse(savedMp);
     }
 
@@ -174,6 +183,15 @@ public class AdminMasterCatalogService {
         String newState = "Status: " + savedMp.getStatus() + ", Name: " + savedMp.getName() + ", CAS: " + savedMp.getCasNumber();
 
         recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "MASTER_PRODUCT", savedMp.getId().toString(), prevState, newState, payload.updateReason());
+
+        auditService.record(
+                authentication,
+                AuditAction.MASTER_PRODUCT_UPDATED,
+                AuditTargetType.MASTER_PRODUCT,
+                savedMp.getId().toString(),
+                "Updated Master Product: " + savedMp.getName() + " (" + savedMp.getMasterProductCode() + "). " + (payload.updateReason() != null ? payload.updateReason() : ""),
+                "127.0.0.1"
+        );
 
         return toMasterProductResponse(savedMp);
     }
@@ -457,6 +475,15 @@ public class AdminMasterCatalogService {
 
         recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_MERGED, "MASTER_PRODUCT", source.getId().toString(), "ACTIVE", "MERGED", payload.adminNotes());
 
+        auditService.record(
+                authentication,
+                AuditAction.MASTER_PRODUCT_MERGED,
+                AuditTargetType.MASTER_PRODUCT,
+                source.getId().toString(),
+                "Merged Master Product " + source.getMasterProductCode() + " into " + target.getMasterProductCode() + ". Notes: " + (payload.adminNotes() != null ? payload.adminNotes() : ""),
+                "127.0.0.1"
+        );
+
         return toMasterProductResponse(target);
     }
 
@@ -484,6 +511,16 @@ public class AdminMasterCatalogService {
 
         GovernanceAction gAction = "ACTIVE".equalsIgnoreCase(upper) ? GovernanceAction.MASTER_PRODUCT_ACTIVATED : GovernanceAction.MASTER_PRODUCT_DEACTIVATED;
         recordGovernanceAudit(admin, gAction, "MASTER_PRODUCT", mp.getId().toString(), prevStatus, upper, "Status changed to " + upper);
+
+        AuditAction aAction = "ACTIVE".equalsIgnoreCase(upper) ? AuditAction.MASTER_PRODUCT_ACTIVATED : AuditAction.MASTER_PRODUCT_DEACTIVATED;
+        auditService.record(
+                authentication,
+                aAction,
+                AuditTargetType.MASTER_PRODUCT,
+                saved.getId().toString(),
+                "Status changed from " + prevStatus + " to " + upper,
+                "127.0.0.1"
+        );
 
         return toMasterProductResponse(saved);
     }
@@ -695,6 +732,9 @@ public class AdminMasterCatalogService {
                 null,
                 null,
                 null,
+                o.getCreatedByRole(),
+                o.getCreatedByAdminId(),
+                o.getCreatedByAdminName(),
                 o.getCreatedAt(),
                 o.getUpdatedAt()
         );
