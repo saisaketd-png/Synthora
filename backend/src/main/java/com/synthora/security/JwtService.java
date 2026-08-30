@@ -18,7 +18,7 @@ import java.util.Date;
 public class JwtService {
 
     private static final Logger log = LoggerFactory.getLogger(JwtService.class);
-    private static final String ISSUER = "synthora";
+    private static final String ISSUER = "kemkendra";
     private static final int MIN_SECRET_LENGTH = 32;
 
     @Value("${jwt.secret}")

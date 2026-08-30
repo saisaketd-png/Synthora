@@ -71,7 +71,7 @@ export function ProductRequestForm({
           Request New Chemical Addition
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Can&apos;t find a chemical compound in our Master Catalog? Propose a new addition for Synthora Admin review.
+          Can&apos;t find a chemical compound in our Master Catalog? Propose a new addition for KemKendra Admin review.
         </p>
       </div>
 
@@ -161,7 +161,7 @@ export function ProductRequestForm({
         {/* Supplier Message */}
         <div className="sm:col-span-2">
           <label className="block font-bold text-slate-700 mb-1">
-            Note to Synthora Verification Team
+            Note to KemKendra Verification Team
           </label>
           <textarea
             rows={2}

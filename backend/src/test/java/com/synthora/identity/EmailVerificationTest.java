@@ -91,7 +91,7 @@ public class EmailVerificationTest {
         // Verify email was dispatched
         verify(emailService, times(1)).sendHtmlEmail(
                 eq("unverified.buyer@synthora.com"),
-                eq("[Synthora] Verify Your Email Address"),
+                eq("[KemKendra] Verify Your Email Address"),
                 anyString()
         );
 
@@ -140,7 +140,7 @@ public class EmailVerificationTest {
 
         verify(emailService, times(1)).sendHtmlEmail(
                 eq("supplier.unverified@pharma.com"),
-                eq("[Synthora] Verify Your Email Address"),
+                eq("[KemKendra] Verify Your Email Address"),
                 anyString()
         );
 
@@ -287,7 +287,7 @@ public class EmailVerificationTest {
 
         verify(emailService, times(1)).sendHtmlEmail(
                 eq("resend@synthora.com"),
-                eq("[Synthora] Verify Your Email Address"),
+                eq("[KemKendra] Verify Your Email Address"),
                 anyString()
         );
 

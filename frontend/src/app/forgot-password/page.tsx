@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
                   Reset Password
                 </h1>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  Enter the email address associated with your Synthora account and we&apos;ll send you a single-use reset link.
+                  Enter the email address associated with your KemKendra account and we&apos;ll send you a single-use reset link.
                 </p>
               </div>
 
@@ -156,7 +156,7 @@ export default function ForgotPasswordPage() {
 
         {/* Security Footer */}
         <p className="mt-8 text-center text-[11px] text-slate-400 font-medium">
-          Protected by Synthora Multi-Layered Authentication & Access Governance
+          Protected by KemKendra Multi-Layered Authentication & Access Governance
         </p>
       </div>
     </main>

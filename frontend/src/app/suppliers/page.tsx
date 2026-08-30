@@ -12,25 +12,25 @@ import { PageHeader, EmptyState, ErrorState } from "@/shared/components/ui/Synth
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
 
 export const metadata: Metadata = {
-  title: "Supplier Directory | Verified Chemical Manufacturers | Synthora",
+  title: "Supplier Directory | Verified Chemical Manufacturers | KemKendra",
   description: "Discover verified chemical manufacturers, request audits, and streamline your onboarding process with our audited supplier network.",
   alternates: {
     canonical: `${SITE_URL}/suppliers`,
   },
   openGraph: {
-    title: "Verified Chemical Suppliers Directory | Synthora",
-    description: "Discover verified chemical manufacturers and audited suppliers on Synthora.",
+    title: "Verified Chemical Suppliers Directory | KemKendra",
+    description: "Discover verified chemical manufacturers and audited suppliers on KemKendra.",
     url: `${SITE_URL}/suppliers`,
-    siteName: "Synthora",
+    siteName: "KemKendra",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Verified Chemical Suppliers Directory | Synthora",
-    description: "Discover verified chemical manufacturers and audited suppliers on Synthora.",
+    title: "Verified Chemical Suppliers Directory | KemKendra",
+    description: "Discover verified chemical manufacturers and audited suppliers on KemKendra.",
   },
 };
 

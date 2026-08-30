@@ -43,7 +43,7 @@ export default function Error({
               Try again
             </button>
             <a
-              href="mailto:support@synthora.com"
+              href="mailto:support@kemkendra.com"
               className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-full hover:bg-slate-50 transition-colors"
             >
               Contact Support

@@ -4,30 +4,38 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-interface SynthoraLogoProps {
+export interface KemkendraLogoProps extends SynthoraLogoProps {}
+export type SynthoraLogoProps = {
   className?: string;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   variant?: "light" | "dark" | "monochrome";
+  layout?: "horizontal" | "stacked" | "auto";
   showWordmark?: boolean;
   subtitle?: string;
   href?: string;
   onClick?: () => void;
-}
+};
+
+export const KemkendraLogoMark = SynthoraLogoMark;
+export const KemkendraLogo = SynthoraLogo;
 
 export function SynthoraLogoMark({
-  className = "w-8 h-8",
+  className = "w-9 h-9",
   variant = "light",
 }: {
   className?: string;
   variant?: "light" | "dark" | "monochrome";
 }) {
+  const isDark = variant === "dark";
+  const iconSrc = isDark ? "/kemkendra-icon-dark.png" : "/kemkendra-icon.png";
+
   return (
-    <div className={`relative inline-flex items-center justify-center shrink-0 rounded-lg overflow-hidden ${className}`}>
+    <div className={`relative inline-flex items-center justify-center shrink-0 overflow-hidden ${className}`}>
       <Image
-        src="/kemkendra-icon.png"
+        src={iconSrc}
         alt="Kemkendra Icon"
-        width={80}
-        height={80}
+        width={128}
+        height={128}
         className="w-full h-full object-contain"
         priority
       />
@@ -39,36 +47,52 @@ export function SynthoraLogo({
   className = "",
   size = "md",
   variant = "light",
+  layout = "horizontal",
   showWordmark = true,
   subtitle,
   href,
   onClick,
 }: SynthoraLogoProps) {
+  const isDark = variant === "dark";
+
+  // Height configurations optimized for crisp display in all navbars and cards
   const heightClasses = {
-    sm: "h-8",
-    md: "h-11",
-    lg: "h-14",
-    xl: "h-20",
+    xs: "h-7",
+    sm: "h-8 sm:h-9",
+    md: "h-9 sm:h-11",
+    lg: "h-12 sm:h-14",
+    xl: "h-16 sm:h-20",
   };
 
   const imageDimensions = {
-    sm: { width: 120, height: 32 },
-    md: { width: 160, height: 44 },
-    lg: { width: 200, height: 56 },
-    xl: { width: 280, height: 80 },
+    xs: { width: 140, height: 28 },
+    sm: { width: 180, height: 36 },
+    md: { width: 220, height: 44 },
+    lg: { width: 260, height: 52 },
+    xl: { width: 340, height: 72 },
   };
 
   const currentHeightClass = heightClasses[size] || heightClasses.md;
   const { width, height } = imageDimensions[size] || imageDimensions.md;
 
+  // Select appropriate source asset (horizontal is preferred in navbars, stacked in heroes/cards)
+  const isHorizontal = layout === "horizontal" || (layout === "auto" && showWordmark);
+  const logoSrc = isDark
+    ? isHorizontal
+      ? "/kemkendra-logo-horizontal-dark.png"
+      : "/kemkendra-logo-dark.png"
+    : isHorizontal
+    ? "/kemkendra-logo-horizontal.png"
+    : "/kemkendra-logo.png";
+
   const content = (
     <div
-      className={`inline-flex items-center gap-2.5 group select-none ${className}`}
+      className={`inline-flex items-center gap-2 group select-none ${className}`}
       onClick={onClick}
     >
-      <div className={`relative ${currentHeightClass} flex items-center justify-center transition-transform duration-200 group-hover:scale-105`}>
+      <div className={`relative ${currentHeightClass} flex items-center justify-center transition-transform duration-200 group-hover:scale-[1.02]`}>
         <Image
-          src="/kemkendra-logo.png"
+          src={logoSrc}
           alt="KEMKENDRA Chemical Trading Marketplace"
           width={width}
           height={height}
@@ -78,8 +102,8 @@ export function SynthoraLogo({
       </div>
 
       {subtitle && (
-        <div className="flex flex-col justify-center border-l border-slate-200 dark:border-slate-700 pl-2.5 ml-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+        <div className={`hidden sm:flex flex-col justify-center border-l ${isDark ? "border-slate-700 text-slate-400" : "border-slate-200 text-slate-500"} pl-2 ml-0.5`}>
+          <span className="text-[9px] font-bold uppercase tracking-widest leading-none">
             {subtitle}
           </span>
         </div>

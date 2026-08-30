@@ -496,7 +496,7 @@ function SupplierRegisterForm() {
                 SUPPLIER ADVANTAGES
               </span>
               <h3 className="text-lg font-bold tracking-tight mb-4">
-                Why Sell with Synthora?
+                Why Sell with KemKendra?
               </h3>
               
               <ul className="space-y-4 text-xs text-slate-300">

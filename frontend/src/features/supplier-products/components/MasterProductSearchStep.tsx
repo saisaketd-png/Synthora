@@ -51,7 +51,7 @@ export function MasterProductSearchStep({
           Step 1: Search Master Chemical Catalog
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Search Synthora&apos;s canonical master catalog by Chemical Name, CAS Number, or Master Product Code.
+          Search KemKendra&apos;s canonical master catalog by Chemical Name, CAS Number, or Master Product Code.
         </p>
       </div>
 
@@ -169,7 +169,7 @@ export function MasterProductSearchStep({
       <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 flex items-start gap-3 text-xs text-blue-900">
         <CheckCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
         <div>
-          <strong className="font-bold">Synthora Master Catalog System:</strong> Master product identity (CAS, name, category) is managed centrally. You control your commercial offering details (price, stock, purity, grade, MOQ).
+          <strong className="font-bold">KemKendra Master Catalog System:</strong> Master product identity (CAS, name, category) is managed centrally. You control your commercial offering details (price, stock, purity, grade, MOQ).
         </div>
       </div>
     </div>

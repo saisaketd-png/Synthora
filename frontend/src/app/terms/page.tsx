@@ -3,8 +3,8 @@ import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 import { ArrowLeft, FileText, ShieldAlert, CheckCircle } from "lucide-react";
 
 export const metadata = {
-  title: "Terms of Service | Synthora B2B Marketplace",
-  description: "Synthora Terms of Service for buyers and verified chemical suppliers.",
+  title: "Terms of Service | KemKendra B2B Marketplace",
+  description: "KemKendra Terms of Service for buyers and verified chemical suppliers.",
 };
 
 export default function TermsOfServicePage() {
@@ -50,14 +50,14 @@ export default function TermsOfServicePage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-slate-900">1. Acceptance of Platform Terms</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
-              By registering an account, accessing, or utilizing the Synthora B2B Marketplace platform (&quot;Synthora&quot;, &quot;Platform&quot;), whether as a Buyer, Supplier, or Authorized Representative, you agree to be bound by these Terms of Service. If you do not agree to these terms, you must not access or use the Platform.
+              By registering an account, accessing, or utilizing the KemKendra B2B Marketplace platform (&quot;KemKendra&quot;, &quot;Platform&quot;), whether as a Buyer, Supplier, or Authorized Representative, you agree to be bound by these Terms of Service. If you do not agree to these terms, you must not access or use the Platform.
             </p>
           </section>
 
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-slate-900">2. Commercial Eligibility & Verification</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Synthora is a specialized business-to-business (B2B) marketplace for industrial, chemical, and pharmaceutical procurement. Access is restricted to corporate entities, verified manufacturers, accredited distributors, and authorized enterprise buyers. Individual consumer transactions are strictly prohibited.
+              KemKendra is a specialized business-to-business (B2B) marketplace for industrial, chemical, and pharmaceutical procurement. Access is restricted to corporate entities, verified manufacturers, accredited distributors, and authorized enterprise buyers. Individual consumer transactions are strictly prohibited.
             </p>
             <p className="text-sm text-slate-600 leading-relaxed">
               Suppliers must submit valid statutory registration details (e.g. GSTIN, VAT, or Commercial Registry certificates) and undergo verification review before chemical offerings can be published on the Master Catalog.
@@ -67,7 +67,7 @@ export default function TermsOfServicePage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-slate-900">3. RFQs, Quotations, and Purchase Orders</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
-              All Requests for Quotation (RFQs), supplier bids, and Purchase Orders (POs) generated through Synthora constitute commercial transactions governed by agreed incoterms, purity specifications, and commercial agreements between the contracting parties.
+              All Requests for Quotation (RFQs), supplier bids, and Purchase Orders (POs) generated through KemKendra constitute commercial transactions governed by agreed incoterms, purity specifications, and commercial agreements between the contracting parties.
             </p>
           </section>
 
@@ -88,12 +88,12 @@ export default function TermsOfServicePage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-slate-900">6. Modifications to Terms</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Synthora reserves the right to amend these Terms. Significant updates will be accompanied by an incremented version number and published on this page. Continued utilization of the platform after updates constitutes acceptance of the revised terms.
+              KemKendra reserves the right to amend these Terms. Significant updates will be accompanied by an incremented version number and published on this page. Continued utilization of the platform after updates constitutes acceptance of the revised terms.
             </p>
           </section>
 
           <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Synthora B2B Marketplace Platform</span>
+            <span>KemKendra B2B Marketplace Platform</span>
             <span>Document ID: SYN-TOS-V1.0</span>
           </div>
         </div>

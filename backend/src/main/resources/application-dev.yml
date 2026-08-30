@@ -21,6 +21,7 @@ logging:
   level:
     root: INFO
     com.synthora: DEBUG
+    org.springframework.mail: DEBUG
 
 jwt:
   secret: ${JWT_SECRET:SynthoraDevSecretKeyForJwtSigning2026!}

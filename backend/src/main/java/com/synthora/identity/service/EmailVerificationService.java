@@ -181,7 +181,7 @@ public class EmailVerificationService {
                 : "Valued Partner";
         String escapedUrl = HtmlUtils.htmlEscape(verifyUrl);
 
-        String subject = "[Synthora] Verify Your Email Address";
+        String subject = "[KemKendra] Verify Your Email Address";
         String htmlBody = """
                 <!DOCTYPE html>
                 <html>
@@ -201,7 +201,7 @@ public class EmailVerificationService {
                                             <table width="100%%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
                                                     <td>
-                                                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px;">SYNTHORA</h1>
+                                                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px;">KEMKENDRA</h1>
                                                         <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">B2B Chemical & Raw Materials Marketplace</p>
                                                     </td>
                                                 </tr>
@@ -211,12 +211,12 @@ public class EmailVerificationService {
                                     <!-- Body -->
                                     <tr>
                                         <td style="padding: 40px;">
-                                            <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #f8fafc;">Verify Your Email Address</h2>
+                                             <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #f8fafc;">Verify Your Email Address</h2>
                                             <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: #cbd5e1;">
                                                 Hello %s,
                                             </p>
                                             <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 24px; color: #cbd5e1;">
-                                                Welcome to Synthora. To activate your account and access the B2B chemical marketplace, please verify your email address by clicking the button below:
+                                                Welcome to KemKendra. To activate your account and access the B2B chemical marketplace, please verify your email address by clicking the button below:
                                             </p>
                                             <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="margin: 28px 0;">
                                                 <tr>
@@ -231,7 +231,7 @@ public class EmailVerificationService {
                                                 <strong>Note:</strong> This verification link will expire in <strong>24 hours</strong> and can only be used once.
                                             </p>
                                             <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 20px; color: #94a3b8;">
-                                                If you did not register for an account on Synthora, you can safely ignore this email.
+                                                If you did not register for an account on KemKendra, you can safely ignore this email.
                                             </p>
                                             <hr style="border: 0; border-top: 1px solid #334155; margin: 24px 0;">
                                             <p style="margin: 0; font-size: 12px; line-height: 18px; color: #64748b; word-break: break-all;">
@@ -244,7 +244,7 @@ public class EmailVerificationService {
                                     <tr>
                                         <td style="padding: 24px 40px; background-color: #0f172a; border-top: 1px solid #334155; text-align: center;">
                                             <p style="margin: 0; font-size: 12px; color: #64748b;">
-                                                &copy; %d Synthora Marketplace. All rights reserved.
+                                                &copy; %d KemKendra Marketplace. All rights reserved.
                                             </p>
                                         </td>
                                     </tr>

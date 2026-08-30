@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { login, getAuthUser } from "@/features/auth/api/auth";
+import { login, getAuthUser, setAuthToken } from "@/features/auth/api/auth";
 import { Lock, Mail, ShieldAlert, ArrowRight } from "lucide-react";
 import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 
@@ -44,8 +44,7 @@ function LoginForm() {
         password,
       });
 
-      localStorage.setItem("synthora_token", response.token);
-      localStorage.setItem("token", response.token);
+      setAuthToken(response.token);
       window.dispatchEvent(new Event("auth-changed"));
 
       if (response.message && response.message.toLowerCase().includes("suspended")) {
@@ -94,7 +93,7 @@ function LoginForm() {
         <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs p-8 space-y-6">
           <div className="space-y-1">
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              Sign In to Synthora
+              Sign In to KemKendra
             </h1>
             <p className="text-xs text-slate-500 leading-relaxed">
               Enter your institutional credentials to access your procurement desk.
@@ -206,7 +205,7 @@ function LoginForm() {
           {/* Registration Options */}
           <div className="pt-6 border-t border-slate-100 space-y-2 text-center text-xs">
             <p className="text-slate-600">
-              New to Synthora?{" "}
+              New to KemKendra?{" "}
               <Link href="/register" className="font-bold text-blue-600 hover:text-blue-800 underline">
                 Create Buyer Account
               </Link>
@@ -222,7 +221,7 @@ function LoginForm() {
 
         {/* Security Footer */}
         <p className="mt-8 text-center text-[11px] text-slate-400 font-medium">
-          Protected by Synthora Multi-Layered Authentication & Access Governance
+          Protected by KemKendra Multi-Layered Authentication & Access Governance
         </p>
 
       </div>

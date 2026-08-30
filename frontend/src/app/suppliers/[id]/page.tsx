@@ -10,7 +10,7 @@ import { Badge, Button, Card, PageHeader } from "@/shared/components/ui/Synthora
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
 
 export async function generateMetadata(props: {
   params: Promise<{ id: string }>;
@@ -20,14 +20,14 @@ export async function generateMetadata(props: {
     const supplier = await getSupplierPublicProfile(params.id);
     if (!supplier) {
       return {
-        title: "Supplier Profile | Synthora",
+        title: "Supplier Profile | KemKendra",
         robots: { index: false, follow: true },
       };
     }
-    const title = `${supplier.name} | Verified Chemical Manufacturer | Synthora`;
+    const title = `${supplier.name} | Verified Chemical Manufacturer | KemKendra`;
     const description =
       supplier.aboutCompany ||
-      `Source chemical compounds, APIs, and specialty raw materials from verified supplier ${supplier.name} on Synthora.`;
+      `Source chemical compounds, APIs, and specialty raw materials from verified supplier ${supplier.name} on KemKendra.`;
 
     return {
       title,
@@ -39,7 +39,7 @@ export async function generateMetadata(props: {
         title,
         description,
         url: `${SITE_URL}/suppliers/${params.id}`,
-        siteName: "Synthora",
+        siteName: "KemKendra",
         type: "profile",
       },
       twitter: {
@@ -50,7 +50,7 @@ export async function generateMetadata(props: {
     };
   } catch {
     return {
-      title: "Supplier Profile | Synthora",
+      title: "Supplier Profile | KemKendra",
       robots: { index: false, follow: true },
     };
   }
@@ -80,7 +80,7 @@ export default async function SupplierProfilePage(props: {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: supplier.name,
-    description: supplier.aboutCompany || `Verified chemical supplier ${supplier.name} on Synthora.`,
+    description: supplier.aboutCompany || `Verified chemical supplier ${supplier.name} on KemKendra.`,
     url: `${SITE_URL}/suppliers/${params.id}`,
     location: supplier.countryName ? {
       "@type": "Place",

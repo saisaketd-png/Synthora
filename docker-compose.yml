@@ -57,8 +57,8 @@ services:
       SMTP_AUTH: ${SMTP_AUTH:-false}
       SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS_ENABLE:-false}
       SMTP_STARTTLS_REQUIRED: ${SMTP_STARTTLS_REQUIRED:-false}
-      MAIL_FROM: ${MAIL_FROM:-notifications@synthora.com}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Synthora B2B Marketplace}
+      MAIL_FROM: ${MAIL_FROM:-notifications@kemkendra.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-KemKendra Chemical Marketplace}
 
       ADMIN_BOOTSTRAP_ENABLED: ${ADMIN_BOOTSTRAP_ENABLED:-false}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}

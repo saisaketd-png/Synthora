@@ -6,16 +6,16 @@ import { CategoryGrid } from "@/features/home/components/CategoryGrid";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Chemical Categories & Classifications | Synthora",
+  title: "Chemical Categories & Classifications | KemKendra",
   description: "Browse pharmaceutical APIs, intermediates, specialty chemicals, and solvents categorized for global enterprise procurement.",
   alternates: {
     canonical: "/categories",
   },
   openGraph: {
-    title: "Chemical Categories & Classifications | Synthora",
+    title: "Chemical Categories & Classifications | KemKendra",
     description: "Browse pharmaceutical APIs, intermediates, specialty chemicals, and solvents categorized for global enterprise procurement.",
-    url: "https://synthora.com/categories",
-    siteName: "Synthora",
+    url: "https://kemkendra.com/categories",
+    siteName: "KemKendra",
     type: "website",
   },
 };

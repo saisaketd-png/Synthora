@@ -97,7 +97,7 @@ function VerifyEmailContent() {
                 Email Verified!
               </h1>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Your email address has been verified. Your account is activated and ready for use on the Synthora marketplace.
+                Your email address has been verified. Your account is activated and ready for use on the KemKendra marketplace.
               </p>
             </div>
             <Link

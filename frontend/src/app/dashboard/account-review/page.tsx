@@ -3,7 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { userAppealApi, UserSuspensionDetail, UserAppeal } from "@/features/account/api/userAppealApi";
-import { getAuthUser } from "@/features/auth/api/auth";
+import { getAuthUser, logout } from "@/features/auth/api/auth";
 import {
   ShieldAlert,
   Clock,
@@ -55,9 +55,7 @@ export default function AccountReviewPage() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("synthora_token");
-    localStorage.removeItem("token");
-    window.dispatchEvent(new Event("auth-changed"));
+    logout();
     router.push("/login");
   };
 
@@ -201,7 +199,7 @@ export default function AccountReviewPage() {
                   <div>
                     <h1 className="text-xl font-bold text-slate-900">Account Review Center</h1>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Your Synthora account access is currently suspended pending administrative review.
+                      Your KemKendra account access is currently suspended pending administrative review.
                     </p>
                   </div>
                 </div>
@@ -391,7 +389,7 @@ export default function AccountReviewPage() {
             {/* Help & Support Footer */}
             <div className="text-center p-6 rounded-2xl bg-white border border-slate-200 text-xs text-slate-500 space-y-1">
               <p className="font-semibold text-slate-700">Need direct compliance assistance?</p>
-              <p>Contact the Synthora Governance Team at <span className="text-cyan-600 font-medium">governance@synthora.com</span></p>
+              <p>Contact the KemKendra Governance Team at <span className="text-cyan-600 font-medium">governance@kemkendra.com</span></p>
             </div>
           </>
         )}

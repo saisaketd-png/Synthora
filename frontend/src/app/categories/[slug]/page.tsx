@@ -15,7 +15,7 @@ import { ChevronRight, Clock, Factory, Layers, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
 
 export async function generateMetadata({
   params,
@@ -29,12 +29,12 @@ export async function generateMetadata({
 
   if (!categoryMeta) {
     return {
-      title: "Chemical Category | Synthora",
+      title: "Chemical Category | KemKendra",
       robots: { index: false, follow: true },
     };
   }
 
-  const title = `${categoryMeta.name} | Verified Chemical Sourcing | Synthora`;
+  const title = `${categoryMeta.name} | Verified Chemical Sourcing | KemKendra`;
   const description = categoryMeta.description;
 
   return {
@@ -47,7 +47,7 @@ export async function generateMetadata({
       title,
       description,
       url: `${SITE_URL}/categories/${categoryMeta.id}`,
-      siteName: "Synthora",
+      siteName: "KemKendra",
       type: "website",
     },
   };
@@ -99,7 +99,7 @@ export default async function CategoryDetailPage({
                   {categoryMeta.name}
                 </h1>
                 <p className="text-xs sm:text-sm text-[#64748B] max-w-xl mx-auto leading-relaxed">
-                  Custom synthesis, formulation scaling, and verified CMO/CDMO manufacturing services will be introduced to Synthora in a future phase.
+                  Custom synthesis, formulation scaling, and verified CMO/CDMO manufacturing services will be introduced to KemKendra in a future phase.
                 </p>
               </div>
 

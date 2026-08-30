@@ -27,7 +27,7 @@ public class NotificationEmailTemplateResolver {
 
     public String resolveSubject(Notification notification) {
         String title = notification.getTitle() != null ? notification.getTitle() : "New Notification";
-        return "[Synthora] " + title;
+        return "[KemKendra] " + title;
     }
 
     public String resolveCtaUrl(Notification notification) {
@@ -55,7 +55,7 @@ public class NotificationEmailTemplateResolver {
     public String resolveCtaText(Notification notification) {
         NotificationEntityType entityType = notification.getEntityType();
         if (entityType == null) {
-            return "View in Synthora";
+            return "View in KemKendra";
         }
 
         return switch (entityType) {
@@ -173,8 +173,8 @@ public class NotificationEmailTemplateResolver {
                 <body>
                     <div class="wrapper">
                         <div class="header">
-                            <span class="brand">SYNTHORA</span>
-                            <span class="brand-sub">B2B Chemical Marketplace</span>
+                            <span class="brand">KEMKENDRA</span>
+                            <span class="brand-sub">B2B Chemical & Raw Materials Marketplace</span>
                         </div>
                         <div class="content">
                             <h2 class="title">%s</h2>
@@ -186,7 +186,7 @@ public class NotificationEmailTemplateResolver {
                             </div>
                         </div>
                         <div class="footer">
-                            <p style="margin: 0 0 4px 0;">This is an automated notification from Synthora B2B Marketplace.</p>
+                            <p style="margin: 0 0 4px 0;">This is an automated notification from KemKendra Chemical Marketplace.</p>
                             <p style="margin: 0;">Please log in to your account dashboard to manage orders and communications.</p>
                         </div>
                     </div>

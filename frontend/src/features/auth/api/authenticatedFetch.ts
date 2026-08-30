@@ -1,11 +1,12 @@
 import { resolveApiUrl } from "@/lib/apiUrl";
+import { getAuthToken, removeAuthToken } from "@/features/auth/api/auth";
 
 let isRedirectingToLogin = false;
 
 function handleSessionExpired() {
   if (typeof window === "undefined") return;
 
-  localStorage.removeItem("synthora_token");
+  removeAuthToken();
   window.dispatchEvent(new Event("auth-changed"));
 
   const currentPath = window.location.pathname;
@@ -25,7 +26,7 @@ export async function authenticatedFetch(
   path: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+  const token = getAuthToken();
 
   if (!token) {
     handleSessionExpired();

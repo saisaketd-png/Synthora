@@ -28,8 +28,8 @@ public class EmailServiceImpl implements EmailService {
 
     public EmailServiceImpl(
             @Autowired(required = false) JavaMailSender mailSender,
-            @Value("${synthora.mail.from:notifications@synthora.com}") String fromAddress,
-            @Value("${synthora.mail.from-name:Synthora B2B Marketplace}") String fromName,
+            @Value("${synthora.mail.from:notifications@kemkendra.com}") String fromAddress,
+            @Value("${synthora.mail.from-name:KemKendra Chemical Marketplace}") String fromName,
             @Value("${synthora.mail.enabled:true}") boolean mailEnabled) {
         this.mailSender = mailSender;
         this.fromAddress = fromAddress;

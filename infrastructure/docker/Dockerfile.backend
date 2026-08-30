@@ -15,7 +15,7 @@ RUN mvn clean package -DskipTests -B
 # Stage 2: Extract Spring Boot layered jar
 FROM eclipse-temurin:21-jre-alpine AS extractor
 WORKDIR /app
-COPY --from=build /app/target/synthora-backend-*.jar app.jar
+COPY --from=build /app/target/*backend-*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted || \
     java -Djarmode=layertools -jar app.jar extract --destination extracted
 

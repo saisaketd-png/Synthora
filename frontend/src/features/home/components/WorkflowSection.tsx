@@ -42,7 +42,7 @@ export function WorkflowSection() {
             Simplified Sourcing Process
           </span>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#0F172A] mt-1">
-            How Synthora Streamlines Chemical Procurement
+            How KemKendra Streamlines Chemical Procurement
           </h2>
           <p className="text-[#475569] text-base mt-2">
             A transparent 5-step workflow designed specifically for pharmaceutical and industrial buyers.

@@ -3,8 +3,8 @@ import { SynthoraLogo } from "@/shared/components/SynthoraLogo";
 import { ArrowLeft, Shield, Lock, Eye, CheckCircle2 } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy | Synthora B2B Marketplace",
-  description: "Synthora Privacy Policy, commercial data protection, and confidentiality standards.",
+  title: "Privacy Policy | KemKendra B2B Marketplace",
+  description: "KemKendra Privacy Policy, commercial data protection, and confidentiality standards.",
 };
 
 export default function PrivacyPolicyPage() {
@@ -50,7 +50,7 @@ export default function PrivacyPolicyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-slate-900">1. Information We Collect</h2>
             <p className="text-sm text-slate-600 leading-relaxed">
-              When registering as a Buyer or Supplier on the Synthora platform, we collect corporate contact details, including your full name, business email address, phone number, company name, country, and city.
+              When registering as a Buyer or Supplier on the KemKendra platform, we collect corporate contact details, including your full name, business email address, phone number, company name, country, and city.
             </p>
             <p className="text-sm text-slate-600 leading-relaxed">
               For suppliers undergoing verification, we collect statutory company identifiers (e.g. GSTIN, VAT, business registration), quality certifications (ISO, GMP, COA), and company profiles.
@@ -92,7 +92,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Synthora B2B Marketplace Platform</span>
+            <span>KemKendra B2B Marketplace Platform</span>
             <span>Document ID: SYN-PRIVACY-V1.0</span>
           </div>
         </div>

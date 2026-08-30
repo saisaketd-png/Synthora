@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { getProducts } from "@/features/products/api/getProducts";
 import { getSuppliers } from "@/features/suppliers/api";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [

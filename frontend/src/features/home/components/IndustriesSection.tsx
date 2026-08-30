@@ -42,7 +42,7 @@ export function IndustriesSection() {
             Global Coverage
           </span>
           <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#0F172A] mt-1">
-            Industries Powered by Synthora
+            Industries Powered by KemKendra
           </h2>
           <p className="text-[#475569] text-base mt-2">
             Tailored supply chain solutions and raw material sourcing for specialized manufacturing sectors.

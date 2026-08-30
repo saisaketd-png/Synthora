@@ -5,24 +5,24 @@ import { ResourcesSection } from "@/features/home/components/ResourcesSection";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
 
 export const metadata: Metadata = {
-  title: "Compliance & Technical Resources | B2B Procurement | Synthora",
+  title: "Compliance & Technical Resources | B2B Procurement | KemKendra",
   description: "Access regulatory compliance guides, COA/MSDS verification handbooks, export manuals, and chemical sourcing resources.",
   alternates: {
     canonical: `${SITE_URL}/resources`,
   },
   openGraph: {
-    title: "Compliance & Technical Resources | Synthora",
+    title: "Compliance & Technical Resources | KemKendra",
     description: "Access regulatory compliance guides, COA/MSDS verification handbooks, and chemical sourcing resources.",
     url: `${SITE_URL}/resources`,
-    siteName: "Synthora",
+    siteName: "KemKendra",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Compliance & Technical Resources | Synthora",
+    title: "Compliance & Technical Resources | KemKendra",
     description: "Access regulatory compliance guides, COA/MSDS verification handbooks, and chemical sourcing resources.",
   },
 };

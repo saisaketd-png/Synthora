@@ -68,7 +68,7 @@ public class EmailNotificationServiceTest {
 
             String subject = resolver.resolveSubject(n);
             assertNotNull(subject);
-            assertTrue(subject.startsWith("[Synthora] "));
+            assertTrue(subject.startsWith("[KemKendra] "));
 
             String ctaUrl = resolver.resolveCtaUrl(n);
             assertNotNull(ctaUrl);
@@ -79,7 +79,7 @@ public class EmailNotificationServiceTest {
 
             String html = resolver.buildHtmlBody(n);
             assertNotNull(html);
-            assertTrue(html.contains("SYNTHORA"));
+            assertTrue(html.contains("KEMKENDRA"));
             assertTrue(html.contains(ctaUrl));
             assertTrue(html.contains(ctaText));
         }
@@ -210,7 +210,7 @@ public class EmailNotificationServiceTest {
         verify(mockEmailService, times(1)).sendHtmlEmail(emailCaptor.capture(), subjectCaptor.capture(), bodyCaptor.capture());
 
         assertEquals("procurement-officer@enterprise.com", emailCaptor.getValue());
-        assertEquals("[Synthora] Purchase Order Issued", subjectCaptor.getValue());
+        assertEquals("[KemKendra] Purchase Order Issued", subjectCaptor.getValue());
         assertTrue(bodyCaptor.getValue().contains("PO-2026-0001"));
     }
 

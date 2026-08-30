@@ -41,8 +41,8 @@ export async function generateMetadata(props: {
 
   return {
     title: searchParams.search
-      ? `Search: "${searchParams.search}" | Chemical Catalog | Synthora`
-      : "Chemical Product Catalog | APIs, Intermediates & Solvents | Synthora",
+      ? `Search: "${searchParams.search}" | Chemical Catalog | KemKendra`
+      : "Chemical Product Catalog | APIs, Intermediates & Solvents | KemKendra",
     description:
       "Browse and source pharmaceutical APIs, intermediates, specialty chemicals, and solvents from verified global suppliers. Compare CAS numbers, purity grades, and request quotes directly.",
     alternates: {
@@ -53,11 +53,11 @@ export async function generateMetadata(props: {
       follow: true,
     },
     openGraph: {
-      title: "Chemical Product Catalog | Synthora",
+      title: "Chemical Product Catalog | KemKendra",
       description:
         "Global chemical B2B marketplace. Search APIs, pharmaceutical intermediates, and solvents with verified documentation.",
-      url: "https://synthora.com/products",
-      siteName: "Synthora",
+      url: "https://kemkendra.com/products",
+      siteName: "KemKendra",
       type: "website",
     },
   };

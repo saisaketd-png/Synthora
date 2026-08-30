@@ -129,7 +129,7 @@ public class NotificationEmailIntegrationTest {
         verify(emailService, atLeastOnce()).sendHtmlEmail(emailCaptor.capture(), subjectCaptor.capture(), bodyCaptor.capture());
 
         assertEquals("sales@acmechemicals.com", emailCaptor.getValue());
-        assertEquals("[Synthora] New RFQ Received", subjectCaptor.getValue());
+        assertEquals("[KemKendra] New RFQ Received", subjectCaptor.getValue());
         assertTrue(bodyCaptor.getValue().contains("A buyer has submitted a new request for quotation."));
     }
 
@@ -152,7 +152,7 @@ public class NotificationEmailIntegrationTest {
         verify(emailService, atLeastOnce()).sendHtmlEmail(emailCaptor.capture(), subjectCaptor.capture(), anyString());
 
         assertEquals("buyer-corp@enterprise.com", emailCaptor.getValue());
-        assertEquals("[Synthora] New Quotation Received", subjectCaptor.getValue());
+        assertEquals("[KemKendra] New Quotation Received", subjectCaptor.getValue());
     }
 
     @Test
@@ -198,31 +198,31 @@ public class NotificationEmailIntegrationTest {
         CreatePurchaseOrderRequest poReq = new CreatePurchaseOrderRequest(rfq.id(), "123 Parkway", "billing@buyer.com", "Notes");
         PurchaseOrderResponse po = purchaseOrderService.createPurchaseOrder(poReq, buyerAuth);
         Thread.sleep(300);
-        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("sales@acmechemicals.com"), eq("[Synthora] Purchase Order Issued"), anyString());
+        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("sales@acmechemicals.com"), eq("[KemKendra] Purchase Order Issued"), anyString());
 
         // 2. PO Confirmed
         reset(emailService);
         purchaseOrderService.confirmSupplierOrder(po.id(), supplierAuth);
         Thread.sleep(300);
-        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[Synthora] Purchase Order Confirmed"), anyString());
+        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[KemKendra] Purchase Order Confirmed"), anyString());
 
         // 3. Processing Started
         reset(emailService);
         purchaseOrderService.startProcessingSupplierOrder(po.id(), supplierAuth);
         Thread.sleep(300);
-        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[Synthora] Order Processing Started"), anyString());
+        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[KemKendra] Order Processing Started"), anyString());
 
         // 4. Shipped
         reset(emailService);
         purchaseOrderService.shipSupplierOrder(po.id(), "FedEx Freight", "TRK-12345", LocalDate.now().plusDays(3), supplierAuth);
         Thread.sleep(300);
-        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[Synthora] Order Shipped"), anyString());
+        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[KemKendra] Order Shipped"), anyString());
 
         // 5. Delivered
         reset(emailService);
         purchaseOrderService.markOrderDeliveredSupplier(po.id(), supplierAuth);
         Thread.sleep(300);
-        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[Synthora] Order Delivered"), anyString());
+        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("buyer-corp@enterprise.com"), eq("[KemKendra] Order Delivered"), anyString());
     }
 
     @Test
@@ -243,6 +243,6 @@ public class NotificationEmailIntegrationTest {
 
         Thread.sleep(300);
 
-        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("sales@acmechemicals.com"), eq("[Synthora] New Document Uploaded"), anyString());
+        verify(emailService, atLeastOnce()).sendHtmlEmail(eq("sales@acmechemicals.com"), eq("[KemKendra] New Document Uploaded"), anyString());
     }
 }

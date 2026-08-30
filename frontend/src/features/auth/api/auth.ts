@@ -127,9 +127,39 @@ export async function registerSupplier(
   return response.json();
 }
 
+const TOKEN_KEY = "kemkendra_token";
+const LEGACY_TOKEN_KEY = "synthora_token";
+
+export function getAuthToken(): string | null {
+  if (typeof window === "undefined") return null;
+  let token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    token = localStorage.getItem(LEGACY_TOKEN_KEY);
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.removeItem(LEGACY_TOKEN_KEY);
+    }
+  }
+  return token;
+}
+
+export function setAuthToken(token: string): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+  }
+}
+
+export function removeAuthToken(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+  }
+}
+
 export function getAuthUser(): AuthUser | null {
   if (typeof window === "undefined") return null;
-  const token = localStorage.getItem("synthora_token");
+  const token = getAuthToken();
   if (!token) return null;
 
   try {
@@ -147,7 +177,7 @@ export function getAuthUser(): AuthUser | null {
 
     // Check expiration if present
     if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-      localStorage.removeItem("synthora_token");
+      removeAuthToken();
       return null;
     }
 
@@ -163,14 +193,14 @@ export function getAuthUser(): AuthUser | null {
 
 export function logout(): void {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("synthora_token");
+    removeAuthToken();
     window.dispatchEvent(new Event("auth-changed"));
   }
 }
 
 export function handleUnauthorized(redirectUrl?: string): void {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("synthora_token");
+    removeAuthToken();
     window.dispatchEvent(new Event("auth-changed"));
     const currentPath = window.location.pathname;
     if (currentPath.startsWith("/dashboard")) {
@@ -243,7 +273,7 @@ export type UserProfile = {
 };
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+  const token = getAuthToken();
   const targetUrl = resolveApiUrl("/api/v1/users/me");
   const response = await fetch(targetUrl, {
     method: "GET",
@@ -274,7 +304,7 @@ export async function updateUserProfile(data: {
   name: string;
   phone?: string;
 }): Promise<UserProfile> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+  const token = getAuthToken();
   const targetUrl = resolveApiUrl("/api/v1/users/me");
   const response = await fetch(targetUrl, {
     method: "PUT",
@@ -306,7 +336,7 @@ export async function changePassword(data: {
   currentPassword: string;
   newPassword: string;
 }): Promise<{ message: string }> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+  const token = getAuthToken();
   const targetUrl = resolveApiUrl("/api/v1/users/me/change-password");
   const response = await fetch(targetUrl, {
     method: "POST",

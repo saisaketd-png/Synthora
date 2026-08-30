@@ -21,7 +21,7 @@ import { ProductDocuments } from "@/features/products/components/ProductDocument
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export async function generateMetadata({
@@ -32,10 +32,10 @@ export async function generateMetadata({
   const resolvedParams = await params;
   try {
     const product: Product = await fetchProductDetail(resolvedParams.id);
-    const title = `${product.name} (CAS ${product.casNumber || "N/A"}) | Verified Chemical Suppliers | Synthora`;
+    const title = `${product.name} (CAS ${product.casNumber || "N/A"}) | Verified Chemical Suppliers | KemKendra`;
     const description =
       product.description ||
-      `Source high-purity ${product.name} (CAS ${product.casNumber || "N/A"}) with verified documentation, COAs, and competitive pricing from verified chemical manufacturers on Synthora.`;
+      `Source high-purity ${product.name} (CAS ${product.casNumber || "N/A"}) with verified documentation, COAs, and competitive pricing from verified chemical manufacturers on KemKendra.`;
     const canonicalCode = product.productCode || resolvedParams.id;
 
     return {
@@ -48,7 +48,7 @@ export async function generateMetadata({
         title,
         description,
         url: `${SITE_URL}/products/${canonicalCode}`,
-        siteName: "Synthora",
+        siteName: "KemKendra",
         type: "website",
         images: product.primaryImageUrl
           ? [
@@ -69,8 +69,8 @@ export async function generateMetadata({
     };
   } catch {
     return {
-      title: "Chemical Product Details | Synthora",
-      description: "Chemical compound specifications and supplier procurement on Synthora.",
+      title: "Chemical Product Details | KemKendra",
+      description: "Chemical compound specifications and supplier procurement on KemKendra.",
       robots: { index: false, follow: true },
     };
   }
@@ -249,7 +249,7 @@ export default async function ProductDetailPage({
                     {product.name}
                   </h1>
                   <p className="text-xs sm:text-sm text-[#64748B] mt-1 font-mono">
-                    Synthora Master Catalog Specification ID: {canonicalCode}
+                    KemKendra Master Catalog Specification ID: {canonicalCode}
                   </p>
                 </div>
 

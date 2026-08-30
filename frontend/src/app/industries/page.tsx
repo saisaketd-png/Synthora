@@ -7,11 +7,11 @@ import { ArrowRight, Clock } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://synthora.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
 
 export const metadata: Metadata = {
-  title: "Industries | Chemical Sourcing | Synthora",
-  description: "Industry-specific chemical procurement taxonomy and specialized sector directories on Synthora.",
+  title: "Industries | Chemical Sourcing | KemKendra",
+  description: "Industry-specific chemical procurement taxonomy and specialized sector directories on KemKendra.",
   alternates: {
     canonical: `${SITE_URL}/industries`,
   },

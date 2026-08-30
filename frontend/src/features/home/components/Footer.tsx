@@ -34,7 +34,7 @@ export function Footer() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-                  <span>Supplier Relations: suppliers@synthora.com</span>
+                  <span>Supplier Relations: suppliers@kemkendra.com</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
@@ -173,7 +173,7 @@ export function Footer() {
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-slate-400 gap-4 text-xs">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-teal-400" />
-            <span>© {new Date().getFullYear()} Synthora Enterprise B2B Marketplace Inc. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} KemKendra Enterprise B2B Marketplace Inc. All rights reserved.</span>
           </div>
 
           <div className="flex items-center space-x-6">

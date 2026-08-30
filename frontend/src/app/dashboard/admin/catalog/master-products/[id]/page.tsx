@@ -313,7 +313,7 @@ export default function MasterProductGovernanceDetailPage() {
         exportReady: offeringExportReady,
         availabilityStatus: "AVAILABLE",
         moderationStatus: "APPROVED",
-        adminNotes: offeringAdminNotes.trim() || "Created by Synthora Admin on behalf of supplier",
+        adminNotes: offeringAdminNotes.trim() || "Created by KemKendra Admin on behalf of supplier",
       });
       toast.success("Commercial offering created on behalf of supplier");
       setShowCreateOfferingModal(false);
@@ -984,7 +984,7 @@ export default function MasterProductGovernanceDetailPage() {
                           )}
                           {offering.createdByRole === "ADMIN" ? (
                             <span className="px-2 py-0.5 bg-purple-100 text-purple-800 text-[10px] font-extrabold rounded-md flex items-center gap-1">
-                              <Shield className="w-3 h-3 text-purple-600" /> Created by Synthora Admin ({offering.createdByAdminName || "Admin"})
+                              <Shield className="w-3 h-3 text-purple-600" /> Created by KemKendra Admin ({offering.createdByAdminName || "Admin"})
                             </span>
                           ) : (
                             <span className="px-2 py-0.5 bg-slate-200/70 text-slate-700 text-[10px] font-extrabold rounded-md flex items-center gap-1">
@@ -1186,7 +1186,7 @@ export default function MasterProductGovernanceDetailPage() {
                 <ShieldCheck className="w-4 h-4 text-purple-600" /> Ownership & Governance Notice
               </strong>
               <p className="text-[11px] leading-relaxed text-purple-800/90">
-                The selected Supplier will remain the legal business owner of this commercial offering. Provenance will be preserved as &quot;Created by Synthora Admin&quot; in the audit ledger and visible on supplier and buyer portals.
+                The selected Supplier will remain the legal business owner of this commercial offering. Provenance will be preserved as &quot;Created by KemKendra Admin&quot; in the audit ledger and visible on supplier and buyer portals.
               </p>
             </div>
 

@@ -1,5 +1,5 @@
 /**
- * Centralized API URL resolution strategy for Synthora.
+ * Centralized API URL resolution strategy for KemKendra.
  * 
  * In Browser/Client-side execution:
  *   - Base URL is "" (empty string) or NEXT_PUBLIC_API_URL, resolving to relative "/api/v1/..."

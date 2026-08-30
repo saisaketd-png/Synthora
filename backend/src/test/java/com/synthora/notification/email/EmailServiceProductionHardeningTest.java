@@ -45,7 +45,7 @@ public class EmailServiceProductionHardeningTest {
     @DisplayName("sendHtmlEmail successfully creates, formats, and dispatches UTF-8 MimeMessage")
     void testSendHtmlEmail_successfulMimeMessageDispatch() throws Exception {
         String recipient = "buyer@enterprise-chem.com";
-        String subject = "[Synthora] Quotation Received for Acetic Acid 99%";
+        String subject = "[KemKendra] Quotation Received for Acetic Acid 99%";
         String htmlBody = "<html><body><h1>Quotation Approved</h1><p>Your chemical RFQ has been accepted.</p></body></html>";
 
         emailService.sendHtmlEmail(recipient, subject, htmlBody);
@@ -83,7 +83,7 @@ public class EmailServiceProductionHardeningTest {
     @DisplayName("sendHtmlEmail handles special UTF-8 characters and symbols accurately")
     void testSendHtmlEmail_utf8EncodingIntegrity() throws Exception {
         String recipient = "procurement@chemcorp.de";
-        String subject = "[Synthora] Order Confirmed: €250,000 — 50MT (Ä, Ö, Ü, ß, ™, ©)";
+        String subject = "[KemKendra] Order Confirmed: €250,000 — 50MT (Ä, Ö, Ü, ß, ™, ©)";
         String htmlBody = "<div><p>Price: €250,000</p><p>Specification: Intermediates & Fine Chemicals — Qualität geprüft.</p></div>";
 
         emailService.sendHtmlEmail(recipient, subject, htmlBody);

@@ -154,7 +154,7 @@ public class PasswordResetService {
                 : "Valued Partner";
         String escapedUrl = HtmlUtils.htmlEscape(resetUrl);
 
-        String subject = "[Synthora] Reset Your Password";
+        String subject = "[KemKendra] Reset Your Password";
         String htmlBody = """
                 <!DOCTYPE html>
                 <html>
@@ -174,7 +174,7 @@ public class PasswordResetService {
                                             <table width="100%%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
                                                     <td>
-                                                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px;">SYNTHORA</h1>
+                                                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px;">KEMKENDRA</h1>
                                                         <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">B2B Chemical & Raw Materials Marketplace</p>
                                                     </td>
                                                 </tr>
@@ -189,7 +189,7 @@ public class PasswordResetService {
                                                 Hello %s,
                                             </p>
                                             <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 24px; color: #cbd5e1;">
-                                                We received a request to reset your password for your Synthora account. Click the button below to choose a new password:
+                                                We received a request to reset your password for your KemKendra account. Click the button below to choose a new password:
                                             </p>
                                             <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="margin: 28px 0;">
                                                 <tr>
@@ -217,7 +217,7 @@ public class PasswordResetService {
                                     <tr>
                                         <td style="padding: 24px 40px; background-color: #0f172a; border-top: 1px solid #334155; text-align: center;">
                                             <p style="margin: 0; font-size: 12px; color: #64748b;">
-                                                &copy; %d Synthora Marketplace. All rights reserved.
+                                                &copy; %d KemKendra Marketplace. All rights reserved.
                                             </p>
                                         </td>
                                     </tr>

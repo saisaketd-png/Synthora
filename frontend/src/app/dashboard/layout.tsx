@@ -358,11 +358,16 @@ export default function DashboardLayout({
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <SynthoraLogo
-            href="/"
-            size="sm"
-            subtitle={workspaceLabel}
-          />
+          <div className="flex items-center gap-2">
+            <SynthoraLogo
+              href="/"
+              size="md"
+              layout="horizontal"
+            />
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              {isAdmin ? "Admin" : isSupplier ? "Supplier" : "Buyer"}
+            </span>
+          </div>
         </div>
 
         {/* Right Header Controls */}
@@ -507,7 +512,7 @@ export default function DashboardLayout({
 
           {/* FIXED SYSTEM STATUS FOOTER */}
           <div className="p-3 border-t border-[#DFE1E6] bg-white text-[11px] text-[#5E6C84] space-y-0.5 shrink-0">
-            <div className="font-semibold text-[#091E42]">Synthora Industrial</div>
+            <div className="font-semibold text-[#091E42]">KemKendra Industrial</div>
             <div className="flex items-center justify-between font-mono text-[10px]">
               <span>Production Environment</span>
               <span className="text-[#00875A] font-bold flex items-center gap-1">

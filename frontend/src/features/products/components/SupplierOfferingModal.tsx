@@ -692,7 +692,7 @@ export default function SupplierOfferingModal({
         =================================================== */}
         <div className="p-4 sm:p-5 border-t border-[#E2E8F0] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           <div className="text-xs text-[#64748B] hidden sm:block">
-            <span>Direct negotiation & audit protection backed by Synthora.</span>
+            <span>Direct negotiation & audit protection backed by KemKendra.</span>
           </div>
 
           <div className="flex items-center gap-2.5 w-full sm:w-auto">

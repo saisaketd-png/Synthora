@@ -212,7 +212,7 @@ function ResetPasswordForm() {
               Password Reset Complete
             </h2>
             <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
-              Your password has been updated securely. You can now sign in to your Synthora workspace with your new password.
+              Your password has been updated securely. You can now sign in to your KemKendra workspace with your new password.
             </p>
           </div>
 
@@ -221,7 +221,7 @@ function ResetPasswordForm() {
               href="/login"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-xs font-bold text-white transition hover:bg-blue-700 shadow-xs w-full"
             >
-              <span>Sign In to Synthora</span>
+              <span>Sign In to KemKendra</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -264,7 +264,7 @@ export default function ResetPasswordPage() {
 
         {/* Security Footer */}
         <p className="mt-8 text-center text-[11px] text-slate-400 font-medium">
-          Protected by Synthora Multi-Layered Authentication & Access Governance
+          Protected by KemKendra Multi-Layered Authentication & Access Governance
         </p>
       </div>
     </main>

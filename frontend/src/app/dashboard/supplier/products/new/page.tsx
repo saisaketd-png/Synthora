@@ -107,7 +107,7 @@ export default function CreateProductPage() {
       setIsSubmitting(true);
       setError(null);
       await createProductRequest(payload);
-      setSuccessMessage("Chemical request submitted! Synthora Verification Team will review your request.");
+      setSuccessMessage("Chemical request submitted! KemKendra Verification Team will review your request.");
       setTimeout(() => {
         router.push("/dashboard/supplier/products");
         router.refresh();
@@ -132,7 +132,7 @@ export default function CreateProductPage() {
         </Link>
         <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Add Chemical to Catalog</h1>
         <p className="text-xs text-slate-500 mt-1">
-          Search Synthora Master Catalog to attach a commercial offering, upload media/documents, or propose a new chemical compound.
+          Search KemKendra Master Catalog to attach a commercial offering, upload media/documents, or propose a new chemical compound.
         </p>
       </div>
 

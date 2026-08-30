@@ -482,7 +482,7 @@ export default function SupplierOnboardingPage() {
               Company Verification in Review
             </h1>
             <p className="text-sm text-slate-600 max-w-lg mx-auto">
-              Thank you, <strong className="text-slate-900">{profile?.name}</strong>. Your official company identity and KYC documents have been submitted to Synthora Compliance administrators.
+              Thank you, <strong className="text-slate-900">{profile?.name}</strong>. Your official company identity and KYC documents have been submitted to KemKendra Compliance administrators.
             </p>
           </div>
 
@@ -551,7 +551,7 @@ export default function SupplierOnboardingPage() {
             <div className="text-left">
               <span className="font-extrabold text-slate-900 text-base block">{profile.name}</span>
               <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                <Check className="w-3.5 h-3.5" /> Official Synthora Verified Accreditation
+                <Check className="w-3.5 h-3.5" /> Official KemKendra Verified Accreditation
               </span>
             </div>
           </div>
@@ -1141,7 +1141,7 @@ export default function SupplierOnboardingPage() {
                   Upload Verification Evidence & Submit
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Upload government incorporation certificates, GST/tax filings, or manufacturing licenses. These documents are securely encrypted and accessible ONLY by Synthora administrators.
+                  Upload government incorporation certificates, GST/tax filings, or manufacturing licenses. These documents are securely encrypted and accessible ONLY by KemKendra administrators.
                 </p>
               </div>
 
@@ -1244,7 +1244,7 @@ export default function SupplierOnboardingPage() {
                   <span>Ready to Submit Application</span>
                 </div>
                 <p className="text-xs text-purple-800 leading-relaxed">
-                  Upon submission, your application will transition to <strong className="font-mono">PENDING VERIFICATION</strong>. Synthora marketplace compliance officers will review your documents within 1 business day.
+                  Upon submission, your application will transition to <strong className="font-mono">PENDING VERIFICATION</strong>. KemKendra marketplace compliance officers will review your documents within 1 business day.
                 </p>
               </div>
             </div>

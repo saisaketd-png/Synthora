@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { getUnreadCount } from "../api/notifications";
 import { resolveApiUrl } from "@/lib/apiUrl";
 import { NotificationResponse } from "../types/notification";
+import { getAuthToken } from "@/features/auth/api/auth";
 
 // Global cache of processed notification IDs to prevent duplicate event processing across hooks
 const seenNotificationIds = new Set<string>();
@@ -14,7 +15,7 @@ export function useUnreadNotificationCount(pollingIntervalMs = 15000) {
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const refreshUnreadCount = useCallback(async () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+    const token = getAuthToken();
     if (!token) {
       setUnreadCount(0);
       setIsLoading(false);
@@ -33,7 +34,7 @@ export function useUnreadNotificationCount(pollingIntervalMs = 15000) {
 
   useEffect(() => {
     const setupStreamAndPolling = () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+      const token = getAuthToken();
 
       // If unauthenticated, close existing SSE if any and reset unread count
       if (!token) {
@@ -122,7 +123,7 @@ export function useUnreadNotificationCount(pollingIntervalMs = 15000) {
 
     // 2. Visibility-Aware Polling Fallback & Heartbeat
     const interval = setInterval(() => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+      const token = getAuthToken();
       if (token && typeof document !== "undefined" && document.visibilityState === "visible") {
         refreshUnreadCount();
       }
@@ -130,14 +131,14 @@ export function useUnreadNotificationCount(pollingIntervalMs = 15000) {
 
     // 3. Instant Revalidation on Focus & Visibility Change
     const handleVisibilityChange = () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+      const token = getAuthToken();
       if (token && document.visibilityState === "visible") {
         refreshUnreadCount();
       }
     };
 
     const handleWindowFocus = () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("synthora_token") : null;
+      const token = getAuthToken();
       if (token) {
         refreshUnreadCount();
       }

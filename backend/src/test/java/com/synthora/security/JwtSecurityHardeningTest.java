@@ -125,7 +125,7 @@ class JwtSecurityHardeningTest {
     void testExpiredJwtIsRejected() throws Exception {
         SecretKey key = Keys.hmacShaKeyFor("SynthoraDevSecretKeyForJwtSigning2026!".getBytes(StandardCharsets.UTF_8));
         String expiredToken = Jwts.builder()
-                .issuer("synthora")
+                .issuer("kemkendra")
                 .subject("buyer@synthora.com")
                 .claim("role", "USER")
                 .issuedAt(new Date(System.currentTimeMillis() - 3600000))
@@ -146,7 +146,7 @@ class JwtSecurityHardeningTest {
     void testUntrustedKeyJwtIsRejected() throws Exception {
         SecretKey forgedKey = Keys.hmacShaKeyFor("UntrustedAttackerSecretKeyForSigning2026!".getBytes(StandardCharsets.UTF_8));
         String forgedToken = Jwts.builder()
-                .issuer("synthora")
+                .issuer("kemkendra")
                 .subject("buyer@synthora.com")
                 .claim("role", "ADMIN")
                 .issuedAt(new Date())

@@ -418,7 +418,7 @@ export default function SupplierVerificationCenterPage() {
           <div>
             <h3 className="text-sm font-bold">Enterprise Verified Supplier</h3>
             <p className="text-xs text-[#006644] mt-0.5">
-              Your company profile and compliance credentials have been verified by Synthora Operations. You are fully authorized for enterprise chemical cataloging and quotation participation.
+              Your company profile and compliance credentials have been verified by KemKendra Operations. You are fully authorized for enterprise chemical cataloging and quotation participation.
             </p>
             {workspace.verificationNotes && (
               <p className="text-xs font-mono text-[#00875A] mt-2 bg-white/60 p-2 rounded-lg border border-[#ABF5D1]">
@@ -922,7 +922,7 @@ export default function SupplierVerificationCenterPage() {
                   className="w-4 h-4 mt-0.5 text-[#0052CC] rounded focus:ring-0 cursor-pointer"
                 />
                 <label htmlFor="decl2" className="text-xs text-[#172B4D] leading-relaxed cursor-pointer">
-                  <strong>Authorized Representative Consent:</strong> I confirm that I am legally authorized by the registered entity to execute supplier agreements, issue chemical commercial quotations, and represent the organization on the Synthora marketplace.
+                  <strong>Authorized Representative Consent:</strong> I confirm that I am legally authorized by the registered entity to execute supplier agreements, issue chemical commercial quotations, and represent the organization on the KemKendra marketplace.
                 </label>
               </div>
             </div>

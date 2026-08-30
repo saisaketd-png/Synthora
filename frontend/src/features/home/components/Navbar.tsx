@@ -130,14 +130,20 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-white border-b border-[#DFE1E6] h-[66px] shadow-2xs flex items-center">
       <div className="max-w-[1560px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3 lg:gap-5">
         
-        {/* 1. LEFT: SYNTHORA BRAND & PRIMARY NAV */}
-        <div className="flex items-center gap-5 lg:gap-6 shrink-0">
-          <SynthoraLogo
-            href="/"
-            size="md"
-            subtitle={roleSubtitle}
-            className="w-[170px] shrink-0"
-          />
+        {/* 1. LEFT: KEMKENDRA BRAND & PRIMARY NAV */}
+        <div className="flex items-center gap-4 lg:gap-5 shrink-0">
+          <div className="flex items-center gap-2">
+            <SynthoraLogo
+              href="/"
+              size="md"
+              layout="horizontal"
+            />
+            {user && (
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                {isAdmin ? "Admin" : isSupplier ? "Supplier" : "Buyer"}
+              </span>
+            )}
+          </div>
 
           {/* Primary Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-1" aria-label="Global Navigation">
