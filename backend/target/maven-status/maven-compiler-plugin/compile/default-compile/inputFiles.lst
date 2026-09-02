@@ -129,6 +129,7 @@ D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\document\DocumentUpload
 D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\document\FileSecurityValidator.java
 D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\document\storage\LocalStorageService.java
 D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\document\storage\StorageService.java
+D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\document\StringToDocumentCategoryConverter.java
 D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\governance\dto\GovernanceAuditLogResponse.java
 D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\governance\GovernanceAction.java
 D:\Saisaket\Synthora\backend\src\main\java\com\kemkendra\governance\GovernanceAuditLog.java

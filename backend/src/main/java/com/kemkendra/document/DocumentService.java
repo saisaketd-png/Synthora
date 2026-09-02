@@ -168,7 +168,9 @@ public class DocumentService {
                     DocumentCategory.COA,
                     DocumentCategory.CERTIFICATE_OF_ANALYSIS,
                     DocumentCategory.MSDS,
+                    DocumentCategory.SAFETY_DATA_SHEET,
                     DocumentCategory.TECHNICAL_SPECIFICATION,
+                    DocumentCategory.TECHNICAL_DATA_SHEET,
                     DocumentCategory.CERTIFICATION,
                     DocumentCategory.QUALITY_CERTIFICATE,
                     DocumentCategory.SAFETY_CERTIFICATE,
@@ -176,7 +178,11 @@ public class DocumentService {
                     DocumentCategory.CGMP_CERTIFICATE,
                     DocumentCategory.ISO_CERTIFICATE,
                     DocumentCategory.EXPORT_CERTIFICATE,
-                    DocumentCategory.MANUFACTURING_LICENSE
+                    DocumentCategory.MANUFACTURING_LICENSE,
+                    DocumentCategory.REACH_COMPLIANCE,
+                    DocumentCategory.HALAL_CERTIFICATE,
+                    DocumentCategory.KOSHER_CERTIFICATE,
+                    DocumentCategory.OTHER
             );
             if (!allowed.contains(category)) {
                 throw new IllegalArgumentException("Invalid category for " + ownerType + ": " + category);
@@ -188,20 +194,37 @@ public class DocumentService {
                     DocumentCategory.TAX_REGISTRATION,
                     DocumentCategory.TAX_CERTIFICATE,
                     DocumentCategory.GST_CERTIFICATE,
+                    DocumentCategory.PAN_CARD,
                     DocumentCategory.COMPANY_LICENSE,
                     DocumentCategory.BUSINESS_LICENSE,
+                    DocumentCategory.DRUG_LICENSE,
+                    DocumentCategory.FACTORY_LICENSE,
+                    DocumentCategory.POLLUTION_CLEARANCE,
                     DocumentCategory.QUALITY_CERTIFICATE,
                     DocumentCategory.SAFETY_CERTIFICATE,
                     DocumentCategory.CERTIFICATE_OF_ANALYSIS,
                     DocumentCategory.COA,
                     DocumentCategory.CERTIFICATION,
                     DocumentCategory.TECHNICAL_SPECIFICATION,
+                    DocumentCategory.TECHNICAL_DATA_SHEET,
+                    DocumentCategory.MSDS,
+                    DocumentCategory.SAFETY_DATA_SHEET,
                     DocumentCategory.GMP_CERTIFICATE,
                     DocumentCategory.CGMP_CERTIFICATE,
                     DocumentCategory.ISO_CERTIFICATE,
                     DocumentCategory.EXPORT_CERTIFICATE,
                     DocumentCategory.MANUFACTURING_LICENSE,
-                    DocumentCategory.OTHER_COMPLIANCE
+                    DocumentCategory.REACH_COMPLIANCE,
+                    DocumentCategory.HALAL_CERTIFICATE,
+                    DocumentCategory.KOSHER_CERTIFICATE,
+                    DocumentCategory.COMMERCIAL_INVOICE,
+                    DocumentCategory.PACKING_LIST,
+                    DocumentCategory.PURCHASE_ORDER,
+                    DocumentCategory.RFQ_ATTACHMENT,
+                    DocumentCategory.QUOTATION_ATTACHMENT,
+                    DocumentCategory.DELIVERY_CONFIRMATION,
+                    DocumentCategory.OTHER_COMPLIANCE,
+                    DocumentCategory.OTHER
             );
             if (!allowed.contains(category)) {
                 throw new IllegalArgumentException("Invalid category for SUPPLIER: " + category);
@@ -210,10 +233,13 @@ public class DocumentService {
             Set<DocumentCategory> allowed = Set.of(
                     DocumentCategory.RFQ_ATTACHMENT,
                     DocumentCategory.TECHNICAL_SPECIFICATION,
+                    DocumentCategory.TECHNICAL_DATA_SHEET,
                     DocumentCategory.CERTIFICATION,
                     DocumentCategory.COA,
                     DocumentCategory.CERTIFICATE_OF_ANALYSIS,
-                    DocumentCategory.MSDS
+                    DocumentCategory.MSDS,
+                    DocumentCategory.SAFETY_DATA_SHEET,
+                    DocumentCategory.OTHER
             );
             if (!allowed.contains(category)) {
                 throw new IllegalArgumentException("Invalid category for RFQ: " + category);
@@ -222,10 +248,13 @@ public class DocumentService {
             Set<DocumentCategory> allowed = Set.of(
                     DocumentCategory.QUOTATION_ATTACHMENT,
                     DocumentCategory.TECHNICAL_SPECIFICATION,
+                    DocumentCategory.TECHNICAL_DATA_SHEET,
                     DocumentCategory.CERTIFICATION,
                     DocumentCategory.COA,
                     DocumentCategory.CERTIFICATE_OF_ANALYSIS,
-                    DocumentCategory.MSDS
+                    DocumentCategory.MSDS,
+                    DocumentCategory.SAFETY_DATA_SHEET,
+                    DocumentCategory.OTHER
             );
             if (!allowed.contains(category)) {
                 throw new IllegalArgumentException("Invalid category for QUOTATION: " + category);
@@ -234,11 +263,16 @@ public class DocumentService {
             Set<DocumentCategory> allowed = Set.of(
                     DocumentCategory.PURCHASE_ORDER,
                     DocumentCategory.INVOICE,
+                    DocumentCategory.COMMERCIAL_INVOICE,
                     DocumentCategory.INVOICE_REFERENCE,
+                    DocumentCategory.PACKING_LIST,
                     DocumentCategory.TECHNICAL_SPECIFICATION,
+                    DocumentCategory.TECHNICAL_DATA_SHEET,
                     DocumentCategory.CERTIFICATION,
                     DocumentCategory.DELIVERY_DOCUMENT,
-                    DocumentCategory.RECEIPT_DOCUMENT
+                    DocumentCategory.DELIVERY_CONFIRMATION,
+                    DocumentCategory.RECEIPT_DOCUMENT,
+                    DocumentCategory.OTHER
             );
             if (!allowed.contains(category)) {
                 throw new IllegalArgumentException("Invalid category for PURCHASE_ORDER: " + category);
@@ -251,7 +285,8 @@ public class DocumentService {
                     DocumentCategory.RECEIPT_DOCUMENT,
                     DocumentCategory.SHIPPING_DOCUMENT,
                     DocumentCategory.SHIPMENT_DOCUMENT,
-                    DocumentCategory.CERTIFICATION
+                    DocumentCategory.CERTIFICATION,
+                    DocumentCategory.OTHER
             );
             if (!allowed.contains(category)) {
                 throw new IllegalArgumentException("Invalid category for SHIPMENT: " + category);

@@ -291,6 +291,7 @@ com\kemkendra\product\verification\SupplierOfferingVerificationController.class
 com\kemkendra\rfq\sourcing\SourcingRequestRepository.class
 com\kemkendra\seller\SupplierVerificationStatus.class
 com\kemkendra\notification\events\PurchaseOrderCancelledEvent.class
+com\kemkendra\document\StringToDocumentCategoryConverter.class
 com\kemkendra\admin\config\dto\AdminConfigDtos$PlatformSettingsResponse.class
 com\kemkendra\admin\supplier\AdminSupplierService.class
 com\kemkendra\notification\email\NotificationEmailTemplateResolver$1.class
