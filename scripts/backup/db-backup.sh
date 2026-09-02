@@ -55,7 +55,7 @@ fi
 # 4. Prepare output directory and filename
 mkdir -p "$OUTPUT_DIR"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_FILE="${OUTPUT_DIR}/synthora_backup_${TIMESTAMP}.dump"
+BACKUP_FILE="${OUTPUT_DIR}/kemkendra_backup_${TIMESTAMP}.dump"
 
 echo "================================================================="
 echo " Starting KemKendra Database Backup"

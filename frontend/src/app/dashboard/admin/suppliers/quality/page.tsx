@@ -28,7 +28,7 @@ export default function SupplierQualityPage() {
   useEffect(() => {
     async function fetchQuality() {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
         const res = await fetch("/api/v1/admin/operations/suppliers/quality", {
           headers: { Authorization: `Bearer ${token}` }
         });

@@ -81,7 +81,14 @@ public class EmailVerificationService {
         String verifyUrl = appBaseUrl + "/verify-email?token=" + rawToken;
         sendVerificationEmail(user, verifyUrl);
 
-        log.info("Email verification token generated and email dispatched for user ID: {}", user.getId());
+        log.info("""
+
+                ================================================================================
+                [EMAIL VERIFICATION DISPATCHED]
+                Recipient: {} (User ID: {})
+                Verification URL: {}
+                ================================================================================""",
+                user.getEmail(), user.getId(), verifyUrl);
     }
 
     /**

@@ -2,26 +2,26 @@ package com.kemkendra.notification.api;
 
 import com.kemkendra.identity.User;
 import com.kemkendra.identity.UserRepository;
+import com.kemkendra.notification.NotificationCategory;
 import com.kemkendra.notification.NotificationService;
+import com.kemkendra.notification.NotificationStreamService;
 import com.kemkendra.notification.dto.NotificationResponse;
 import com.kemkendra.notification.dto.UnreadCountResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import com.kemkendra.notification.NotificationStreamService;
-import org.springframework.http.MediaType;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.UUID;
 
 /**
  * REST API for user notifications.
- * All operations are strictly scoped to the authenticated user.
+ * All operations are strictly scoped to the authenticated user's ID.
  */
 @RestController
 @RequestMapping("/api/v1/notifications")
@@ -56,10 +56,16 @@ public class NotificationController {
 
     @GetMapping
     public Page<NotificationResponse> getNotifications(
+            @RequestParam(required = false) NotificationCategory category,
+            @RequestParam(required = false) Boolean read,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             Authentication authentication) {
         User user = getAuthenticatedUser(authentication);
-        return notificationService.getNotifications(user.getId(), pageable);
+        return notificationService.getNotifications(user.getId(), category, read, pageable);
+    }
+
+    public Page<NotificationResponse> getNotifications(Pageable pageable, Authentication authentication) {
+        return getNotifications(null, null, pageable, authentication);
     }
 
     @GetMapping("/unread-count")

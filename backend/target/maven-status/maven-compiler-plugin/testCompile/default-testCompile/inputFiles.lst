@@ -1,15 +1,20 @@
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\AdminCatalogOperationsSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\AdminOfferingNotificationSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\AdminOperationsSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\AdminSystemResetSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\analytics\AdminAnalyticsIntegrationTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\announcement\AdminAnnouncementSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\audit\AdminAuditSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\audit\AuditLogDomainTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\audit\AuditServiceSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\config\AdminConfigurationSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\config\AdminFeatureControlSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\governance\AccountGovernanceSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\product\AdminProductControllerIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\product\AdminProductServiceTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\supplier\AdminSupplierControllerIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\supplier\AdminSupplierServiceTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\taxonomy\AdminTaxonomySecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\transaction\AdminTransactionControllerIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\transaction\AdminTransactionServiceTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\admin\user\AdminUserControllerIntegrationTest.java
@@ -22,6 +27,8 @@ D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\database\FlywaySchemaAn
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\DocumentApiTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\DocumentAuthorizationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\DocumentDomainTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\DocumentManagementIntegrationTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\DocumentSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\DocumentVaultSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\ProductDocumentSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\document\PurchaseOrderShipmentDocumentSecurityTest.java
@@ -47,6 +54,7 @@ D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\journey\PhaseI820Docker
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\journey\PhaseI87PublicMarketplaceJourneyIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\journey\PhaseI88SupplierTrustLifecycleIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\journey\PhaseI89OfferingGovernanceIntegrationTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\marketplace\MarketplaceExperienceIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\email\EmailServiceProductionHardeningTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\EmailNotificationServiceTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\NotificationApiSecurityTest.java
@@ -54,6 +62,7 @@ D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\Notificati
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\NotificationEmailIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\NotificationEventIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\NotificationProductionHardeningTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\NotificationSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\notification\NotificationServiceTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\order\apis\PurchaseOrderFulfillmentApiControllerTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\order\PurchaseOrderFulfillmentServiceTest.java
@@ -99,6 +108,7 @@ D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\security\RateLimitingSe
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\security\SecurityHardeningIntegrationTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\security\SupplierProductManagementSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\security\SupplierRegistrationSecurityTest.java
+D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\security\TransactionLifecycleSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\security\UserRegistrationSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\seller\SellerProfileSecurityTest.java
 D:\Saisaket\Synthora\backend\src\test\java\com\kemkendra\seller\SupplierIdentityReconciliationTest.java

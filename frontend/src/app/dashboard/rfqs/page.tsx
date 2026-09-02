@@ -265,7 +265,8 @@ export default function BuyerRfqsPage() {
       {/* ========================================================================= */}
       {/* 2. HORIZONTAL STATUS SUMMARY TABS                                         */}
       {/* ========================================================================= */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+      {/* Desktop Tabs */}
+      <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 text-xs">
         {[
           { key: "ALL", label: "All RFQs", count: totalCount },
           { key: "QUOTED", label: "Quoted", count: quotedCount },
@@ -297,6 +298,23 @@ export default function BuyerRfqsPage() {
             </button>
           );
         })}
+      </div>
+
+      {/* Mobile Select Filter */}
+      <div className="sm:hidden w-full">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+          className="w-full text-xs bg-white border border-[#E2E8F0] rounded-xl px-3.5 py-2.5 font-bold text-[#0B1B33] shadow-2xs focus:outline-none focus:border-[#0052CC]"
+        >
+          <option value="ALL">All RFQs ({totalCount})</option>
+          <option value="QUOTED">Quoted ({quotedCount})</option>
+          <option value="PENDING">Awaiting Response ({pendingCount})</option>
+          <option value="COUNTERED">Counter Offer ({counteredCount})</option>
+          <option value="ACCEPTED">Accepted ({acceptedCount})</option>
+          <option value="REJECTED">Rejected ({rejectedCount})</option>
+          <option value="CLOSED">Closed ({closedCount})</option>
+        </select>
       </div>
 
       {/* ========================================================================= */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { getSupplierRfqs, SupplierRfq } from "@/features/rfq/api/getSupplierRfqs";
@@ -13,6 +13,7 @@ import { QuotationResponse } from "@/features/rfq/api/submitQuotation";
 import { getOrderByRfqId } from "@/features/order/api/getOrderByRfqId";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
 import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
+import { TransactionTimeline } from "@/shared/components/procurement/TransactionTimeline";
 import { useToast } from "@/shared/context/ToastContext";
 import {
   ChevronRight,
@@ -207,6 +208,58 @@ export default function SupplierRfqDetailPage() {
     }
   };
 
+  const latestQuotation = quotations.length > 0 ? quotations[0] : null;
+
+  const supplierTurnIndicator = useMemo(() => {
+    if (!rfq) {
+      return {
+        label: "Commercial Proposal Pending",
+        variant: "neutral",
+        subtext: "Loading sourcing workspace details.",
+      };
+    }
+    if (rfq.status === "ACCEPTED") {
+      return {
+        label: "Commercial Proposal Accepted & Finalized",
+        variant: "success",
+        subtext: "Buyer accepted commercial terms. Ready for formal Purchase Order issuance.",
+      };
+    }
+    if (rfq.status === "REJECTED") {
+      return {
+        label: "Commercial Proposal Declined",
+        variant: "danger",
+        subtext: "This commercial negotiation has concluded.",
+      };
+    }
+    if (rfq.status === "CLOSED" || rfq.status === "CANCELLED") {
+      return {
+        label: "Inquiry Closed",
+        variant: "neutral",
+        subtext: "This procurement inquiry is no longer active.",
+      };
+    }
+    if (!latestQuotation) {
+      return {
+        label: "Action Required: Initial Proposal Pending",
+        variant: "warning",
+        subtext: "Buyer submitted inquiry. Please formulate pricing, MOQ, and dispatch lead times.",
+      };
+    }
+    if (latestQuotation.actorType === "BUYER" || rfq.status === "COUNTERED") {
+      return {
+        label: "Action Required: Buyer Counter-Offer Received",
+        variant: "warning",
+        subtext: "Buyer proposed modified commercial terms. You may Accept, Decline, or Propose Revision.",
+      };
+    }
+    return {
+      label: "Awaiting Buyer Decision",
+      variant: "brand",
+      subtext: `Your proposal (V${latestQuotation.quotationVersion}) is under active review by the buyer.`,
+    };
+  }, [rfq?.status, latestQuotation]);
+
   if (loading) {
     return (
       <div className="max-w-[1440px] mx-auto p-8 min-h-[65vh] flex flex-col items-center justify-center space-y-3">
@@ -246,7 +299,6 @@ export default function SupplierRfqDetailPage() {
   }
 
   const rfqShortId = rfq.rfqReference || (rfq.id ? `RFQ-${rfq.id.substring(0, 8).toUpperCase()}` : "RFQ-INQUIRY");
-  const latestQuotation = quotations.length > 0 ? quotations[0] : null;
   const isCounterOffer = latestQuotation?.actorType === "BUYER" || rfq.status === "COUNTERED";
   const isAccepted = rfq.status === "ACCEPTED";
   const isPending = rfq.status === "PENDING" && quotations.length === 0;
@@ -411,6 +463,14 @@ export default function SupplierRfqDetailPage() {
         </div>
       </div>
 
+      {/* Unified Commercial Lifecycle Timeline */}
+      <TransactionTimeline
+        rfq={rfq}
+        quotations={quotations}
+        order={existingPo}
+        userRole="SUPPLIER"
+      />
+
       {/* ========================================================================= */}
       {/* 3. TWO-COLUMN WORKSPACE (Main Left 7 Cols / Buyer Context Right 5 Cols)   */}
       {/* ========================================================================= */}
@@ -421,6 +481,40 @@ export default function SupplierRfqDetailPage() {
         {/* ======================================================================= */}
         <div className="lg:col-span-7 space-y-6">
           
+          {/* Supplier Turn Ownership Banner */}
+          <div
+            className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              supplierTurnIndicator.variant === "warning"
+                ? "bg-amber-50 border-amber-200 text-amber-900"
+                : supplierTurnIndicator.variant === "success"
+                ? "bg-[#E3FCEF] border-[#ABF5D1] text-[#006644]"
+                : supplierTurnIndicator.variant === "danger"
+                ? "bg-rose-50 border-rose-200 text-rose-800"
+                : supplierTurnIndicator.variant === "brand"
+                ? "bg-[#DEEBFF] border-[#B3D4FF] text-[#0747A6]"
+                : "bg-[#FAFBFC] border-[#DFE1E6] text-[#5E6C84]"
+            }`}
+          >
+            <div className="flex items-center gap-2.5">
+              <span
+                className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                  supplierTurnIndicator.variant === "warning"
+                    ? "bg-amber-200/60 text-amber-900 font-extrabold"
+                    : supplierTurnIndicator.variant === "success"
+                    ? "bg-[#ABF5D1] text-[#006644]"
+                    : supplierTurnIndicator.variant === "danger"
+                    ? "bg-rose-200 text-rose-800"
+                    : supplierTurnIndicator.variant === "brand"
+                    ? "bg-[#B3D4FF] text-[#0747A6]"
+                    : "bg-[#DFE1E6] text-[#5E6C84]"
+                }`}
+              >
+                {supplierTurnIndicator.label}
+              </span>
+              <span className="text-xs font-semibold">{supplierTurnIndicator.subtext}</span>
+            </div>
+          </div>
+
           {/* 1. CURRENT QUOTATION / NEGOTIATION CARD */}
           {latestQuotation ? (
             <div className="bg-white border border-[#E2E8F0] border-l-4 border-l-[#0052CC] rounded-xl shadow-2xs overflow-hidden">

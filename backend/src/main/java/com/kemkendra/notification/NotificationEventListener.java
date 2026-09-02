@@ -484,11 +484,22 @@ public class NotificationEventListener {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onOrderCompleted(OrderCompletedEvent event) {
         try {
-            UUID recipientId = resolveSupplierUserId(event.supplierId());
+            UUID supplierUserId = resolveSupplierUserId(event.supplierId());
+            UUID buyerUserId = event.buyerId();
+            UUID completedBy = event.completedByUserId();
+
+            // Notify the counterparty who did not trigger the completion
+            UUID recipientId;
+            if (completedBy != null) {
+                recipientId = completedBy.equals(buyerUserId) ? supplierUserId : buyerUserId;
+            } else {
+                recipientId = supplierUserId != null ? supplierUserId : buyerUserId;
+            }
+
             if (recipientId != null) {
                 Notification n = notificationService.createNotification(
                         recipientId,
-                        NotificationType.PURCHASE_ORDER_DELIVERED,
+                        NotificationType.PURCHASE_ORDER_COMPLETED,
                         "Purchase Order Completed",
                         "The purchase order has been finalized and marked complete.",
                         NotificationEntityType.PURCHASE_ORDER,

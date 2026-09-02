@@ -7,6 +7,13 @@ import {
   changePassword,
   UserProfile,
 } from "@/features/auth/api/auth";
+import {
+  getNotificationPreferences,
+  updateNotificationPreferences,
+} from "@/features/notifications/api/notifications";
+import {
+  NotificationPreferenceItem,
+} from "@/features/notifications/types/notification";
 import { SectionHeader } from "@/shared/components/SectionHeader";
 import {
   User,
@@ -21,6 +28,7 @@ import {
   KeyRound,
   Save,
   ShieldCheck,
+  Bell,
   Check,
 } from "lucide-react";
 
@@ -45,8 +53,15 @@ export default function SettingsPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
+  // Notification Preferences State
+  const [preferences, setPreferences] = useState<NotificationPreferenceItem[]>([]);
+  const [loadingPreferences, setLoadingPreferences] = useState(true);
+  const [savingPreferences, setSavingPreferences] = useState(false);
+  const [prefSuccess, setPrefSuccess] = useState(false);
+  const [prefError, setPrefError] = useState<string | null>(null);
+
   useEffect(() => {
-    async function loadProfile() {
+    async function loadData() {
       try {
         setLoadingProfile(true);
         setProfileError(null);
@@ -63,9 +78,24 @@ export default function SettingsPage() {
       } finally {
         setLoadingProfile(false);
       }
+
+      try {
+        setLoadingPreferences(true);
+        setPrefError(null);
+        const prefData = await getNotificationPreferences();
+        setPreferences(prefData.preferences || []);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setPrefError(err.message);
+        } else {
+          setPrefError("Failed to load notification preferences.");
+        }
+      } finally {
+        setLoadingPreferences(false);
+      }
     }
 
-    loadProfile();
+    loadData();
   }, []);
 
   async function handleProfileSubmit(e: FormEvent) {
@@ -104,7 +134,7 @@ export default function SettingsPage() {
     setPasswordSuccess(false);
 
     if (!currentPassword) {
-      setPasswordError("Please enter your current password.");
+      setPasswordError("Current password is required.");
       return;
     }
 
@@ -113,97 +143,179 @@ export default function SettingsPage() {
       return;
     }
 
-    if (newPassword.length > 128) {
-      setPasswordError("New password must not exceed 128 characters.");
-      return;
-    }
-
     if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords do not match.");
-      return;
-    }
-
-    if (newPassword === currentPassword) {
-      setPasswordError("New password cannot be the same as your current password.");
+      setPasswordError("New password and confirmation do not match.");
       return;
     }
 
     try {
       setSavingPassword(true);
-      await changePassword({ currentPassword, newPassword });
+      await changePassword({
+        currentPassword,
+        newPassword,
+      });
       setPasswordSuccess(true);
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setTimeout(() => setPasswordSuccess(false), 5000);
+      setTimeout(() => setPasswordSuccess(false), 4000);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setPasswordError(err.message);
       } else {
-        setPasswordError("Failed to change password. Please check your credentials.");
+        setPasswordError("Failed to update password. Please check your current password.");
       }
     } finally {
       setSavingPassword(false);
     }
   }
 
-  if (loadingProfile) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <SectionHeader
-          title="Account Settings & Security"
-          subtitle="Manage your personal profile information and authentication credentials"
-        />
-        <div className="bg-white border border-[#DFE1E6] rounded-2xl p-12 flex justify-center items-center">
-          <div className="w-8 h-8 border-3 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
-        </div>
-      </div>
+  const togglePreference = (category: string, channel: "inApp" | "email") => {
+    setPreferences((prev) =>
+      prev.map((item) => {
+        if (item.category === category) {
+          if (item.mandatory) return item; // Cannot modify mandatory categories
+          return {
+            ...item,
+            inAppEnabled: channel === "inApp" ? !item.inAppEnabled : item.inAppEnabled,
+            emailEnabled: channel === "email" ? !item.emailEnabled : item.emailEnabled,
+          };
+        }
+        return item;
+      })
     );
+  };
+
+  async function handlePreferencesSubmit(e: FormEvent) {
+    e.preventDefault();
+    setPrefError(null);
+    setPrefSuccess(false);
+
+    try {
+      setSavingPreferences(true);
+      const req = {
+        preferences: preferences.map((p) => ({
+          category: p.category,
+          inAppEnabled: p.inAppEnabled,
+          emailEnabled: p.emailEnabled,
+        })),
+      };
+      const res = await updateNotificationPreferences(req);
+      setPreferences(res.preferences || []);
+      setPrefSuccess(true);
+      setTimeout(() => setPrefSuccess(false), 4000);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setPrefError(err.message);
+      } else {
+        setPrefError("Failed to update notification preferences.");
+      }
+    } finally {
+      setSavingPreferences(false);
+    }
   }
+
+  const formatCategoryLabel = (category: string) => {
+    switch (category) {
+      case "SECURITY":
+        return "Security & Authentication";
+      case "ACCOUNT":
+        return "Account & Terms";
+      case "SUPPLIER_VERIFICATION":
+        return "Supplier Verification";
+      case "RFQ":
+        return "RFQ Activity";
+      case "QUOTATION":
+        return "Quotation Activity";
+      case "PURCHASE_ORDER":
+        return "Purchase Orders";
+      case "SHIPMENT":
+        return "Shipments & Logistics";
+      case "CATALOG":
+        return "Catalog & Offerings";
+      case "GOVERNANCE":
+        return "Governance & Appeals";
+      case "SYSTEM":
+        return "System & Platform";
+      default:
+        return category.replace(/_/g, " ");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">
       <SectionHeader
-        title="Account Settings & Security"
-        subtitle="Manage your personal profile details, contact preferences, and login credentials"
+        title="Account Settings"
+        subtitle="Manage your profile information, notification channel preferences, and security credentials."
       />
 
-      {/* 1. PERSONAL PROFILE SECTION */}
-      <div className="bg-white border border-[#DFE1E6] rounded-2xl shadow-2xs overflow-hidden">
-        <div className="p-6 border-b border-[#DFE1E6] bg-[#FAFBFC] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#DEEBFF] flex items-center justify-center text-[#0052CC]">
-              <User className="w-5 h-5" />
+      {/* 1. PROFILE DETAILS CARD */}
+      <div className="bg-white rounded-2xl border border-[#DFE1E6] shadow-xs overflow-hidden">
+        <div className="px-6 py-5 border-b border-[#DFE1E6] bg-[#FAFBFC]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#DEEBFF] text-[#0052CC] flex items-center justify-center font-bold">
+              <User className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#091E42]">Personal Profile Information</h2>
-              <p className="text-xs text-[#5E6C84]">Update your public name and notification phone number</p>
+              <h2 className="text-base font-bold text-[#091E42]">Personal & Contact Details</h2>
+              <p className="text-xs text-[#5E6C84]">Update your display name and authorized contact number</p>
             </div>
           </div>
-          {profile?.role && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#EBECF0] text-[#091E42] border border-[#DFE1E6]">
-              <Shield className="w-3.5 h-3.5 text-[#0052CC]" />
-              {profile.role}
-            </span>
-          )}
         </div>
 
-        <form onSubmit={handleProfileSubmit} className="p-6 sm:p-8 space-y-6">
+        <form onSubmit={handleProfileSubmit} className="p-6 space-y-6">
+          {profileSuccess && (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-3 text-emerald-800 text-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Profile information updated successfully.</span>
+            </div>
+          )}
+
           {profileError && (
-            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-800 text-xs font-medium">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-center gap-3 text-rose-800 text-sm">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
               <span>{profileError}</span>
             </div>
           )}
 
-          {profileSuccess && (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-800 text-xs font-medium">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-              <span>Personal profile details saved successfully.</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Email (Read Only) */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
+                Email Address
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  type="email"
+                  disabled
+                  value={profile?.email || ""}
+                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#5E6C84] bg-[#F4F5F7] cursor-not-allowed outline-none font-medium"
+                />
+              </div>
+              <p className="text-[11px] text-[#5E6C84]">Email address cannot be modified once registered.</p>
             </div>
-          )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Account Role & Verification */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
+                Account Role & Verification
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#091E42] bg-[#F4F5F7] flex items-center justify-between">
+                  <span className="font-semibold">{profile?.role || "USER"}</span>
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                    <Check className="w-3 h-3" /> Verified
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Full Name */}
             <div className="space-y-1.5">
               <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
@@ -219,45 +331,19 @@ export default function SettingsPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  disabled={savingProfile}
+                  disabled={loadingProfile || savingProfile}
                   className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
-                  placeholder="e.g. Johnathan Doe"
+                  placeholder="e.g. John Doe"
                 />
-              </div>
-            </div>
-
-            {/* Corporate Email (Read-Only) */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
-                  Corporate Email
-                </label>
-                <span className="text-[10px] font-mono text-[#5E6C84] uppercase">Primary Login</span>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <Mail className="w-4 h-4" />
-                </div>
-                <input
-                  id="email"
-                  type="email"
-                  readOnly
-                  disabled
-                  value={profile?.email || ""}
-                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-10 py-2.5 text-sm text-[#5E6C84] bg-[#F4F5F7] cursor-not-allowed outline-none font-mono"
-                />
-                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-[#5E6C84]" title="Email cannot be changed directly">
-                  <Lock className="w-3.5 h-3.5" />
-                </div>
               </div>
             </div>
 
             {/* Phone Number */}
-            <div className="space-y-1.5 sm:col-span-2">
+            <div className="space-y-1.5">
               <label htmlFor="phone" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
                 Phone Number
               </label>
-              <div className="relative max-w-md">
+              <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
                   <Phone className="w-4 h-4" />
                 </div>
@@ -266,58 +352,156 @@ export default function SettingsPage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  disabled={savingProfile}
+                  disabled={loadingProfile || savingProfile}
                   className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="+91 98765 43210"
                 />
               </div>
-              <p className="text-[11px] text-[#5E6C84]">
-                Used for urgent shipment logistics, verification inquiries, and delivery updates.
-              </p>
             </div>
           </div>
 
           <div className="pt-4 border-t border-[#DFE1E6] flex justify-end">
             <button
               type="submit"
-              disabled={savingProfile || !name.trim()}
+              disabled={loadingProfile || savingProfile}
               className="inline-flex items-center gap-2 rounded-xl bg-[#0052CC] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0747A6] shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>{savingProfile ? "Saving Details..." : "Save Profile Details"}</span>
+              <span>{savingProfile ? "Saving Details..." : "Save Details"}</span>
             </button>
           </div>
         </form>
       </div>
 
-      {/* 2. SECURITY & CHANGE PASSWORD SECTION */}
-      <div className="bg-white border border-[#DFE1E6] rounded-2xl shadow-2xs overflow-hidden">
-        <div className="p-6 border-b border-[#DFE1E6] bg-[#FAFBFC] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#EAE6FF] flex items-center justify-center text-[#5243AA]">
-            <KeyRound className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-[#091E42]">Security & Authentication Credentials</h2>
-            <p className="text-xs text-[#5E6C84]">Update your account password to maintain institutional security</p>
+      {/* 2. NOTIFICATION PREFERENCES CARD */}
+      <div className="bg-white rounded-2xl border border-[#DFE1E6] shadow-xs overflow-hidden">
+        <div className="px-6 py-5 border-b border-[#DFE1E6] bg-[#FAFBFC]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#EAE6FF] text-[#403294] flex items-center justify-center font-bold">
+              <Bell className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#091E42]">Notification Preferences</h2>
+              <p className="text-xs text-[#5E6C84]">Configure which channels you receive notifications for across commercial and administrative workflows.</p>
+            </div>
           </div>
         </div>
 
-        <form onSubmit={handlePasswordSubmit} className="p-6 sm:p-8 space-y-6">
-          {passwordError && (
-            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-800 text-xs font-medium">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
-              <span>{passwordError}</span>
+        <form onSubmit={handlePreferencesSubmit} className="p-6 space-y-6">
+          {prefSuccess && (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-3 text-emerald-800 text-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Notification preferences updated successfully.</span>
             </div>
           )}
 
+          {prefError && (
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-center gap-3 text-rose-800 text-sm">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span>{prefError}</span>
+            </div>
+          )}
+
+          {loadingPreferences ? (
+            <div className="py-8 text-center text-xs text-[#5E6C84]">Loading communication preferences...</div>
+          ) : (
+            <div className="divide-y divide-[#EBECF0]">
+              {preferences.map((item) => (
+                <div
+                  key={item.category}
+                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-[#091E42]">
+                        {formatCategoryLabel(item.category)}
+                      </span>
+                      {item.mandatory && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
+                          <Lock className="w-2.5 h-2.5" /> Mandatory
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#5E6C84]">
+                      {item.mandatory
+                        ? "Critical security and account-integrity notifications cannot be disabled."
+                        : `Receive updates for ${formatCategoryLabel(item.category).toLowerCase()}.`}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-4 shrink-0">
+                    {/* In-App Toggle */}
+                    <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-[#172B4D]">
+                      <input
+                        type="checkbox"
+                        checked={item.inAppEnabled}
+                        disabled={item.mandatory || savingPreferences}
+                        onChange={() => togglePreference(item.category, "inApp")}
+                        className="rounded border-[#DFE1E6] text-[#0052CC] focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
+                      />
+                      <span>In-App</span>
+                    </label>
+
+                    {/* Email Toggle */}
+                    <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-[#172B4D]">
+                      <input
+                        type="checkbox"
+                        checked={item.emailEnabled}
+                        disabled={item.mandatory || savingPreferences}
+                        onChange={() => togglePreference(item.category, "email")}
+                        className="rounded border-[#DFE1E6] text-[#0052CC] focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
+                      />
+                      <span>Email</span>
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-[#DFE1E6] flex justify-end">
+            <button
+              type="submit"
+              disabled={loadingPreferences || savingPreferences}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0052CC] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0747A6] shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>{savingPreferences ? "Saving Preferences..." : "Save Preferences"}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* 3. CHANGE PASSWORD CARD */}
+      <div className="bg-white rounded-2xl border border-[#DFE1E6] shadow-xs overflow-hidden">
+        <div className="px-6 py-5 border-b border-[#DFE1E6] bg-[#FAFBFC]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#FFEBE6] text-[#DE350B] flex items-center justify-center font-bold">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-[#091E42]">Change Password</h2>
+              <p className="text-xs text-[#5E6C84]">Ensure your account is protected with a strong, distinct password.</p>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handlePasswordSubmit} className="p-6 space-y-6">
           {passwordSuccess && (
-            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-800 text-xs font-medium">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-3 text-emerald-800 text-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>Your password has been changed successfully.</span>
             </div>
           )}
 
-          <div className="max-w-md space-y-4">
+          {passwordError && (
+            <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-center gap-3 text-rose-800 text-sm">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+              <span>{passwordError}</span>
+            </div>
+          )}
+
+          <div className="space-y-4 max-w-lg">
             {/* Current Password */}
             <div className="space-y-1.5">
               <label htmlFor="currentPassword" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
@@ -325,7 +509,7 @@ export default function SettingsPage() {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <Lock className="w-4 h-4" />
+                  <KeyRound className="w-4 h-4" />
                 </div>
                 <input
                   id="currentPassword"
@@ -335,12 +519,12 @@ export default function SettingsPage() {
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   disabled={savingPassword}
                   className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-10 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
-                  placeholder="Enter current password"
+                  placeholder="Enter your current password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#5E6C84] hover:text-[#172B4D] transition"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#5E6C84] hover:text-[#172B4D] transition cursor-pointer"
                   tabIndex={-1}
                 >
                   {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -370,7 +554,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#5E6C84] hover:text-[#172B4D] transition"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#5E6C84] hover:text-[#172B4D] transition cursor-pointer"
                   tabIndex={-1}
                 >
                   {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

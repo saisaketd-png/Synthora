@@ -19,6 +19,10 @@ public interface RfqRepository extends JpaRepository<Rfq, UUID>, JpaSpecificatio
     List<Rfq> findBySupplierIdIn(List<Long> supplierIds);
     Optional<Rfq> findByIdAndSupplierId(UUID id, Long supplierId);
 
+    long countByStatus(RfqStatus status);
+
+    long countByBuyerIdAndCreatedAtGreaterThanEqual(UUID buyerId, java.time.LocalDateTime createdAt);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query("SELECT r FROM Rfq r WHERE r.id = :id AND r.supplierId = :supplierId")
     Optional<Rfq> findByIdAndSupplierIdForUpdate(@org.springframework.data.repository.query.Param("id") UUID id, @org.springframework.data.repository.query.Param("supplierId") Long supplierId);

@@ -205,8 +205,9 @@ export default function SupplierRfqsPage() {
           </div>
 
           {/* Filters & Sorting */}
-          <div className="flex items-center gap-3 overflow-x-auto">
-            <div className="flex items-center gap-1 bg-[#EBECF0] p-0.5 rounded border border-[#DFE1E6]">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+            {/* Desktop Status Filters */}
+            <div className="hidden sm:flex items-center gap-1 bg-[#EBECF0] p-0.5 rounded border border-[#DFE1E6] overflow-x-auto">
               {(["ALL", "PENDING", "COUNTERED", "QUOTED", "ACCEPTED", "REJECTED"] as StatusFilter[]).map((f) => (
                 <button
                   key={f}
@@ -228,10 +229,26 @@ export default function SupplierRfqsPage() {
               ))}
             </div>
 
+            {/* Mobile Status Dropdown Filter */}
+            <div className="sm:hidden w-full">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                className="w-full text-xs bg-white border border-[#DFE1E6] rounded px-3 py-2 font-semibold text-[#091E42] focus:outline-none focus:border-[#0052CC]"
+              >
+                <option value="ALL">All Inquiries ({totalCount})</option>
+                <option value="PENDING">Awaiting Quote ({pendingCount})</option>
+                <option value="COUNTERED">Counter-Offers ({counteredCount})</option>
+                <option value="QUOTED">Quoted ({quotedCount})</option>
+                <option value="ACCEPTED">Accepted ({acceptedCount})</option>
+                <option value="REJECTED">Rejected ({rejectedCount})</option>
+              </select>
+            </div>
+
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="text-xs bg-white border border-[#DFE1E6] rounded px-2.5 py-1.5 font-medium text-[#091E42] focus:outline-none focus:border-[#0052CC]"
+              className="text-xs bg-white border border-[#DFE1E6] rounded px-2.5 py-1.5 font-medium text-[#091E42] focus:outline-none focus:border-[#0052CC] ml-auto sm:ml-0"
             >
               <option value="DATE_DESC">Newest First</option>
               <option value="DATE_ASC">Oldest First</option>

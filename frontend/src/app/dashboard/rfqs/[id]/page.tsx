@@ -14,6 +14,7 @@ import { IssuePoModal } from "@/features/order/components/IssuePoModal";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
 import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
 import { CounterOfferModal } from "@/features/rfq/components/CounterOfferModal";
+import { TransactionTimeline } from "@/shared/components/procurement/TransactionTimeline";
 import { useToast } from "@/shared/context/ToastContext";
 import { getSupplierPublicProfile } from "@/features/suppliers/api";
 import {
@@ -459,6 +460,14 @@ export default function BuyerRfqDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Unified Commercial Lifecycle Timeline */}
+      <TransactionTimeline
+        rfq={rfq}
+        quotations={quotations}
+        order={existingPo}
+        userRole="BUYER"
+      />
 
       {/* ========================================================================= */}
       {/* B. BUYER SOURCING INFORMATION ROW (Side-by-Side: ~68% Left / ~32% Right)  */}

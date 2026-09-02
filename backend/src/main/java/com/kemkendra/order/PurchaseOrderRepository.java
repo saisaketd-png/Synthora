@@ -24,6 +24,8 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, UU
 
     Optional<PurchaseOrder> findByIdAndSupplierId(UUID id, Long supplierId);
 
+    long countByStatus(OrderStatus status);
+
     @Query(value = "SELECT nextval('purchase_order_seq')", nativeQuery = true)
     Long getNextPoSequenceValue();
 }

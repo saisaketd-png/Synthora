@@ -66,7 +66,10 @@ export interface PageResponse<T> {
 }
 
 function getAuthHeaders(): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("kemkendra_token") || localStorage.getItem("token")
+      : null;
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -92,7 +95,10 @@ export const accountGovernanceApi = {
       headers: getAuthHeaders(),
       cache: "no-store",
     });
-    if (!res.ok) throw new Error("Failed to fetch account suspensions");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Failed to fetch account suspensions (${res.status})`);
+    }
     return res.json();
   },
 

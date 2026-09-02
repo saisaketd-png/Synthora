@@ -11,7 +11,7 @@
 #
 # Usage:
 #   $env:DB_URL = "postgresql://user:password@host:port/dbname?sslmode=require"
-#   .\db-restore.ps1 -DumpFile "database\backups\synthora_backup_20260829.dump"
+#   .\db-restore.ps1 -DumpFile "database\backups\kemkendra_backup_20260829.dump"
 #
 # Or pass directly:
 #   .\db-restore.ps1 -DumpFile "path\to\file.dump" -DbUrl "postgresql://..." -Confirm:$false -Force

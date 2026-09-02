@@ -43,6 +43,8 @@ public class PurchaseOrderService {
     private final SupplierRepository supplierRepository;
     private final ShipmentRepository shipmentRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private com.kemkendra.admin.config.FeatureToggleService featureToggleService;
+    private com.kemkendra.admin.audit.AuditService auditService;
 
     public PurchaseOrderService(
             PurchaseOrderRepository purchaseOrderRepository,
@@ -67,9 +69,28 @@ public class PurchaseOrderService {
         this.eventPublisher = eventPublisher;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFeatureToggleService(com.kemkendra.admin.config.FeatureToggleService featureToggleService) {
+        this.featureToggleService = featureToggleService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setAuditService(com.kemkendra.admin.audit.AuditService auditService) {
+        this.auditService = auditService;
+    }
+
     public PurchaseOrderResponse createPurchaseOrder(
             CreatePurchaseOrderRequest request,
             Authentication authentication) {
+
+        if (featureToggleService != null) {
+            if (featureToggleService.isMaintenanceModeActive()) {
+                throw new IllegalStateException("The platform is currently in maintenance mode. Purchase orders cannot be issued.");
+            }
+            if (!featureToggleService.isFeatureEnabled("MARKETPLACE_ORDERS_ENABLED")) {
+                throw new IllegalStateException("Purchase order creation is currently disabled on the platform.");
+            }
+        }
 
         String email = authentication.getName();
         User buyer = userRepository.findByEmail(email)
@@ -201,6 +222,16 @@ public class PurchaseOrderService {
 
         PurchaseOrder saved = purchaseOrderRepository.save(po);
 
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    buyer,
+                    com.kemkendra.admin.audit.AuditAction.PO_ISSUED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    saved.getId().toString(),
+                    "Purchase Order " + saved.getPoNumber() + " issued for RFQ " + rfq.getId() + " (" + saved.getCurrency() + " " + saved.getTotalAmount() + ")"
+            );
+        }
+
         eventPublisher.publishEvent(new PurchaseOrderIssuedEvent(
                 saved.getId(),
                 saved.getBuyerId(),
@@ -256,6 +287,16 @@ public class PurchaseOrderService {
         order.setCancellationReason(request.reason().trim());
 
         PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    buyer,
+                    com.kemkendra.admin.audit.AuditAction.PO_CANCELLED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Purchase Order cancelled by buyer. Reason: " + updated.getCancellationReason()
+            );
+        }
 
         eventPublisher.publishEvent(new PurchaseOrderCancelledEvent(
                 updated.getId(),
@@ -318,6 +359,16 @@ public class PurchaseOrderService {
 
         PurchaseOrder updated = purchaseOrderRepository.save(order);
 
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    user,
+                    com.kemkendra.admin.audit.AuditAction.PO_CONFIRMED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Purchase Order " + updated.getPoNumber() + " confirmed by supplier"
+            );
+        }
+
         eventPublisher.publishEvent(new PurchaseOrderConfirmedEvent(
                 updated.getId(),
                 updated.getBuyerId(),
@@ -345,6 +396,16 @@ public class PurchaseOrderService {
         order.setStatus(OrderStatus.PROCESSING);
         order.setProcessingAt(LocalDateTime.now());
         PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    user,
+                    com.kemkendra.admin.audit.AuditAction.PO_PROCESSING_STARTED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Supplier started processing Purchase Order " + updated.getPoNumber()
+            );
+        }
 
         eventPublisher.publishEvent(new OrderProcessingStartedEvent(
                 updated.getId(),
@@ -380,6 +441,16 @@ public class PurchaseOrderService {
         order.setRejectionReason(request.reason().trim());
 
         PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    user,
+                    com.kemkendra.admin.audit.AuditAction.PO_REJECTED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Purchase Order rejected by supplier. Reason: " + updated.getRejectionReason()
+            );
+        }
 
         eventPublisher.publishEvent(new PurchaseOrderRejectedEvent(
                 updated.getId(),
@@ -430,6 +501,16 @@ public class PurchaseOrderService {
         order.setShippedAt(shippedTime);
         PurchaseOrder updated = purchaseOrderRepository.save(order);
 
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    user,
+                    com.kemkendra.admin.audit.AuditAction.PO_SHIPPED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Shipment dispatched for Order " + updated.getPoNumber() + " via " + carrier.trim() + " (Tracking: " + trackingNumber.trim() + ")"
+            );
+        }
+
         eventPublisher.publishEvent(new OrderShippedEvent(
                 updated.getId(),
                 updated.getBuyerId(),
@@ -455,6 +536,16 @@ public class PurchaseOrderService {
         order.setStatus(OrderStatus.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    buyer,
+                    com.kemkendra.admin.audit.AuditAction.ORDER_RECEIPT_CONFIRMED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Buyer confirmed receipt for Order " + updated.getPoNumber()
+            );
+        }
 
         eventPublisher.publishEvent(new OrderReceiptConfirmedEvent(
                 updated.getId(),
@@ -487,6 +578,16 @@ public class PurchaseOrderService {
         order.setStatus(OrderStatus.DELIVERED);
         order.setDeliveredAt(LocalDateTime.now());
         PurchaseOrder updated = purchaseOrderRepository.save(order);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    user,
+                    com.kemkendra.admin.audit.AuditAction.PO_DELIVERED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Supplier recorded delivery for Order " + updated.getPoNumber()
+            );
+        }
 
         eventPublisher.publishEvent(new OrderDeliveredEvent(
                 updated.getId(),
@@ -521,10 +622,21 @@ public class PurchaseOrderService {
         order.setCompletedAt(LocalDateTime.now());
         PurchaseOrder updated = purchaseOrderRepository.save(order);
 
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    user,
+                    com.kemkendra.admin.audit.AuditAction.PO_COMPLETED,
+                    com.kemkendra.admin.audit.AuditTargetType.PURCHASE_ORDER,
+                    updated.getId().toString(),
+                    "Order " + updated.getPoNumber() + " completed"
+            );
+        }
+
         eventPublisher.publishEvent(new OrderCompletedEvent(
                 updated.getId(),
                 updated.getBuyerId(),
-                updated.getSupplierId()
+                updated.getSupplierId(),
+                user.getId()
         ));
 
         return mapToResponse(updated);

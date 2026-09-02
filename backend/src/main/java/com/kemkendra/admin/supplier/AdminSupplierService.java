@@ -46,6 +46,9 @@ public class AdminSupplierService {
     private final AuditService auditService;
     private final com.kemkendra.seller.SupplierVerificationAuditRepository verificationAuditRepository;
     private final com.kemkendra.notification.NotificationService notificationService;
+    private final com.kemkendra.product.SupplierOfferingRepository supplierOfferingRepository;
+    private final com.kemkendra.rfq.RfqRepository rfqRepository;
+    private final com.kemkendra.order.PurchaseOrderRepository poRepository;
 
     public AdminSupplierService(
             SupplierRepository supplierRepository,
@@ -53,13 +56,19 @@ public class AdminSupplierService {
             SupplierIdentityResolver supplierIdentityResolver,
             AuditService auditService,
             com.kemkendra.seller.SupplierVerificationAuditRepository verificationAuditRepository,
-            com.kemkendra.notification.NotificationService notificationService) {
+            com.kemkendra.notification.NotificationService notificationService,
+            com.kemkendra.product.SupplierOfferingRepository supplierOfferingRepository,
+            com.kemkendra.rfq.RfqRepository rfqRepository,
+            com.kemkendra.order.PurchaseOrderRepository poRepository) {
         this.supplierRepository = supplierRepository;
         this.userRepository = userRepository;
         this.supplierIdentityResolver = supplierIdentityResolver;
         this.auditService = auditService;
         this.verificationAuditRepository = verificationAuditRepository;
         this.notificationService = notificationService;
+        this.supplierOfferingRepository = supplierOfferingRepository;
+        this.rfqRepository = rfqRepository;
+        this.poRepository = poRepository;
     }
 
     /**
@@ -179,14 +188,29 @@ public class AdminSupplierService {
             }
         }
 
+        long offeringCount = 0;
+        long activeOfferingCount = 0;
+        long rfqReceivedCount = 0;
+        long poFulfilledCount = 0;
+
+        try {
+            offeringCount = supplierOfferingRepository.countBySupplierId(supplier.getId());
+            activeOfferingCount = supplierOfferingRepository.countBySupplierIdAndAvailabilityStatus(supplier.getId(), "AVAILABLE");
+            rfqReceivedCount = rfqRepository.findBySupplierId(supplier.getId()).size();
+            poFulfilledCount = poRepository.findBySupplierIdOrderByCreatedAtDesc(supplier.getId()).size();
+        } catch (Exception ignored) {}
+
         return new AdminSupplierDetailResponse(
                 supplier.getId(),
                 supplier.getName(),
                 supplier.getSlug(),
+                supplier.getLegalName(),
+                supplier.getBusinessType(),
                 supplier.getCountryCode(),
                 supplier.getCountryName(),
                 supplier.getLogoUrl(),
                 supplier.getVerified(),
+                supplier.getVerificationStatus() != null ? supplier.getVerificationStatus().name() : "PENDING",
                 supplier.getYearsInBusiness(),
                 supplier.getResponseRate(),
                 supplier.getExportReady(),
@@ -194,6 +218,10 @@ public class AdminSupplierService {
                 supplier.getUser() != null ? supplier.getUser().getId() : null,
                 supplier.getUser() != null ? supplier.getUser().getEmail() : null,
                 supplier.getUser() != null ? supplier.getUser().getStatus() : null,
+                offeringCount,
+                activeOfferingCount,
+                rfqReceivedCount,
+                poFulfilledCount,
                 profileInfo
         );
     }

@@ -121,7 +121,10 @@ export async function getAuditLogs(params: GetAuditLogsParams = {}): Promise<Pag
   if (typeof params.page === "number") query.set("page", params.page.toString());
   if (typeof params.size === "number") query.set("size", params.size.toString());
 
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("kemkendra_token") || localStorage.getItem("token")
+      : null;
   const res = await fetch(resolveApiUrl(`/api/v1/admin/audit?${query.toString()}`), {
     headers: {
       "Content-Type": "application/json",
@@ -138,7 +141,10 @@ export async function getAuditLogs(params: GetAuditLogsParams = {}): Promise<Pag
 }
 
 export async function getAuditSummary(): Promise<AuditKpiSummary> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("kemkendra_token") || localStorage.getItem("token")
+      : null;
   const res = await fetch(resolveApiUrl("/api/v1/admin/audit/summary"), {
     headers: {
       "Content-Type": "application/json",

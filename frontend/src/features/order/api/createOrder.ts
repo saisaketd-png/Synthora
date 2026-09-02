@@ -18,12 +18,13 @@ export interface PurchaseOrderResponse {
   shippingAddress: string;
   billingContact: string;
   notes: string | null;
-  status: "PLACED" | "CONFIRMED" | "CANCELLED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "REJECTED";
+  status: "PLACED" | "CONFIRMED" | "CANCELLED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "REJECTED";
   placedAt: string;
   confirmedAt: string | null;
   processingAt?: string | null;
   shippedAt?: string | null;
   deliveredAt?: string | null;
+  completedAt?: string | null;
   rejectedAt?: string | null;
   rejectionReason?: string | null;
   createdAt: string;

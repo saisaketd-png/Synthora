@@ -42,6 +42,7 @@ public class UserService {
     private final com.kemkendra.identity.PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailVerificationService emailVerificationService;
     private final com.kemkendra.admin.audit.AuditService auditService;
+    private com.kemkendra.admin.config.FeatureToggleService featureToggleService;
 
     public UserService(UserRepository userRepository,
                        SupplierRepository supplierRepository,
@@ -63,8 +64,22 @@ public class UserService {
         this.auditService = auditService;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFeatureToggleService(com.kemkendra.admin.config.FeatureToggleService featureToggleService) {
+        this.featureToggleService = featureToggleService;
+    }
+
     @Transactional
     public UserResponse register(RegisterRequest request) {
+        if (featureToggleService != null) {
+            if (featureToggleService.isMaintenanceModeActive()) {
+                throw new IllegalStateException("The platform is currently in maintenance mode. Registration is unavailable.");
+            }
+            if (!featureToggleService.isFeatureEnabled("BUYER_REGISTRATION_ENABLED")) {
+                throw new IllegalStateException("Buyer registration is currently disabled by administrator policy.");
+            }
+        }
+
         if (!Boolean.TRUE.equals(request.termsAccepted()) || !Boolean.TRUE.equals(request.privacyAccepted())) {
             throw new IllegalArgumentException("Terms of Service and Privacy Policy must be accepted.");
         }
@@ -115,6 +130,15 @@ public class UserService {
 
     @Transactional
     public com.kemkendra.identity.dto.SupplierRegisterResponse registerSupplier(SupplierRegisterRequest request) {
+        if (featureToggleService != null) {
+            if (featureToggleService.isMaintenanceModeActive()) {
+                throw new IllegalStateException("The platform is currently in maintenance mode. Registration is unavailable.");
+            }
+            if (!featureToggleService.isFeatureEnabled("SUPPLIER_REGISTRATION_ENABLED")) {
+                throw new IllegalStateException("Supplier registration is currently disabled by administrator policy.");
+            }
+        }
+
         if (!Boolean.TRUE.equals(request.termsAccepted()) || !Boolean.TRUE.equals(request.privacyAccepted())) {
             throw new IllegalArgumentException("Terms of Service and Privacy Policy must be accepted.");
         }

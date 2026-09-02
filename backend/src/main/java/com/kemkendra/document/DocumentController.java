@@ -3,13 +3,13 @@ package com.kemkendra.document;
 import com.kemkendra.identity.User;
 import com.kemkendra.identity.UserRepository;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class DocumentController {
     private final DocumentAuthorizationService documentAuthorizationService;
 
     public DocumentController(
-            DocumentService documentService, 
+            DocumentService documentService,
             UserRepository userRepository,
             DocumentAuthorizationService documentAuthorizationService) {
         this.documentService = documentService;
@@ -52,41 +52,71 @@ public class DocumentController {
     public DocumentResponse uploadDocument(
             @Valid @ModelAttribute DocumentUploadRequest request,
             Authentication authentication) {
-        
+
         User user = getAuthenticatedUser(authentication);
-        
+
         if (!documentAuthorizationService.canUploadDocument(request.getOwnerType(), request.getOwnerId(), user)) {
             throw new AccessDeniedException("Not authorized to upload documents for this owner");
         }
-        
+
         return documentService.uploadDocument(request, user.getId());
     }
 
     @GetMapping("/{id}")
     public DocumentResponse getDocument(@PathVariable UUID id, Authentication authentication) {
         User user = getOptionalAuthenticatedUser(authentication);
-        
+
         DocumentResponse doc = documentService.getDocument(id);
-        
+
         if (!documentAuthorizationService.canAccessDocument(doc.getOwnerType(), doc.getOwnerId(), user)) {
             throw new AccessDeniedException("Not authorized to view this document");
         }
-        
+
         return doc;
+    }
+
+    @GetMapping("/{id}/versions")
+    public List<DocumentResponse> getDocumentVersions(@PathVariable UUID id, Authentication authentication) {
+        User user = getOptionalAuthenticatedUser(authentication);
+
+        DocumentResponse doc = documentService.getDocument(id);
+
+        if (!documentAuthorizationService.canAccessDocument(doc.getOwnerType(), doc.getOwnerId(), user)) {
+            throw new AccessDeniedException("Not authorized to view version history for this document");
+        }
+
+        return documentService.getDocumentVersions(doc.getDocumentGroupId());
+    }
+
+    @GetMapping("/groups/{groupId}/versions")
+    public List<DocumentResponse> getVersionsByGroup(@PathVariable UUID groupId, Authentication authentication) {
+        User user = getOptionalAuthenticatedUser(authentication);
+
+        List<DocumentResponse> versions = documentService.getDocumentVersions(groupId);
+        if (versions.isEmpty()) {
+            return List.of();
+        }
+
+        DocumentResponse head = versions.get(0);
+        if (!documentAuthorizationService.canAccessDocument(head.getOwnerType(), head.getOwnerId(), user)) {
+            throw new AccessDeniedException("Not authorized to view versions for this document group");
+        }
+
+        return versions;
     }
 
     @GetMapping("/{id}/download")
     public ResponseEntity<Resource> downloadDocument(@PathVariable UUID id, Authentication authentication) {
         User user = getOptionalAuthenticatedUser(authentication);
-        
+
         DocumentResponse doc = documentService.getDocument(id);
-        
+
         if (!documentAuthorizationService.canAccessDocument(doc.getOwnerType(), doc.getOwnerId(), user)) {
             throw new AccessDeniedException("Not authorized to download this document");
         }
-        
+
         Resource resource = documentService.downloadDocument(id);
-        
+
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(doc.getMimeType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getOriginalFileName().replace("\"", "\\\"") + "\"")
@@ -100,28 +130,50 @@ public class DocumentController {
     public List<DocumentResponse> getDocumentsByOwner(
             @RequestParam DocumentOwnerType ownerType,
             @RequestParam UUID ownerId,
+            @RequestParam(required = false, defaultValue = "false") boolean includeHistory,
             Authentication authentication) {
-        
+
         User user = getOptionalAuthenticatedUser(authentication);
-        
+
         if (!documentAuthorizationService.canAccessDocument(ownerType, ownerId, user)) {
             throw new AccessDeniedException("Not authorized to view documents for this owner");
         }
-        
-        return documentService.getDocumentsByOwner(ownerType, ownerId);
+
+        return documentService.getDocumentsByOwner(ownerType, ownerId, includeHistory);
+    }
+
+    public List<DocumentResponse> getDocumentsByOwner(
+            DocumentOwnerType ownerType,
+            UUID ownerId,
+            Authentication authentication) {
+        return getDocumentsByOwner(ownerType, ownerId, false, authentication);
+    }
+
+    @PatchMapping("/{id}/deactivate")
+    public DocumentResponse deactivateDocument(@PathVariable UUID id, Authentication authentication) {
+        User user = getAuthenticatedUser(authentication);
+
+        DocumentResponse doc = documentService.getDocument(id);
+
+        if (!documentAuthorizationService.canDeleteDocument(doc, user)) {
+            throw new AccessDeniedException("Not authorized to deactivate this document");
+        }
+
+        documentService.deactivateDocument(id, user.getId());
+        return documentService.getDocument(id);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDocument(@PathVariable UUID id, Authentication authentication) {
         User user = getAuthenticatedUser(authentication);
-        
+
         DocumentResponse doc = documentService.getDocument(id);
-        
+
         if (!documentAuthorizationService.canDeleteDocument(doc, user)) {
             throw new AccessDeniedException("Not authorized to delete this document");
         }
-        
+
         documentService.deleteDocument(id);
     }
 }

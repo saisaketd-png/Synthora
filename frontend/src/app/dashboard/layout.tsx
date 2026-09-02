@@ -18,12 +18,18 @@ import {
   Bell,
   FlaskConical,
   ShieldCheck,
+  FileCheck,
   Layers,
   ArrowUpRight,
   Activity,
   Bookmark,
   Settings,
   ShieldAlert,
+  ShoppingBag,
+  Sliders,
+  Megaphone,
+  Tag,
+  SlidersHorizontal,
 } from "lucide-react";
 import { getAuthUser, logout, AuthUser } from "@/features/auth/api/auth";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
@@ -206,6 +212,11 @@ export default function DashboardLayout({
           icon: Building2,
         },
         {
+          name: "Documents Vault",
+          href: "/dashboard/supplier/documents",
+          icon: FileCheck,
+        },
+        {
           name: "Compliance & Verification",
           href: "/dashboard/supplier/verification",
           icon: ShieldCheck,
@@ -280,11 +291,21 @@ export default function DashboardLayout({
           href: "/dashboard/admin/account-governance",
           icon: ShieldAlert,
         },
+        {
+          name: "Catalog Taxonomy",
+          href: "/dashboard/admin/taxonomy",
+          icon: Tag,
+        },
       ],
     },
     {
       title: "TRANSACTIONS",
       items: [
+        {
+          name: "Marketplace Hub",
+          href: "/dashboard/admin/marketplace",
+          icon: ShoppingBag,
+        },
         {
           name: "RFQ Oversight",
           href: "/dashboard/admin/transactions/rfqs",
@@ -305,11 +326,26 @@ export default function DashboardLayout({
           href: "/dashboard/notifications",
           icon: Bell,
         },
+        {
+          name: "Announcements",
+          href: "/dashboard/admin/announcements",
+          icon: Megaphone,
+        },
       ],
     },
     {
       title: "SYSTEM & GOVERNANCE",
       items: [
+        {
+          name: "Platform Policies",
+          href: "/dashboard/admin/settings",
+          icon: Sliders,
+        },
+        {
+          name: "Feature Controls",
+          href: "/dashboard/admin/feature-controls",
+          icon: SlidersHorizontal,
+        },
         {
           name: "Audit & Governance",
           href: "/dashboard/admin/audit",

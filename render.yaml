@@ -1,0 +1,107 @@
+# ==============================================================================
+# KemKendra B2B Chemical Marketplace - Render Infrastructure Blueprint
+# ==============================================================================
+# Blueprint for deploying the complete KemKendra production stack on Render:
+# 1. Managed PostgreSQL Database (kemkendra-db)
+# 2. Spring Boot 3 Backend Web Service (kemkendra-backend)
+# 3. Next.js 16 Standalone Frontend Web Service (kemkendra-frontend)
+#
+# NOTE ON DOCUMENT STORAGE:
+# Render web services have ephemeral container filesystems unless attached to
+# persistent disks. For scalable multi-instance production environments,
+# integrating S3-compatible cloud object storage is recommended (P2).
+# ==============================================================================
+
+databases:
+  - name: kemkendra-db
+    databaseName: kemkendra
+    user: kemkendra_admin
+    plan: standard
+    postgresMajorVersion: "16"
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Spring Boot Backend API Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: kemkendra-backend
+    runtime: docker
+    dockerfilePath: ./infrastructure/docker/Dockerfile.backend
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_URL
+        fromDatabase:
+          name: kemkendra-db
+          property: connectionString
+      - key: DB_USER
+        fromDatabase:
+          name: kemkendra-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: kemkendra-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: "86400000"
+      - key: APP_BASE_URL
+        fromService:
+          type: web
+          name: kemkendra-frontend
+          property: host
+      - key: CORS_ALLOWED_ORIGINS
+        fromService:
+          type: web
+          name: kemkendra-frontend
+          property: host
+      - key: STORAGE_ROOT
+        value: /app/storage
+      - key: MAIL_ENABLED
+        value: "false"
+      - key: ADMIN_BOOTSTRAP_ENABLED
+        value: "false"
+      - key: MANAGEMENT_HEALTH_MAIL_ENABLED
+        value: "false"
+
+  # ----------------------------------------------------------------------------
+  # 2. Next.js Frontend Web Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: kemkendra-frontend
+    runtime: docker
+    dockerfilePath: ./infrastructure/docker/Dockerfile.frontend
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOSTNAME
+        value: "0.0.0.0"
+      - key: PORT
+        value: "3000"
+      - key: BACKEND_API_URL
+        fromService:
+          type: web
+          name: kemkendra-backend
+          property: host
+      - key: INTERNAL_API_URL
+        fromService:
+          type: web
+          name: kemkendra-backend
+          property: host
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: kemkendra-backend
+          property: host
+      - key: NEXT_PUBLIC_SITE_URL
+        fromService:
+          type: web
+          name: kemkendra-frontend
+          property: host

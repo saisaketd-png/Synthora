@@ -23,6 +23,8 @@ public interface SupplierOfferingRepository extends JpaRepository<SupplierOfferi
 
     long countBySupplierId(Long supplierId);
 
+    long countBySupplierIdAndAvailabilityStatus(Long supplierId, String availabilityStatus);
+
     long countByMasterProductIdAndAvailabilityStatusAndModerationStatus(UUID masterProductId, String availabilityStatus, String moderationStatus);
 
     long countByModerationStatus(String moderationStatus);

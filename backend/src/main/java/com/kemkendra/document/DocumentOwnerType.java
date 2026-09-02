@@ -1,6 +1,7 @@
 package com.kemkendra.document;
 
 public enum DocumentOwnerType {
+    USER,
     PRODUCT,
     MASTER_PRODUCT,
     SUPPLIER_OFFERING,

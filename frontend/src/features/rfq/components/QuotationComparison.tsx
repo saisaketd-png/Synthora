@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   CheckCircle2,
   XCircle,
@@ -106,10 +106,88 @@ export function QuotationComparison({
     return { diff, pct, isLower: diff < 0, isHigher: diff > 0 };
   };
 
+  // Turn ownership determination
+  const turnIndicator = useMemo(() => {
+    if (rfqStatus === "ACCEPTED") {
+      return {
+        label: "Quotation Accepted & Finalized",
+        variant: "success",
+        subtext: "Commercial terms agreed. Ready to generate Purchase Order.",
+      };
+    }
+    if (rfqStatus === "REJECTED") {
+      return {
+        label: "Quotation Declined",
+        variant: "danger",
+        subtext: "Commercial proposal was declined.",
+      };
+    }
+    if (rfqStatus === "CLOSED" || rfqStatus === "CANCELLED") {
+      return {
+        label: "Inquiry Closed",
+        variant: "neutral",
+        subtext: "This procurement inquiry is no longer active.",
+      };
+    }
+    if (latestQuotation.actorType === "SUPPLIER") {
+      return {
+        label: "Your Turn to Respond",
+        variant: "warning",
+        subtext: "Supplier submitted proposal. You may Accept, Reject, or propose a Counter-Offer.",
+      };
+    }
+    if (latestQuotation.actorType === "BUYER") {
+      return {
+        label: "Awaiting Supplier Response",
+        variant: "brand",
+        subtext: "Your counter-offer was dispatched. Awaiting manufacturer response.",
+      };
+    }
+    return {
+      label: "Negotiation in Progress",
+      variant: "neutral",
+      subtext: "Multi-round commercial proposal exchange in progress.",
+    };
+  }, [rfqStatus, latestQuotation]);
+
   const delta = previousQuotation ? getPriceDelta(latestQuotation.unitPrice, previousQuotation.unitPrice) : null;
 
   return (
     <div className="space-y-6">
+      {/* Turn Ownership Banner */}
+      <div
+        className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+          turnIndicator.variant === "warning"
+            ? "bg-amber-50 border-amber-200 text-amber-900"
+            : turnIndicator.variant === "success"
+            ? "bg-[#E3FCEF] border-[#ABF5D1] text-[#006644]"
+            : turnIndicator.variant === "danger"
+            ? "bg-rose-50 border-rose-200 text-rose-800"
+            : turnIndicator.variant === "brand"
+            ? "bg-[#DEEBFF] border-[#B3D4FF] text-[#0747A6]"
+            : "bg-[#FAFBFC] border-[#DFE1E6] text-[#5E6C84]"
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <span
+            className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+              turnIndicator.variant === "warning"
+                ? "bg-amber-200/60 text-amber-900 font-extrabold"
+                : turnIndicator.variant === "success"
+                ? "bg-[#ABF5D1] text-[#006644]"
+                : turnIndicator.variant === "danger"
+                ? "bg-rose-200 text-rose-800"
+                : turnIndicator.variant === "brand"
+                ? "bg-[#B3D4FF] text-[#0747A6]"
+                : "bg-[#DFE1E6] text-[#5E6C84]"
+            }`}
+          >
+            {turnIndicator.label}
+          </span>
+          <span className="text-xs font-semibold">{turnIndicator.subtext}</span>
+        </div>
+      </div>
+
       {/* 1. LATEST / CURRENT ACTIVE QUOTATION CARD */}
       <div className="bg-white border-2 border-[#0052CC] rounded-2xl shadow-xs overflow-hidden">
         {/* Header Ribbon */}

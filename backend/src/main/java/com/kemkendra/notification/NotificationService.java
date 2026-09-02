@@ -1,24 +1,26 @@
 package com.kemkendra.notification;
 
 import com.kemkendra.common.ResourceNotFoundException;
+import com.kemkendra.identity.User;
+import com.kemkendra.identity.UserRepository;
+import com.kemkendra.identity.UserRole;
+import com.kemkendra.identity.UserStatus;
 import com.kemkendra.notification.dto.NotificationResponse;
+import com.kemkendra.notification.preference.NotificationPreferenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import com.kemkendra.identity.User;
-import com.kemkendra.identity.UserRepository;
-import com.kemkendra.identity.UserRole;
-import com.kemkendra.identity.UserStatus;
 
 @Service
 @Transactional
@@ -29,22 +31,28 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final NotificationStreamService notificationStreamService;
+    private final NotificationPreferenceService preferenceService;
 
     public NotificationService(
             NotificationRepository notificationRepository,
             UserRepository userRepository,
-            NotificationStreamService notificationStreamService) {
+            NotificationStreamService notificationStreamService,
+            NotificationPreferenceService preferenceService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.notificationStreamService = notificationStreamService;
+        this.preferenceService = preferenceService;
     }
 
     /**
-     * Persists a new notification for a specific recipient user UUID.
+     * Persists a new notification with full category and priority support.
+     * Enforces user channel preferences before creating in-app notification records.
      */
     public Notification createNotification(
             UUID recipientId,
             NotificationType type,
+            NotificationCategory category,
+            NotificationPriority priority,
             String title,
             String message,
             NotificationEntityType entityType,
@@ -55,9 +63,20 @@ public class NotificationService {
             return null;
         }
 
+        NotificationCategory effectiveCategory = category != null ? category : Notification.deriveCategoryFromType(type);
+        NotificationPriority effectivePriority = priority != null ? priority : Notification.derivePriorityFromType(type);
+
+        // Check user notification preferences (mandatory categories are always enabled)
+        if (!preferenceService.isInAppEnabled(recipientId, effectiveCategory)) {
+            log.debug("In-app notification suppressed by user preference for recipient {} category {}", recipientId, effectiveCategory);
+            return null;
+        }
+
         Notification notification = new Notification();
         notification.setRecipientId(recipientId);
         notification.setType(type);
+        notification.setCategory(effectiveCategory);
+        notification.setPriority(effectivePriority);
         notification.setTitle(title);
         notification.setMessage(message);
         notification.setEntityType(entityType);
@@ -75,6 +94,25 @@ public class NotificationService {
         }
 
         return saved;
+    }
+
+    public Notification createNotification(
+            UUID recipientId,
+            NotificationType type,
+            String title,
+            String message,
+            NotificationEntityType entityType,
+            UUID entityId) {
+        return createNotification(
+                recipientId,
+                type,
+                Notification.deriveCategoryFromType(type),
+                Notification.derivePriorityFromType(type),
+                title,
+                message,
+                entityType,
+                entityId
+        );
     }
 
     /**
@@ -123,31 +161,49 @@ public class NotificationService {
     }
 
     /**
-     * Returns paginated notifications scoped strictly to the authenticated user's ID.
-     * Enforces bounded pagination limits (max size 100) to protect against DoS.
+     * Returns paginated notifications scoped strictly to the authenticated user's ID
+     * with optional category and read status filtering.
      */
     @Transactional(readOnly = true)
-    public Page<NotificationResponse> getNotifications(UUID recipientId, Pageable pageable) {
+    public Page<NotificationResponse> getNotifications(
+            UUID recipientId,
+            NotificationCategory category,
+            Boolean read,
+            Pageable pageable) {
+
         int pageNumber = Math.max(0, pageable.getPageNumber());
         int pageSize = Math.min(Math.max(1, pageable.getPageSize()), 100);
         Sort sort = pageable.getSort().isSorted() ? pageable.getSort() : Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id"));
         Pageable boundedPageable = PageRequest.of(pageNumber, pageSize, sort);
-        return notificationRepository.findByRecipientIdOrderByCreatedAtDesc(recipientId, boundedPageable)
+
+        Specification<Notification> spec = (root, query, cb) -> {
+            var predicates = new ArrayList<jakarta.persistence.criteria.Predicate>();
+            predicates.add(cb.equal(root.get("recipientId"), recipientId));
+
+            if (category != null) {
+                predicates.add(cb.equal(root.get("category"), category));
+            }
+            if (read != null) {
+                predicates.add(cb.equal(root.get("read"), read));
+            }
+
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        return notificationRepository.findAll(spec, boundedPageable)
                 .map(NotificationResponse::from);
     }
 
-    /**
-     * Returns unread count scoped strictly to the authenticated user's ID.
-     */
+    @Transactional(readOnly = true)
+    public Page<NotificationResponse> getNotifications(UUID recipientId, Pageable pageable) {
+        return getNotifications(recipientId, null, null, pageable);
+    }
+
     @Transactional(readOnly = true)
     public long getUnreadCount(UUID recipientId) {
         return notificationRepository.countByRecipientIdAndReadFalse(recipientId);
     }
 
-    /**
-     * Marks a single notification as read, ensuring ownership by the authenticated user.
-     * Returns 404 (ResourceNotFoundException) if the notification does not exist or belongs to another user.
-     */
     public NotificationResponse markAsRead(UUID notificationId, UUID recipientId) {
         Notification notification = notificationRepository.findByIdAndRecipientId(notificationId, recipientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
@@ -161,10 +217,6 @@ public class NotificationService {
         return NotificationResponse.from(notification);
     }
 
-    /**
-     * Marks all unread notifications for the authenticated user as read.
-     * Returns the count of notifications marked as read.
-     */
     public int markAllAsRead(UUID recipientId) {
         List<Notification> unreadList = notificationRepository.findByRecipientIdAndReadFalse(recipientId);
         if (unreadList.isEmpty()) {

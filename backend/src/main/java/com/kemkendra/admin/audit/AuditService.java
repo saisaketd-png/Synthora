@@ -88,6 +88,19 @@ public class AuditService {
         return recordInternal(user.getId(), action, targetType, targetId, details, ipAddress);
     }
 
+    public AuditLog recordUserAction(
+            User user,
+            AuditAction action,
+            AuditTargetType targetType,
+            String targetId,
+            String details) {
+
+        if (user == null) {
+            throw new AccessDeniedException("User required to record audit log");
+        }
+        return recordInternal(user.getId(), action, targetType, targetId, details, "127.0.0.1");
+    }
+
     /**
      * Records an administrative audit log entry with an explicit IP address string.
      */
@@ -113,6 +126,25 @@ public class AuditService {
         }
 
         return recordInternal(actor.getId(), action, targetType, targetId, details, ipAddress);
+    }
+
+    /**
+     * Helper to record administrative audit entries resolving actor by email.
+     */
+    public AuditLog recordByEmail(
+            String actorEmail,
+            AuditAction action,
+            AuditTargetType targetType,
+            String targetId,
+            String details) {
+        UUID actorId = null;
+        if (actorEmail != null) {
+            actorId = userRepository.findByEmail(actorEmail).map(User::getId).orElse(null);
+        }
+        if (actorId == null) {
+            actorId = UUID.fromString("00000000-0000-0000-0000-000000000000");
+        }
+        return recordInternal(actorId, action, targetType, targetId, details, "127.0.0.1");
     }
 
     /**

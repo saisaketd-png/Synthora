@@ -131,18 +131,20 @@ const TOKEN_KEY = "kemkendra_token";
 
 export function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem("token");
 }
 
 export function setAuthToken(token: string): void {
   if (typeof window !== "undefined") {
     localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem("token", token);
   }
 }
 
 export function removeAuthToken(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("token");
   }
 }
 

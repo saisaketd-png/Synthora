@@ -32,6 +32,7 @@ public enum NotificationType {
     PURCHASE_ORDER_PROCESSING,
     PURCHASE_ORDER_SHIPPED,
     PURCHASE_ORDER_DELIVERED,
+    PURCHASE_ORDER_COMPLETED,
     PURCHASE_ORDER_CANCELLED,
 
     // Fulfillment
@@ -39,6 +40,7 @@ public enum NotificationType {
     ORDER_SHIPPED,
     ORDER_DELIVERED,
     ORDER_RECEIPT_CONFIRMED,
+    ORDER_COMPLETED,
 
     // Documents
     DOCUMENT_UPLOADED,
@@ -85,5 +87,9 @@ public enum NotificationType {
     APPEAL_REVIEW_STARTED,
     APPEAL_INFORMATION_REQUIRED,
     APPEAL_APPROVED,
-    APPEAL_REJECTED
+    APPEAL_REJECTED,
+
+    // Platform Announcements & Operations
+    SYSTEM_ANNOUNCEMENT,
+    SYSTEM_MAINTENANCE_SCHEDULED
 }

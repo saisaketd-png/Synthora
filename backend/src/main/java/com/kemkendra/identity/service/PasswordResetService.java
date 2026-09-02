@@ -94,7 +94,14 @@ public class PasswordResetService {
         String resetUrl = appBaseUrl + "/reset-password?token=" + rawToken;
         sendResetEmail(user, resetUrl);
 
-        log.info("Password reset token generated and email dispatched for user ID: {}", user.getId());
+        log.info("""
+
+                ================================================================================
+                [PASSWORD RESET DISPATCHED]
+                Recipient: {} (User ID: {})
+                Reset URL: {}
+                ================================================================================""",
+                user.getEmail(), user.getId(), resetUrl);
         return ForgotPasswordResponse.ofDefault();
     }
 

@@ -133,10 +133,10 @@ function SupplierRegisterForm() {
                 <ArrowRight className="w-4 h-4 text-purple-400" />
               </Link>
               <Link
-                href="/verify-email"
+                href={`/verify-email?email=${encodeURIComponent(registeredEmail)}`}
                 className="block text-xs font-semibold text-purple-600 hover:underline"
               >
-                Need to resend verification link?
+                Need to resend verification link or enter token manually?
               </Link>
             </div>
           </div>

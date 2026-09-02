@@ -27,6 +27,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import com.kemkendra.admin.governance.AccountSuspension;
+import com.kemkendra.admin.governance.AccountSuspensionAppeal;
+import com.kemkendra.admin.governance.AccountSuspensionAppealRepository;
+import com.kemkendra.admin.governance.AccountSuspensionRepository;
+import com.kemkendra.order.PurchaseOrderRepository;
+import com.kemkendra.product.Supplier;
+import com.kemkendra.product.SupplierRepository;
+import com.kemkendra.rfq.RfqRepository;
+
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -39,10 +49,27 @@ public class AdminUserService {
 
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final SupplierRepository supplierRepository;
+    private final AccountSuspensionRepository suspensionRepository;
+    private final AccountSuspensionAppealRepository appealRepository;
+    private final RfqRepository rfqRepository;
+    private final PurchaseOrderRepository poRepository;
 
-    public AdminUserService(UserRepository userRepository, AuditService auditService) {
+    public AdminUserService(
+            UserRepository userRepository,
+            AuditService auditService,
+            SupplierRepository supplierRepository,
+            AccountSuspensionRepository suspensionRepository,
+            AccountSuspensionAppealRepository appealRepository,
+            RfqRepository rfqRepository,
+            PurchaseOrderRepository poRepository) {
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.supplierRepository = supplierRepository;
+        this.suspensionRepository = suspensionRepository;
+        this.appealRepository = appealRepository;
+        this.rfqRepository = rfqRepository;
+        this.poRepository = poRepository;
     }
 
     /**
@@ -102,6 +129,50 @@ public class AdminUserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + id));
 
+        // Supplier association
+        Long supplierId = null;
+        String supplierName = null;
+        String supplierVerificationStatus = null;
+        if (user.getRole() == UserRole.SUPPLIER) {
+            Optional<Supplier> supOpt = supplierRepository.findByUser(user);
+            if (supOpt.isPresent()) {
+                Supplier sup = supOpt.get();
+                supplierId = sup.getId();
+                supplierName = sup.getName();
+                supplierVerificationStatus = sup.getVerificationStatus() != null ? sup.getVerificationStatus().name() : null;
+            }
+        }
+
+        // Active suspension & appeal
+        boolean isSuspended = user.getStatus() == UserStatus.SUSPENDED;
+        String suspensionReason = null;
+        Instant suspensionDate = null;
+        UUID openAppealId = null;
+        String openAppealStatus = null;
+
+        Optional<AccountSuspension> suspOpt = suspensionRepository.findActiveSuspensionByUserId(user.getId());
+        if (suspOpt.isPresent()) {
+            AccountSuspension susp = suspOpt.get();
+            isSuspended = true;
+            suspensionReason = susp.getReason();
+            suspensionDate = susp.getSuspendedAt();
+
+            List<AccountSuspensionAppeal> appeals = appealRepository.findBySuspensionIdOrderByCreatedAtDesc(susp.getId());
+            if (!appeals.isEmpty()) {
+                AccountSuspensionAppeal latest = appeals.get(0);
+                openAppealId = latest.getId();
+                openAppealStatus = latest.getStatus() != null ? latest.getStatus().name() : null;
+            }
+        }
+
+        // Marketplace activity counts
+        long rfqCount = 0;
+        long orderCount = 0;
+        try {
+            rfqCount = rfqRepository.findByBuyerIdOrderByCreatedAtDesc(user.getId()).size();
+            orderCount = poRepository.findByBuyerIdOrderByCreatedAtDesc(user.getId()).size();
+        } catch (Exception ignored) {}
+
         return new AdminUserDetailResponse(
                 user.getId(),
                 user.getName(),
@@ -112,7 +183,25 @@ public class AdminUserService {
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
                 user.getDeletedAt(),
-                user.getDeletedBy()
+                user.getDeletedBy(),
+                user.getTermsAcceptedAt() != null,
+                user.getTermsVersion(),
+                user.getTermsAcceptedAt(),
+                user.getPrivacyAcceptedAt() != null,
+                user.getPrivacyVersion(),
+                user.getPrivacyAcceptedAt(),
+                user.getEmailVerifiedAt() != null,
+                user.getEmailVerifiedAt(),
+                supplierId,
+                supplierName,
+                supplierVerificationStatus,
+                isSuspended,
+                suspensionReason,
+                suspensionDate,
+                openAppealId,
+                openAppealStatus,
+                rfqCount,
+                orderCount
         );
     }
 

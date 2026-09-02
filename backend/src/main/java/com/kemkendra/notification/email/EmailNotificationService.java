@@ -3,8 +3,11 @@ package com.kemkendra.notification.email;
 import com.kemkendra.identity.User;
 import com.kemkendra.identity.UserRepository;
 import com.kemkendra.notification.Notification;
+import com.kemkendra.notification.NotificationCategory;
+import com.kemkendra.notification.preference.NotificationPreferenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -23,19 +26,30 @@ public class EmailNotificationService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final NotificationEmailTemplateResolver templateResolver;
+    private final NotificationPreferenceService preferenceService;
 
     public EmailNotificationService(
             UserRepository userRepository,
             EmailService emailService,
             NotificationEmailTemplateResolver templateResolver) {
+        this(userRepository, emailService, templateResolver, null);
+    }
+
+    @Autowired
+    public EmailNotificationService(
+            UserRepository userRepository,
+            EmailService emailService,
+            NotificationEmailTemplateResolver templateResolver,
+            NotificationPreferenceService preferenceService) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.templateResolver = templateResolver;
+        this.preferenceService = preferenceService;
     }
 
     /**
      * Asynchronously sends an email notification for a persisted Notification record.
-     * Uses the dedicated bounded executor 'emailTaskExecutor'.
+     * Respects user notification preferences for non-mandatory categories.
      */
     @Async("emailTaskExecutor")
     public void sendNotificationEmail(Notification notification) {
@@ -47,6 +61,15 @@ public class EmailNotificationService {
         UUID recipientId = notification.getRecipientId();
         if (recipientId == null) {
             log.warn("Cannot send email: notification {} has null recipientId", notification.getId());
+            return;
+        }
+
+        NotificationCategory category = notification.getCategory() != null
+                ? notification.getCategory()
+                : Notification.deriveCategoryFromType(notification.getType());
+
+        if (preferenceService != null && !preferenceService.isEmailEnabled(recipientId, category)) {
+            log.debug("Email notification suppressed by user preference for recipient {} category {}", recipientId, category);
             return;
         }
 

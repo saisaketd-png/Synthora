@@ -16,6 +16,9 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "document_group_id")
+    private UUID documentGroupId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "owner_type", nullable = false, length = 30)
     private DocumentOwnerType ownerType;
@@ -57,6 +60,18 @@ public class Document {
     @Column(name = "verification_status", length = 50)
     private String verificationStatus = "ACTIVE";
 
+    @Column(name = "version")
+    private Integer version = 1;
+
+    @Column(name = "checksum", length = 64)
+    private String checksum;
+
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -70,6 +85,8 @@ public class Document {
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
+    public UUID getDocumentGroupId() { return documentGroupId; }
+    public void setDocumentGroupId(UUID documentGroupId) { this.documentGroupId = documentGroupId; }
     public DocumentOwnerType getOwnerType() { return ownerType; }
     public void setOwnerType(DocumentOwnerType ownerType) { this.ownerType = ownerType; }
     public UUID getOwnerId() { return ownerId; }
@@ -96,6 +113,14 @@ public class Document {
     public void setExpiryDate(LocalDate expiryDate) { this.expiryDate = expiryDate; }
     public String getVerificationStatus() { return verificationStatus; }
     public void setVerificationStatus(String verificationStatus) { this.verificationStatus = verificationStatus; }
+    public Integer getVersion() { return version; }
+    public void setVersion(Integer version) { this.version = version; }
+    public String getChecksum() { return checksum; }
+    public void setChecksum(String checksum) { this.checksum = checksum; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public Boolean getIsActive() { return isActive != null ? isActive : true; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

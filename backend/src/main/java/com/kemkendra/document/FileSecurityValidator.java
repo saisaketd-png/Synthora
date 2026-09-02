@@ -26,7 +26,8 @@ public class FileSecurityValidator {
             String safeOriginalFilename,
             String safeExtension,
             String validatedMimeType,
-            long fileSize
+            long fileSize,
+            String checksum
     ) {}
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
@@ -81,7 +82,7 @@ public class FileSecurityValidator {
         }
 
         if (rawFilename.endsWith(".FAIL_STORAGE")) {
-            return new ValidatedFileInfo(rawFilename, ".FAIL_STORAGE", "application/pdf", file.getSize());
+            return new ValidatedFileInfo(rawFilename, ".FAIL_STORAGE", "application/pdf", file.getSize(), "mock-sha256-checksum");
         }
 
         // 1. Filename Sanitization and Extension Validation
@@ -129,7 +130,9 @@ public class FileSecurityValidator {
             throw new IllegalArgumentException("Detected content type " + canonicalMime + " is not permitted");
         }
 
-        return new ValidatedFileInfo(normalizedName, extension, canonicalMime, file.getSize());
+        String checksum = calculateSha256(file);
+
+        return new ValidatedFileInfo(normalizedName, extension, canonicalMime, file.getSize(), checksum);
     }
 
     private byte[] extractHeaderBytes(MultipartFile file, int maxBytes) {
@@ -301,5 +304,26 @@ public class FileSecurityValidator {
             return "";
         }
         return filename.substring(filename.lastIndexOf("."));
+    }
+
+    public String calculateSha256(MultipartFile file) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            try (InputStream is = file.getInputStream()) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    digest.update(buffer, 0, bytesRead);
+                }
+            }
+            byte[] hashBytes = digest.digest();
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to calculate SHA-256 file checksum", e);
+        }
     }
 }

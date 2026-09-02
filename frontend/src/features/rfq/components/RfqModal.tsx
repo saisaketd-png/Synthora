@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { X, CheckCircle2, AlertCircle, Loader2, ArrowLeft, Send, ShieldCheck, Building2, FlaskConical, ArrowRight } from "lucide-react";
+import { X, CheckCircle2, AlertCircle, AlertTriangle, Loader2, ArrowLeft, Send, ShieldCheck, Building2, FlaskConical, ArrowRight } from "lucide-react";
 import { createRfq } from "../api/createRfq";
 
 export type RfqModalProps = {
@@ -157,10 +157,31 @@ export default function RfqModal({
         {/* Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4">
           {error && (
-            <div className="p-3 bg-[#FFEBE6] border border-[#FFBDAD] rounded-xl text-xs text-[#BF2600] flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
+            error.toLowerCase().includes("daily rfq limit") || error.toLowerCase().includes("limit reached") ? (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <strong className="font-bold block text-amber-950">Daily RFQ Limit Reached</strong>
+                  <p className="leading-relaxed">{error}</p>
+                  <p className="text-[11px] text-amber-800 pt-1 border-t border-amber-200/60">
+                    To maintain marketplace quality, buyer accounts are subject to daily submission quotas. Please try again tomorrow or contact support to request a quota increase.
+                  </p>
+                </div>
+              </div>
+            ) : error.toLowerCase().includes("maintenance") ? (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="font-bold block text-amber-950 mb-0.5">Platform Maintenance Notice</strong>
+                  <p>{error}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-[#FFEBE6] border border-[#FFBDAD] rounded-xl text-xs text-[#BF2600] flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )
           )}
 
           {/* STEP 1: Form Fill */}

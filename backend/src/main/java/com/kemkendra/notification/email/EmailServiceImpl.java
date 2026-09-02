@@ -66,7 +66,9 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("Successfully dispatched notification email to {} with subject '{}'", to, subject);
         } catch (Exception e) {
-            log.error("Failed to send notification email to {} with subject '{}': {}", to, subject, e.getMessage(), e);
+            log.error("Failed to send notification email to {} with subject '{}': {}. " +
+                    "To enable real email dispatch, configure valid SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD) in your environment variables.",
+                    to, subject, e.getMessage());
         }
     }
 }

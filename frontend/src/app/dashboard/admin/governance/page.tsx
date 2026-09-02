@@ -24,7 +24,7 @@ export default function GovernanceQueuePage() {
   useEffect(() => {
     async function fetchQueue() {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
         const res = await fetch("/api/v1/admin/operations/governance/queue", {
           headers: { Authorization: `Bearer ${token}` }
         });

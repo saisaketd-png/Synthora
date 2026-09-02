@@ -27,7 +27,7 @@ export default function UnifiedAdminSearchPage() {
     setLoading(true);
     setSearched(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
       const res = await fetch(`/api/v1/admin/operations/search?query=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });

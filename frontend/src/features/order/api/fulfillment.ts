@@ -95,3 +95,17 @@ export async function rejectSupplierOrder(orderId: string, reason: string): Prom
   return response.json();
 }
 
+export async function completeOrder(orderId: string): Promise<PurchaseOrderResponse> {
+  const response = await authenticatedFetch(`/api/v1/orders/${orderId}/complete`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.message || "Failed to complete purchase order");
+  }
+
+  return response.json();
+}
+
+

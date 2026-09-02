@@ -158,6 +158,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       "VERIFIED",
       "CONFIRMED",
       "DELIVERED",
+      "COMPLETED",
       "ACCEPTED",
       "SUCCESS",
     ].includes(norm)

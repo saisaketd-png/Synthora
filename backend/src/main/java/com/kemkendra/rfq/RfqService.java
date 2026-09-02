@@ -29,6 +29,9 @@ public class RfqService {
     private final SupplierOfferingRepository supplierOfferingRepository;
     private final com.kemkendra.rfq.quotation.QuotationRepository quotationRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private com.kemkendra.admin.config.FeatureToggleService featureToggleService;
+    private com.kemkendra.admin.config.PlatformPolicyService platformPolicyService;
+    private com.kemkendra.admin.audit.AuditService auditService;
 
     public RfqService(
             RfqRepository rfqRepository,
@@ -50,6 +53,21 @@ public class RfqService {
         this.supplierOfferingRepository = supplierOfferingRepository;
         this.quotationRepository = quotationRepository;
         this.eventPublisher = eventPublisher;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFeatureToggleService(com.kemkendra.admin.config.FeatureToggleService featureToggleService) {
+        this.featureToggleService = featureToggleService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPlatformPolicyService(com.kemkendra.admin.config.PlatformPolicyService platformPolicyService) {
+        this.platformPolicyService = platformPolicyService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setAuditService(com.kemkendra.admin.audit.AuditService auditService) {
+        this.auditService = auditService;
     }
 
     private String deriveRfqReference(Rfq rfq) {
@@ -130,6 +148,15 @@ public class RfqService {
             CreateRfqRequest request,
             Authentication authentication) {
 
+        if (featureToggleService != null) {
+            if (featureToggleService.isMaintenanceModeActive()) {
+                throw new IllegalStateException("The platform is currently in maintenance mode. RFQs cannot be submitted.");
+            }
+            if (!featureToggleService.isFeatureEnabled("MARKETPLACE_RFQ_ENABLED")) {
+                throw new IllegalStateException("RFQ creation is currently disabled on the platform.");
+            }
+        }
+
         String email = authentication.getName();
 
         User buyer = userRepository.findByEmail(email)
@@ -137,6 +164,17 @@ public class RfqService {
 
         if (buyer.getStatus() != null && buyer.getStatus() != com.kemkendra.identity.UserStatus.ACTIVE) {
             throw new IllegalStateException("Buyer account is not active.");
+        }
+
+        if (platformPolicyService != null) {
+            int dailyLimit = platformPolicyService.getIntSetting("BUYER_RFQ_DAILY_LIMIT", 50);
+            if (dailyLimit > 0) {
+                java.time.LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
+                long todayRfqCount = rfqRepository.countByBuyerIdAndCreatedAtGreaterThanEqual(buyer.getId(), startOfDay);
+                if (todayRfqCount >= dailyLimit) {
+                    throw new IllegalStateException("Daily RFQ submission limit of " + dailyLimit + " reached for your account.");
+                }
+            }
         }
 
         final UUID requestedMasterProductId = request.masterProductId();
@@ -240,6 +278,16 @@ public class RfqService {
 
             Rfq saved = rfqRepository.save(rfq);
             createdRfqs.add(saved);
+
+            if (auditService != null) {
+                auditService.recordUserAction(
+                        buyer,
+                        com.kemkendra.admin.audit.AuditAction.RFQ_CREATED,
+                        com.kemkendra.admin.audit.AuditTargetType.RFQ,
+                        saved.getId().toString(),
+                        "RFQ created for supplier ID " + supp.getId() + " (Quantity: " + saved.getQuantity() + " " + saved.getUnit() + ")"
+                );
+            }
 
             eventPublisher.publishEvent(new RfqSubmittedEvent(
                     saved.getId(),
@@ -528,6 +576,16 @@ public class RfqService {
         rfq.setStatus(RfqStatus.CANCELLED);
         Rfq saved = rfqRepository.save(rfq);
 
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    buyer,
+                    com.kemkendra.admin.audit.AuditAction.RFQ_CANCELLED,
+                    com.kemkendra.admin.audit.AuditTargetType.RFQ,
+                    saved.getId().toString(),
+                    "RFQ cancelled by buyer. Reason: " + (reason != null ? reason : "None provided")
+            );
+        }
+
         eventPublisher.publishEvent(new RfqCancelledEvent(
                 saved.getId(),
                 saved.getBuyerId(),
@@ -594,6 +652,26 @@ public class RfqService {
             com.kemkendra.rfq.dto.CreateQuotationRequest request,
             Authentication authentication) {
 
+        if (featureToggleService != null) {
+            if (featureToggleService.isMaintenanceModeActive()) {
+                throw new IllegalStateException("The platform is currently in maintenance mode. Quotations cannot be submitted.");
+            }
+            if (!featureToggleService.isFeatureEnabled("MARKETPLACE_QUOTATION_ENABLED")) {
+                throw new IllegalStateException("Quotation submission is currently disabled on the platform.");
+            }
+        }
+
+        if (platformPolicyService != null) {
+            int minLeadTime = platformPolicyService.getIntSetting("MINIMUM_LEAD_TIME_DAYS", 1);
+            if (request.leadTimeDays() != null && request.leadTimeDays() < minLeadTime) {
+                throw new IllegalArgumentException("Lead time cannot be less than the minimum required platform lead time of " + minLeadTime + " days.");
+            }
+            Set<String> allowedCurrencies = platformPolicyService.getCommaSeparatedSet("ALLOWED_CURRENCIES", "INR,USD,EUR");
+            if (request.currency() != null && !allowedCurrencies.isEmpty() && !allowedCurrencies.contains(request.currency().toUpperCase())) {
+                throw new IllegalArgumentException("Currency '" + request.currency() + "' is not accepted. Allowed: " + allowedCurrencies);
+            }
+        }
+
         String email = authentication.getName();
         User supplierUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -635,6 +713,16 @@ public class RfqService {
 
         rfq.setStatus(RfqStatus.QUOTED);
         rfqRepository.save(rfq);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    supplierUser,
+                    nextVersion == 1 ? com.kemkendra.admin.audit.AuditAction.QUOTATION_SUBMITTED : com.kemkendra.admin.audit.AuditAction.QUOTATION_REVISED,
+                    com.kemkendra.admin.audit.AuditTargetType.QUOTATION,
+                    saved.getId().toString(),
+                    "Quotation v" + nextVersion + " submitted for RFQ " + rfq.getId() + " (" + saved.getCurrency() + " " + saved.getUnitPrice() + ")"
+            );
+        }
 
         eventPublisher.publishEvent(new QuotationSubmittedEvent(
                 saved.getId(),
@@ -696,6 +784,16 @@ public class RfqService {
 
         rfq.setStatus(RfqStatus.COUNTERED);
         rfqRepository.save(rfq);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    buyer,
+                    com.kemkendra.admin.audit.AuditAction.COUNTER_OFFER_SUBMITTED,
+                    com.kemkendra.admin.audit.AuditTargetType.QUOTATION,
+                    saved.getId().toString(),
+                    "Buyer counter-offer v" + nextVersion + " submitted for RFQ " + rfq.getId() + " (" + saved.getCurrency() + " " + saved.getUnitPrice() + ")"
+            );
+        }
 
         eventPublisher.publishEvent(new com.kemkendra.notification.events.CounterOfferSubmittedEvent(
                 saved.getId(),
@@ -774,6 +872,16 @@ public class RfqService {
             });
         }
 
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    buyer,
+                    com.kemkendra.admin.audit.AuditAction.QUOTATION_ACCEPTED,
+                    com.kemkendra.admin.audit.AuditTargetType.QUOTATION,
+                    quotation.getId().toString(),
+                    "Quotation v" + quotation.getQuotationVersion() + " accepted by buyer for RFQ " + rfq.getId()
+            );
+        }
+
         eventPublisher.publishEvent(new QuotationAcceptedEvent(
                 quotation.getId(),
                 rfq.getId(),
@@ -820,6 +928,16 @@ public class RfqService {
 
         rfq.setStatus(RfqStatus.REJECTED);
         rfqRepository.save(rfq);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    buyer,
+                    com.kemkendra.admin.audit.AuditAction.QUOTATION_REJECTED,
+                    com.kemkendra.admin.audit.AuditTargetType.QUOTATION,
+                    quotation.getId().toString(),
+                    "Quotation v" + quotation.getQuotationVersion() + " rejected by buyer for RFQ " + rfq.getId()
+            );
+        }
 
         eventPublisher.publishEvent(new QuotationRejectedEvent(
                 quotation.getId(),
@@ -901,6 +1019,16 @@ public class RfqService {
             });
         }
 
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    supplierUser,
+                    com.kemkendra.admin.audit.AuditAction.QUOTATION_ACCEPTED,
+                    com.kemkendra.admin.audit.AuditTargetType.QUOTATION,
+                    quotation.getId().toString(),
+                    "Buyer counter-offer v" + quotation.getQuotationVersion() + " accepted by supplier for RFQ " + rfq.getId()
+            );
+        }
+
         eventPublisher.publishEvent(new QuotationAcceptedEvent(
                 quotation.getId(),
                 rfq.getId(),
@@ -950,6 +1078,16 @@ public class RfqService {
 
         rfq.setStatus(RfqStatus.REJECTED);
         rfqRepository.save(rfq);
+
+        if (auditService != null) {
+            auditService.recordUserAction(
+                    supplierUser,
+                    com.kemkendra.admin.audit.AuditAction.QUOTATION_REJECTED,
+                    com.kemkendra.admin.audit.AuditTargetType.QUOTATION,
+                    quotation.getId().toString(),
+                    "Buyer counter-offer v" + quotation.getQuotationVersion() + " rejected by supplier for RFQ " + rfq.getId()
+            );
+        }
 
         eventPublisher.publishEvent(new QuotationRejectedEvent(
                 quotation.getId(),

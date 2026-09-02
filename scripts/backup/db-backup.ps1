@@ -43,7 +43,7 @@ if (-not (Test-Path $OutputDir)) {
 }
 
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$backupFilePath = Join-Path -Path $OutputDir -ChildPath "synthora_backup_$timestamp.dump"
+$backupFilePath = Join-Path -Path $OutputDir -ChildPath "kemkendra_backup_$timestamp.dump"
 
 Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host " Starting KemKendra Database Backup" -ForegroundColor Cyan

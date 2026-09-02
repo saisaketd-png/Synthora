@@ -16,6 +16,24 @@ public record AdminUserDetailResponse(
         Instant createdAt,
         Instant updatedAt,
         Instant deletedAt,
-        UUID deletedBy
+        UUID deletedBy,
+        boolean termsAccepted,
+        String termsVersion,
+        Instant termsAcceptedAt,
+        boolean privacyAccepted,
+        String privacyVersion,
+        Instant privacyAcceptedAt,
+        boolean emailVerified,
+        Instant emailVerifiedAt,
+        Long supplierId,
+        String supplierName,
+        String supplierVerificationStatus,
+        boolean suspended,
+        String suspensionReason,
+        Instant suspensionDate,
+        UUID openAppealId,
+        String openAppealStatus,
+        long rfqCount,
+        long orderCount
 ) {
 }

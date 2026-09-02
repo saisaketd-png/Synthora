@@ -59,7 +59,13 @@ public class DocumentAuthorizationServiceImpl implements DocumentAuthorizationSe
             return false;
         }
 
+        if (authenticatedUser != null && authenticatedUser.getStatus() == com.kemkendra.identity.UserStatus.SUSPENDED) {
+            return false;
+        }
+
         switch (type) {
+            case USER:
+                return canAccessUser(ownerId, authenticatedUser);
             case PRODUCT:
                 return canAccessProduct(ownerId, authenticatedUser);
             case MASTER_PRODUCT:
@@ -86,11 +92,13 @@ public class DocumentAuthorizationServiceImpl implements DocumentAuthorizationSe
         if (authenticatedUser != null && UserRole.ADMIN == authenticatedUser.getRole()) {
             return true;
         }
-        if (authenticatedUser == null) {
+        if (authenticatedUser == null || authenticatedUser.getStatus() == com.kemkendra.identity.UserStatus.SUSPENDED) {
             return false;
         }
 
         switch (type) {
+            case USER:
+                return canUploadUser(ownerId, authenticatedUser);
             case PRODUCT:
                 return canUploadProduct(ownerId, authenticatedUser);
             case MASTER_PRODUCT:
@@ -303,5 +311,16 @@ public class DocumentAuthorizationServiceImpl implements DocumentAuthorizationSe
         }
         Long supplierId = getSupplierId(authenticatedUser);
         return supplierId != null && supplierId.equals(shipmentOpt.get().getPurchaseOrder().getSupplierId());
+    }
+
+    private boolean canAccessUser(UUID ownerId, User authenticatedUser) {
+        if (authenticatedUser == null) {
+            return false;
+        }
+        return authenticatedUser.getId().equals(ownerId);
+    }
+
+    private boolean canUploadUser(UUID ownerId, User authenticatedUser) {
+        return canAccessUser(ownerId, authenticatedUser);
     }
 }

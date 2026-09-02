@@ -6,9 +6,9 @@ spring:
     name: kemkendra
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/${POSTGRES_DB:kemkendra}
-    username: ${POSTGRES_USER:kemkendra_admin}
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5435/kemkendra}
+    username: ${DB_USER:kemkendra_admin}
+    password: ${DB_PASSWORD:postgres}
 
   jpa:
     hibernate:

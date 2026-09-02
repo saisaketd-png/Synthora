@@ -22,7 +22,10 @@ export interface UserSuspensionDetail {
 }
 
 function getAuthHeaders(): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("kemkendra_token") || localStorage.getItem("token")
+      : null;
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

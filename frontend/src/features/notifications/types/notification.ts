@@ -55,7 +55,28 @@ export type NotificationType =
   | "SUPPLIER_OFFERING_REJECTED"
   | "SUPPLIER_OFFERING_SUSPENDED"
   | "SUPPLIER_OFFERING_DEACTIVATED"
-  | "SUPPLIER_OFFERING_MODERATED";
+  | "SUPPLIER_OFFERING_MODERATED"
+  | "USER_SUSPENDED"
+  | "USER_REINSTATED"
+  | "APPEAL_SUBMITTED"
+  | "APPEAL_REVIEW_STARTED"
+  | "APPEAL_INFORMATION_REQUIRED"
+  | "APPEAL_APPROVED"
+  | "APPEAL_REJECTED";
+
+export type NotificationCategory =
+  | "SECURITY"
+  | "ACCOUNT"
+  | "SUPPLIER_VERIFICATION"
+  | "RFQ"
+  | "QUOTATION"
+  | "PURCHASE_ORDER"
+  | "SHIPMENT"
+  | "CATALOG"
+  | "GOVERNANCE"
+  | "SYSTEM";
+
+export type NotificationPriority = "LOW" | "NORMAL" | "HIGH" | "CRITICAL";
 
 export type NotificationEntityType =
   | "RFQ"
@@ -66,15 +87,20 @@ export type NotificationEntityType =
   | "PRODUCT_REQUEST"
   | "MASTER_PRODUCT"
   | "SUPPLIER_OFFERING"
-  | "SUPPLIER";
+  | "SUPPLIER"
+  | "ACCOUNT_SUSPENSION"
+  | "ACCOUNT_SUSPENSION_APPEAL";
 
 export interface NotificationResponse {
   id: string;
   type: NotificationType;
+  category: NotificationCategory;
+  priority: NotificationPriority;
   title: string;
   message: string;
-  entityType: NotificationEntityType;
-  entityId: string;
+  entityType: NotificationEntityType | null;
+  entityId: string | null;
+  targetRoute?: string;
   read: boolean;
   readAt: string | null;
   createdAt: string;
@@ -93,4 +119,25 @@ export interface PaginatedNotifications {
   first: boolean;
   last: boolean;
   empty: boolean;
+}
+
+export interface NotificationPreferenceItem {
+  category: NotificationCategory;
+  inAppEnabled: boolean;
+  emailEnabled: boolean;
+  mandatory: boolean;
+}
+
+export interface NotificationPreferencesResponse {
+  preferences: NotificationPreferenceItem[];
+}
+
+export interface UpdateNotificationPreferenceRequest {
+  category: NotificationCategory;
+  inAppEnabled?: boolean;
+  emailEnabled?: boolean;
+}
+
+export interface BulkUpdateNotificationPreferencesRequest {
+  preferences: UpdateNotificationPreferenceRequest[];
 }

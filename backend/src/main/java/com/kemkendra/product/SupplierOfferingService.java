@@ -35,6 +35,7 @@ public class SupplierOfferingService {
     private final NotificationService notificationService;
     private final com.kemkendra.admin.audit.AuditService auditService;
     private final com.kemkendra.seller.SupplierPerformanceService supplierPerformanceService;
+    private com.kemkendra.admin.config.FeatureToggleService featureToggleService;
 
     public SupplierOfferingService(
             SupplierOfferingRepository supplierOfferingRepository,
@@ -55,6 +56,11 @@ public class SupplierOfferingService {
         this.supplierPerformanceService = supplierPerformanceService;
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setFeatureToggleService(com.kemkendra.admin.config.FeatureToggleService featureToggleService) {
+        this.featureToggleService = featureToggleService;
+    }
+
     /**
      * Supplier creates commercial offering on a MasterProduct.
      * Supplier identity is strictly resolved from JWT authentication principal.
@@ -62,6 +68,15 @@ public class SupplierOfferingService {
     public SupplierOfferingResponse createOffering(
             CreateSupplierOfferingRequest request,
             Authentication authentication) {
+
+        if (featureToggleService != null) {
+            if (featureToggleService.isMaintenanceModeActive()) {
+                throw new IllegalStateException("The platform is currently in maintenance mode. Offerings cannot be created.");
+            }
+            if (!featureToggleService.isFeatureEnabled("SUPPLIER_OFFERINGS_ENABLED")) {
+                throw new IllegalStateException("Supplier offering creation is currently disabled on the platform.");
+            }
+        }
 
         User user = resolveUser(authentication);
         Supplier supplier = identityResolver.resolveOperationalSupplier(user);
@@ -372,6 +387,10 @@ public class SupplierOfferingService {
     public SupplierOfferingResponse createOfferingOnBehalfOfSupplier(
             com.kemkendra.product.dto.AdminCreateSupplierOfferingRequest request,
             Authentication authentication) {
+
+        if (featureToggleService != null && !featureToggleService.isFeatureEnabled("ADMIN_OFFERING_CREATION_ENABLED")) {
+            throw new IllegalStateException("Admin creation of supplier offerings is currently disabled by platform policy.");
+        }
 
         verifyAdmin(authentication);
         User adminUser = resolveUser(authentication);

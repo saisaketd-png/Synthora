@@ -15,7 +15,9 @@ import {
   shipSupplierOrder,
   markOrderDeliveredSupplier,
   rejectSupplierOrder,
+  completeOrder,
 } from "@/features/order/api/fulfillment";
+import { CompleteOrderModal } from "@/features/order/components/CompleteOrderModal";
 import { GenericDocumentManager } from "@/features/documents/components/GenericDocumentManager";
 import { useToast } from "@/shared/context/ToastContext";
 import {
@@ -25,6 +27,7 @@ import {
   WorkflowStepper,
   ShipmentTrackingCard,
 } from "@/shared/components/procurement/ProcurementUI";
+import { TransactionTimeline } from "@/shared/components/procurement/TransactionTimeline";
 import {
   Building2,
   Calendar,
@@ -56,6 +59,7 @@ export default function SupplierOrderDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showShipModal, setShowShipModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
   const toast = useToast();
 
   const loadOrder = useCallback(async (silent = false) => {
@@ -205,6 +209,25 @@ export default function SupplierOrderDetailPage() {
     }
   };
 
+  const handleCompleteOrder = async () => {
+    if (!order) return;
+    try {
+      setActionLoading(true);
+      const updated = await completeOrder(order.id);
+      setOrder(updated);
+      setShowCompleteModal(false);
+      toast.success("Purchase order marked as completed & settled.");
+      await loadOrder(true);
+      window.dispatchEvent(new CustomEvent("order-updated", { detail: { orderId } }));
+      window.dispatchEvent(new CustomEvent("notifications-updated"));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to complete purchase order";
+      toast.error(msg);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleRejectConfirm = async (reason: string) => {
     if (!order) return;
     try {
@@ -329,6 +352,27 @@ export default function SupplierOrderDetailPage() {
               <CheckCircle2 className="w-4 h-4" />
               <span>{actionLoading ? "Updating..." : "Mark Delivered"}</span>
             </button>
+          ) : order.status === "DELIVERED" ? (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3.5 py-2.5 bg-[#E3FCEF] border border-[#ABF5D1] text-[#006644] text-xs font-bold uppercase tracking-wider rounded-xl">
+                <CheckCircle2 className="w-4 h-4 text-[#00875A]" />
+                <span>Delivered</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCompleteModal(true)}
+                disabled={actionLoading}
+                className="h-11 px-6 bg-[#006644] hover:bg-[#005236] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Complete Order</span>
+              </button>
+            </div>
+          ) : order.status === "COMPLETED" ? (
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-[#E3FCEF] border border-[#ABF5D1] text-[#006644] text-xs font-bold uppercase tracking-wider rounded-xl">
+              <CheckCircle2 className="w-4 h-4 text-[#00875A]" />
+              <span>Order Completed & Settled</span>
+            </div>
           ) : null
         }
       />
@@ -367,6 +411,13 @@ export default function SupplierOrderDetailPage() {
 
       {/* 4. Workflow Lifecycle Stepper */}
       <WorkflowStepper currentStatus={order.status} />
+
+      {/* 4b. Unified End-to-End Transaction Timeline */}
+      <TransactionTimeline
+        order={order}
+        shipment={shipment}
+        userRole="SUPPLIER"
+      />
 
       {/* 5. 2-Column Order Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -552,6 +603,23 @@ export default function SupplierOrderDetailPage() {
           poNumber={order.poNumber}
           onClose={() => setShowRejectModal(false)}
           onConfirm={handleRejectConfirm}
+        />
+      )}
+
+      {/* Complete Order Modal */}
+      {order && (
+        <CompleteOrderModal
+          isOpen={showCompleteModal}
+          onClose={() => setShowCompleteModal(false)}
+          onConfirm={handleCompleteOrder}
+          poNumber={order.poNumber}
+          counterpartLabel="Buyer Organization"
+          counterpartName="Verified Enterprise Buyer"
+          productName={order.productName}
+          quantity={order.quantity}
+          unit={order.unit}
+          totalAmount={order.totalAmount}
+          currency={order.currency}
         />
       )}
     </div>

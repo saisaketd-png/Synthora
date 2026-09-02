@@ -288,9 +288,29 @@ export function GenericDocumentManager({
                       <FileText className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <h4 className="text-xs font-semibold text-[#0B1B33] truncate">
-                        {doc.originalFileName}
-                      </h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-xs font-semibold text-[#0B1B33] truncate">
+                          {doc.originalFileName}
+                        </h4>
+                        {doc.version && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            v{doc.version}
+                          </span>
+                        )}
+                        {doc.expiryStatus && doc.expiryStatus !== "NO_EXPIRY" && (
+                          <span
+                            className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${
+                              doc.expiryStatus === "VALID"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : doc.expiryStatus === "EXPIRING_SOON"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : "bg-rose-50 text-rose-700 border border-rose-200"
+                            }`}
+                          >
+                            {doc.expiryStatus === "VALID" ? "Valid" : doc.expiryStatus === "EXPIRING_SOON" ? "Expiring Soon" : "Expired"}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#526581] flex-wrap">
                         <span className="font-semibold text-[#0B1B33] bg-[#F4F5F7] px-1.5 py-0.5 rounded text-[10px]">
                           {getCategoryLabel(doc.category)}
@@ -299,6 +319,14 @@ export function GenericDocumentManager({
                         <span>{formatFileSize(doc.fileSize)}</span>
                         <span>•</span>
                         <span>{formatDate(doc.createdAt)}</span>
+                        {doc.checksum && (
+                          <>
+                            <span>•</span>
+                            <span className="font-mono text-[9px] text-zinc-400" title={`SHA-256: ${doc.checksum}`}>
+                              SHA-256: {doc.checksum.substring(0, 8)}...
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
