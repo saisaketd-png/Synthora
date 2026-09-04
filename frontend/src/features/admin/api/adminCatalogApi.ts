@@ -373,8 +373,8 @@ export async function setAdminOfferingStatus(id: string, status: string): Promis
 }
 
 export async function getAdminSuppliersList(query?: string): Promise<any[]> {
-  const params = query ? `?query=${encodeURIComponent(query)}` : "";
-  const res = await authenticatedFetch(`/api/v1/admin/suppliers/verification/queue${params}`);
+  const queryParam = query?.trim() ? `query=${encodeURIComponent(query.trim())}&` : "";
+  const res = await authenticatedFetch(`/api/v1/admin/suppliers?${queryParam}size=100&excludeDraft=false`);
   if (!res.ok) throw new Error("Failed to load suppliers");
   const data = await res.json();
   return Array.isArray(data) ? data : data.content || [];

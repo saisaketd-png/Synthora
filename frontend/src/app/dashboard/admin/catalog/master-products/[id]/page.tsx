@@ -24,6 +24,7 @@ import {
   Edit2,
   Power,
   Shield,
+  X,
 } from "lucide-react";
 import {
   getMasterProductDetail,
@@ -42,6 +43,8 @@ import {
   setAdminOfferingStatus,
   getAdminSuppliersList,
 } from "@/features/admin/api/adminCatalogApi";
+import { SupplierSearchCombobox } from "@/features/admin/components/SupplierSearchCombobox";
+import { parseApiError } from "@/shared/utils/errorParser";
 import { useToast } from "@/shared/context/ToastContext";
 
 export default function MasterProductGovernanceDetailPage() {
@@ -279,11 +282,8 @@ export default function MasterProductGovernanceDetailPage() {
       setSuppliersLoading(true);
       const suppliers = await getAdminSuppliersList();
       setSuppliersList(suppliers);
-      if (suppliers.length > 0 && selectedSupplierId === "") {
-        setSelectedSupplierId(suppliers[0].id);
-      }
     } catch (e: any) {
-      toast.error("Failed to load suppliers: " + e.message);
+      toast.error(parseApiError(e, "Failed to load suppliers", "general"));
     } finally {
       setSuppliersLoading(false);
     }
@@ -291,8 +291,13 @@ export default function MasterProductGovernanceDetailPage() {
 
   const handleCreateOfferingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSupplierId || !offeringPrice) {
-      toast.error("Please select a supplier and enter offering price");
+    if (!selectedSupplierId) {
+      toast.error("Please select a verified supplier partner");
+      return;
+    }
+    const parsedPrice = parseFloat(offeringPrice);
+    if (!offeringPrice || isNaN(parsedPrice) || parsedPrice <= 0) {
+      toast.error("Please enter a valid unit price greater than 0");
       return;
     }
     try {
@@ -300,7 +305,7 @@ export default function MasterProductGovernanceDetailPage() {
       await createOfferingOnBehalfOfSupplier({
         supplierId: Number(selectedSupplierId),
         masterProductId: id,
-        price: parseFloat(offeringPrice),
+        price: parsedPrice,
         currency: offeringCurrency,
         stock: offeringStock ? parseInt(offeringStock, 10) : 0,
         purity: offeringPurity ? parseFloat(offeringPurity) : undefined,
@@ -317,14 +322,18 @@ export default function MasterProductGovernanceDetailPage() {
       });
       toast.success("Commercial offering created on behalf of supplier");
       setShowCreateOfferingModal(false);
+      setSelectedSupplierId("");
       setOfferingPrice("");
       setOfferingStock("");
       setOfferingPurity("");
       setOfferingGrade("");
+      setOfferingMoq("");
+      setOfferingPackaging("");
+      setOfferingLeadTime("");
       setOfferingAdminNotes("");
       await loadData();
     } catch (e: any) {
-      toast.error("Failed to create offering: " + e.message);
+      toast.error(parseApiError(e, "Failed to create commercial offering", "offering"));
     } finally {
       setCreateOfferingSubmitting(false);
     }
@@ -1166,229 +1175,248 @@ export default function MasterProductGovernanceDetailPage() {
 
       {/* Modal: Create Offering on Behalf of Supplier */}
       {showCreateOfferingModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-5 shadow-2xl border border-slate-100 my-8">
-            <div className="border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-purple-600" />
-                <h3 className="text-base font-extrabold text-slate-900">
-                  Create Commercial Offering on Behalf of Supplier
-                </h3>
-              </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Listing chemical offering for <strong>{detail.name}</strong> ({detail.masterProductCode}).
-              </p>
-            </div>
-
-            {/* Governance Attribution Banner */}
-            <div className="p-3.5 bg-purple-50/70 border border-purple-200 rounded-2xl text-xs text-purple-900 space-y-1">
-              <strong className="font-bold flex items-center gap-1.5 text-purple-800">
-                <ShieldCheck className="w-4 h-4 text-purple-600" /> Ownership & Governance Notice
-              </strong>
-              <p className="text-[11px] leading-relaxed text-purple-800/90">
-                The selected Supplier will remain the legal business owner of this commercial offering. Provenance will be preserved as &quot;Created by KemKendra Admin&quot; in the audit ledger and visible on supplier and buyer portals.
-              </p>
-            </div>
-
-            <form onSubmit={handleCreateOfferingSubmit} className="space-y-4 text-xs font-medium">
-              {/* Supplier Selection */}
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-xl overflow-hidden my-8 animate-in fade-in-50 duration-150">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Select Supplier Partner *</label>
-                {suppliersLoading ? (
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 text-xs">
-                    Loading verified suppliers...
-                  </div>
-                ) : suppliersList.length > 0 ? (
-                  <select
-                    value={selectedSupplierId}
-                    onChange={(e) => setSelectedSupplierId(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
-                    required
-                  >
-                    <option value="" disabled>-- Select Verified Supplier --</option>
-                    {suppliersList.map((sup: any) => (
-                      <option key={sup.id} value={sup.id}>
-                        {sup.name} {sup.legalName ? `(${sup.legalName})` : ""} {sup.verified ? "✓ Verified" : ""}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <div className="space-y-2">
+                <h3 className="text-base font-bold text-slate-900">
+                  Create Commercial Offering
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Listing chemical offering for <span className="font-semibold text-slate-700">{detail.name}</span> ({detail.masterProductCode}).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateOfferingModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOfferingSubmit} className="p-6 space-y-5 text-xs font-medium text-slate-900">
+              {/* Section 1: Supplier Partner (Main Focus) */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block font-bold text-slate-800">
+                    Supplier Partner <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[11px] text-slate-400 font-normal">Legal commercial owner</span>
+                </div>
+                <SupplierSearchCombobox
+                  value={selectedSupplierId}
+                  onChange={(id) => setSelectedSupplierId(id)}
+                  initialSuppliers={suppliersList}
+                  disabled={createOfferingSubmitting}
+                  required
+                />
+              </div>
+
+              {/* Section 2: Commercial Details */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Commercial Terms
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold text-slate-700 mb-1">
+                      Unit Price (per kg) <span className="text-rose-500">*</span>
+                    </label>
                     <input
                       type="number"
-                      value={selectedSupplierId}
-                      onChange={(e) => setSelectedSupplierId(e.target.value === "" ? "" : Number(e.target.value))}
-                      placeholder="Enter Supplier ID..."
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold"
+                      step="0.01"
+                      min="0.01"
+                      value={offeringPrice}
+                      onChange={(e) => setOfferingPrice(e.target.value)}
+                      placeholder="e.g. 1250.00"
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
                       required
                     />
-                    <span className="text-[10px] text-slate-400">Enter numerical Supplier ID</span>
                   </div>
-                )}
-              </div>
-
-              {/* Price and Currency */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="block font-bold text-slate-700 mb-1">Unit Price (per kg) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    value={offeringPrice}
-                    onChange={(e) => setOfferingPrice(e.target.value)}
-                    placeholder="e.g. 1250.00"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Currency *</label>
-                  <select
-                    value={offeringCurrency}
-                    onChange={(e) => setOfferingCurrency(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900"
-                  >
-                    <option value="INR">INR (₹)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                  </select>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Currency *</label>
+                    <select
+                      value={offeringCurrency}
+                      onChange={(e) => setOfferingCurrency(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                    >
+                      <option value="INR">INR (₹)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="GBP">GBP (£)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Stock, Purity, Grade */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Stock (kg)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={offeringStock}
-                    onChange={(e) => setOfferingStock(e.target.value)}
-                    placeholder="e.g. 5000"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
+              {/* Section 3: Availability & Quality */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Availability & Specifications
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Stock (kg)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={offeringStock}
+                      onChange={(e) => setOfferingStock(e.target.value)}
+                      placeholder="e.g. 5000"
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Purity (%)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      value={offeringPurity}
+                      onChange={(e) => setOfferingPurity(e.target.value)}
+                      placeholder="e.g. 99.5"
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Quality Grade</label>
+                    <input
+                      type="text"
+                      value={offeringGrade}
+                      onChange={(e) => setOfferingGrade(e.target.value)}
+                      placeholder="e.g. Pharma / USP"
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Lead Time (days)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={offeringLeadTime}
+                      onChange={(e) => setOfferingLeadTime(e.target.value)}
+                      placeholder="e.g. 7"
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Purity (%)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={offeringPurity}
-                    onChange={(e) => setOfferingPurity(e.target.value)}
-                    placeholder="e.g. 99.5"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Grade</label>
-                  <input
-                    type="text"
-                    value={offeringGrade}
-                    onChange={(e) => setOfferingGrade(e.target.value)}
-                    placeholder="e.g. Pharma / USP"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">MOQ (kg)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={offeringMoq}
+                      onChange={(e) => setOfferingMoq(e.target.value)}
+                      placeholder="e.g. 100"
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Packaging Description</label>
+                    <input
+                      type="text"
+                      value={offeringPackaging}
+                      onChange={(e) => setOfferingPackaging(e.target.value)}
+                      placeholder="e.g. 200L HDPE Drums"
+                      className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* MOQ, Packaging, Lead Time */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">MOQ (kg)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={offeringMoq}
-                    onChange={(e) => setOfferingMoq(e.target.value)}
-                    placeholder="e.g. 100"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Packaging</label>
-                  <input
-                    type="text"
-                    value={offeringPackaging}
-                    onChange={(e) => setOfferingPackaging(e.target.value)}
-                    placeholder="e.g. 200L HDPE Drums"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1">Lead Time (days)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={offeringLeadTime}
-                    onChange={(e) => setOfferingLeadTime(e.target.value)}
-                    placeholder="e.g. 7"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
-                  />
+              {/* Section 4: Documentation & Compliance */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Documentation & Compliance
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50/60 border border-slate-200 rounded-xl">
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={offeringCoa}
+                      onChange={(e) => setOfferingCoa(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                    />
+                    <span>COA Available</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={offeringMsds}
+                      onChange={(e) => setOfferingMsds(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                    />
+                    <span>MSDS Available</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={offeringExportReady}
+                      onChange={(e) => setOfferingExportReady(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900"
+                    />
+                    <span>Export Ready</span>
+                  </label>
                 </div>
               </div>
 
-              {/* Document Availability Checkboxes */}
-              <div className="flex items-center gap-6 p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={offeringCoa}
-                    onChange={(e) => setOfferingCoa(e.target.checked)}
-                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  COA Available
+              {/* Section 5: Administrative Notes */}
+              <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                <label className="block font-bold text-slate-700">
+                  Administrative Notes
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={offeringMsds}
-                    onChange={(e) => setOfferingMsds(e.target.checked)}
-                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  MSDS Available
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={offeringExportReady}
-                    onChange={(e) => setOfferingExportReady(e.target.checked)}
-                    className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  Export Ready
-                </label>
-              </div>
-
-              {/* Admin Notes */}
-              <div>
-                <label className="block font-bold text-slate-700 mb-1">Administrative Notes / Context</label>
                 <textarea
                   rows={2}
                   value={offeringAdminNotes}
                   onChange={(e) => setOfferingAdminNotes(e.target.value)}
-                  placeholder="Record onboarding agreements, sourcing reference, or governance notes..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
+                  placeholder="Record onboarding agreements, sourcing reference, or internal governance notes..."
+                  className="w-full px-3 py-2 bg-slate-50/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all text-xs"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              {/* Ownership & Governance Notice (Subtle, neutral design) */}
+              <div className="flex items-start gap-2.5 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600">
+                <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-slate-800">Ownership & Governance</p>
+                  <p className="text-[11px] leading-relaxed text-slate-500">
+                    The selected supplier will remain the legal commercial owner of this offering. Administrator creation will be preserved in the audit ledger.
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowCreateOfferingModal(false)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
+                  className="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={createOfferingSubmitting}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-2xs disabled:opacity-50 flex items-center gap-1.5"
+                  disabled={createOfferingSubmitting || !selectedSupplierId || !offeringPrice}
+                  className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-xs disabled:opacity-50 transition-colors flex items-center gap-1.5"
                 >
-                  <ShieldCheck className="w-4 h-4" /> List Offering on Behalf of Supplier
+                  {createOfferingSubmitting ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Listing Offering...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>List Commercial Offering</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

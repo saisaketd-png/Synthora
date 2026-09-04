@@ -1,5 +1,28 @@
 import { resolveApiUrl } from "@/lib/apiUrl";
 import { authenticatedFetch } from "./authenticatedFetch";
+import { parseApiError, ErrorContext } from "@/shared/utils/errorParser";
+
+async function handleApiError(
+  response: Response,
+  defaultMessage: string,
+  context: ErrorContext = "general"
+): Promise<never> {
+  let rawMsg = "";
+  const requestId = response.headers.get("X-Request-ID");
+  try {
+    const errorData = await response.json();
+    rawMsg = errorData.error || errorData.message || "";
+  } catch {
+    // Non-JSON response
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.debug(`[Auth API Error] HTTP ${response.status}${requestId ? ` (Request ID: ${requestId})` : ""}:`, rawMsg || defaultMessage);
+  }
+
+  const safeMessage = parseApiError(rawMsg || defaultMessage, defaultMessage, context);
+  throw new Error(safeMessage);
+}
 
 export type LoginRequest = {
   email: string;
@@ -42,16 +65,7 @@ export async function login(
   });
 
   if (!response.ok) {
-    let errorMessage = `Login failed (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {
-      // Ignore invalid/non-JSON error response
-    }
-    throw new Error(errorMessage);
+    await handleApiError(response, "Login failed", "login");
   }
 
   const result: LoginResponse = await response.json();
@@ -95,14 +109,7 @@ export async function registerBuyer(
   });
 
   if (!response.ok) {
-    let errorMessage = `Registration failed (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Registration failed", "registration");
   }
 
   return response.json();
@@ -128,14 +135,7 @@ export async function registerSupplier(
   });
 
   if (!response.ok) {
-    let errorMessage = `Supplier registration failed (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Supplier registration failed", "registration");
   }
 
   return response.json();
@@ -259,14 +259,7 @@ export async function forgotPassword(email: string): Promise<{ message: string }
   });
 
   if (!response.ok) {
-    let errorMessage = `Request failed (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Password reset request failed", "general");
   }
 
   return response.json();
@@ -286,14 +279,7 @@ export async function resetPassword(
   });
 
   if (!response.ok) {
-    let errorMessage = `Password reset failed (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Password reset failed", "general");
   }
 
   return response.json();
@@ -312,14 +298,7 @@ export async function getCurrentUserProfile(): Promise<UserProfile> {
   const response = await authenticatedFetch("/api/v1/users/me");
 
   if (!response.ok) {
-    let errorMessage = `Failed to fetch profile (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Failed to fetch profile", "general");
   }
 
   return response.json();
@@ -335,14 +314,7 @@ export async function updateUserProfile(data: {
   });
 
   if (!response.ok) {
-    let errorMessage = `Failed to update profile (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Failed to update profile", "general");
   }
 
   return response.json();
@@ -358,14 +330,7 @@ export async function changePassword(data: {
   });
 
   if (!response.ok) {
-    let errorMessage = `Failed to change password (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Failed to change password", "general");
   }
 
   return response.json();
@@ -391,14 +356,7 @@ export async function verifyEmail(data: {
   });
 
   if (!response.ok) {
-    let errorMessage = `Email verification failed (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Email verification failed", "verification");
   }
 
   return response.json();
@@ -417,14 +375,7 @@ export async function resendVerification(data: {
   });
 
   if (!response.ok) {
-    let errorMessage = `Resend verification failed (HTTP ${response.status})`;
-    try {
-      const errorData = await response.json();
-      const requestId = response.headers.get("X-Request-ID");
-      const msg = errorData.error || errorData.message || "Unknown error";
-      errorMessage = `${msg} (HTTP ${response.status}${requestId ? `, Request ID: ${requestId}` : ""})`;
-    } catch {}
-    throw new Error(errorMessage);
+    await handleApiError(response, "Resend verification failed", "verification");
   }
 
   return response.json();

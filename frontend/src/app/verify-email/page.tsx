@@ -5,7 +5,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { verifyEmail, resendVerification, setAuthToken } from "@/features/auth/api/auth";
 import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
-import { CheckCircle2, AlertTriangle, Mail, ArrowRight, RefreshCw } from "lucide-react";
+import { parseApiError } from "@/shared/utils/errorParser";
+import { CheckCircle2, AlertCircle, Clock, Mail, ArrowRight, RefreshCw, KeyRound } from "lucide-react";
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -17,12 +18,12 @@ function VerifyEmailContent() {
   const [verified, setVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
-  const [redirectMessage, setRedirectMessage] = useState<string>("Redirecting to your workspace...");
 
   // Manual token input state
   const [manualToken, setManualToken] = useState("");
 
-  // Resend state
+  // Resend state & visibility
+  const [showResend, setShowResend] = useState(false);
   const [resendEmail, setResendEmail] = useState(emailParam || "");
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState<string | null>(null);
@@ -52,6 +53,7 @@ function VerifyEmailContent() {
 
     setVerifying(true);
     setErrorMessage(null);
+
     try {
       const res = await verifyEmail({ token: cleanToken });
       setVerified(true);
@@ -65,41 +67,19 @@ function VerifyEmailContent() {
 
         const role = res.role?.toUpperCase();
         if (role === "SUPPLIER") {
-          // Check verification status
           const status = res.verificationStatus?.toUpperCase() || "DRAFT";
-          if (status === "DRAFT") {
-            setRedirectMessage("Email verified! Preparing your supplier onboarding workspace...");
-            setRedirectTarget("/dashboard/supplier/onboarding");
-          } else {
-            setRedirectMessage("Email verified! Redirecting to supplier operations desk...");
-            setRedirectTarget("/dashboard/supplier");
-          }
+          setRedirectTarget(status === "DRAFT" ? "/dashboard/supplier/onboarding" : "/dashboard/supplier");
         } else if (role === "ADMIN") {
-          setRedirectMessage("Email verified! Redirecting to administration console...");
           setRedirectTarget("/dashboard/admin");
         } else {
-          setRedirectMessage("Email verified! Redirecting to marketplace...");
           setRedirectTarget("/products");
         }
-
-        // Automatic redirect after a brief confirmation moment
-        setTimeout(() => {
-          if (role === "SUPPLIER") {
-            const status = res.verificationStatus?.toUpperCase() || "DRAFT";
-            router.replace(status === "DRAFT" ? "/dashboard/supplier/onboarding" : "/dashboard/supplier");
-          } else if (role === "ADMIN") {
-            router.replace("/dashboard/admin");
-          } else {
-            router.replace("/products");
-          }
-        }, 1200);
+      } else {
+        setRedirectTarget("/login");
       }
     } catch (err: unknown) {
-      setErrorMessage(
-        err instanceof Error
-          ? err.message
-          : "Invalid or expired verification token. Please request a new link."
-      );
+      const parsed = parseApiError(err, "We couldn't verify your email. Please request a new link.", "verification");
+      setErrorMessage(parsed);
     } finally {
       setVerifying(false);
     }
@@ -127,202 +107,295 @@ function VerifyEmailContent() {
     try {
       setResending(true);
       const res = await resendVerification({ email: resendEmail.trim() });
-      setResendSuccess(res.message || "Verification link sent. Please check your inbox.");
+      setResendSuccess(res.message || "A new verification email has been sent. Please check your inbox.");
     } catch (err: unknown) {
-      setResendError(
-        err instanceof Error ? err.message : "Failed to resend verification link. Please try again."
-      );
+      setResendError(parseApiError(err, "Failed to resend verification link. Please try again.", "verification"));
     } finally {
       setResending(false);
     }
   }
 
+  // Determine specific error scenario for exact copy
+  const isAlreadyUsed =
+    errorMessage &&
+    (errorMessage.toLowerCase().includes("already used") ||
+      errorMessage.toLowerCase().includes("already been used"));
+
+  const isExpired =
+    errorMessage &&
+    !isAlreadyUsed &&
+    errorMessage.toLowerCase().includes("expired");
+
   return (
     <div className="w-full max-w-md">
       {/* Brand Header */}
       <div className="text-center mb-8">
-        <KemKendraLogo href="/" size="xl" subtitle="Email Verification" />
+        <KemKendraLogo href="/" size="xl" layout="stacked" subtitle="Identity Verification" />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 sm:p-10 space-y-6">
-        {/* Loading / Verifying State */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs p-6 sm:p-8 space-y-6">
+        {/* 1. Loading / Verifying State */}
         {verifying && (
           <div className="text-center py-8 space-y-4">
-            <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto" />
-            <h1 className="text-xl font-bold text-slate-900">Verifying Your Email...</h1>
-            <p className="text-xs text-slate-500">
-              Please wait while we confirm your email ownership.
-            </p>
-          </div>
-        )}
-
-        {/* Success State */}
-        {verified && !verifying && (
-          <div className="text-center py-4 space-y-6">
-            <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                Email Verified!
-              </h1>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {redirectMessage}
+            <div className="w-10 h-10 border-3 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="space-y-1">
+              <h1 className="text-lg font-bold text-slate-900">Verifying Your Email...</h1>
+              <p className="text-xs text-slate-500">
+                Confirming token validity. Please wait a moment.
               </p>
             </div>
-            {redirectTarget ? (
-              <Link
-                href={redirectTarget}
-                className="w-full rounded-lg bg-teal-600 hover:bg-teal-700 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                <span>Continue Now</span>
-                <ArrowRight className="w-4 h-4 text-white" />
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="w-full rounded-lg bg-[#0A192F] hover:bg-slate-800 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2"
-              >
-                Sign In to Your Account
-                <ArrowRight className="w-4 h-4 text-teal-400" />
-              </Link>
-            )}
           </div>
         )}
 
-        {/* Error / Expired Token State or No Token Provided */}
-        {!verified && !verifying && (
-          <div className="space-y-6">
-            {errorMessage ? (
-              <div className="space-y-4">
-                <div className="rounded-xl border border-red-200 bg-red-50/80 p-4 text-xs text-red-900 flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="font-bold">Verification Failed</p>
-                    <p className="text-red-700">{errorMessage}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 text-center">
-                  Verification tokens expire in 24 hours and can only be used once. You can request a fresh verification email below.
-                </p>
+        {/* 2. Success State */}
+        {verified && !verifying && (
+          <div className="text-center py-4 space-y-6">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Email verified successfully
+              </h1>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                Your email address has been verified. You can now sign in to your account.
+              </p>
+            </div>
+
+            <Link
+              href={redirectTarget || "/login"}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs"
+            >
+              <span>Continue to Sign In</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
+
+        {/* 3. Already Used Link State */}
+        {!verified && !verifying && isAlreadyUsed && (
+          <div className="text-center py-3 space-y-6">
+            <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Verification link already used
+              </h1>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                This verification link has already been used or is no longer valid. Please sign in or request a new verification email.
+              </p>
+            </div>
+
+            <div className="space-y-2.5 pt-1">
+              <Link
+                href="/login"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs"
+              >
+                <span>Sign In</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setShowResend(true)}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
+                <span>Request New Verification Email</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Expired Link State */}
+        {!verified && !verifying && isExpired && (
+          <div className="text-center py-3 space-y-6">
+            <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center mx-auto">
+              <Clock className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Verification link expired
+              </h1>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                This verification link has expired. Request a new verification email to continue.
+              </p>
+            </div>
+
+            <div className="space-y-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowResend(true)}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Request New Verification Email</span>
+              </button>
+
+              <Link
+                href="/login"
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 transition-colors"
+              >
+                <span>Sign In</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* 5. Generic Error / Fallback State */}
+        {!verified && !verifying && errorMessage && !isAlreadyUsed && !isExpired && (
+          <div className="text-center py-3 space-y-5">
+            <div className="w-12 h-12 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+                Verification Failed
+              </h1>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                {errorMessage}
+              </p>
+            </div>
+
+            <div className="space-y-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowResend(true)}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 px-4 py-2.5 text-xs font-bold text-white transition-colors shadow-xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Request New Verification Email</span>
+              </button>
+
+              <Link
+                href="/login"
+                className="w-full inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-700 transition-colors"
+              >
+                <span>Sign In</span>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* 6. Default Manual Entry Form (if no token in URL or user wants manual entry) */}
+        {!verified && !verifying && !errorMessage && (
+          <div className="space-y-5">
+            <div className="text-center space-y-1">
+              <div className="w-11 h-11 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center mx-auto mb-2">
+                <KeyRound className="w-5 h-5" />
               </div>
-            ) : (
-              <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto mb-3">
-                  <Mail className="w-6 h-6" />
-                </div>
-                <h1 className="text-xl font-bold text-slate-900">Verify Your Account</h1>
-                <p className="text-xs text-slate-500">
-                  Please click the link in the verification email sent to your inbox.
-                </p>
+              <h1 className="text-lg font-bold text-slate-900">Verify Your Account</h1>
+              <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                Enter your verification token or paste the link from your email below.
+              </p>
+            </div>
+
+            <form onSubmit={handleManualVerify} className="space-y-3">
+              <div>
+                <label htmlFor="manualToken" className="block text-xs font-bold text-slate-700 mb-1">
+                  Verification Token or Link
+                </label>
+                <input
+                  id="manualToken"
+                  type="text"
+                  value={manualToken}
+                  onChange={(e) => setManualToken(e.target.value)}
+                  disabled={verifying}
+                  className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-xs text-slate-900 font-mono outline-none transition focus:border-slate-900 focus:ring-1 focus:ring-slate-900 disabled:bg-slate-50"
+                  placeholder="Paste token or verification link..."
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={verifying || !manualToken.trim()}
+                className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs py-2.5 transition-colors shadow-xs"
+              >
+                Verify Email
+              </button>
+            </form>
+
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => setShowResend(!showResend)}
+                className="text-xs text-slate-500 hover:text-slate-900 font-bold transition-colors"
+              >
+                {showResend ? "Hide resend options" : "Didn't receive an email? Request a new link"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Resend Verification Form Drawer / Section */}
+        {showResend && !verified && (
+          <div className="pt-4 border-t border-slate-100 space-y-3">
+            <div className="space-y-1">
+              <h2 className="text-xs font-bold text-slate-900">Request New Verification Link</h2>
+              <p className="text-[11px] text-slate-500">
+                Enter your registered email address and we will send a fresh verification link.
+              </p>
+            </div>
+
+            {resendSuccess && (
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs text-emerald-800 flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <span>{resendSuccess}</span>
               </div>
             )}
 
-            {/* Manual Token Verification Form */}
-            <div className="pt-2 space-y-3">
-              <form onSubmit={handleManualVerify} className="space-y-3">
-                <div>
-                  <label
-                    htmlFor="manualToken"
-                    className="block text-xs font-semibold text-slate-700 mb-1"
-                  >
-                    Paste Verification Token or URL
-                  </label>
-                  <input
-                    id="manualToken"
-                    type="text"
-                    value={manualToken}
-                    onChange={(e) => setManualToken(e.target.value)}
-                    disabled={verifying}
-                    className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-xs text-slate-900 font-mono outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100"
-                    placeholder="e.g. 4Fz9... or http://localhost:3000/verify-email?token=..."
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={verifying || !manualToken.trim()}
-                  className="w-full rounded-lg bg-teal-600 hover:bg-teal-700 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-sm"
-                >
-                  {verifying ? "Verifying..." : "Verify Token"}
-                </button>
-              </form>
-            </div>
+            {resendError && (
+              <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 text-xs text-rose-800 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span>{resendError}</span>
+              </div>
+            )}
 
-            {/* Resend Verification Form */}
-            <div className="pt-4 border-t border-slate-100 space-y-4">
-              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider text-center">
-                Need a new verification link?
-              </h2>
+            <form onSubmit={handleResend} className="space-y-2.5">
+              <input
+                type="email"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                disabled={resending}
+                placeholder="Enter your registered email..."
+                required
+                className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs text-slate-900 outline-none transition focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
+              />
 
-              {resendSuccess && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <span>{resendSuccess}</span>
-                </div>
-              )}
-
-              {resendError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">
-                  {resendError}
-                </div>
-              )}
-
-              <form onSubmit={handleResend} className="space-y-3">
-                <div>
-                  <label
-                    htmlFor="resendEmail"
-                    className="block text-xs font-semibold text-slate-700 mb-1"
-                  >
-                    Registered Work Email
-                  </label>
-                  <input
-                    id="resendEmail"
-                    type="email"
-                    required
-                    value={resendEmail}
-                    onChange={(e) => setResendEmail(e.target.value)}
-                    disabled={resending}
-                    className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 disabled:bg-slate-100"
-                    placeholder="name@company.com"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={resending}
-                  className="w-full rounded-lg bg-slate-800 hover:bg-slate-900 px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-colors flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
-                >
-                  {resending ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      Sending Link...
-                    </>
-                  ) : (
-                    <>Resend Verification Email</>
-                  )}
-                </button>
-              </form>
-            </div>
+              <button
+                type="submit"
+                disabled={resending || !resendEmail.trim()}
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs py-2 transition-colors disabled:opacity-50"
+              >
+                {resending ? "Sending..." : "Send Verification Email"}
+              </button>
+            </form>
           </div>
         )}
       </div>
 
-      <p className="mt-6 text-center text-xs text-slate-500">
-        Already verified?{" "}
-        <Link href="/login" className="font-bold text-teal-600 hover:text-teal-700 underline">
-          Sign In here
+      <div className="text-center mt-6">
+        <Link href="/login" className="text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+          Return to Sign In
         </Link>
-      </p>
+      </div>
     </div>
   );
 }
 
 export default function VerifyEmailPage() {
   return (
-    <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+    <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12 font-sans text-slate-900">
       <Suspense
         fallback={
-          <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-8 text-center text-xs text-slate-400 animate-pulse">
+            Loading verification workspace...
+          </div>
         }
       >
         <VerifyEmailContent />

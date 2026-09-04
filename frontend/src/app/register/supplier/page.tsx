@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerSupplier, getAuthUser } from "@/features/auth/api/auth";
+import { parseApiError } from "@/shared/utils/errorParser";
 import { ArrowRight, Shield, Award, Globe, Building2, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
 import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
@@ -82,9 +83,13 @@ function SupplierRegisterForm() {
 
       // Do NOT auto-login. Require email verification before authenticated access.
       setRegisteredEmail(email.trim());
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Supplier registration failed. Please try again."
+        parseApiError(
+          err,
+          "We couldn't create your account right now. Please try again later.",
+          "registration"
+        )
       );
     } finally {
       setLoading(false);

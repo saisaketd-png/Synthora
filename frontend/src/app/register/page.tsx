@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerBuyer, getAuthUser } from "@/features/auth/api/auth";
+import { parseApiError } from "@/shared/utils/errorParser";
 import { ArrowRight, Mail, CheckCircle2, ShieldCheck } from "lucide-react";
 import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 
@@ -60,11 +61,13 @@ function RegisterForm() {
       // Do NOT auto-login. Require email verification before authenticated access.
       setRegisteredEmail(email);
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Registration failed. Please check your inputs.");
-      }
+      setError(
+        parseApiError(
+          err,
+          "We couldn't create your account right now. Please try again later.",
+          "registration"
+        )
+      );
     } finally {
       setLoading(false);
     }

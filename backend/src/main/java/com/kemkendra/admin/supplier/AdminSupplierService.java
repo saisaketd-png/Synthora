@@ -431,9 +431,16 @@ public class AdminSupplierService {
     }
 
     private AdminSupplierResponse toResponse(Supplier supplier) {
+        String verificationStatusStr = "PENDING";
+        if (supplier.getVerificationStatus() != null) {
+            verificationStatusStr = supplier.getVerificationStatus().name();
+        } else if (Boolean.TRUE.equals(supplier.getVerified())) {
+            verificationStatusStr = "VERIFIED";
+        }
+
         return new AdminSupplierResponse(
                 supplier.getId(),
-                supplier.getName(),
+                supplier.getDisplayName(),
                 supplier.getSlug(),
                 supplier.getCountryCode(),
                 supplier.getCountryName(),
@@ -445,7 +452,10 @@ public class AdminSupplierService {
                 supplier.getUser() != null ? supplier.getUser().getId() : null,
                 supplier.getUser() != null ? supplier.getUser().getEmail() : null,
                 supplier.getUser() != null ? supplier.getUser().getStatus() : null,
-                supplier.getCreatedAt()
+                supplier.getCreatedAt(),
+                verificationStatusStr,
+                supplier.getCity(),
+                supplier.getBusinessType() != null ? supplier.getBusinessType() : "MANUFACTURER"
         );
     }
 }
