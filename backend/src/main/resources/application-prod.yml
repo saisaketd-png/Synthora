@@ -34,6 +34,16 @@ spring:
     port: ${SMTP_PORT:587}
     username: ${SMTP_USERNAME:}
     password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:true}
+          starttls:
+            enable: ${SMTP_STARTTLS_ENABLE:true}
+            required: ${SMTP_STARTTLS_REQUIRED:true}
+          connectiontimeout: ${SMTP_CONNECTION_TIMEOUT:10000}
+          timeout: ${SMTP_TIMEOUT:10000}
+          writetimeout: ${SMTP_WRITE_TIMEOUT:10000}
 
 server:
   forward-headers-strategy: framework
@@ -77,6 +87,10 @@ kemkendra:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:${APP_BASE_URL:http://localhost:3000}}
   app:
     base-url: ${APP_BASE_URL:http://localhost:3000}
+  mail:
+    enabled: ${MAIL_ENABLED:true}
+    from: ${MAIL_FROM:${SMTP_USERNAME:kemkendra1@gmail.com}}
+    from-name: ${MAIL_FROM_NAME:KemKendra Chemical Marketplace}
   rate-limit:
     enabled: ${RATE_LIMIT_ENABLED:true}
     login:
