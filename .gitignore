@@ -14,8 +14,10 @@
 # Storage & Uploads
 storage/
 **/storage/
+!**/src/**/storage/
 uploads/
 **/uploads/
+!**/src/**/uploads/
 *.log
 logs/
 *.dump
