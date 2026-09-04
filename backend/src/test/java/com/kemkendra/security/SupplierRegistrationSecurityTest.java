@@ -9,6 +9,7 @@ import com.kemkendra.identity.dto.SupplierRegisterRequest;
 import com.kemkendra.product.Supplier;
 import com.kemkendra.product.SupplierRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -102,5 +104,85 @@ public class SupplierRegistrationSecurityTest {
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token", notNullValue()));
+    }
+
+    @Test
+    @DisplayName("Multiple suppliers can register using the same mobile number (e.g. Supplier A, B, C)")
+    void testMultipleSuppliers_sameMobileNumberAllowed() throws Exception {
+        String sharedMobile = "9876543210";
+
+        // Supplier A
+        SupplierRegisterRequest supplierA = new SupplierRegisterRequest(
+                "Supplier A Contact",
+                "supplier.a@kemkendra-corp.com",
+                "SecurePass123!",
+                "Supplier A Chemicals Ltd",
+                "India",
+                "IN",
+                sharedMobile,
+                "Mumbai",
+                null,
+                null,
+                true,
+                true
+        );
+        mockMvc.perform(post("/api/v1/auth/register/supplier")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(supplierA)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.supplierId", notNullValue()));
+
+        // Supplier B with same mobile
+        SupplierRegisterRequest supplierB = new SupplierRegisterRequest(
+                "Supplier B Contact",
+                "supplier.b@kemkendra-corp.com",
+                "SecurePass123!",
+                "Supplier B Organics Ltd",
+                "India",
+                "IN",
+                sharedMobile,
+                "Gujarat",
+                null,
+                null,
+                true,
+                true
+        );
+        mockMvc.perform(post("/api/v1/auth/register/supplier")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(supplierB)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.supplierId", notNullValue()));
+
+        // Supplier C with same mobile
+        SupplierRegisterRequest supplierC = new SupplierRegisterRequest(
+                "Supplier C Contact",
+                "supplier.c@kemkendra-corp.com",
+                "SecurePass123!",
+                "Supplier C Pharma Ltd",
+                "India",
+                "IN",
+                sharedMobile,
+                "Hyderabad",
+                null,
+                null,
+                true,
+                true
+        );
+        mockMvc.perform(post("/api/v1/auth/register/supplier")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(supplierC)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.supplierId", notNullValue()));
+
+        // Verify all 3 users exist with the same mobile number but unique emails
+        User userA = userRepository.findByEmail("supplier.a@kemkendra-corp.com").orElseThrow();
+        User userB = userRepository.findByEmail("supplier.b@kemkendra-corp.com").orElseThrow();
+        User userC = userRepository.findByEmail("supplier.c@kemkendra-corp.com").orElseThrow();
+
+        assertEquals(sharedMobile, userA.getPhone());
+        assertEquals(sharedMobile, userB.getPhone());
+        assertEquals(sharedMobile, userC.getPhone());
+        assertNotEquals(userA.getId(), userB.getId());
+        assertNotEquals(userB.getId(), userC.getId());
     }
 }

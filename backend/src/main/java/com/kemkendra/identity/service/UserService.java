@@ -93,12 +93,7 @@ public class UserService {
             throw new IllegalArgumentException("Email already registered");
         }
 
-        if (request.phone() != null && !request.phone().isBlank()) {
-            String phone = request.phone().trim();
-            if (userRepository.findByPhone(phone).isPresent()) {
-                throw new IllegalArgumentException("Phone number already registered");
-            }
-        }
+        // Mobile numbers are non-unique corporate identifiers; multiple accounts/suppliers may share the same phone number.
 
         User user = new User();
         user.setName(request.name().trim());
@@ -159,12 +154,7 @@ public class UserService {
             throw new IllegalArgumentException("Email already registered");
         }
 
-        if (request.phone() != null && !request.phone().isBlank()) {
-            String phone = request.phone().trim();
-            if (userRepository.findByPhone(phone).isPresent()) {
-                throw new IllegalArgumentException("Phone number already registered");
-            }
-        }
+        // Mobile numbers are non-unique corporate identifiers; multiple suppliers may share the same phone number.
 
         // 1. Create User
         User user = new User();
@@ -351,12 +341,6 @@ public class UserService {
                 ? request.phone().trim()
                 : null;
 
-        if (newPhone != null) {
-            Optional<User> existingUserWithPhone = userRepository.findByPhone(newPhone);
-            if (existingUserWithPhone.isPresent() && !existingUserWithPhone.get().getId().equals(user.getId())) {
-                throw new IllegalArgumentException("Phone number is already registered by another account.");
-            }
-        }
         user.setPhone(newPhone);
 
         User saved = userRepository.save(user);

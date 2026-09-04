@@ -281,16 +281,16 @@ public class LegalAcceptanceRegistrationTest {
                 true
         );
 
+        // Multiple accounts sharing the same corporate phone number must be accepted
         mockMvc.perform(post("/api/v1/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req2)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Phone number already registered"));
+                .andExpect(status().isCreated());
     }
 
     @Test
-    @DisplayName("Supplier registration with duplicate phone number fails with 400 and descriptive error")
-    void testSupplierRegistration_duplicatePhoneFails() throws Exception {
+    @DisplayName("Supplier registration with shared phone number is accepted with 201 Created")
+    void testSupplierRegistration_sharedPhoneAllowed() throws Exception {
         SupplierRegisterRequest req1 = new SupplierRegisterRequest(
                 "First Supplier",
                 "supplier1.phone@kemkendra-test.com",
@@ -326,10 +326,10 @@ public class LegalAcceptanceRegistrationTest {
                 true
         );
 
+        // Multiple suppliers sharing the same corporate phone number must be accepted
         mockMvc.perform(post("/api/v1/auth/register/supplier")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req2)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Phone number already registered"));
+                .andExpect(status().isCreated());
     }
 }
