@@ -1,5 +1,4 @@
 # Multi-stage Dockerfile for KemKendra Spring Boot Backend (Render & Production)
-
 # Stage 1: Build stage
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
@@ -12,14 +11,7 @@ RUN mvn dependency:go-offline -B || true
 COPY backend/src ./src
 RUN mvn clean package -DskipTests -B
 
-# Stage 2: Extract Spring Boot layered jar
-FROM eclipse-temurin:21-jre-alpine AS extractor
-WORKDIR /app
-COPY --from=build /app/target/kemkendra-backend-*.jar app.jar
-RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted || \
-    java -Djarmode=layertools -jar app.jar extract --destination extracted
-
-# Stage 3: Minimal runtime image
+# Stage 2: Minimal runtime image
 FROM eclipse-temurin:21-jre-alpine AS runner
 WORKDIR /app
 
@@ -31,19 +23,15 @@ RUN addgroup -S kemkendra && \
 RUN mkdir -p /app/storage && \
     chown -R kemkendra:kemkendra /app
 
-# Copy layered components
-COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/dependencies/ ./
-COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/spring-boot-loader/ ./
-COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/snapshot-dependencies/ ./
-COPY --from=extractor --chown=kemkendra:kemkendra /app/extracted/application/ ./
+# Copy executable Spring Boot fat JAR
+COPY --from=build --chown=kemkendra:kemkendra /app/target/kemkendra-backend-*.jar app.jar
 
 # Run application as non-root user
 USER kemkendra:kemkendra
 
 EXPOSE 8085
 
-# Conservative heap configuration for container environments (e.g. Render Free 512MB RAM)
-# Allocates 256MB max heap leaving ~256MB native headroom for metaspace, thread stacks, and OS overhead
-ENV JAVA_TOOL_OPTIONS="-Xms96m -Xmx256m -XX:+ExitOnOutOfMemoryError"
+# Memory heap configuration
+ENV JAVA_TOOL_OPTIONS="-Xms128m -Xmx512m -XX:+ExitOnOutOfMemoryError"
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
