@@ -371,7 +371,7 @@ export default function SupplierDeepVerificationWorkspacePage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                {workspace.companyName}
+                {workspace.companyName || workspace.legalName || workspace.tradeName || `Supplier #${supplierId}`}
               </h1>
               <span
                 className={`px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider ${

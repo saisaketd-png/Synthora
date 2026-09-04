@@ -6,20 +6,28 @@ import { ArrowLeft, ShieldCheck, ChevronRight } from "lucide-react";
 import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 interface SupplierQualityItem {
-  supplierId: number;
-  companyName: string;
-  businessType: string;
-  verificationStatus: string;
-  completenessScore: number;
-  verificationProgress: number;
-  missingEvidenceCount: number;
-  flaggedEvidenceCount: number;
-  expiredDocumentsCount: number;
-  activeOfferings: number;
-  pendingOfferings: number;
-  flaggedOfferings: number;
-  suspendedOfferings: number;
-  lastActivity: string;
+  supplierId?: number;
+  id?: number;
+  companyName?: string;
+  name?: string;
+  legalName?: string;
+  tradeName?: string;
+  businessType?: string;
+  verificationStatus?: string;
+  completenessScore?: number;
+  compositeScore?: number;
+  complianceScore?: number;
+  verificationProgress?: number;
+  missingEvidenceCount?: number;
+  flaggedEvidenceCount?: number;
+  expiredDocumentsCount?: number;
+  activeOfferings?: number;
+  offeringCount?: number;
+  pendingOfferings?: number;
+  flaggedOfferings?: number;
+  suspendedOfferings?: number;
+  lastActivity?: string;
+  updatedAt?: string;
 }
 
 export default function SupplierQualityPage() {
@@ -87,35 +95,54 @@ export default function SupplierQualityPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm">
-                {items.map((item) => (
-                  <tr key={item.supplierId} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 px-6 font-bold text-slate-900">
-                      {item.companyName}
-                    </td>
-                    <td className="py-4 px-6 uppercase text-xs font-bold text-slate-600">
-                      {item.businessType}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 uppercase">
-                        {item.verificationStatus}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 font-mono font-bold text-xs text-slate-800">
-                      {item.completenessScore}%
-                    </td>
-                    <td className="py-4 px-6 font-mono font-bold text-xs text-slate-800">
-                      {item.activeOfferings}
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      <Link
-                        href={`/dashboard/admin/suppliers/verification/${item.supplierId}`}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors"
-                      >
-                        Inspect Verification <ChevronRight className="w-3.5 h-3.5" />
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
+                {items.map((item, idx) => {
+                  const sId = item.supplierId ?? item.id;
+                  const cName =
+                    item.companyName ||
+                    item.name ||
+                    item.legalName ||
+                    item.tradeName ||
+                    (sId ? `Supplier #${sId}` : "Unnamed Supplier");
+                  const score =
+                    item.completenessScore ??
+                    item.compositeScore ??
+                    item.complianceScore ??
+                    0;
+                  const offerings =
+                    item.activeOfferings ??
+                    item.offeringCount ??
+                    0;
+
+                  return (
+                    <tr key={sId ?? idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-4 px-6 font-bold text-slate-900">
+                        {cName}
+                      </td>
+                      <td className="py-4 px-6 uppercase text-xs font-bold text-slate-600">
+                        {item.businessType || "MANUFACTURER"}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="inline-flex items-center text-xs font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200 uppercase">
+                          {item.verificationStatus || "PENDING"}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 font-mono font-bold text-xs text-slate-800">
+                        {score}%
+                      </td>
+                      <td className="py-4 px-6 font-mono font-bold text-xs text-slate-800">
+                        {offerings}
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <Link
+                          href={`/dashboard/admin/suppliers/verification/${sId}`}
+                          className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors"
+                        >
+                          Inspect Verification <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

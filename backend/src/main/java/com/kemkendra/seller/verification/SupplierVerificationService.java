@@ -113,8 +113,8 @@ public class SupplierVerificationService {
 
         return new SupplierVerificationWorkspaceDto(
                 supplier.getId(),
-                supplier.getName(),
-                supplier.getLegalName() != null ? supplier.getLegalName() : supplier.getName(),
+                supplier.getDisplayName(),
+                supplier.getLegalName() != null && !supplier.getLegalName().isBlank() ? supplier.getLegalName() : supplier.getDisplayName(),
                 supplier.getTradeName(),
                 supplier.getBusinessType(),
                 supplier.getLogoUrl(),

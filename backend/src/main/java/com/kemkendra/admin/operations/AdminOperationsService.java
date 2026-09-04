@@ -481,7 +481,7 @@ public class AdminOperationsService {
             long offCount = supplierOfferingRepository.countBySupplierId(sup.getId());
             return new SupplierQualityItemResponse(
                     sup.getId(),
-                    sup.getName(),
+                    sup.getDisplayName(),
                     sup.getBusinessType() != null ? sup.getBusinessType() : "MANUFACTURER",
                     sup.getVerificationStatus() != null ? sup.getVerificationStatus() : SupplierVerificationStatus.PENDING,
                     sup.getVerified() ? 100 : 50,
@@ -561,7 +561,7 @@ public class AdminOperationsService {
                     .forEach(mp -> results.add(new AdminSearchResultItem("MASTER_PRODUCT", mp.getMasterProductCode(), mp.getName(), mp.getStatus(), "CAS: " + mp.getCasNumber(), "/dashboard/admin/catalog/master-products/" + mp.getId(), LocalDateTime.now())));
 
             supplierRepository.findByNameContainingIgnoreCase(cleanQ, PageRequest.of(0, 10))
-                    .forEach(sup -> results.add(new AdminSearchResultItem("SUPPLIER", String.valueOf(sup.getId()), sup.getName(), String.valueOf(sup.getVerificationStatus()), sup.getBusinessType(), "/dashboard/admin/catalog/verification/" + sup.getId(), LocalDateTime.now())));
+                    .forEach(sup -> results.add(new AdminSearchResultItem("SUPPLIER", String.valueOf(sup.getId()), sup.getDisplayName(), String.valueOf(sup.getVerificationStatus()), sup.getBusinessType(), "/dashboard/admin/catalog/verification/" + sup.getId(), LocalDateTime.now())));
         }
 
         int start = Math.min(page * size, results.size());
@@ -575,7 +575,7 @@ public class AdminOperationsService {
         List<GovernanceQueueItem> queue = new ArrayList<>();
 
         supplierRepository.findByVerificationStatus(SupplierVerificationStatus.PENDING).forEach(sup ->
-                queue.add(new GovernanceQueueItem("q-sup-" + sup.getId(), "HIGH", "SUPPLIER", String.valueOf(sup.getId()), sup.getName(), "Verification credentials pending admin review", "PENDING", LocalDateTime.now(), "Supplier Verification", "/dashboard/admin/catalog/verification/" + sup.getId()))
+                queue.add(new GovernanceQueueItem("q-sup-" + sup.getId(), "HIGH", "SUPPLIER", String.valueOf(sup.getId()), sup.getDisplayName(), "Verification credentials pending admin review", "PENDING", LocalDateTime.now(), "Supplier Verification", "/dashboard/admin/catalog/verification/" + sup.getId()))
         );
 
         supplierOfferingRepository.findByModerationStatus("PENDING_REVIEW").forEach(off ->

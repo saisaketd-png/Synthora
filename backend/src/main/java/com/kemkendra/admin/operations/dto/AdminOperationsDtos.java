@@ -1,5 +1,6 @@
 package com.kemkendra.admin.operations.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kemkendra.product.ProductCategory;
 import com.kemkendra.seller.SupplierVerificationStatus;
 
@@ -266,7 +267,17 @@ public class AdminOperationsDtos {
             int pendingOfferingsCount,
             LocalDateTime updatedAt
     ) {
+        @JsonProperty("supplierId")
+        public Long supplierId() { return id(); }
+
+        @JsonProperty("companyName")
         public String companyName() { return name(); }
+
+        @JsonProperty("completenessScore")
+        public int completenessScore() { return compositeScore(); }
+
+        @JsonProperty("activeOfferings")
+        public long activeOfferings() { return offeringCount(); }
     }
 
     public record SupplierOfferingQualityItemResponse(

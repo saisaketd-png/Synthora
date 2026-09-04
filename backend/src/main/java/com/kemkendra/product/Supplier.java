@@ -133,6 +133,23 @@ public class Supplier {
     public void setUser(User user) { this.user = user; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getDisplayName() {
+        if (name != null && !name.isBlank()) {
+            return name.trim();
+        }
+        if (legalName != null && !legalName.isBlank()) {
+            return legalName.trim();
+        }
+        if (tradeName != null && !tradeName.isBlank()) {
+            return tradeName.trim();
+        }
+        if (user != null && user.getName() != null && !user.getName().isBlank()) {
+            return user.getName().trim();
+        }
+        return id != null ? "Supplier #" + id : "Supplier";
+    }
+
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
 
