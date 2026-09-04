@@ -56,7 +56,7 @@ export async function generateMetadata(props: {
       title: "Chemical Product Catalog | KemKendra",
       description:
         "Global chemical B2B marketplace. Search APIs, pharmaceutical intermediates, and solvents with verified documentation.",
-      url: "https://kemkendra.com/products",
+      url: "https://kemkendra.online/products",
       siteName: "KemKendra",
       type: "website",
     },

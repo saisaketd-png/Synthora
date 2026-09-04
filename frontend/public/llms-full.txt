@@ -1,0 +1,53 @@
+# KemKendra — Full AI Agents Knowledge Document
+
+> Comprehensive reference for autonomous agents, LLM search engines, and automated procurement systems interacting with KemKendra (https://kemkendra.online).
+
+## 1. Platform Identity & Governance
+- **Name**: KemKendra
+- **Mission**: Secure, transparent, and compliant B2B marketplace for chemicals, pharmaceutical APIs, synthesis intermediates, and industrial materials.
+- **Operating Jurisdiction**: India (with global import/export capability).
+- **Compliance Standards**: ISO 9001, WHO-GMP, EU-GMP, US FDA compliance audits, and Indian GSTIN / IEC verification.
+- **Quality Assurance**: Every commercial batch must be accompanied by a verifiable Certificate of Analysis (COA) specifying purity (HPLC/GC), loss on drying, heavy metals, residual solvents, and pharmacopoeial monograph alignment (USP/NF, Ph. Eur., IP, BP).
+
+## 2. Chemical Taxonomy & Categories
+### Active Pharmaceutical Ingredients (APIs)
+- Primary therapeutic categories: Antibiotics, Analgesics/Antipyretics, Cardiovascular, Antidiabetics, CNS agents, and Respiratory.
+- Examples: Paracetamol / Acetaminophen (CAS 103-90-2), Metformin HCl (CAS 1115-70-4), Atorvastatin Calcium (CAS 134523-03-8), Ciprofloxacin (CAS 85721-33-1).
+- Canonical URL: https://kemkendra.online/categories/api
+
+### Pharmaceutical Intermediates
+- Advanced synthesis precursors, chiral building blocks, and protective reagents.
+- Examples: 4-Aminophenol (CAS 123-30-8), Para-Nitrochlorobenzene (CAS 100-00-5), 2-Chlorobenzoic Acid (CAS 118-91-2).
+- Canonical URL: https://kemkendra.online/categories/intermediate
+
+### Specialty Chemicals & Custom Synthesis
+- High-value fine chemicals, phase transfer catalysts, reagents for organometallic synthesis, and advanced electronic chemicals.
+- Canonical URL: https://kemkendra.online/categories/specialty-chemical
+
+### Solvents & Laboratory Reagents
+- High-Purity HPLC, LC-MS, GC, and anhydrous industrial solvents.
+- Examples: Acetonitrile (CAS 75-05-8), Methanol HPLC (CAS 67-56-1), Dichloromethane / DCM (CAS 75-09-2), Dimethyl Sulfoxide / DMSO (CAS 67-68-5).
+- Canonical URL: https://kemkendra.online/categories/solvent
+
+### Pharmaceutical Excipients
+- Binders, coatings, disintegrants, lubricants, and solubilizers: Microcrystalline Cellulose (MCC), Magnesium Stearate, Lactose Monohydrate, Povidone (PVP).
+- Canonical URL: https://kemkendra.online/categories/excipient
+
+## 3. Autonomous Agent Procurement Guide
+AI procurement agents can assist enterprise buyers by:
+1. Identifying chemicals by CAS number, IUPAC name, or molecular formula.
+2. Checking available stock, minimum order quantity (MOQ), and indicative pricing in INR or USD.
+3. Reviewing verified supplier credentials, operational location, and compliance badges.
+4. Assisting buyers in preparing Request for Quotation (RFQ) inquiries with target delivery dates and packaging preferences.
+
+## 4. Canonical Site Navigation
+- Homepage: https://kemkendra.online
+- Master Catalog: https://kemkendra.online/products
+- Categories Index: https://kemkendra.online/categories
+- Verified Suppliers: https://kemkendra.online/suppliers
+- Target Industries: https://kemkendra.online/industries
+- Technical Resources & Guides: https://kemkendra.online/resources
+- Terms of Trade: https://kemkendra.online/terms
+- Privacy & Data Protection: https://kemkendra.online/privacy
+- XML Sitemap: https://kemkendra.online/sitemap.xml
+- Robots Directive: https://kemkendra.online/robots.txt

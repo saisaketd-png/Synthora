@@ -12,7 +12,7 @@ import { PageHeader, EmptyState, ErrorState } from "@/shared/components/ui/Kemke
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 
 export const metadata: Metadata = {
   title: "Supplier Directory | Verified Chemical Manufacturers | KemKendra",

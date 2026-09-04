@@ -1,0 +1,31 @@
+# KemKendra
+
+> KemKendra is an enterprise B2B chemical marketplace connecting verified chemical manufacturers, pharmaceutical formulators, and global procurement teams with audited supplier governance, CAS-level specifications, and batch-level quality documentation.
+
+## Overview
+KemKendra provides secure, transparent, and compliant sourcing for pharmaceutical APIs, intermediates, specialty chemicals, performance solvents, excipients, and agrochemicals. All listed chemical suppliers undergo rigorous verification, including tax compliance (GST), regulatory accreditation (GMP, ISO, FDA registration), and operational facility audits. 
+
+## Key Public Directories
+- [Chemical Catalog](https://kemkendra.online/products): Search verified master chemicals by name, CAS registry number, chemical formula, pharmacopoeial grade, or intended application.
+- [Product Categories](https://kemkendra.online/categories): Browse chemicals by industrial and pharmaceutical category:
+  - [API & Actives](https://kemkendra.online/categories/api): Active Pharmaceutical Ingredients (APIs) with pharmacopoeial monographs (USP, EP, IP, BP).
+  - [Pharma Intermediates](https://kemkendra.online/categories/intermediate): Advanced chemical synthesis intermediates, precursors, and building blocks.
+  - [Specialty Chemicals](https://kemkendra.online/categories/specialty-chemical): Custom synthesis materials, catalysts, and performance additives.
+  - [Solvents & Reagents](https://kemkendra.online/categories/solvent): Analytical grade, HPLC grade, and bulk industrial solvents.
+  - [Pharmaceutical Excipients](https://kemkendra.online/categories/excipient): Binders, disintegrants, lubricants, and solubilizers.
+- [Verified Suppliers Directory](https://kemkendra.online/suppliers): Directory of vetted chemical manufacturers with operational facilities, production capacities, and compliance status.
+- [Industries Served](https://kemkendra.online/industries): Chemical sourcing mapped to Pharmaceutical Manufacturing, Agrochemicals, Polymers, Specialty Inks, and Water Treatment.
+- [Resources & Documentation](https://kemkendra.online/resources): Standards and technical guides for Certificate of Analysis (COA), Technical Data Sheet (TDS), and Material Safety Data Sheet (MSDS).
+
+## Procurement & Trade Workflows
+- **Request for Quote (RFQ)**: Direct digital RFQ submission to verified suppliers with multi-tier volume pricing and custom lead times.
+- **Batch Verification & Quality Governance**: Real-time access to batch-specific COAs, impurity profiles, and compliance audits before ordering.
+- **Order Tracking & Milestone Fulfillment**: End-to-end milestone tracking from dispatch to delivery with digital proof of delivery.
+
+## Programmatic Access & APIs
+- **Base API**: `https://kemkendra.online/api/v1`
+- **Catalog Search**: `GET /api/v1/products?q={query}&category={cat}&page={page}&size={size}`
+- **Product Details**: `GET /api/v1/products/{id}` returns CAS, molecular weight, formula, packaging options, and active commercial offerings.
+- **Supplier Verification**: `GET /api/v1/suppliers/{id}` returns business credentials, verification status, and catalog portfolio.
+- **OpenAPI Schema**: `https://kemkendra.online/api/v1/api-docs`
+- **Sitemap**: `https://kemkendra.online/sitemap.xml`

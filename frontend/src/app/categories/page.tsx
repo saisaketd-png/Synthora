@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Chemical Categories & Classifications | KemKendra",
     description: "Browse pharmaceutical APIs, intermediates, specialty chemicals, and solvents categorized for global enterprise procurement.",
-    url: "https://kemkendra.com/categories",
+    url: "https://kemkendra.online/categories",
     siteName: "KemKendra",
     type: "website",
   },

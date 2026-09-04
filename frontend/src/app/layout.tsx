@@ -15,7 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://kemkendra.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online"),
   title: {
     default: "KemKendra | Global B2B Chemical Marketplace",
     template: "%s",
@@ -39,6 +39,13 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

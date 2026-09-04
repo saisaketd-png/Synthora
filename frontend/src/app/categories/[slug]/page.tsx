@@ -15,7 +15,7 @@ import { ChevronRight, Clock, Factory, Layers, ArrowLeft } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 
 export async function generateMetadata({
   params,

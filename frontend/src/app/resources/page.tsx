@@ -5,7 +5,7 @@ import { ResourcesSection } from "@/features/home/components/ResourcesSection";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 
 export const metadata: Metadata = {
   title: "Compliance & Technical Resources | B2B Procurement | KemKendra",

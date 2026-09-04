@@ -24,9 +24,18 @@ logs/
 *.sql.gz
 database/backups/
 **/backups/
+# Scratch & Temporary
+scratch/
 scratch*.json
 replace_urls.py
 graphify-out/
+*.backup
+*.save
+*.bak
+*.swp
+*~
+*.tmp
+output*.json
 
 # IDE & OS
 .idea/
@@ -34,4 +43,5 @@ graphify-out/
 *.iml
 .DS_Store
 Thumbs.db
+
 

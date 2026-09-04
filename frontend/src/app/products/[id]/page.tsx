@@ -22,7 +22,7 @@ import { serializeJsonLd } from "@/shared/utils/security";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export async function generateMetadata({
