@@ -50,14 +50,14 @@ services:
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
 
       MAIL_ENABLED: ${MAIL_ENABLED:-true}
-      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      SMTP_AUTH: ${SMTP_AUTH:-false}
-      SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS_ENABLE:-false}
-      SMTP_STARTTLS_REQUIRED: ${SMTP_STARTTLS_REQUIRED:-false}
-      MAIL_FROM: ${MAIL_FROM:-chemkendra@gmail.com}
+      SMTP_AUTH: ${SMTP_AUTH:-true}
+      SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS_ENABLE:-true}
+      SMTP_STARTTLS_REQUIRED: ${SMTP_STARTTLS_REQUIRED:-true}
+      MAIL_FROM: ${MAIL_FROM:-kemkendra1@gmail.com}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-KemKendra Chemical Marketplace}
 
       ADMIN_BOOTSTRAP_ENABLED: ${ADMIN_BOOTSTRAP_ENABLED:-false}
