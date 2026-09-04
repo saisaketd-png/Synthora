@@ -57,7 +57,7 @@ services:
       SMTP_AUTH: ${SMTP_AUTH:-false}
       SMTP_STARTTLS_ENABLE: ${SMTP_STARTTLS_ENABLE:-false}
       SMTP_STARTTLS_REQUIRED: ${SMTP_STARTTLS_REQUIRED:-false}
-      MAIL_FROM: ${MAIL_FROM:-notifications@kemkendra.com}
+      MAIL_FROM: ${MAIL_FROM:-chemkendra@gmail.com}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-KemKendra Chemical Marketplace}
 
       ADMIN_BOOTSTRAP_ENABLED: ${ADMIN_BOOTSTRAP_ENABLED:-false}
@@ -125,6 +125,7 @@ services:
 
     volumes:
       - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
     depends_on:
       backend:
@@ -136,7 +137,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1"
+          "wget --no-verbose --tries=1 --spider http://127.0.0.1:80/healthz || exit 1"
         ]
       interval: 15s
       timeout: 5s
