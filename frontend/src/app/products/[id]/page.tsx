@@ -19,6 +19,7 @@ import { Product } from "@/features/products/types/product";
 import SupplierComparison from "@/features/products/components/SupplierComparison";
 import { ProductDocuments } from "@/features/products/components/ProductDocuments";
 import { serializeJsonLd } from "@/shared/utils/security";
+import { getCategoryAbbreviation, getCategoryDisplayName } from "@/features/categories/utils/categoryUtils";
 
 export const dynamic = "force-dynamic";
 
@@ -233,12 +234,12 @@ export default async function ProductDetailPage({
               <div className="lg:col-span-7 space-y-4">
                 <div className="flex items-center gap-2 flex-wrap">
                   {product.category && (
-                    <span className="text-xs font-semibold text-[#0052CC] bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 rounded-[4px] font-mono uppercase">
-                      {product.category.replace(/_/g, " ")}
+                    <span className="text-xs font-semibold text-[#0052CC] bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1 rounded-[4px] font-mono uppercase">
+                      Category: {getCategoryAbbreviation(product.category)}
                     </span>
                   )}
-                  <span className="text-xs font-mono font-semibold text-[#0F172A] bg-[#F4F4F5] border border-[#E4E4E7] px-2 py-0.5 rounded-[4px]">
-                    CODE: {canonicalCode}
+                  <span className="text-xs font-mono font-semibold text-[#0F172A] bg-[#F4F4F5] border border-[#E4E4E7] px-2.5 py-1 rounded-[4px]">
+                    Product Code: {canonicalCode}
                   </span>
                   <span className="text-xs font-semibold text-[#059669] bg-[#ECFDF5] border border-[rgba(5,150,105,0.2)] px-2 py-0.5 rounded-[4px] inline-flex items-center gap-1 font-mono">
                     <CheckCircle2 className="w-3 h-3" /> VERIFIED
@@ -250,7 +251,7 @@ export default async function ProductDetailPage({
                     {product.name}
                   </h1>
                   <p className="text-xs text-[#64748B] mt-1 font-mono">
-                    Catalog Specification ID: {canonicalCode}
+                    Product Code: {canonicalCode} &bull; Category: {getCategoryDisplayName(product.category)}
                   </p>
                 </div>
 

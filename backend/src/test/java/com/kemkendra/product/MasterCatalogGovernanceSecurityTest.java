@@ -142,7 +142,7 @@ public class MasterCatalogGovernanceSecurityTest {
 
         assertNotNull(approvedMp.id());
         assertEquals("Sodium Valproate Pure", approvedMp.name());
-        assertTrue(approvedMp.masterProductCode().startsWith("API-MP-"));
+        assertTrue(approvedMp.masterProductCode().startsWith("API-"));
 
         // Verify supplier notification delivered
         assertFalse(notificationRepository.findByRecipientIdOrderByCreatedAtDesc(supplierUser.getId()).isEmpty());

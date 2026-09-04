@@ -25,12 +25,17 @@ import {
   Power,
   Shield,
   X,
+  Copy,
+  Check,
 } from "lucide-react";
+import { getCategoryAbbreviation, getCategoryDisplayName } from "@/features/categories/utils/categoryUtils";
 import {
   getMasterProductDetail,
+  updateMasterProduct,
   verifyChemicalField,
   setMasterProductStatus,
   addOfficialSynonym,
+  addOfficialSynonymsBulk,
   deleteSynonym,
   reviewSynonym,
   uploadMasterProductImage,
@@ -107,6 +112,43 @@ export default function MasterProductGovernanceDetailPage() {
   const [editModerationStatus, setEditModerationStatus] = useState("APPROVED");
   const [editNotes, setEditNotes] = useState("");
   const [editOfferingSubmitting, setEditOfferingSubmitting] = useState(false);
+
+  // Edit Master Product State
+  const [showEditProductModal, setShowEditProductModal] = useState(false);
+  const [editProductName, setEditProductName] = useState("");
+  const [editProductCategory, setEditProductCategory] = useState("API");
+  const [editProductCas, setEditProductCas] = useState("");
+  const [editProductFormula, setEditProductFormula] = useState("");
+  const [editProductStatus, setEditProductStatus] = useState("ACTIVE");
+  const [editProductDescription, setEditProductDescription] = useState("");
+  const [editProductReason, setEditProductReason] = useState("");
+  const [editProductSubmitting, setEditProductSubmitting] = useState(false);
+  const [editProductErrors, setEditProductErrors] = useState<Record<string, string>>({});
+
+  // Bulk Synonyms State
+  const [showBulkSynonymsModal, setShowBulkSynonymsModal] = useState(false);
+  const [bulkSynonymsInput, setBulkSynonymsInput] = useState("");
+  const [parsedSynonyms, setParsedSynonyms] = useState<string[]>([]);
+  const [bulkSynonymsSubmitting, setBulkSynonymsSubmitting] = useState(false);
+
+  // Delete Synonym Confirmation Modal State
+  const [synonymToDelete, setSynonymToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleteSynonymSubmitting, setDeleteSynonymSubmitting] = useState(false);
+
+  // Copy code feedback state
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const handleCopyCode = async () => {
+    if (!detail?.masterProductCode) return;
+    try {
+      await navigator.clipboard.writeText(detail.masterProductCode);
+      setCopiedCode(true);
+      toast.success("Master Product Code copied to clipboard");
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {
+      toast.error("Failed to copy product code");
+    }
+  };
 
   const loadData = useCallback(async () => {
     try {
@@ -187,6 +229,133 @@ export default function MasterProductGovernanceDetailPage() {
       toast.error("Failed to delete synonym: " + e.message);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const parseSynonymsFromText = (input: string): string[] => {
+    if (!input) return [];
+    const items = input.split(/[\r\n,;]+/);
+    const seen = new Set<string>();
+    const result: string[] = [];
+
+    for (const raw of items) {
+      const trimmed = raw.trim();
+      if (!trimmed) continue;
+      const lower = trimmed.toLowerCase();
+      if (!seen.has(lower)) {
+        seen.add(lower);
+        result.push(trimmed);
+      }
+    }
+    return result;
+  };
+
+  const handleBulkSynonymsInputChange = (text: string) => {
+    setBulkSynonymsInput(text);
+    setParsedSynonyms(parseSynonymsFromText(text));
+  };
+
+  const handleRemovePreviewSynonym = (indexToRemove: number) => {
+    setParsedSynonyms((prev) => prev.filter((_, i) => i !== indexToRemove));
+  };
+
+  const openEditProductModal = () => {
+    if (!detail) return;
+    setEditProductName(detail.name || "");
+    setEditProductCategory(detail.category || "API");
+    setEditProductCas(detail.casNumber || "");
+    setEditProductFormula(detail.molecularFormula || "");
+    setEditProductStatus(detail.status || "ACTIVE");
+    setEditProductDescription(detail.description || "");
+    setEditProductReason("");
+    setEditProductErrors({});
+    setShowEditProductModal(true);
+  };
+
+  const handleEditProductSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+
+    if (!editProductName.trim()) {
+      newErrors.name = "Canonical chemical name is required";
+    }
+    if (!editProductCategory) {
+      newErrors.category = "Category is required";
+    }
+    if (editProductCas.trim()) {
+      const casRegex = /^\d{2,7}-\d{2}-\d$/;
+      if (!casRegex.test(editProductCas.trim())) {
+        newErrors.casNumber = "Invalid CAS format (e.g. 103-90-2)";
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setEditProductErrors(newErrors);
+      return;
+    }
+
+    try {
+      setEditProductSubmitting(true);
+      setEditProductErrors({});
+      await updateMasterProduct(id, {
+        name: editProductName.trim(),
+        category: editProductCategory,
+        casNumber: editProductCas.trim() || undefined,
+        molecularFormula: editProductFormula.trim() || undefined,
+        status: editProductStatus,
+        description: editProductDescription.trim() || undefined,
+        updateReason: editProductReason.trim() || undefined,
+      });
+      toast.success("Master Product updated successfully");
+      setShowEditProductModal(false);
+      await loadData();
+    } catch (err: any) {
+      const errMsg = parseApiError(err, "Failed to update master product", "general");
+      toast.error(errMsg);
+      setEditProductErrors({ general: errMsg });
+    } finally {
+      setEditProductSubmitting(false);
+    }
+  };
+
+  const handleBulkSynonymsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (parsedSynonyms.length === 0) {
+      toast.error("Please provide at least one valid synonym");
+      return;
+    }
+
+    try {
+      setBulkSynonymsSubmitting(true);
+      const res = await addOfficialSynonymsBulk(id, parsedSynonyms);
+      toast.success(
+        `Added ${res.addedCount || parsedSynonyms.length} synonym(s)${
+          res.skippedCount && res.skippedCount > 0 ? ` (${res.skippedCount} skipped as duplicate)` : ""
+        }`
+      );
+      setShowBulkSynonymsModal(false);
+      setBulkSynonymsInput("");
+      setParsedSynonyms([]);
+      await loadData();
+    } catch (err: any) {
+      toast.error(parseApiError(err, "Failed to bulk add synonyms", "general"));
+    } finally {
+      setBulkSynonymsSubmitting(false);
+    }
+  };
+
+  const handleConfirmDeleteSynonym = async () => {
+    if (!synonymToDelete) return;
+    try {
+      setDeleteSynonymSubmitting(true);
+      await deleteSynonym(id, synonymToDelete.id);
+      toast.success(`Synonym "${synonymToDelete.name}" removed`);
+      setSynonymToDelete(null);
+      await loadData();
+    } catch (err: any) {
+      toast.error(parseApiError(err, "Failed to delete synonym", "general"));
+    } finally {
+      setDeleteSynonymSubmitting(false);
     }
   };
 
@@ -505,8 +674,16 @@ export default function MasterProductGovernanceDetailPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">{detail.name}</h1>
-              <span className="px-2.5 py-0.5 bg-slate-900 text-white font-mono text-[10px] font-bold rounded-lg uppercase">
-                {detail.masterProductCode}
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900 text-white font-mono text-[11px] font-bold rounded-lg shadow-2xs">
+                <span>{detail.masterProductCode}</span>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  className="hover:text-blue-400 transition-colors p-0.5 rounded cursor-pointer"
+                  title="Copy Master Product Code"
+                >
+                  {copiedCode ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-slate-300 hover:text-white" />}
+                </button>
               </span>
               <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
                 detail.status === "ACTIVE" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" :
@@ -525,9 +702,17 @@ export default function MasterProductGovernanceDetailPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={openEditProductModal}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            Edit Product
+          </button>
+          <button
+            type="button"
             disabled={detail.status === "MERGED" || actionLoading}
             onClick={handleToggleStatus}
-            className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-bold transition-all shadow-2xs disabled:opacity-40"
+            className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-bold transition-all shadow-2xs disabled:opacity-40 cursor-pointer"
           >
             {detail.status === "ACTIVE" ? "Deactivate Product" : "Activate Product"}
           </button>
@@ -577,21 +762,36 @@ export default function MasterProductGovernanceDetailPage() {
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">Master Product Code</span>
-                <strong className="text-slate-900 font-mono font-extrabold">{detail.masterProductCode}</strong>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <strong className="text-slate-900 font-mono text-sm font-extrabold">{detail.masterProductCode}</strong>
+                  <button
+                    type="button"
+                    onClick={handleCopyCode}
+                    className="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
+                    title="Copy Master Product Code"
+                  >
+                    {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">CAS Registry Number</span>
-                <strong className="text-slate-900 font-mono font-bold">{detail.casNumber || "N/A"}</strong>
+                <strong className="text-slate-900 font-mono font-bold block mt-0.5">{detail.casNumber || "N/A"}</strong>
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">Molecular Formula</span>
-                <strong className="text-slate-900 font-mono font-bold">{detail.molecularFormula || "N/A"}</strong>
+                <strong className="text-slate-900 font-mono font-bold block mt-0.5">{detail.molecularFormula || "N/A"}</strong>
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">Product Category</span>
-                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-extrabold rounded uppercase">
-                  {detail.category?.replace("_", " ")}
-                </span>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-extrabold rounded uppercase tracking-wide border border-blue-200">
+                    {getCategoryAbbreviation(detail.category)}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    ({getCategoryDisplayName(detail.category)})
+                  </span>
+                </div>
               </div>
               <div>
                 <span className="text-slate-400 block text-[10px] uppercase font-bold">Commercial Offerings</span>
@@ -615,9 +815,22 @@ export default function MasterProductGovernanceDetailPage() {
               <h3 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                 <Tag className="w-4 h-4 text-indigo-600" /> 02 / PRODUCT SYNONYMS & TRADE NAMES
               </h3>
-              <span className="text-xs font-bold text-slate-500">
-                {approvedSynonyms.length} Official / {pendingSynonyms.length} Pending
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-slate-500">
+                  {approvedSynonyms.length} Official / {pendingSynonyms.length} Pending
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBulkSynonymsInput("");
+                    setParsedSynonyms([]);
+                    setShowBulkSynonymsModal(true);
+                  }}
+                  className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Bulk Add Synonyms
+                </button>
+              </div>
             </div>
 
             {/* Approved Synonyms Tags */}
@@ -638,9 +851,9 @@ export default function MasterProductGovernanceDetailPage() {
                       )}
                       <button
                         type="button"
-                        onClick={() => handleDeleteSynonym(syn.id)}
+                        onClick={() => setSynonymToDelete({ id: syn.id, name: syn.synonym })}
                         disabled={actionLoading}
-                        className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors"
+                        className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors cursor-pointer"
                         title="Remove Synonym"
                       >
                         &times;
@@ -1533,6 +1746,373 @@ export default function MasterProductGovernanceDetailPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Master Product */}
+      {showEditProductModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                  <Edit2 className="w-5 h-5 text-blue-600" />
+                  Edit Master Product
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Update chemical identity, categorization, and technical metadata.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEditProductModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {editProductErrors.general && (
+              <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{editProductErrors.general}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditProductSubmit} className="space-y-4 text-xs font-medium">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Canonical Name */}
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Canonical Product Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editProductName}
+                    onChange={(e) => {
+                      setEditProductName(e.target.value);
+                      if (editProductErrors.name) {
+                        setEditProductErrors((prev) => {
+                          const c = { ...prev };
+                          delete c.name;
+                          return c;
+                        });
+                      }
+                    }}
+                    placeholder="e.g. Paracetamol / Acetaminophen"
+                    className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                      editProductErrors.name ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
+                    }`}
+                    required
+                  />
+                  {editProductErrors.name && (
+                    <p className="text-[11px] text-rose-600 font-semibold mt-1">{editProductErrors.name}</p>
+                  )}
+                </div>
+
+                {/* Master Product Code (Immutable) */}
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                    <span>Master Product Code</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-extrabold tracking-wider bg-slate-100 px-1.5 py-0.5 rounded">Immutable</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={detail.masterProductCode}
+                    disabled
+                    readOnly
+                    className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-mono font-bold cursor-not-allowed select-none"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Product codes are permanent identifiers and do not change when category details are updated.
+                  </p>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Product Category <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={editProductCategory}
+                    onChange={(e) => setEditProductCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                    required
+                  >
+                    <option value="API">Active Pharmaceutical Ingredient (API)</option>
+                    <option value="INTERMEDIATE">Chemical Intermediate</option>
+                    <option value="EXCIPIENT">Pharmaceutical Excipient</option>
+                    <option value="SOLVENT">Industrial Solvent</option>
+                    <option value="SPECIALTY_CHEMICAL">Specialty Chemical</option>
+                    <option value="LAB_CHEMICAL">Laboratory Chemical</option>
+                  </select>
+                </div>
+
+                {/* CAS Registry Number */}
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    CAS Registry Number
+                  </label>
+                  <input
+                    type="text"
+                    value={editProductCas}
+                    onChange={(e) => {
+                      setEditProductCas(e.target.value);
+                      if (editProductErrors.casNumber) {
+                        setEditProductErrors((prev) => {
+                          const c = { ...prev };
+                          delete c.casNumber;
+                          return c;
+                        });
+                      }
+                    }}
+                    placeholder="e.g. 103-90-2"
+                    className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-slate-900 font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                      editProductErrors.casNumber ? "border-rose-400 bg-rose-50/20" : "border-slate-200"
+                    }`}
+                  />
+                  {editProductErrors.casNumber && (
+                    <p className="text-[11px] text-rose-600 font-semibold mt-1">{editProductErrors.casNumber}</p>
+                  )}
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Standard format: 2 to 7 digits, hyphen, 2 digits, hyphen, 1 check digit.
+                  </p>
+                </div>
+
+                {/* Molecular Formula */}
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Molecular Formula
+                  </label>
+                  <input
+                    type="text"
+                    value={editProductFormula}
+                    onChange={(e) => setEditProductFormula(e.target.value)}
+                    placeholder="e.g. C8H9NO2"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                  <p className="text-[10px] text-slate-400 mt-1">Hill system notation recommended.</p>
+                </div>
+
+                {/* Governance Status */}
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Governance Status
+                  </label>
+                  <select
+                    value={editProductStatus}
+                    onChange={(e) => setEditProductStatus(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                  >
+                    <option value="ACTIVE">ACTIVE (Published to marketplace)</option>
+                    <option value="INACTIVE">INACTIVE (Hidden from general search)</option>
+                  </select>
+                </div>
+
+                {/* Technical Description */}
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Technical Description & Synoptic Profile
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={editProductDescription}
+                    onChange={(e) => setEditProductDescription(e.target.value)}
+                    placeholder="Enter comprehensive chemical specifications, applications, and handling notes..."
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-normal"
+                  />
+                </div>
+
+                {/* Reason for Change / Audit Trail */}
+                <div className="sm:col-span-2">
+                  <label className="block font-bold text-slate-700 mb-1">
+                    Reason for Change <span className="text-slate-400 font-normal">(Recorded in Compliance Audit Log)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editProductReason}
+                    onChange={(e) => setEditProductReason(e.target.value)}
+                    placeholder="e.g. Corrected IUPAC nomenclature and updated formula per regulatory spec"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowEditProductModal(false)}
+                  disabled={editProductSubmitting}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editProductSubmitting}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {editProductSubmitting ? "Saving Changes..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Bulk Add Synonyms */}
+      {showBulkSynonymsModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                  <Tag className="w-5 h-5 text-indigo-600" />
+                  Add Synonyms in Bulk
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Paste or type multiple trade names, IUPAC aliases, or research identifiers.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowBulkSynonymsModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleBulkSynonymsSubmit} className="space-y-4 text-xs font-medium">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Paste Synonyms
+                </label>
+                <textarea
+                  rows={6}
+                  value={bulkSynonymsInput}
+                  onChange={(e) => handleBulkSynonymsInputChange(e.target.value)}
+                  placeholder={`4-Carbazolol\n4-Hydroxy Carbazole\n4-Hydroxy-9H-carbazole\n9H-Carbazol-4-ol\n\nOr comma/semicolon separated:\n4-Carbazolol, 4-Hydroxy Carbazole; 9H-Carbazol-4-ol`}
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-normal leading-relaxed"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Supports newlines, commas, and semicolons. Whitespace is automatically trimmed and duplicates are discarded.
+                </p>
+              </div>
+
+              {/* Preview Chips */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-bold text-slate-700">
+                    Preview ({parsedSynonyms.length} item{parsedSynonyms.length === 1 ? "" : "s"})
+                  </span>
+                  {parsedSynonyms.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setParsedSynonyms([]);
+                        setBulkSynonymsInput("");
+                      }}
+                      className="text-[10px] text-rose-600 hover:underline font-bold cursor-pointer"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+
+                {parsedSynonyms.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                    {parsedSynonyms.map((syn, idx) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 text-slate-800 text-xs font-bold rounded-lg shadow-2xs group"
+                      >
+                        <span>{syn}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePreviewSynonym(idx)}
+                          className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors cursor-pointer"
+                          title="Remove item"
+                        >
+                          &times;
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-slate-400 text-xs italic">
+                    Paste or type synonyms above to preview items before adding.
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowBulkSynonymsModal(false)}
+                  disabled={bulkSynonymsSubmitting}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={bulkSynonymsSubmitting || parsedSynonyms.length === 0}
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {bulkSynonymsSubmitting
+                    ? "Adding Synonyms..."
+                    : `Add ${parsedSynonyms.length} Synonym${parsedSynonyms.length === 1 ? "" : "s"}`}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Confirm Delete Synonym */}
+      {synonymToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900">
+                  Delete Synonym?
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Confirm removal from catalog search index.
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+              Are you sure you want to remove <strong className="text-slate-900 font-bold">"{synonymToDelete.name}"</strong>?
+              Once removed, buyer searches matching this exact synonym will no longer resolve to this master product.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setSynonymToDelete(null)}
+                disabled={deleteSynonymSubmitting}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50 text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDeleteSynonym}
+                disabled={deleteSynonymSubmitting}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 text-xs"
+              >
+                {deleteSynonymSubmitting ? "Deleting..." : "Delete Synonym"}
+              </button>
+            </div>
           </div>
         </div>
       )}

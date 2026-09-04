@@ -280,6 +280,16 @@ public class AdminMasterCatalogController {
                 .body(adminMasterCatalogService.addOfficialSynonym(id, payload, authentication));
     }
 
+    @PostMapping("/master-products/{id}/synonyms/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<BulkSynonymsResponse> addOfficialSynonymsBulk(
+            @PathVariable UUID id,
+            @Valid @RequestBody BulkAddSynonymsPayload payload,
+            Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(adminMasterCatalogService.addOfficialSynonymsBulk(id, payload, authentication));
+    }
+
     @DeleteMapping("/master-products/{id}/synonyms/{synonymId}")
     public ResponseEntity<Void> deleteSynonym(
             @PathVariable UUID id,

@@ -307,7 +307,6 @@ export async function setMasterProductStatus(id: string, status: string): Promis
 export async function getMasterProductDetail(id: string): Promise<any> {
   const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products/${id}`);
   if (!res.ok) throw new Error("Failed to load master product details");
-  return res.json();
 }
 
 export async function verifyChemicalField(id: string, payload: { fieldName: string; status: string; notes?: string }): Promise<MasterProduct> {
@@ -457,6 +456,19 @@ export async function addOfficialSynonym(masterProductId: string, synonym: strin
   });
   if (!res.ok) {
     let err = "Failed to add synonym";
+    try { err = (await res.json()).message || err; } catch {}
+    throw new Error(err);
+  }
+  return res.json();
+}
+
+export async function addOfficialSynonymsBulk(masterProductId: string, synonyms: string[]): Promise<any> {
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products/${masterProductId}/synonyms/bulk`, {
+    method: "POST",
+    body: JSON.stringify({ synonyms }),
+  });
+  if (!res.ok) {
+    let err = "Failed to bulk add synonyms";
     try { err = (await res.json()).message || err; } catch {}
     throw new Error(err);
   }

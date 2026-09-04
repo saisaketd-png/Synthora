@@ -123,7 +123,7 @@ public class MasterProductOfferingSecurityTest {
 
         assertNotNull(response.id());
         assertNotNull(response.masterProductCode());
-        assertTrue(response.masterProductCode().startsWith("API-MP-"));
+        assertTrue(response.masterProductCode().startsWith("API-"));
         assertEquals("Paracetamol Master Grade", response.name());
         assertEquals("103-90-2", response.casNumber());
     }

@@ -22,9 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.UUID;
 
 @Service
@@ -165,13 +163,40 @@ public class AdminMasterCatalogService {
         MasterProduct mp = masterProductRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + id));
 
-        String prevState = "Status: " + mp.getStatus() + ", Name: " + mp.getName() + ", CAS: " + mp.getCasNumber();
+        String prevState = "Status: " + mp.getStatus() + ", Name: " + mp.getName() + ", CAS: " + mp.getCasNumber() + ", Cat: " + mp.getCategory();
 
-        if (payload.name() != null && !payload.name().isBlank()) mp.setName(payload.name().trim());
-        if (payload.casNumber() != null) mp.setCasNumber(payload.casNumber().trim());
-        if (payload.molecularFormula() != null) mp.setMolecularFormula(payload.molecularFormula().trim());
-        if (payload.category() != null) mp.setCategory(payload.category());
-        if (payload.description() != null) mp.setDescription(payload.description().trim());
+        if (payload.name() != null && !payload.name().isBlank()) {
+            mp.setName(payload.name().trim());
+        }
+
+        ProductCategory targetCategory = payload.category() != null ? payload.category() : mp.getCategory();
+        if (payload.category() != null) {
+            mp.setCategory(payload.category());
+        }
+
+        if (payload.casNumber() != null) {
+            String trimmedCas = payload.casNumber().trim();
+            if (!trimmedCas.isBlank()) {
+                Optional<MasterProduct> existingWithCas = masterProductRepository.findByCasNumberAndCategory(trimmedCas, targetCategory);
+                if (existingWithCas.isPresent() && !existingWithCas.get().getId().equals(mp.getId())) {
+                    throw new IllegalArgumentException("Another master product (" + existingWithCas.get().getMasterProductCode() + ") already exists with CAS number " + trimmedCas + " in category " + targetCategory);
+                }
+                mp.setCasNumber(trimmedCas);
+            } else {
+                mp.setCasNumber(null);
+            }
+        }
+
+        if (payload.molecularFormula() != null) {
+            String formula = payload.molecularFormula().trim();
+            mp.setMolecularFormula(formula.isBlank() ? null : formula);
+        }
+
+        if (payload.description() != null) {
+            String desc = payload.description().trim();
+            mp.setDescription(desc.isBlank() ? null : desc);
+        }
+
         if (payload.status() != null && !payload.status().isBlank()) {
             if ("MERGED".equalsIgnoreCase(mp.getStatus())) {
                 throw new IllegalStateException("Merged Master Products cannot be independently updated");
@@ -180,16 +205,20 @@ public class AdminMasterCatalogService {
         }
 
         MasterProduct savedMp = masterProductRepository.save(mp);
-        String newState = "Status: " + savedMp.getStatus() + ", Name: " + savedMp.getName() + ", CAS: " + savedMp.getCasNumber();
+        String newState = "Status: " + savedMp.getStatus() + ", Name: " + savedMp.getName() + ", CAS: " + savedMp.getCasNumber() + ", Cat: " + savedMp.getCategory();
 
-        recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "MASTER_PRODUCT", savedMp.getId().toString(), prevState, newState, payload.updateReason());
+        String reason = payload.updateReason() != null && !payload.updateReason().isBlank()
+                ? payload.updateReason().trim()
+                : "Administrative profile update";
+
+        recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "MASTER_PRODUCT", savedMp.getId().toString(), prevState, newState, reason);
 
         auditService.record(
                 authentication,
                 AuditAction.MASTER_PRODUCT_UPDATED,
                 AuditTargetType.MASTER_PRODUCT,
                 savedMp.getId().toString(),
-                "Updated Master Product: " + savedMp.getName() + " (" + savedMp.getMasterProductCode() + "). " + (payload.updateReason() != null ? payload.updateReason() : ""),
+                "Updated Master Product: " + savedMp.getName() + " (" + savedMp.getMasterProductCode() + "). " + reason,
                 "127.0.0.1"
         );
 
@@ -784,6 +813,8 @@ public class AdminMasterCatalogService {
             ProductSynonym saved = productSynonymRepository.save(existing);
             recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", saved.getId().toString(),
                     "PENDING", "APPROVED", "Approved official synonym: " + saved.getSynonym());
+            auditService.record(authentication, AuditAction.MASTER_PRODUCT_UPDATED, AuditTargetType.MASTER_PRODUCT, masterProductId.toString(),
+                    "Approved official synonym: " + saved.getSynonym() + " for " + mp.getName(), "127.0.0.1");
             return toSynonymResponse(saved);
         }
 
@@ -797,8 +828,85 @@ public class AdminMasterCatalogService {
         ProductSynonym saved = productSynonymRepository.save(synonym);
         recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", saved.getId().toString(),
                 null, "APPROVED", "Added official synonym: " + saved.getSynonym());
+        auditService.record(authentication, AuditAction.MASTER_PRODUCT_UPDATED, AuditTargetType.MASTER_PRODUCT, masterProductId.toString(),
+                "Added official synonym: " + saved.getSynonym() + " to " + mp.getName(), "127.0.0.1");
 
         return toSynonymResponse(saved);
+    }
+
+    public BulkSynonymsResponse addOfficialSynonymsBulk(UUID masterProductId, BulkAddSynonymsPayload payload, Authentication authentication) {
+        User admin = resolveAdmin(authentication);
+        MasterProduct mp = masterProductRepository.findById(masterProductId)
+                .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + masterProductId));
+
+        if (payload.synonyms() == null || payload.synonyms().isEmpty()) {
+            throw new IllegalArgumentException("At least one synonym must be provided");
+        }
+
+        List<ProductSynonym> toSave = new ArrayList<>();
+        List<String> addedNames = new ArrayList<>();
+        int skippedCount = 0;
+
+        // Deduplicate input list (case-insensitive while preserving original casing of first occurrence)
+        Map<String, String> uniqueInput = new LinkedHashMap<>();
+        for (String raw : payload.synonyms()) {
+            if (raw != null) {
+                String trimmed = raw.trim();
+                if (!trimmed.isBlank()) {
+                    if (trimmed.length() > 255) {
+                        throw new IllegalArgumentException("Synonym exceeds maximum allowed length of 255 characters: " + (trimmed.length() > 30 ? trimmed.substring(0, 30) + "..." : trimmed));
+                    }
+                    uniqueInput.putIfAbsent(trimmed.toLowerCase(), trimmed);
+                }
+            }
+        }
+
+        for (String candidate : uniqueInput.values()) {
+            Optional<ProductSynonym> existingOpt = productSynonymRepository.findByMasterProductIdAndSynonymNormalized(masterProductId, candidate);
+            if (existingOpt.isPresent()) {
+                ProductSynonym existing = existingOpt.get();
+                if (existing.getStatus() == SynonymStatus.APPROVED && existing.getSource() == SynonymSource.OFFICIAL) {
+                    skippedCount++;
+                    continue;
+                }
+                existing.setStatus(SynonymStatus.APPROVED);
+                existing.setSource(SynonymSource.OFFICIAL);
+                toSave.add(existing);
+                addedNames.add(existing.getSynonym());
+            } else {
+                ProductSynonym syn = new ProductSynonym();
+                syn.setMasterProduct(mp);
+                syn.setSynonym(candidate);
+                syn.setSource(SynonymSource.OFFICIAL);
+                syn.setStatus(SynonymStatus.APPROVED);
+                syn.setCreatedBy(admin);
+                toSave.add(syn);
+                addedNames.add(candidate);
+            }
+        }
+
+        List<ProductSynonym> savedList = toSave.isEmpty() ? List.of() : productSynonymRepository.saveAll(toSave);
+        int addedCount = savedList.size();
+
+        if (addedCount > 0) {
+            recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", masterProductId.toString(),
+                    null, "APPROVED", "Bulk added " + addedCount + " official synonyms: " + String.join(", ", addedNames));
+
+            auditService.record(
+                    authentication,
+                    AuditAction.MASTER_PRODUCT_UPDATED,
+                    AuditTargetType.MASTER_PRODUCT,
+                    masterProductId.toString(),
+                    "Bulk added " + addedCount + " synonyms (" + String.join(", ", addedNames) + ") to " + mp.getName() + " (" + mp.getMasterProductCode() + ")",
+                    "127.0.0.1"
+            );
+        }
+
+        List<ProductSynonymResponse> allSynonyms = productSynonymRepository.findByMasterProductId(masterProductId)
+                .stream().map(this::toSynonymResponse).toList();
+        List<ProductSynonymResponse> addedResponses = savedList.stream().map(this::toSynonymResponse).toList();
+
+        return new BulkSynonymsResponse(addedCount, skippedCount, addedResponses, allSynonyms);
     }
 
     @Transactional(readOnly = true)
@@ -823,6 +931,8 @@ public class AdminMasterCatalogService {
         productSynonymRepository.delete(synonym);
         recordGovernanceAudit(admin, GovernanceAction.MASTER_PRODUCT_UPDATED, "PRODUCT_SYNONYM", synonymId.toString(),
                 synonym.getStatus().name(), "DELETED", "Removed synonym: " + synonym.getSynonym());
+        auditService.record(authentication, AuditAction.MASTER_PRODUCT_UPDATED, AuditTargetType.MASTER_PRODUCT, masterProductId.toString(),
+                "Removed synonym: " + synonym.getSynonym() + " from Master Product", "127.0.0.1");
     }
 
     public ProductSynonymResponse reviewSupplierSynonym(UUID synonymId, ReviewSynonymPayload payload, Authentication authentication) {

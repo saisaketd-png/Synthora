@@ -27,15 +27,19 @@ export function Footer() {
             <div className="pt-2 space-y-2 text-[11px] font-mono text-slate-300">
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" />
-                <span>Desk: +1 (800) 555-0198</span>
+                <a href="tel:+917676447077" className="hover:text-white transition-colors">
+                  +91 7676447077
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" />
-                <span>Desk: procurement@kemkendra.com</span>
+                <a href="mailto:kemkendra1@gmail.com" className="hover:text-white transition-colors">
+                  kemkendra1@gmail.com
+                </a>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 text-[#60A5FA] shrink-0" />
-                <span>Boston, MA &middot; Global Export Hubs</span>
+                <span>Bengaluru, Karnataka</span>
               </div>
             </div>
           </div>
