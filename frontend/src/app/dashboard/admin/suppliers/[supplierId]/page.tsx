@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 import {
   ArrowLeft,
   Building2,
@@ -77,10 +78,7 @@ export default function AdminSupplierDetailPage({
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-      const res = await fetch(`/api/v1/admin/suppliers/${supplierId}`, { headers });
+      const res = await authenticatedFetch(`/api/v1/admin/suppliers/${supplierId}`);
       if (!res.ok) {
         throw new Error(res.status === 404 ? "Supplier not found" : "Failed to load supplier detail");
       }

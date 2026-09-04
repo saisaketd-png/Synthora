@@ -142,6 +142,14 @@ public class Supplier {
     public void setTradeName(String tradeName) { this.tradeName = tradeName; }
     public String getBusinessType() { return businessType; }
     public void setBusinessType(String businessType) { this.businessType = businessType; }
+    @PrePersist
+    @PreUpdate
+    protected void syncUserEmail() {
+        if (user != null && user.getEmail() != null) {
+            this.businessEmail = user.getEmail();
+        }
+    }
+
     public String getRegisteredAddress() { return registeredAddress; }
     public void setRegisteredAddress(String registeredAddress) { this.registeredAddress = registeredAddress; }
     public String getStateProvince() { return stateProvince; }
@@ -150,8 +158,19 @@ public class Supplier {
     public void setCity(String city) { this.city = city; }
     public String getPostalCode() { return postalCode; }
     public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
-    public String getBusinessEmail() { return businessEmail; }
-    public void setBusinessEmail(String businessEmail) { this.businessEmail = businessEmail; }
+    public String getBusinessEmail() {
+        if (user != null && user.getEmail() != null) {
+            return user.getEmail();
+        }
+        return businessEmail;
+    }
+    public void setBusinessEmail(String businessEmail) {
+        if (user != null && user.getEmail() != null) {
+            this.businessEmail = user.getEmail();
+        } else {
+            this.businessEmail = businessEmail;
+        }
+    }
     public String getBusinessPhone() { return businessPhone; }
     public void setBusinessPhone(String businessPhone) { this.businessPhone = businessPhone; }
     public String getAuthorizedRepresentativeName() { return authorizedRepresentativeName; }

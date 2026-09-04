@@ -9,6 +9,7 @@ import {
   AdminAppeal,
   PageResponse,
 } from "@/features/admin/api/accountGovernanceApi";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 import {
   ShieldAlert,
   Users,
@@ -211,64 +212,61 @@ export default function AdminAccountGovernancePage() {
   };
 
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              Account Governance & Trust
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Account Suspension & Appeals
-            </h1>
-            <p className="text-sm text-slate-600 max-w-2xl">
-              Moderate platform accounts, enforce suspensions with reasons, manage formal user appeals, and review complete compliance audit trails.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => (activeTab === "suspensions" ? fetchSuspensions() : fetchAppeals())}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs"
-          >
-            <RefreshCw
-              className={`w-4 h-4 ${
-                (activeTab === "suspensions" ? suspensionsLoading : appealsLoading)
-                  ? "animate-spin text-cyan-600"
-                  : ""
-              }`}
-            />
-            Refresh Data
-          </button>
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
+        <div>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            Trust & Safety
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Account Governance & Appeals
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Account disciplinary enforcement, suspension audits, and formal review queue for reinstatement appeals.
+          </p>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-slate-200 pt-6 mt-2">
-          <button
-            onClick={() => setActiveTab("suspensions")}
-            className={`pb-3 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
-              activeTab === "suspensions"
-                ? "border-cyan-600 text-cyan-700"
-                : "border-transparent text-slate-500 hover:text-slate-900"
+        <button
+          type="button"
+          onClick={() => (activeTab === "suspensions" ? fetchSuspensions() : fetchAppeals())}
+          className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
+        >
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${
+              (activeTab === "suspensions" ? suspensionsLoading : appealsLoading)
+                ? "animate-spin text-[#0052CC]"
+                : "text-[#64748B]"
             }`}
-          >
-            <UserX className="w-4 h-4" />
-            Account Suspensions ({suspensionsData.totalElements})
-          </button>
-          <button
-            onClick={() => setActiveTab("appeals")}
-            className={`pb-3 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-2 ${
-              activeTab === "appeals"
-                ? "border-cyan-600 text-cyan-700"
-                : "border-transparent text-slate-500 hover:text-slate-900"
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            Formal Appeals Queue ({appealsData.totalElements})
-          </button>
-        </div>
+          />
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      {/* Tab Navigation Pill Bar */}
+      <div className="flex items-center p-0.5 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] w-fit">
+        <button
+          onClick={() => setActiveTab("suspensions")}
+          className={`flex items-center gap-1.5 h-7 px-3 text-xs font-medium rounded-[4px] transition-colors cursor-pointer ${
+            activeTab === "suspensions"
+              ? "bg-[#0052CC] text-white shadow-xs"
+              : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
+          }`}
+        >
+          <UserX className="w-3.5 h-3.5" />
+          <span>Account Suspensions ({suspensionsData.totalElements})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("appeals")}
+          className={`flex items-center gap-1.5 h-7 px-3 text-xs font-medium rounded-[4px] transition-colors cursor-pointer ${
+            activeTab === "appeals"
+              ? "bg-[#0052CC] text-white shadow-xs"
+              : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          <span>Formal Appeals Queue ({appealsData.totalElements})</span>
+        </button>
       </div>
 
       {/* TAB 1: SUSPENSIONS */}

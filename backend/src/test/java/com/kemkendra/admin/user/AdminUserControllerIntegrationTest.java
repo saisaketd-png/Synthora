@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
@@ -175,7 +176,11 @@ public class AdminUserControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").exists());
 
-        assertEquals(2, auditLogRepository.count());
+        List<com.kemkendra.admin.audit.AuditLog> adminLogs = auditLogRepository.findByTargetTypeAndTargetIdOrderByCreatedAtDesc(AuditTargetType.USER, buyerUser.getId().toString())
+                .stream()
+                .filter(l -> l.getAction() == AuditAction.USER_SUSPENDED || l.getAction() == AuditAction.USER_ACTIVATED)
+                .toList();
+        assertEquals(2, adminLogs.size());
     }
 
     @Test

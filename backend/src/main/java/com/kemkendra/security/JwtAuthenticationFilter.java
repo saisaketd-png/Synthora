@@ -46,9 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-        } else if (request.getParameter("token") != null && !request.getParameter("token").isBlank()) {
-            token = request.getParameter("token");
+            token = authHeader.substring(7).trim();
+            if (token.isEmpty()) {
+                token = null;
+            }
         }
 
         if (token == null) {
@@ -65,11 +66,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     if (userOpt.isPresent()) {
                         User user = userOpt.get();
+                        String requestUri = request.getRequestURI();
+
+                        // Password Reset Session Invalidation (Phase C.1)
+                        // If password was changed, invalidate any JWT issued prior to that timestamp
+                        if (user.getPasswordChangedAt() != null) {
+                            java.time.Instant tokenIssuedAt = jwtService.extractIssuedAtInstant(token);
+                            if (tokenIssuedAt.isBefore(user.getPasswordChangedAt())) {
+                                log.warn("Blocked request with JWT issued before password change for user: {} (Path: {})", email, requestUri);
+                                SecurityContextHolder.clearContext();
+                                filterChain.doFilter(request, response);
+                                return;
+                            }
+                        }
+
+                        // Global Session Invalidation / Logout-All (Phase C.2)
+                        // If sessions were globally invalidated, invalidate any JWT issued prior to that timestamp
+                        if (user.getSessionsInvalidatedAt() != null) {
+                            java.time.Instant tokenIssuedAt = jwtService.extractIssuedAtInstant(token);
+                            if (tokenIssuedAt.isBefore(user.getSessionsInvalidatedAt())) {
+                                log.warn("Blocked request with JWT issued before global session invalidation for user: {} (Path: {})", email, requestUri);
+                                SecurityContextHolder.clearContext();
+                                filterChain.doFilter(request, response);
+                                return;
+                            }
+                        }
 
                         // Active Account Validation (Phase 1.11 / 2H.2)
                         // 1. Account must not be soft-deleted
                         // 2. If account is suspended, only permit appeal & suspension governance endpoints (/api/v1/account/**)
-                        String requestUri = request.getRequestURI();
                         boolean isAllowedSuspensionEndpoint = requestUri != null &&
                                 (requestUri.startsWith("/api/v1/account/appeals") || requestUri.startsWith("/api/v1/account/suspension"));
 

@@ -17,7 +17,8 @@ import {
   ShieldAlert,
   SlidersHorizontal,
 } from "lucide-react";
-import { resolveApiUrl } from "@/lib/apiUrl";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 
 interface PlatformFeatureFlag {
   key: string;
@@ -45,12 +46,7 @@ export default function AdminFeatureControlsPage() {
   const fetchFeatures = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl("/api/v1/admin/feature-controls"), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await authenticatedFetch("/api/v1/admin/feature-controls");
 
       if (!res.ok) throw new Error("Failed to load feature controls");
       const data = await res.json();
@@ -81,13 +77,8 @@ export default function AdminFeatureControlsPage() {
   const executeToggle = async (key: string, enabled: boolean, confirmed: boolean) => {
     try {
       setUpdating(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl(`/api/v1/admin/feature-controls/${key}`), {
+      const res = await authenticatedFetch(`/api/v1/admin/feature-controls/${key}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ enabled, confirmed }),
       });
 
@@ -121,27 +112,28 @@ export default function AdminFeatureControlsPage() {
   const nonMaintenanceFeatures = filteredFeatures.filter((f) => f.key !== "MAINTENANCE_MODE_ENABLED");
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">Platform Feature Controls</h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-              Live Runtime Switches
-            </span>
-          </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Safely enable or disable marketplace interactions, registration flows, and trading capabilities in real-time.
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            System Governance
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Runtime Controls
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Platform capabilities, registration controls, and emergency operational gates.
           </p>
         </div>
+
         <button
           onClick={fetchFeatures}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+          className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+          <span>Refresh</span>
         </button>
       </div>
 
@@ -171,155 +163,140 @@ export default function AdminFeatureControlsPage() {
         </div>
       )}
 
-      {/* Emergency Platform Maintenance Card */}
+      {/* Maintenance Mode Guard Strip */}
       {maintenanceFlag && (
-        <div
-          className={`p-6 rounded-2xl border transition-all ${
-            maintenanceFlag.enabled
-              ? "bg-gradient-to-r from-red-600 to-rose-700 text-white shadow-lg border-red-800"
-              : "bg-gradient-to-r from-gray-900 to-slate-800 text-white border-gray-700"
-          }`}
-        >
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2.5">
-                <ShieldAlert className="w-6 h-6 text-amber-400" />
-                <h2 className="text-lg font-bold">Platform Maintenance Mode Guard</h2>
-                <span
-                  className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
-                    maintenanceFlag.enabled
-                      ? "bg-red-950 text-red-200 border border-red-400"
-                      : "bg-emerald-950 text-emerald-300 border border-emerald-500"
-                  }`}
-                >
-                  {maintenanceFlag.enabled ? "ACTIVE (MAINTENANCE)" : "INACTIVE (OPERATIONAL)"}
+        <div className="p-3.5 rounded-[8px] bg-white border border-[#E4E4E7] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${maintenanceFlag.enabled ? "bg-[#DC2626] animate-pulse" : "bg-[#059669]"}`} />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-[#0F172A]">Platform Maintenance Mode</span>
+                <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-[4px] border ${
+                  maintenanceFlag.enabled
+                    ? "bg-[#FEF2F2] text-[#DC2626] border-[rgba(220,38,38,0.2)]"
+                    : "bg-[#ECFDF5] text-[#059669] border-[rgba(5,150,105,0.2)]"
+                }`}>
+                  {maintenanceFlag.enabled ? "ACTIVE GUARD" : "OPERATIONAL"}
                 </span>
               </div>
-              <p className="text-xs text-gray-300 max-w-2xl leading-relaxed">
-                {maintenanceFlag.impactWarning}
+              <p className="text-[11px] text-[#64748B] mt-0.5">
+                {maintenanceFlag.enabled
+                  ? maintenanceFlag.impactWarning
+                  : "Platform services and API endpoints are actively operating normally without maintenance restrictions."}
               </p>
             </div>
-
-            <button
-              onClick={() => handleToggleClick(maintenanceFlag)}
-              disabled={updating}
-              className={`px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 ${
-                maintenanceFlag.enabled
-                  ? "bg-white text-red-700 hover:bg-red-50"
-                  : "bg-amber-500 hover:bg-amber-400 text-gray-950"
-              }`}
-            >
-              <Power className="w-4 h-4" />
-              {maintenanceFlag.enabled ? "Disable Maintenance Mode" : "Enable Maintenance Mode"}
-            </button>
           </div>
+
+          <button
+            onClick={() => handleToggleClick(maintenanceFlag)}
+            disabled={updating}
+            className={`h-7 px-3 text-xs font-medium rounded-[4px] border transition-colors cursor-pointer shrink-0 ${
+              maintenanceFlag.enabled
+                ? "bg-[#DC2626] text-white border-[#DC2626] hover:bg-[#B91C1C]"
+                : "bg-white text-[#475569] border-[#E4E4E7] hover:bg-[#FAFAFA]"
+            }`}
+          >
+            {maintenanceFlag.enabled ? "Disable Maintenance Mode" : "Enable Maintenance"}
+          </button>
         </div>
       )}
 
-      {/* Search & Statistics */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4 text-xs font-medium text-gray-500">
-          <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Active Features: {features.filter((f) => f.enabled).length}</span>
+      {/* Feature Registry Table */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] overflow-hidden shadow-xs">
+        <div className="p-3 border-b border-[#E4E4E7] bg-[#FAFAFA] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-3 text-xs text-[#64748B]">
+            <span>Active capabilities: <strong className="text-[#059669] font-mono">{features.filter((f) => f.enabled).length}</strong></span>
+            <span>·</span>
+            <span>Guarded gates: <strong className="text-[#D97706] font-mono">{features.filter((f) => f.dangerous || f.requiresConfirmation).length}</strong></span>
           </div>
-          <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-gray-200">
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
-            <span>Guarded Toggles: {features.filter((f) => f.dangerous || f.requiresConfirmation).length}</span>
+
+          <div className="relative w-full sm:w-64">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+            <input
+              type="text"
+              placeholder="Filter platform capabilities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-7 pr-2.5 py-1 text-xs bg-white border border-[#E4E4E7] rounded-[4px] text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
+            />
           </div>
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search feature flags..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-      </div>
-
-      {/* Feature Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-44 bg-gray-100 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : nonMaintenanceFeatures.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-xl border border-gray-200">
-          <SlidersHorizontal className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-base font-medium text-gray-900">No feature flags matched your search</h3>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {nonMaintenanceFeatures.map((flag) => (
-            <div
-              key={flag.key}
-              className={`bg-white p-5 rounded-2xl border transition-all flex flex-col justify-between ${
-                flag.enabled
-                  ? "border-gray-200 shadow-sm hover:border-blue-300"
-                  : "border-gray-200 bg-gray-50/70 opacity-80"
-              }`}
-            >
-              <div>
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-900 text-base">{flag.name}</h3>
-                      {flag.dangerous && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                          <Flame className="w-3 h-3 text-amber-600" />
-                          High Impact
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-[#E4E4E7] text-[#475569] font-semibold text-[11px]">
+              <tr>
+                <th className="px-4 py-2.5">Capability / Key</th>
+                <th className="px-4 py-2.5">Purpose & Behavioral Scope</th>
+                <th className="px-4 py-2.5">Status</th>
+                <th className="px-4 py-2.5">Modified By</th>
+                <th className="px-4 py-2.5 text-right">Gate</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E4E4E7] text-[#0F172A]">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-[#64748B]">Loading capability gates...</td>
+                </tr>
+              ) : nonMaintenanceFeatures.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-[#64748B]">No capability gates matched filter.</td>
+                </tr>
+              ) : (
+                nonMaintenanceFeatures.map((flag) => (
+                  <tr key={flag.key} className="hover:bg-[#F8FAFC] transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-medium text-[#0F172A]">{flag.name}</span>
+                        {flag.dangerous && (
+                          <span className="px-1.5 py-0.2 rounded-[3px] bg-[#FEF2F2] text-[#DC2626] border border-[rgba(220,38,38,0.2)] text-[10px] font-mono font-medium">
+                            Guarded
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-[10px] text-[#64748B] block mt-0.5">{flag.key}</span>
+                    </td>
+                    <td className="px-4 py-3 max-w-md">
+                      <p className="text-xs text-[#475569]">{flag.description}</p>
+                      {flag.impactWarning && !flag.enabled && (
+                        <span className="text-[11px] text-[#B45309] block mt-0.5">
+                          Impact: {flag.impactWarning}
                         </span>
                       )}
-                    </div>
-                    <span className="font-mono text-[11px] text-gray-400 mt-0.5 block">{flag.key}</span>
-                  </div>
-
-                  {/* Toggle Switch */}
-                  <button
-                    onClick={() => handleToggleClick(flag)}
-                    disabled={updating}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      flag.enabled ? "bg-emerald-600" : "bg-gray-300"
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                        flag.enabled ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">{flag.description}</p>
-
-                {/* Impact Warning Banner */}
-                {flag.impactWarning && (
-                  <div className="mt-3 p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-start gap-2 text-xs text-amber-900">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">Marketplace Behavior: </span>
-                      {flag.impactWarning}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-                <span className="flex items-center gap-1">
-                  <Shield className="w-3.5 h-3.5" />
-                  Status: <strong className={flag.enabled ? "text-emerald-700" : "text-gray-600"}>{flag.enabled ? "ENABLED" : "DISABLED"}</strong>
-                </span>
-                <span>{flag.updatedBy ? `Modified by ${flag.updatedBy}` : "System Default"}</span>
-              </div>
-            </div>
-          ))}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center gap-1 text-xs">
+                        <span className={`w-1.5 h-1.5 rounded-full ${flag.enabled ? "bg-[#059669]" : "bg-[#94A3B8]"}`} />
+                        <span className={`font-medium ${flag.enabled ? "text-[#059669]" : "text-[#64748B]"}`}>
+                          {flag.enabled ? "Active" : "Disabled"}
+                        </span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-[#64748B]">
+                      {flag.updatedBy ? flag.updatedBy : "System Bootstrap"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => handleToggleClick(flag)}
+                        disabled={updating}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          flag.enabled ? "bg-[#059669]" : "bg-[#CBD5E1]"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                            flag.enabled ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       {/* Confirmation Modal for Guarded & Dangerous Flags */}
       {confirmModalFlag && (

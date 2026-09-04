@@ -88,49 +88,49 @@ export function ProcurementHero({
   counterpartVerified,
 }: ProcurementHeroProps) {
   return (
-    <div className="bg-white border border-[#DFE1E6] rounded-2xl p-5 sm:p-7 shadow-xs">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-5 sm:p-6 shadow-tactile-card">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
         {/* Left Info */}
-        <div className="space-y-2 max-w-3xl">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#0052CC] bg-[#DEEBFF] px-2.5 py-0.5 rounded">
+        <div className="space-y-1.5 max-w-3xl">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0052CC] bg-[#EFF6FF] px-2 py-0.5 rounded-[4px] border border-[#BFDBFE]">
               {eyebrow}
             </span>
-            <span className="font-mono text-xs font-bold text-[#5E6C84]">
+            <span className="font-mono text-xs font-semibold text-[#64748B]">
               {referenceNumber}
             </span>
             {date && (
               <>
-                <span className="text-[#DFE1E6]">•</span>
-                <span className="text-xs text-[#5E6C84] flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#6B778C]" />
+                <span className="text-[#E4E4E7]">•</span>
+                <span className="text-xs text-[#64748B] flex items-center gap-1 font-mono">
+                  <Calendar className="w-3.5 h-3.5 text-[#94A3B8]" />
                   {date}
                 </span>
               </>
             )}
           </div>
 
-          <div className="flex items-baseline gap-3 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#091E42] tracking-tight">
+          <div className="flex items-baseline gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
               {title}
             </h1>
             <StatusBadge status={status} size="md" />
           </div>
 
           {subtitle && (
-            <p className="text-xs sm:text-sm text-[#5E6C84] font-medium leading-relaxed">
+            <p className="text-xs text-[#475569] leading-relaxed">
               {subtitle}
             </p>
           )}
 
           {counterpartName && (
-            <div className="pt-1 flex items-center gap-2 text-xs text-[#172B4D]">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84]">
+            <div className="pt-0.5 flex items-center gap-2 text-xs text-[#0F172A]">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
                 {counterpartLabel}:
               </span>
-              <span className="font-bold">{counterpartName}</span>
+              <span className="font-semibold">{counterpartName}</span>
               {counterpartVerified && (
-                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-[#E3FCEF] text-[#006644] text-[10px] font-bold rounded">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 bg-[#ECFDF5] text-[#059669] text-[10px] font-semibold rounded-[4px] border border-[rgba(5,150,105,0.2)]">
                   <ShieldCheck className="w-3 h-3" />
                   VERIFIED
                 </span>
@@ -141,7 +141,7 @@ export function ProcurementHero({
 
         {/* Right Actions */}
         {(primaryAction || secondaryAction) && (
-          <div className="flex flex-wrap items-center gap-3 shrink-0 self-start lg:self-center">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start lg:self-center">
             {secondaryAction}
             {primaryAction}
           </div>
@@ -164,22 +164,22 @@ export interface MetricItem {
 
 export function CommercialMetricRibbon({ metrics }: { metrics: MetricItem[] }) {
   return (
-    <div className="bg-white border border-[#DFE1E6] rounded-2xl p-4 sm:p-5 shadow-xs">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-[#DFE1E6]">
+    <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3.5 sm:p-4 shadow-tactile-card">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 divide-y sm:divide-y-0 sm:divide-x divide-[#E4E4E7]">
         {metrics.map((item, idx) => (
-          <div key={idx} className={`${idx > 0 ? "pt-3 sm:pt-0 sm:pl-4" : ""}`}>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1">
+          <div key={idx} className={`${idx > 0 ? "pt-2.5 sm:pt-0 sm:pl-3.5" : ""}`}>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
               {item.label}
             </span>
             <div
-              className={`font-mono text-lg sm:text-xl font-bold truncate ${
-                item.highlight ? "text-[#006644]" : "text-[#091E42]"
+              className={`font-mono text-base sm:text-lg font-bold truncate ${
+                item.highlight ? "text-[#059669]" : "text-[#0F172A]"
               }`}
             >
               {item.value}
             </div>
             {item.subtext && (
-              <span className="text-[11px] text-[#5E6C84] block mt-0.5 truncate">
+              <span className="text-[11px] text-[#64748B] block mt-0.5 truncate">
                 {item.subtext}
               </span>
             )}
@@ -306,10 +306,10 @@ export interface WorkflowStepperProps {
 
 export function WorkflowStepper({ currentStatus, className = "" }: WorkflowStepperProps) {
   const steps: { key: OrderWorkflowStep; label: string; description: string }[] = [
-    { key: "PLACED", label: "Placed", description: "Order issued by buyer" },
-    { key: "CONFIRMED", label: "Confirmed", description: "Accepted by manufacturer" },
-    { key: "PROCESSING", label: "Processing", description: "Batch in preparation" },
-    { key: "SHIPPED", label: "Shipped", description: "Consignment dispatched" },
+    { key: "PLACED", label: "Placed", description: "Issued by buyer" },
+    { key: "CONFIRMED", label: "Confirmed", description: "Accepted by supplier" },
+    { key: "PROCESSING", label: "Processing", description: "Synthesis in progress" },
+    { key: "SHIPPED", label: "Shipped", description: "In transit" },
     { key: "DELIVERED", label: "Delivered", description: "Receipt acknowledged" },
   ];
 
@@ -325,54 +325,53 @@ export function WorkflowStepper({ currentStatus, className = "" }: WorkflowStepp
   const isCancelled = currentStatus.toUpperCase() === "CANCELLED" || currentStatus.toUpperCase() === "REJECTED";
 
   return (
-    <div className={`bg-white border border-[#DFE1E6] rounded-2xl p-5 sm:p-6 shadow-xs ${className}`}>
-      <div className="flex items-center justify-between mb-5 border-b border-[#DFE1E6] pb-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+    <div className={`bg-white border border-[#E4E4E7] rounded-[8px] p-4 sm:p-5 shadow-tactile-card ${className}`}>
+      <div className="flex items-center justify-between mb-4 border-b border-[#E4E4E7] pb-2.5">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-[#0F172A] font-mono">
           Order Fulfillment Lifecycle
         </h2>
-        <span className="text-[11px] font-mono font-bold text-[#0052CC] bg-[#DEEBFF] px-2 py-0.5 rounded">
+        <span className="text-[10px] font-mono font-medium text-[#0052CC] bg-[#EFF6FF] px-2 py-0.5 rounded-[4px] border border-[#BFDBFE]">
           {isCancelled ? currentStatus.toUpperCase() : `STEP ${currentIndex + 1} OF ${steps.length}`}
         </span>
       </div>
 
       {isCancelled ? (
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-600" />
-          <span>This purchase order has been marked as {currentStatus}. Fulfillment stopped.</span>
+        <div className="p-3 bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] rounded-[6px] text-[#DC2626] text-xs font-medium flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-[#DC2626]" />
+          <span>This purchase order has been marked as {currentStatus}. Fulfillment terminated.</span>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 relative">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-2.5 relative">
           {steps.map((step, idx) => {
             const isCompleted = idx < currentIndex;
             const isCurrent = idx === currentIndex;
-            const isPending = idx > currentIndex;
 
             return (
               <div
                 key={step.key}
-                className={`p-3.5 rounded-xl border transition-all relative ${
+                className={`p-3 rounded-[6px] border transition-colors relative ${
                   isCurrent
-                    ? "bg-[#DEEBFF]/40 border-[#0052CC] ring-1 ring-[#0052CC]/30"
+                    ? "bg-[#EFF6FF]/60 border-[#0052CC] shadow-xs"
                     : isCompleted
-                    ? "bg-[#E3FCEF]/40 border-[#ABF5D1]"
-                    : "bg-[#FAFBFC] border-[#DFE1E6] opacity-70"
+                    ? "bg-[#ECFDF5]/50 border-[rgba(5,150,105,0.2)]"
+                    : "bg-[#FAFAFA] border-[#E4E4E7] opacity-65"
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-1.5 mb-1">
                   <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                    className={`w-5 h-5 rounded-[4px] flex items-center justify-center text-[10px] font-bold shrink-0 ${
                       isCompleted
-                        ? "bg-[#00875A] text-white"
+                        ? "bg-[#059669] text-white"
                         : isCurrent
-                        ? "bg-[#0052CC] text-white animate-pulse"
-                        : "bg-[#DFE1E6] text-[#5E6C84]"
+                        ? "bg-[#0052CC] text-white"
+                        : "bg-[#E4E4E7] text-[#64748B]"
                     }`}
                   >
                     {isCompleted ? "✓" : idx + 1}
                   </div>
-                  <span className="text-xs font-bold text-[#091E42]">{step.label}</span>
+                  <span className="text-xs font-semibold text-[#0F172A]">{step.label}</span>
                 </div>
-                <p className="text-[11px] text-[#5E6C84] leading-tight mt-1">{step.description}</p>
+                <p className="text-[11px] text-[#64748B] leading-tight">{step.description}</p>
               </div>
             );
           })}
@@ -406,45 +405,45 @@ export function ShipmentTrackingCard({
   const deliveryDateDisplay = estimatedDeliveryDate || estimatedDelivery;
 
   return (
-    <div className="bg-white border border-[#DFE1E6] rounded-2xl p-5 shadow-xs">
-      <div className="flex items-center justify-between border-b border-[#DFE1E6] pb-3 mb-4">
+    <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 sm:p-5 shadow-tactile-card">
+      <div className="flex items-center justify-between border-b border-[#E4E4E7] pb-3 mb-3.5">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#DEEBFF] text-[#0052CC] flex items-center justify-center">
+          <div className="w-7 h-7 rounded-[4px] bg-[#EFF6FF] text-[#0052CC] flex items-center justify-center">
             <Truck className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-[#0F172A] font-mono">
               Logistics & Shipment Tracking
             </h2>
-            <span className="text-[11px] text-[#5E6C84]">Carrier Dispatch Data</span>
+            <span className="text-[11px] text-[#64748B]">Carrier Dispatch Data</span>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 bg-[#E3FCEF] text-[#006644] rounded">
+        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium uppercase px-2 py-0.5 bg-[#ECFDF5] text-[#059669] rounded-[4px] border border-[rgba(5,150,105,0.2)]">
           {status}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block">Carrier</span>
-          <strong className="text-sm font-bold text-[#091E42] block mt-0.5">{carrier || "Standard Freight"}</strong>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">Carrier</span>
+          <strong className="text-xs font-semibold text-[#0F172A] block mt-0.5">{carrier || "Standard Freight"}</strong>
         </div>
 
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block">Tracking Number</span>
-          <span className="font-mono font-bold text-sm text-[#0052CC] block mt-0.5">{trackingNumber || "—"}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">Tracking Number</span>
+          <span className="font-mono text-xs font-semibold text-[#0052CC] block mt-0.5">{trackingNumber || "—"}</span>
         </div>
 
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block">Dispatch Date</span>
-          <span className="font-mono font-bold text-[#091E42] block mt-0.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">Dispatch Date</span>
+          <span className="font-mono text-xs text-[#0F172A] block mt-0.5">
             {shippedAt ? new Date(shippedAt).toLocaleDateString("en-GB") : "Pending"}
           </span>
         </div>
 
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block">Est. Delivery</span>
-          <span className="font-mono font-bold text-[#091E42] block mt-0.5">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">Est. Delivery</span>
+          <span className="font-mono text-xs text-[#0F172A] block mt-0.5">
             {deliveryDateDisplay ? new Date(deliveryDateDisplay).toLocaleDateString("en-GB") : "On Schedule"}
           </span>
         </div>

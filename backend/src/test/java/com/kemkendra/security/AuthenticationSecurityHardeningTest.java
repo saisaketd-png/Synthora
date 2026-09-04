@@ -26,6 +26,8 @@ import io.jsonwebtoken.Jwts;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -56,6 +58,15 @@ public class AuthenticationSecurityHardeningTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private com.kemkendra.identity.service.PasswordResetService passwordResetService;
+
+    @Autowired
+    private com.kemkendra.identity.PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    private com.kemkendra.identity.service.UserService userService;
 
     private User activeUser;
     private User suspendedUser;
@@ -344,5 +355,191 @@ public class AuthenticationSecurityHardeningTest {
                         .content(objectMapper.writeValueAsString(new LoginRequest(userB, "BadPass"))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", containsString("Invalid email or password")));
+    }
+
+    @Test
+    @DisplayName("C1.1: Valid JWT supplied only as ?token= query parameter is rejected with 401")
+    public void testJwtInQueryParameterRejected() throws Exception {
+        String token = jwtService.generateToken(activeUser);
+
+        mockMvc.perform(get("/api/v1/users/me?token=" + token))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error", is("Unauthorized")));
+    }
+
+    @Test
+    @DisplayName("C1.1: When both Authorization header and ?token= query parameter exist, only header is used")
+    public void testJwtInBothAuthorizationAndQueryParameterUsesAuthorizationHeaderOnly() throws Exception {
+        String validToken = jwtService.generateToken(activeUser);
+        String bogusQueryToken = "bogus_malicious_query_parameter_token";
+
+        mockMvc.perform(get("/api/v1/users/me?token=" + bogusQueryToken)
+                        .header("Authorization", "Bearer " + validToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email", is("active@kemkendra.com")));
+    }
+
+    @Test
+    @DisplayName("C1.4: JWT signed with wrong issuer is rejected with 401 Unauthorized")
+    public void testJwtWrongIssuerRejected() throws Exception {
+        io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+                "KemKendraSuperSecretKeyForJwtSigningMustBeAtLeast256BitsLong!".getBytes(StandardCharsets.UTF_8));
+
+        String wrongIssuerToken = Jwts.builder()
+                .issuer("untrusted-foreign-issuer")
+                .subject("active@kemkendra.com")
+                .claim("role", "USER")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 3600000))
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(
+                        "KemKendraSuperSecretKeyForJwtSigningMustBeAtLeast256BitsLong!".getBytes(StandardCharsets.UTF_8)))
+                .compact();
+
+        assertFalse(jwtService.isTokenValid(wrongIssuerToken));
+
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + wrongIssuerToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("C1.4: JWT with correct issuer 'kemkendra' is accepted")
+    public void testJwtCorrectIssuerAccepted() throws Exception {
+        String token = jwtService.generateToken(activeUser);
+
+        assertTrue(jwtService.isTokenValid(token));
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email", is("active@kemkendra.com")));
+    }
+
+    @Test
+    @DisplayName("C1.3: Newly generated JWT contains unique jti claim")
+    public void testNewlyGeneratedJwtContainsJti() throws Exception {
+        String token1 = jwtService.generateToken(activeUser);
+        String token2 = jwtService.generateToken(activeUser);
+
+        String jti1 = jwtService.extractJti(token1);
+        String jti2 = jwtService.extractJti(token2);
+
+        org.junit.jupiter.api.Assertions.assertNotNull(jti1);
+        org.junit.jupiter.api.Assertions.assertNotNull(jti2);
+        org.junit.jupiter.api.Assertions.assertFalse(jti1.isBlank());
+        org.junit.jupiter.api.Assertions.assertNotEquals(jti1, jti2);
+        // Verify UUID format
+        UUID.fromString(jti1);
+        UUID.fromString(jti2);
+    }
+
+    @Test
+    @DisplayName("C1.2: Password reset updates passwordChangedAt and invalidates pre-existing JWTs")
+    public void testPasswordResetUpdatesPasswordChangedAtAndInvalidatesPreExistingJwt() throws Exception {
+        // 1. Issue initial valid token
+        String oldToken = jwtService.generateToken(activeUser);
+
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + oldToken))
+                .andExpect(status().isOk());
+
+        // 2. Trigger forgot password
+        passwordResetService.processForgotPassword(new com.kemkendra.identity.dto.ForgotPasswordRequest("active@kemkendra.com"));
+
+        // Retrieve raw token from test-saved token entity
+        com.kemkendra.identity.PasswordResetToken resetToken = passwordResetTokenRepository.findAll().stream()
+                .filter(t -> t.getUser().getId().equals(activeUser.getId()))
+                .findFirst()
+                .orElseThrow();
+
+        // Use custom raw token simulation: generate fresh token to reset
+        byte[] rawBytes = new byte[32];
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        random.nextBytes(rawBytes);
+        String rawToken = java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(rawBytes);
+        resetToken.setTokenHash(com.kemkendra.identity.service.PasswordResetService.hashToken(rawToken));
+        passwordResetTokenRepository.save(resetToken);
+
+        // 3. Reset password
+        passwordResetService.resetPassword(new com.kemkendra.identity.dto.ResetPasswordRequest(rawToken, "NewPassword123!"));
+
+        // Reload user from database
+        User updatedUser = userRepository.findByEmail("active@kemkendra.com").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertNotNull(updatedUser.getPasswordChangedAt());
+
+        // 4. Old token issued before password change MUST be rejected with HTTP 401
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + oldToken))
+                .andExpect(status().isUnauthorized());
+
+        // 5. Newly issued token after password change MUST be accepted with HTTP 200
+        String newToken = jwtService.generateToken(updatedUser);
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + newToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email", is("active@kemkendra.com")));
+    }
+
+    @Test
+    @DisplayName("C1.2: Authenticated changePassword updates passwordChangedAt and invalidates pre-existing JWTs")
+    public void testPasswordChangeViaUserServiceInvalidatesPreExistingJwt() throws Exception {
+        String oldToken = jwtService.generateToken(activeUser);
+
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + oldToken))
+                .andExpect(status().isOk());
+
+        // Change password while authenticated
+        org.springframework.security.authentication.UsernamePasswordAuthenticationToken auth =
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        activeUser.getEmail(), null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")));
+
+        userService.changePassword(auth, new com.kemkendra.identity.dto.ChangePasswordRequest("Password123!", "NewChangedPass123!"));
+
+        User updatedUser = userRepository.findByEmail("active@kemkendra.com").orElseThrow();
+        org.junit.jupiter.api.Assertions.assertNotNull(updatedUser.getPasswordChangedAt());
+
+        // Old token must be rejected
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + oldToken))
+                .andExpect(status().isUnauthorized());
+
+        // New token must be accepted
+        String newToken = jwtService.generateToken(updatedUser);
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + newToken))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("C1.5: PENDING user can authenticate for profile/onboarding but is blocked from commercial RFQs")
+    public void testPendingUserCanAccessProfileButBlockedFromCommercialTransactions() throws Exception {
+        User pendingUser = new User();
+        pendingUser.setName("Pending User");
+        pendingUser.setEmail("pending@kemkendra.com");
+        pendingUser.setPasswordHash(passwordEncoder.encode("Password123!"));
+        pendingUser.setRole(UserRole.USER);
+        pendingUser.setStatus(UserStatus.PENDING);
+        pendingUser.setEmailVerifiedAt(Instant.now());
+        pendingUser = userRepository.save(pendingUser);
+
+        String pendingToken = jwtService.generateToken(pendingUser);
+
+        // Can access /users/me for onboarding & identity inspection
+        mockMvc.perform(get("/api/v1/users/me")
+                        .header("Authorization", "Bearer " + pendingToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is("PENDING")));
+
+        // Attempting to submit an RFQ must be rejected because status is not ACTIVE
+        com.kemkendra.rfq.dto.CreateRfqRequest rfqRequest = new com.kemkendra.rfq.dto.CreateRfqRequest(
+                UUID.randomUUID(), 1L, new java.math.BigDecimal("100"), "KG", "Test RFQ Message");
+
+        mockMvc.perform(post("/api/v1/rfqs")
+                        .header("Authorization", "Bearer " + pendingToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(rfqRequest)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code", is("INVALID_STATE_TRANSITION")))
+                .andExpect(jsonPath("$.message", containsString("Buyer account is not active.")));
     }
 }

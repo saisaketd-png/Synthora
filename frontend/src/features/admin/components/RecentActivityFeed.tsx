@@ -62,43 +62,40 @@ export function RecentActivityFeed({ activities }: RecentActivityFeedProps) {
   };
 
   return (
-    <div className="bg-white border border-[#DFE1E6] rounded-2xl p-5 sm:p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-[#DEEBFF] text-[#0052CC]">
-            <Activity className="w-4 h-4" />
+    <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-xs">
+      <div className="flex items-center justify-between mb-3 border-b border-[#E4E4E7] pb-3">
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] block">
+            Event Stream
           </span>
-          <h3 className="text-base font-bold text-[#091E42]">Recent Platform Activity</h3>
+          <h3 className="text-sm font-semibold text-[#0F172A] mt-0.5">
+            Operational Activity
+          </h3>
         </div>
-        <span className="text-xs text-[#5E6C84] font-mono">
-          Latest {activities.length} events
+        <span className="text-xs text-[#64748B] font-mono">
+          Last {activities.length} actions
         </span>
       </div>
 
-      <div className="divide-y divide-[#EBECF0]">
+      <div className="divide-y divide-[#E4E4E7]">
         {activities.map((item) => (
-          <div key={item.id} className="py-3 flex items-start justify-between gap-3 group hover:bg-[#FAFBFC] px-2 rounded-lg transition-colors">
+          <div key={item.id} className="py-2.5 flex items-start justify-between gap-3 group">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-[#F4F5F7] border border-[#DFE1E6] shrink-0 mt-0.5">
-                {getEventIcon(item.eventType)}
-              </div>
+              <span className="text-[11px] font-mono text-[#64748B] mt-0.5 shrink-0 w-14">
+                {formatTimeAgo(item.timestamp)}
+              </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#091E42]">{item.title}</span>
+                  <span className="text-xs font-semibold text-[#0F172A]">{item.title}</span>
                   {item.entityType && (
-                    <span className="px-1.5 py-0.2 rounded text-[10px] bg-[#EBECF0] text-[#172B4D] font-mono font-medium">
+                    <span className="px-1.5 py-0.2 rounded-[3px] text-[10px] bg-[#F4F4F5] text-[#475569] font-mono">
                       {item.entityType}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-[#5E6C84] mt-0.5 line-clamp-2">{item.description}</p>
-                <div className="flex items-center gap-3 text-[11px] text-[#7A869A] mt-1">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatTimeAgo(item.timestamp)}
-                  </span>
-                  <span>•</span>
-                  <span>Actor: {item.actorName}</span>
+                <p className="text-[11px] text-[#64748B] mt-0.5 line-clamp-1">{item.description}</p>
+                <div className="text-[10px] text-[#94A3B8] mt-0.5">
+                  Actor: {item.actorName} ({item.actorRole})
                 </div>
               </div>
             </div>
@@ -106,7 +103,7 @@ export function RecentActivityFeed({ activities }: RecentActivityFeedProps) {
             {item.link && (
               <Link
                 href={item.link}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-[#5E6C84] hover:text-[#0052CC] hover:bg-[#EBECF0] rounded-md shrink-0"
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-[#64748B] hover:text-[#0052CC] shrink-0"
                 title="View entity"
               >
                 <ExternalLink className="w-3.5 h-3.5" />

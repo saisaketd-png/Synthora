@@ -68,17 +68,17 @@ export function IssuePoModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-[#DFE1E6] w-full max-w-2xl overflow-hidden my-auto flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0F172A]/50 backdrop-blur-[2px] overflow-y-auto">
+      <div className="bg-white rounded-[8px] shadow-tactile-modal border border-[#E4E4E7] w-full max-w-2xl overflow-hidden my-auto flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="px-6 py-5 bg-[#091E42] text-white flex justify-between items-center shrink-0">
+        <div className="px-5 py-4 bg-[#FAFAFA] border-b border-[#E4E4E7] text-[#0F172A] flex justify-between items-center shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-[#4C9AFF] uppercase">
+              <span className="text-[10px] font-mono font-medium tracking-wider text-[#0052CC] uppercase">
                 PROCUREMENT COMMITMENT
               </span>
             </div>
-            <h2 className="text-lg sm:text-xl font-extrabold text-white mt-0.5 tracking-tight">
+            <h2 className="text-sm sm:text-base font-bold text-[#0F172A] mt-0.5 tracking-tight">
               Issue Formal Purchase Order
             </h2>
           </div>
@@ -86,27 +86,27 @@ export function IssuePoModal({
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="text-slate-400 hover:text-white transition-colors p-2 rounded-xl hover:bg-white/10"
+            className="text-[#64748B] hover:text-[#0F172A] transition-colors p-1.5 rounded-[4px] hover:bg-[#F4F4F5]"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1 text-xs">
           {error && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600" />
+            <div className="p-3 bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] text-[#DC2626] text-xs rounded-[6px] flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#DC2626]" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Agreed Commercial Terms Summary (Read-Only Snapshot) */}
-          <div className="bg-[#FAFBFC] border border-[#DFE1E6] rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between border-b border-[#DFE1E6] pb-2">
-              <span className="text-[10px] font-bold text-[#5E6C84] uppercase tracking-wider">
+          <div className="bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between border-b border-[#E4E4E7] pb-1.5">
+              <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono">
                 ACCEPTED QUOTATION SNAPSHOT
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-[#E3FCEF] text-[#006644] uppercase">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-[4px] text-[10px] font-mono font-semibold bg-[#ECFDF5] text-[#059669] uppercase border border-[rgba(5,150,105,0.2)]">
                 <ShieldCheck className="w-3 h-3" />
                 Agreed Terms
               </span>
@@ -114,46 +114,46 @@ export function IssuePoModal({
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <span className="text-[10px] text-[#5E6C84] font-bold uppercase block">Product</span>
-                <strong className="font-bold text-[#091E42] truncate block mt-0.5">{productName}</strong>
+                <span className="text-[10px] text-[#64748B] font-semibold uppercase block font-mono">Product</span>
+                <strong className="font-semibold text-[#0F172A] truncate block mt-0.5">{productName}</strong>
               </div>
 
               <div>
-                <span className="text-[10px] text-[#5E6C84] font-bold uppercase block">Quantity</span>
-                <span className="font-mono font-bold text-[#091E42] block mt-0.5">
+                <span className="text-[10px] text-[#64748B] font-semibold uppercase block font-mono">Quantity</span>
+                <span className="font-mono font-semibold text-[#0F172A] block mt-0.5">
                   {quantity.toLocaleString()} {unit.toUpperCase()}
                 </span>
               </div>
 
               <div>
-                <span className="text-[10px] text-[#5E6C84] font-bold uppercase block">Unit Price</span>
-                <span className="font-mono font-bold text-[#091E42] block mt-0.5">
+                <span className="text-[10px] text-[#64748B] font-semibold uppercase block font-mono">Unit Price</span>
+                <span className="font-mono font-semibold text-[#0F172A] block mt-0.5">
                   {currency} {unitPrice.toFixed(2)}
                 </span>
               </div>
 
               <div>
-                <span className="text-[10px] text-[#5E6C84] font-bold uppercase block">Total Amount</span>
-                <strong className="font-mono font-extrabold text-sm text-[#006644] block mt-0.5">
+                <span className="text-[10px] text-[#64748B] font-semibold uppercase block font-mono">Total Amount</span>
+                <strong className="font-mono font-bold text-sm text-[#059669] block mt-0.5">
                   {currency} {totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </strong>
               </div>
             </div>
 
             {leadTimeDays && (
-              <div className="text-[11px] text-[#5E6C84] border-t border-[#DFE1E6] pt-2 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#0052CC]" />
+              <div className="text-[11px] text-[#64748B] border-t border-[#E4E4E7] pt-2 flex items-center gap-1.5 font-mono">
+                <Clock className="w-3 h-3 text-[#0052CC]" />
                 <span>Agreed Fulfillment Lead Time:</span>
-                <strong className="text-[#091E42]">{leadTimeDays} business days upon supplier acceptance</strong>
+                <strong className="text-[#0F172A]">{leadTimeDays} business days upon supplier acceptance</strong>
               </div>
             )}
           </div>
 
           {/* Operational Input Fields */}
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#172B4D] mb-1">
-                Delivery / Shipping Address <span className="text-rose-600">*</span>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1 font-mono">
+                Delivery / Shipping Address <span className="text-[#DC2626]">*</span>
               </label>
               <textarea
                 required
@@ -161,13 +161,13 @@ export function IssuePoModal({
                 value={shippingAddress}
                 onChange={(e) => setShippingAddress(e.target.value)}
                 placeholder="e.g. Warehouse 4B, 100 Industrial Chemical Logistics Hub, Navi Mumbai, MH 400705"
-                className="w-full text-xs rounded-xl border border-[#DFE1E6] p-3 text-[#091E42] bg-[#FAFBFC] focus:bg-white placeholder:text-[#97A0AF] focus:outline-none focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all font-medium"
+                className="w-full text-xs rounded-[6px] border border-[#E4E4E7] p-2.5 text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#172B4D] mb-1">
-                Billing / Procurement Contact <span className="text-rose-600">*</span>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1 font-mono">
+                Billing / Procurement Contact <span className="text-[#DC2626]">*</span>
               </label>
               <input
                 type="text"
@@ -175,48 +175,48 @@ export function IssuePoModal({
                 value={billingContact}
                 onChange={(e) => setBillingContact(e.target.value)}
                 placeholder="e.g. procurement@pharmaholdings.com / +91 98765 43210 (Accounts Dept)"
-                className="w-full text-xs rounded-xl border border-[#DFE1E6] p-2.5 text-[#091E42] bg-[#FAFBFC] focus:bg-white placeholder:text-[#97A0AF] focus:outline-none focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all font-medium"
+                className="w-full text-xs rounded-[6px] border border-[#E4E4E7] px-3 py-2 text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#172B4D] mb-1">
-                Special Logistics / Delivery Notes <span className="text-[#5E6C84] font-normal">(Optional)</span>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1 font-mono">
+                Special Logistics / Delivery Notes <span className="text-[#64748B] font-normal">(Optional)</span>
               </label>
               <textarea
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g. Temperature sensitive batch. Receiving dock 8am-4pm. Forklift available on site."
-                className="w-full text-xs rounded-xl border border-[#DFE1E6] p-3 text-[#091E42] bg-[#FAFBFC] focus:bg-white placeholder:text-[#97A0AF] focus:outline-none focus:border-[#0052CC] focus:ring-2 focus:ring-[#0052CC]/20 transition-all font-medium"
+                className="w-full text-xs rounded-[6px] border border-[#E4E4E7] p-2.5 text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
               />
             </div>
           </div>
 
           {/* Modal Footer Buttons */}
-          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-[#DFE1E6]">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5 pt-3 border-t border-[#E4E4E7]">
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-[#5E6C84] hover:text-[#091E42] transition-colors"
+              className="w-full sm:w-auto h-8 px-4 text-xs font-medium text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#0052CC] hover:bg-[#0747A6] text-white font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full sm:w-auto h-8 px-4 rounded-[6px] bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] text-white font-medium text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-[0.99]"
             >
               {submitting ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Generating Purchase Order...</span>
+                  <span>Generating...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>Confirm & Issue Purchase Order</span>
+                  <span>Confirm & Issue PO</span>
                 </>
               )}
             </button>

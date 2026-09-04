@@ -32,6 +32,7 @@ import {
   Activity,
   AlertCircle,
 } from "lucide-react";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 
 type CategoryTab =
   | "ALL"
@@ -149,22 +150,19 @@ export default function AdminAuditPage() {
   const getDateRange = useCallback(() => {
     const now = new Date();
     if (datePreset === "TODAY") {
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      return { from: todayStart.toISOString(), to: now.toISOString() };
+      const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return { from: start.toISOString(), to: now.toISOString() };
     }
     if (datePreset === "7DAYS") {
-      const past = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return { from: past.toISOString(), to: now.toISOString() };
+      const start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return { from: start.toISOString(), to: now.toISOString() };
     }
     if (datePreset === "30DAYS") {
-      const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      return { from: past.toISOString(), to: now.toISOString() };
+      const start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      return { from: start.toISOString(), to: now.toISOString() };
     }
-    if (datePreset === "CUSTOM") {
-      return {
-        from: customFrom ? new Date(customFrom).toISOString() : undefined,
-        to: customTo ? new Date(customTo).toISOString() : undefined,
-      };
+    if (datePreset === "CUSTOM" && customFrom && customTo) {
+      return { from: new Date(customFrom).toISOString(), to: new Date(customTo).toISOString() };
     }
     return { from: undefined, to: undefined };
   }, [datePreset, customFrom, customTo]);
@@ -177,13 +175,13 @@ export default function AdminAuditPage() {
 
       const dateRange = getDateRange();
       const res = await getAuditLogs({
+        page: currentPage,
+        size: 20,
         action: actionFilter || undefined,
         targetType: targetTypeFilter || undefined,
         from: dateRange.from,
         to: dateRange.to,
         query: searchQuery.trim() || undefined,
-        page: currentPage,
-        size: 20,
       });
       setLogsData(res);
     } catch (err: any) {
@@ -223,18 +221,18 @@ export default function AdminAuditPage() {
   // Helper: Action Badge Color
   const getActionBadge = (action: AuditAction) => {
     if (action.includes("SUSPENDED") || action.includes("REJECTED") || action.includes("DELETED")) {
-      return "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800";
+      return "bg-[#FEF2F2] text-[#DC2626] border-[rgba(220,38,38,0.2)]";
     }
     if (action.includes("VERIFIED") || action.includes("APPROVED") || action.includes("ACTIVATED") || action.includes("REINSTATED")) {
-      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800";
+      return "bg-[#ECFDF5] text-[#059669] border-[rgba(5,150,105,0.2)]";
     }
     if (action.includes("REQUESTED") || action.includes("INFORMATION") || action.includes("FLAGGED") || action.includes("MERGED")) {
-      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800";
+      return "bg-[#FFFBEB] text-[#D97706] border-[rgba(217,119,6,0.2)]";
     }
     if (action.includes("CREATED") || action.includes("SUBMITTED")) {
-      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800";
+      return "bg-[#EFF6FF] text-[#0052CC] border-[#BFDBFE]";
     }
-    return "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700";
+    return "bg-[#F4F4F5] text-[#475569] border-[#E4E4E7]";
   };
 
   // Helper: Deep Link to Target Entity
@@ -257,140 +255,112 @@ export default function AdminAuditPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-900 text-white dark:bg-slate-800 border border-slate-700">
-              <ShieldCheck className="w-6 h-6 text-emerald-400" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Audit & Governance Engine
-              </h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                Centralized platform audit trail and administrative governance history.
-              </p>
-            </div>
-          </div>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            Governance & Compliance
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Platform Audit Ledger
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Immutable, append-only security telemetry and administrative activity trail across marketplace operations.
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <button
+          onClick={() => {
+            loadSummary();
+            loadLogs();
+          }}
+          disabled={loading}
+          className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+          <span>Refresh Stream</span>
+        </button>
+      </div>
+
+      {/* 2. Horizontal Activity Summary Band (Not 5 bulky cards) */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-xs">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] mb-3">
+          Telemetry Summary
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#E4E4E7]">
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Total Events</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">
+              {summaryLoading ? "—" : summary?.totalEvents.toLocaleString() || 0}
+            </div>
+            <span className="text-[10px] text-[#94A3B8] font-mono">immutable ledger</span>
+          </div>
+
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Today's Actions</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">
+              {summaryLoading ? "—" : summary?.todayEvents.toLocaleString() || 0}
+            </div>
+            <span className="text-[10px] text-[#94A3B8] font-mono">since UTC midnight</span>
+          </div>
+
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">User Governance</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">
+              {summaryLoading ? "—" : summary?.userGovernanceEvents.toLocaleString() || 0}
+            </div>
+            <span className="text-[10px] text-[#94A3B8] font-mono">accounts & roles</span>
+          </div>
+
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Supplier Trust</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">
+              {summaryLoading ? "—" : summary?.supplierGovernanceEvents.toLocaleString() || 0}
+            </div>
+            <span className="text-[10px] text-[#94A3B8] font-mono">KYC & verification</span>
+          </div>
+
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Catalog & Offers</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">
+              {summaryLoading ? "—" : summary?.catalogGovernanceEvents.toLocaleString() || 0}
+            </div>
+            <span className="text-[10px] text-[#94A3B8] font-mono">products & listings</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Segmented Tabs */}
+      <div className="flex items-center p-0.5 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] w-fit overflow-x-auto max-w-full">
+        {[
+          { id: "ALL", label: "All Events" },
+          { id: "USER_GOVERNANCE", label: "User Governance" },
+          { id: "SUPPLIER_TRUST", label: "Supplier Trust" },
+          { id: "MASTER_CATALOG", label: "Master Catalog" },
+          { id: "SUPPLIER_OFFERINGS", label: "Supplier Offerings" },
+          { id: "TRANSACTIONS", label: "Transactions" },
+        ].map((tab) => (
           <button
-            onClick={() => {
-              loadSummary();
-              loadLogs();
-            }}
-            disabled={loading}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm font-medium shadow-sm"
+            key={tab.id}
+            onClick={() => handleCategoryChange(tab.id as CategoryTab)}
+            className={`flex items-center h-7 px-3 text-xs font-medium rounded-[4px] whitespace-nowrap transition-colors cursor-pointer ${
+              selectedCategory === tab.id
+                ? "bg-[#0052CC] text-white shadow-xs"
+                : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
+            }`}
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-emerald-500" : ""}`} />
-            Refresh Stream
+            {tab.label}
           </button>
-        </div>
-      </div>
-
-      {/* KPI Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Total Events
-            </span>
-            <Activity className="w-4 h-4 text-slate-400" />
-          </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
-            {summaryLoading ? "..." : summary?.totalEvents.toLocaleString() || 0}
-          </p>
-          <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">Immutable records</span>
-        </div>
-
-        <div className="p-4 rounded-xl border border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-950/20 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
-              Today's Actions
-            </span>
-            <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <p className="text-2xl font-bold text-emerald-950 dark:text-emerald-200 mt-2">
-            {summaryLoading ? "..." : summary?.todayEvents.toLocaleString() || 0}
-          </p>
-          <span className="text-xs text-emerald-600/80 dark:text-emerald-400/80 mt-1 block">Since UTC midnight</span>
-        </div>
-
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              User Governance
-            </span>
-            <User className="w-4 h-4 text-blue-500" />
-          </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
-            {summaryLoading ? "..." : summary?.userGovernanceEvents.toLocaleString() || 0}
-          </p>
-          <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">Accounts & appeals</span>
-        </div>
-
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Supplier Trust
-            </span>
-            <Building2 className="w-4 h-4 text-purple-500" />
-          </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
-            {summaryLoading ? "..." : summary?.supplierGovernanceEvents.toLocaleString() || 0}
-          </p>
-          <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">KYC & verifications</span>
-        </div>
-
-        <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm col-span-2 sm:col-span-1">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Catalog & Offers
-            </span>
-            <Package className="w-4 h-4 text-amber-500" />
-          </div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
-            {summaryLoading ? "..." : summary?.catalogGovernanceEvents.toLocaleString() || 0}
-          </p>
-          <span className="text-xs text-slate-500 dark:text-slate-400 mt-1 block">Master products & offers</span>
-        </div>
-      </div>
-
-      {/* Category Tabs */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
-        <div className="flex overflow-x-auto gap-2 py-1 scrollbar-none">
-          {[
-            { id: "ALL", label: "All Events" },
-            { id: "USER_GOVERNANCE", label: "User Governance" },
-            { id: "SUPPLIER_TRUST", label: "Supplier Trust" },
-            { id: "MASTER_CATALOG", label: "Master Catalog" },
-            { id: "SUPPLIER_OFFERINGS", label: "Supplier Offerings" },
-            { id: "TRANSACTIONS", label: "Transactions" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => handleCategoryChange(tab.id as CategoryTab)}
-              className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap rounded-t-lg transition-all border-b-2 ${
-                selectedCategory === tab.id
-                  ? "border-emerald-500 text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50/50 dark:bg-emerald-950/20"
-                  : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-800/50"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="p-3.5 rounded-[8px] border border-[#E4E4E7] bg-white shadow-tactile-card space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
           {/* Free-text search */}
           <div className="relative col-span-1 sm:col-span-2">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
             <input
               type="text"
               placeholder="Search by actor, target ID, details..."
@@ -402,7 +372,7 @@ export default function AdminAuditPage() {
                   loadLogs();
                 }
               }}
-              className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+              className="w-full pl-8.5 pr-3 py-1.5 text-xs rounded-[6px] border border-[#E4E4E7] bg-[#FAFAFA] text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:border-[#0052CC]"
             />
           </div>
 
@@ -414,7 +384,7 @@ export default function AdminAuditPage() {
                 setActionFilter(e.target.value);
                 setCurrentPage(0);
               }}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              className="w-full px-2.5 py-1.5 rounded-[6px] border border-[#E4E4E7] bg-[#FAFAFA] text-xs text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
             >
               <option value="">All Actions</option>
               {(selectedCategory === "ALL"
@@ -436,7 +406,7 @@ export default function AdminAuditPage() {
                 setTargetTypeFilter(e.target.value);
                 setCurrentPage(0);
               }}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              className="w-full px-2.5 py-1.5 rounded-[6px] border border-[#E4E4E7] bg-[#FAFAFA] text-xs text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
             >
               <option value="">All Target Types</option>
               <option value="USER">USER</option>
@@ -502,10 +472,10 @@ export default function AdminAuditPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center justify-end gap-2 pt-1 border-t border-[#E4E4E7]">
             <button
               onClick={handleResetFilters}
-              className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 px-2.5 py-1 font-medium transition-colors"
+              className="h-7 px-3 text-xs text-[#64748B] hover:text-[#0F172A] font-medium transition-colors cursor-pointer"
             >
               Reset Filters
             </button>
@@ -514,7 +484,7 @@ export default function AdminAuditPage() {
                 setCurrentPage(0);
                 loadLogs();
               }}
-              className="px-3 py-1 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-md text-xs font-semibold hover:bg-slate-800 dark:hover:bg-white transition-colors"
+              className="h-7 px-3.5 bg-[#0052CC] text-white rounded-[6px] text-xs font-medium hover:bg-[#0747A6] transition-colors cursor-pointer shadow-xs"
             >
               Apply Search
             </button>
@@ -524,39 +494,39 @@ export default function AdminAuditPage() {
 
       {/* Error state */}
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-400 text-sm flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="p-3.5 rounded-[6px] bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] text-[#DC2626] text-xs flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Audit Table */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm overflow-hidden">
+      <div className="rounded-[8px] border border-[#E4E4E7] bg-white shadow-tactile-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold text-xs uppercase tracking-wider">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-[#E4E4E7] text-[#475569] font-mono font-semibold text-[10px] uppercase tracking-wider">
               <tr>
-                <th className="py-3.5 px-4">Timestamp (UTC)</th>
-                <th className="py-3.5 px-4">Actor</th>
-                <th className="py-3.5 px-4">Action</th>
-                <th className="py-3.5 px-4">Target</th>
-                <th className="py-3.5 px-4">Summary Details</th>
-                <th className="py-3.5 px-4">Client IP</th>
-                <th className="py-3.5 px-4 text-right">Inspect</th>
+                <th className="py-2.5 px-4">Timestamp (UTC)</th>
+                <th className="py-2.5 px-4">Actor</th>
+                <th className="py-2.5 px-4">Action</th>
+                <th className="py-2.5 px-4">Target</th>
+                <th className="py-2.5 px-4">Summary Details</th>
+                <th className="py-2.5 px-4">Client IP</th>
+                <th className="py-2.5 px-4 text-right">Inspect</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-[#E4E4E7]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400">
-                    <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-emerald-500" />
+                  <td colSpan={7} className="py-12 text-center text-[#64748B]">
+                    <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-2 text-[#0052CC]" />
                     Loading immutable audit stream...
                   </td>
                 </tr>
               ) : logsData.content.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500 dark:text-slate-400">
-                    <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                  <td colSpan={7} className="py-12 text-center text-[#64748B]">
+                    <ShieldCheck className="w-6 h-6 mx-auto mb-2 text-[#94A3B8]" />
                     No audit records matching your current filter parameters.
                   </td>
                 </tr>
@@ -564,10 +534,10 @@ export default function AdminAuditPage() {
                 logsData.content.map((item) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer"
+                    className="hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                     onClick={() => setSelectedLog(item)}
                   >
-                    <td className="py-3.5 px-4 whitespace-nowrap text-slate-600 dark:text-slate-300 font-mono text-xs">
+                    <td className="py-2.5 px-4 whitespace-nowrap text-[#475569] font-mono text-[11px]">
                       {new Date(item.createdAt).toLocaleString("en-US", {
                         year: "numeric",
                         month: "short",
@@ -577,53 +547,53 @@ export default function AdminAuditPage() {
                         second: "2-digit",
                         timeZone: "UTC",
                       })}{" "}
-                      <span className="text-[10px] text-slate-400">UTC</span>
+                      <span className="text-[10px] text-[#94A3B8]">UTC</span>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-2.5 px-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs">
+                        <span className="font-semibold text-[#0F172A] text-xs">
                           {item.adminName}
                         </span>
-                        <span className="text-[11px] text-slate-400 font-mono truncate max-w-[160px]">
+                        <span className="text-[11px] text-[#64748B] font-mono truncate max-w-[160px]">
                           {item.adminEmail}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-2.5 px-4 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getActionBadge(
+                        className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-mono font-semibold border ${getActionBadge(
                           item.action
                         )}`}
                       >
                         {item.action}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-2.5 px-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <span className="text-xs font-medium text-[#0F172A]">
                           {item.targetType}
                         </span>
-                        <span className="text-[11px] text-slate-400 font-mono truncate max-w-[120px]">
-                          {item.targetId}
+                        <span className="text-[11px] text-[#64748B] font-mono truncate max-w-[120px]">
+                          {item.targetId || "—"}
                         </span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300 text-xs max-w-xs truncate">
-                      {item.details || <span className="text-slate-400 italic">No notes</span>}
+                    <td className="py-2.5 px-4 text-[#334155] text-xs max-w-xs truncate">
+                      {item.details || <span className="text-[#94A3B8] italic">No notes</span>}
                     </td>
-                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-xs text-slate-400">
+                    <td className="py-2.5 px-4 whitespace-nowrap font-mono text-xs text-[#64748B]">
                       {item.ipAddress || "127.0.0.1"}
                     </td>
-                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <td className="py-2.5 px-4 text-right whitespace-nowrap">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedLog(item);
                         }}
-                        className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="p-1 rounded-[4px] border border-[#E4E4E7] text-[#64748B] hover:text-[#0052CC] hover:bg-[#FAFAFA] transition-colors cursor-pointer"
                         title="View Record Details"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>

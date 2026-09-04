@@ -14,6 +14,7 @@ import com.kemkendra.identity.dto.RegisterRequest;
 import com.kemkendra.identity.dto.UserResponse;
 import com.kemkendra.identity.dto.LoginRequest;
 import com.kemkendra.identity.dto.LoginResponse;
+import com.kemkendra.identity.dto.LoginAuthResult;
 import com.kemkendra.identity.dto.SupplierRegisterRequest;
 import com.kemkendra.product.Supplier;
 import com.kemkendra.product.SupplierRepository;
@@ -42,6 +43,7 @@ public class UserService {
     private final com.kemkendra.identity.PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailVerificationService emailVerificationService;
     private final com.kemkendra.admin.audit.AuditService auditService;
+    private final RefreshTokenService refreshTokenService;
     private com.kemkendra.admin.config.FeatureToggleService featureToggleService;
 
     public UserService(UserRepository userRepository,
@@ -52,7 +54,8 @@ public class UserService {
                        LoginRateLimiterService rateLimiterService,
                        com.kemkendra.identity.PasswordResetTokenRepository passwordResetTokenRepository,
                        EmailVerificationService emailVerificationService,
-                       com.kemkendra.admin.audit.AuditService auditService) {
+                       com.kemkendra.admin.audit.AuditService auditService,
+                       RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.supplierRepository = supplierRepository;
         this.sellerProfileRepository = sellerProfileRepository;
@@ -62,6 +65,7 @@ public class UserService {
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.emailVerificationService = emailVerificationService;
         this.auditService = auditService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -89,10 +93,17 @@ public class UserService {
             throw new IllegalArgumentException("Email already registered");
         }
 
+        if (request.phone() != null && !request.phone().isBlank()) {
+            String phone = request.phone().trim();
+            if (userRepository.findByPhone(phone).isPresent()) {
+                throw new IllegalArgumentException("Phone number already registered");
+            }
+        }
+
         User user = new User();
         user.setName(request.name().trim());
         user.setEmail(email);
-        user.setPhone(request.phone() != null ? request.phone().trim() : null);
+        user.setPhone(request.phone() != null && !request.phone().isBlank() ? request.phone().trim() : null);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(UserRole.USER);
         user.setStatus(UserStatus.ACTIVE);
@@ -148,11 +159,18 @@ public class UserService {
             throw new IllegalArgumentException("Email already registered");
         }
 
+        if (request.phone() != null && !request.phone().isBlank()) {
+            String phone = request.phone().trim();
+            if (userRepository.findByPhone(phone).isPresent()) {
+                throw new IllegalArgumentException("Phone number already registered");
+            }
+        }
+
         // 1. Create User
         User user = new User();
         user.setName(request.name().trim());
         user.setEmail(email);
-        user.setPhone(request.phone() != null ? request.phone().trim() : null);
+        user.setPhone(request.phone() != null && !request.phone().isBlank() ? request.phone().trim() : null);
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setRole(UserRole.SUPPLIER);
         user.setStatus(UserStatus.ACTIVE);
@@ -188,6 +206,8 @@ public class UserService {
         supplier.setSlug(slug);
         supplier.setCountryCode(request.countryCode() != null && !request.countryCode().isBlank() ? request.countryCode().trim().toUpperCase() : "IN");
         supplier.setCountryName(request.country().trim());
+        supplier.setBusinessEmail(savedUser.getEmail());
+        supplier.setEmailVerified(savedUser.isEmailVerified());
         supplier.setVerified(false);
         supplier.setVerificationStatus(com.kemkendra.seller.SupplierVerificationStatus.DRAFT);
         supplier.setExportReady(false);
@@ -217,11 +237,15 @@ public class UserService {
         );
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginAuthResult login(LoginRequest request) {
         return login(request, null);
     }
 
-    public LoginResponse login(LoginRequest request, String clientIp) {
+    public LoginAuthResult login(LoginRequest request, String clientIp) {
+        return login(request, clientIp, null);
+    }
+
+    public LoginAuthResult login(LoginRequest request, String clientIp, String userAgent) {
         // 1. Rate limit verification
         rateLimiterService.checkRateLimit(clientIp, request.email());
 
@@ -251,7 +275,8 @@ public class UserService {
             rateLimiterService.recordSuccessfulLogin(clientIp, request.email());
             log.info("Suspended user authenticated for account review: {}", user.getEmail());
             String token = jwtService.generateToken(user);
-            return new LoginResponse("Your KemKendra account is currently suspended. You can request an account review.", token);
+            long expiresIn = jwtService.getJwtExpiration() / 1000;
+            return new LoginAuthResult("Your KemKendra account is currently suspended. You can request an account review.", token, expiresIn, null, null);
         }
 
         if (user.getEmailVerifiedAt() == null && user.getRole() != UserRole.ADMIN) {
@@ -264,8 +289,10 @@ public class UserService {
         rateLimiterService.recordSuccessfulLogin(clientIp, request.email());
         log.info("Successful login for user: {} (Role: {})", user.getEmail(), user.getRole());
 
+        RefreshTokenService.CreatedSession session = refreshTokenService.createSession(user, clientIp, userAgent);
         String token = jwtService.generateToken(user);
-        return new LoginResponse("Login successful", token);
+        long expiresIn = jwtService.getJwtExpiration() / 1000;
+        return new LoginAuthResult("Login successful", token, expiresIn, session.rawRefreshToken(), session.refreshExpiresIn());
     }
 
     public UserResponse getById(UUID id) {
@@ -362,10 +389,14 @@ public class UserService {
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordChangedAt(java.time.Instant.now());
         userRepository.save(user);
 
         // Invalidate any active password-reset tokens
         passwordResetTokenRepository.invalidateActiveTokensForUser(user, java.time.Instant.now());
+
+        // Revoke all active refresh sessions for this user (Phase C.2)
+        refreshTokenService.revokeAllUserSessions(user.getId());
 
         log.info("Password changed successfully for user ID: {}", user.getId());
         return com.kemkendra.identity.dto.ChangePasswordResponse.ofDefault();

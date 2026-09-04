@@ -52,4 +52,26 @@ class HttpSecurityHeadersTest {
                 .andExpect(status().isOk())
                 .andExpect(header().doesNotExist("Strict-Transport-Security"));
     }
+
+    @Test
+    @DisplayName("Sensitive actuator endpoints are not accessible without authentication")
+    void testSensitiveActuatorEndpointsProtected() throws Exception {
+        mockMvc.perform(get("/actuator/metrics"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/actuator/env"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/actuator/beans"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Health endpoint returns status UP and does not reveal sensitive internal component details")
+    void testActuatorHealthDoesNotLeakDetails() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.status").value("UP"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.components").doesNotExist());
+    }
 }

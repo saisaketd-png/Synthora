@@ -8,12 +8,18 @@ import com.kemkendra.identity.dto.ResendVerificationRequest;
 import com.kemkendra.identity.dto.ResendVerificationResponse;
 import com.kemkendra.identity.dto.VerifyEmailRequest;
 import com.kemkendra.identity.dto.VerifyEmailResponse;
+import com.kemkendra.security.JwtService;
+import com.kemkendra.identity.UserRole;
 import com.kemkendra.notification.email.EmailService;
+import com.kemkendra.product.Supplier;
+import com.kemkendra.product.SupplierRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.util.HtmlUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -38,16 +44,22 @@ public class EmailVerificationService {
     private final UserRepository userRepository;
     private final EmailVerificationTokenRepository tokenRepository;
     private final EmailService emailService;
+    private final JwtService jwtService;
+    private final SupplierRepository supplierRepository;
     private final String appBaseUrl;
 
     public EmailVerificationService(
             UserRepository userRepository,
             EmailVerificationTokenRepository tokenRepository,
             EmailService emailService,
+            JwtService jwtService,
+            SupplierRepository supplierRepository,
             @Value("${kemkendra.app.base-url:http://localhost:3000}") String appBaseUrl) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
         this.emailService = emailService;
+        this.jwtService = jwtService;
+        this.supplierRepository = supplierRepository;
         this.appBaseUrl = appBaseUrl != null && appBaseUrl.endsWith("/")
                 ? appBaseUrl.substring(0, appBaseUrl.length() - 1)
                 : (appBaseUrl != null ? appBaseUrl : "http://localhost:3000");
@@ -77,18 +89,20 @@ public class EmailVerificationService {
         EmailVerificationToken verificationToken = new EmailVerificationToken(null, user, tokenHash, expiresAt);
         tokenRepository.save(verificationToken);
 
-        // Construct verification URL and dispatch email
+        // Construct verification URL and dispatch email after transaction successfully commits
         String verifyUrl = appBaseUrl + "/verify-email?token=" + rawToken;
-        sendVerificationEmail(user, verifyUrl);
-
-        log.info("""
-
-                ================================================================================
-                [EMAIL VERIFICATION DISPATCHED]
-                Recipient: {} (User ID: {})
-                Verification URL: {}
-                ================================================================================""",
-                user.getEmail(), user.getId(), verifyUrl);
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendVerificationEmail(user, verifyUrl);
+                    log.info("Dispatched email verification for user ID: {}, recipient: {}", user.getId(), user.getEmail());
+                }
+            });
+        } else {
+            sendVerificationEmail(user, verifyUrl);
+            log.info("Dispatched email verification for user ID: {}, recipient: {}", user.getId(), user.getEmail());
+        }
     }
 
     /**
@@ -130,8 +144,29 @@ public class EmailVerificationService {
         // Invalidate other pending tokens
         tokenRepository.invalidateActiveTokensForUser(user, now);
 
-        log.info("Email successfully verified for user ID: {}", user.getId());
-        return new VerifyEmailResponse("Email verified successfully. You can now log in.");
+        // If supplier, update supplier emailVerified flag and determine verificationStatus
+        String verificationStatus = null;
+        if (user.getRole() == UserRole.SUPPLIER) {
+            Optional<Supplier> supplierOpt = supplierRepository.findByUser(user);
+            if (supplierOpt.isPresent()) {
+                Supplier supplier = supplierOpt.get();
+                supplier.setBusinessEmail(user.getEmail());
+                supplier.setEmailVerified(true);
+                supplierRepository.save(supplier);
+                verificationStatus = supplier.getVerificationStatus() != null
+                        ? supplier.getVerificationStatus().name()
+                        : "DRAFT";
+            } else {
+                verificationStatus = "DRAFT";
+            }
+        }
+
+        // Generate JWT token so client is automatically authenticated
+        String token = jwtService.generateToken(user);
+        String role = user.getRole() != null ? user.getRole().name() : "USER";
+
+        log.info("Email successfully verified for user ID: {}, role: {}, supplierStatus: {}", user.getId(), role, verificationStatus);
+        return new VerifyEmailResponse("Email verified successfully.", token, role, verificationStatus);
     }
 
     /**
@@ -191,67 +226,75 @@ public class EmailVerificationService {
         String subject = "[KemKendra] Verify Your Email Address";
         String htmlBody = """
                 <!DOCTYPE html>
-                <html>
+                <html lang="en">
                 <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Verify Your Email Address</title>
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <title>Activate your KemKendra account</title>
                 </head>
-                <body style="margin: 0; padding: 0; background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc;">
-                    <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0f172a; padding: 40px 20px;">
+                <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
+                    <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 48px 16px;">
                         <tr>
                             <td align="center">
-                                <table width="100%%" max-width="600" style="max-width: 600px; background-color: #1e293b; border-radius: 12px; border: 1px solid #334155; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);">
-                                    <!-- Header -->
+                                <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="max-width: 540px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); overflow: hidden;">
+                                    <!-- Minimal Header -->
                                     <tr>
-                                        <td style="padding: 32px 40px; background: linear-gradient(135deg, #1e293b 0%%, #0f172a 100%%); border-bottom: 1px solid #334155;">
+                                        <td style="padding: 32px 40px 24px 40px; border-bottom: 1px solid #f1f5f9;">
                                             <table width="100%%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
                                                     <td>
-                                                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px;">KEMKENDRA</h1>
-                                                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">B2B Chemical & Raw Materials Marketplace</p>
+                                                        <span style="font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">KEMKENDRA</span>
+                                                        <span style="display: inline-block; margin-left: 8px; font-size: 13px; color: #94a3b8; font-weight: 400;">&bull;&nbsp; Global B2B Chemical Marketplace</span>
                                                     </td>
                                                 </tr>
                                             </table>
                                         </td>
                                     </tr>
-                                    <!-- Body -->
+                                    <!-- Editorial Body -->
                                     <tr>
-                                        <td style="padding: 40px;">
-                                             <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #f8fafc;">Verify Your Email Address</h2>
-                                            <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: #cbd5e1;">
+                                        <td style="padding: 36px 40px 32px 40px;">
+                                            <h1 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: #0f172a; letter-spacing: -0.2px; line-height: 28px;">
+                                                Verify your email address
+                                            </h1>
+                                            <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 24px; color: #334155;">
                                                 Hello %s,
                                             </p>
-                                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 24px; color: #cbd5e1;">
-                                                Welcome to KemKendra. To activate your account and access the B2B chemical marketplace, please verify your email address by clicking the button below:
+                                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 24px; color: #334155;">
+                                                Please confirm that you created a KemKendra account by clicking the button below. Once confirmed, you will be directed straight to your commercial workspace.
                                             </p>
-                                            <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="margin: 28px 0;">
+                                            <!-- Solid Primary Action -->
+                                            <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 0 28px 0;">
                                                 <tr>
-                                                    <td align="center">
-                                                        <a href="%s" style="display: inline-block; background: linear-gradient(135deg, #0284c7 0%%, #0369a1 100%%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 14px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
+                                                    <td align="center" style="border-radius: 6px; background-color: #0f172a;">
+                                                        <a href="%s" target="_blank" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px; background-color: #0f172a;">
                                                             Verify Email Address
                                                         </a>
                                                     </td>
                                                 </tr>
                                             </table>
-                                            <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 20px; color: #94a3b8;">
-                                                <strong>Note:</strong> This verification link will expire in <strong>24 hours</strong> and can only be used once.
+                                            <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 20px; color: #64748b;">
+                                                This link will expire in 24 hours. If you did not make this request, you can safely ignore this email.
                                             </p>
-                                            <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 20px; color: #94a3b8;">
-                                                If you did not register for an account on KemKendra, you can safely ignore this email.
-                                            </p>
-                                            <hr style="border: 0; border-top: 1px solid #334155; margin: 24px 0;">
-                                            <p style="margin: 0; font-size: 12px; line-height: 18px; color: #64748b; word-break: break-all;">
-                                                If the button above doesn't work, copy and paste this link into your browser:<br>
-                                                <a href="%s" style="color: #38bdf8; text-decoration: underline;">%s</a>
-                                            </p>
+                                            <!-- Monospace direct link -->
+                                            <div style="border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                                                <p style="margin: 0 0 4px 0; font-size: 12px; color: #94a3b8;">
+                                                    Trouble with the button? Use this URL directly:
+                                                </p>
+                                                <p style="margin: 0; font-size: 12px; line-height: 18px; color: #2563eb; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+                                                    <a href="%s" target="_blank" style="color: #2563eb; text-decoration: underline;">%s</a>
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
-                                    <!-- Footer -->
+                                    <!-- Understated Footer -->
                                     <tr>
-                                        <td style="padding: 24px 40px; background-color: #0f172a; border-top: 1px solid #334155; text-align: center;">
-                                            <p style="margin: 0; font-size: 12px; color: #64748b;">
-                                                &copy; %d KemKendra Marketplace. All rights reserved.
+                                        <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #f1f5f9;">
+                                            <p style="margin: 0 0 4px 0; font-size: 12px; line-height: 18px; color: #64748b;">
+                                                KemKendra Inc. &bull; Enterprise Chemical Sourcing & Compliance
+                                            </p>
+                                            <p style="margin: 0; font-size: 12px; line-height: 18px; color: #94a3b8;">
+                                                &copy; %d KemKendra. All rights reserved.
                                             </p>
                                         </td>
                                     </tr>

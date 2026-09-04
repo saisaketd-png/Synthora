@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Product } from "@/features/products/types/product";
 import { PremiumProductCard, PremiumProduct } from "@/shared/components/PremiumProductCard";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 interface FeaturedCatalogPreviewProps {
   products?: Product[];
@@ -26,7 +26,7 @@ const SAMPLE_PRODUCTS: PremiumProduct[] = [
   },
   {
     id: "sample-2",
-    name: "Acetic Acid",
+    name: "Acetic Acid Glacial",
     category: "Industrial Solvents",
     casNumber: "64-19-7",
     moq: "2 MT",
@@ -97,34 +97,33 @@ export function FeaturedCatalogPreview({ products }: FeaturedCatalogPreviewProps
       : SAMPLE_PRODUCTS;
 
   return (
-    <section className="py-16 sm:py-20 bg-white border-b border-[#E2E8F0]">
+    <section className="py-16 sm:py-20 bg-white border-b border-[#E4E4E7]">
       <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div className="max-w-2xl space-y-2">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md text-xs font-bold text-[#006644] bg-[#E3FCEF] border border-[#ABF5D1]">
-              <Sparkles className="w-3.5 h-3.5 text-[#00875A]" />
-              <span className="font-mono uppercase tracking-wider">Verified Sourcing</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#091E42] tracking-tight">
-              Precision Chemical Catalog
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+          <div>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0052CC] font-mono bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1 rounded-[4px]">
+              Marketplace Liquidity
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0F172A] tracking-tight mt-2.5">
+              Products in Demand
             </h2>
-            <p className="text-sm sm:text-[15px] text-[#64748B] leading-relaxed">
-              Curated from verified pharmaceutical and chemical manufacturers, complete with Certificates of Analysis (COA) and regulatory compliance data.
+            <p className="text-xs sm:text-sm text-[#64748B] mt-1.5 max-w-2xl leading-relaxed">
+              Active sourcing monographs from verified manufacturers, complete with Certificates of Analysis (COA) and batch test records.
             </p>
           </div>
 
           <Link
             href="/products"
-            className="h-[42px] px-5 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-[#091E42] text-sm font-semibold rounded-xl transition-all inline-flex items-center gap-2 shadow-2xs shrink-0 self-start md:self-auto"
+            className="h-9 px-4 bg-white border border-[#E4E4E7] hover:bg-[#FAFAFA] text-[#0F172A] text-xs font-medium rounded-[6px] transition-colors inline-flex items-center gap-1.5 shadow-xs shrink-0 self-start md:self-auto"
           >
-            <span>Browse Full Catalog</span>
-            <ArrowRight className="w-4 h-4 text-[#64748B]" />
+            <span>View Full Directory</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
           </Link>
         </div>
 
-        {/* Product Grid: 1 col (mobile) -> 2 cols (tablet) -> 3-4 cols (desktop) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {/* Product Grid: 1 col (mobile) -> 2 cols (tablet) -> 4 cols (desktop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {displayProducts.slice(0, 4).map((product) => (
             <PremiumProductCard key={product.id} product={product} />
           ))}

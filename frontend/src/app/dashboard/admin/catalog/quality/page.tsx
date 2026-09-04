@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, AlertCircle, FileText, ChevronRight } from "lucide-react";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 interface QualityItem {
   id: string;
@@ -25,10 +26,7 @@ export default function MasterCatalogQualityPage() {
   useEffect(() => {
     async function fetchQuality() {
       try {
-        const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-        const res = await fetch("/api/v1/admin/operations/catalog/quality", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await authenticatedFetch("/api/v1/admin/operations/catalog/quality");
         if (res.ok) {
           const data = await res.json();
           setItems(data.content || []);

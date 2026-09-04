@@ -45,48 +45,48 @@ export function MarketActivity() {
   ];
 
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 p-10 flex flex-col h-full relative">
+    <div className="bg-white rounded-[8px] border border-[#E4E4E7] p-6 sm:p-8 flex flex-col h-full relative shadow-tactile-card">
       
       {/* Header */}
-      <div className="flex items-start justify-between mb-10">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
-            <Activity className="w-6 h-6" />
+      <div className="flex items-start justify-between mb-6 pb-4 border-b border-[#E4E4E7]">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[6px] bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#0052CC]">
+            <Activity className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-lg text-[#0A192F]">Market Activity</h3>
-            <p className="text-[13px] font-medium text-slate-500">Live requests for quotation</p>
+            <h3 className="font-semibold text-sm text-[#0F172A]">Market Sourcing Activity</h3>
+            <p className="text-xs text-[#64748B]">Recent inbound requests for commercial quotations</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-600 rounded-full">
-          <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-          <span className="text-[11px] font-bold tracking-wide">Live</span>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-[#ECFDF5] text-[#059669] border border-[rgba(5,150,105,0.2)] rounded-[4px]">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#059669]" />
+          <span className="text-[10px] font-mono font-medium uppercase tracking-wider">Live Flow</span>
         </div>
       </div>
 
       {/* List */}
       <div className="relative flex-1">
         {/* Vertical Line */}
-        <div className="absolute left-[5px] top-3 bottom-8 w-px bg-slate-100" />
+        <div className="absolute left-[5px] top-3 bottom-8 w-px bg-[#E4E4E7]" />
         
-        <div className="space-y-8 relative">
+        <div className="space-y-6 relative">
           {rfqs.map((rfq) => (
-            <div key={rfq.id} className="flex items-start gap-6 group">
-              <div className={`w-3 h-3 rounded-full mt-1.5 ring-4 ring-white ${rfq.color} relative z-10`} />
+            <div key={rfq.id} className="flex items-start gap-4 group">
+              <div className="w-2.5 h-2.5 rounded-full mt-1.5 ring-4 ring-white bg-[#0052CC] relative z-10" />
               
               <div className="flex-1 flex justify-between items-start">
                 <div>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="font-bold text-[#0A192F] text-[15px]">{rfq.product}</span>
-                    <span className="text-slate-300">&middot;</span>
-                    <span className="font-mono text-[13px] font-bold text-slate-500">{rfq.quantity}</span>
+                  <div className="flex items-baseline gap-2 mb-0.5">
+                    <span className="font-semibold text-[#0F172A] text-xs">{rfq.product}</span>
+                    <span className="text-[#94A3B8]">&middot;</span>
+                    <span className="font-mono text-xs font-semibold text-[#0F172A]">{rfq.quantity}</span>
                   </div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+                  <div className="text-[10px] font-mono text-[#64748B] uppercase">
                     {rfq.country}
                   </div>
                 </div>
                 
-                <div className="text-[12px] font-mono text-slate-400 mt-1">
+                <div className="text-[11px] font-mono text-[#64748B]">
                   {rfq.timeAgo}
                 </div>
               </div>

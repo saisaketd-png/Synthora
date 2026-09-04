@@ -17,6 +17,7 @@ import { CounterOfferModal } from "@/features/rfq/components/CounterOfferModal";
 import { TransactionTimeline } from "@/shared/components/procurement/TransactionTimeline";
 import { useToast } from "@/shared/context/ToastContext";
 import { getSupplierPublicProfile } from "@/features/suppliers/api";
+import { StatusBadge } from "@/shared/components/ui/KemkendraUI";
 import {
   ChevronRight,
   AlertCircle,
@@ -345,96 +346,157 @@ export default function BuyerRfqDetailPage() {
       {/* ========================================================================= */}
       {/* A. RFQ HEADER (Full-Width Top Strip)                                      */}
       {/* ========================================================================= */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-2xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1.5">
+      {/* ========================================================================= */}
+      {/* A. RFQ HEADER & WHOSE TURN COCKPIT BANNER                                */}
+      {/* ========================================================================= */}
+      {/* 1. Whose Turn / Action Required Cockpit Banner */}
+      <div
+        className={`p-3.5 sm:p-4 rounded-[8px] border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-tactile-card ${
+          canBuyerDecide
+            ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#0052CC]"
+            : isAccepted && !existingPo
+            ? "bg-[#ECFDF5] border-[rgba(5,150,105,0.2)] text-[#059669]"
+            : isCountered
+            ? "bg-[#FFFBEB] border-[rgba(217,119,6,0.2)] text-[#D97706]"
+            : "bg-white border-[#E4E4E7] text-[#0F172A]"
+        }`}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className={`w-7 h-7 rounded-[4px] flex items-center justify-center font-bold shrink-0 ${
+              canBuyerDecide
+                ? "bg-[#0052CC] text-white"
+                : isAccepted && !existingPo
+                ? "bg-[#059669] text-white"
+                : isCountered
+                ? "bg-[#D97706] text-white"
+                : "bg-[#F4F4F5] text-[#64748B]"
+            }`}
+          >
+            {canBuyerDecide ? "!" : isAccepted && !existingPo ? "✓" : "•"}
+          </div>
+          <div>
+            <span className="font-mono text-[10px] uppercase font-bold tracking-wider block">
+              {canBuyerDecide
+                ? "COMMERCIAL ACTION REQUIRED — YOUR TURN"
+                : isAccepted && !existingPo
+                ? "COMMERCIAL TERMS ACCEPTED — ACTION REQUIRED"
+                : isCountered
+                ? "COUNTER OFFER SUBMITTED — AWAITING SUPPLIER TURN"
+                : "SOURCING INQUIRY ACTIVE"}
+            </span>
+            <p className="text-xs text-[#0F172A] mt-0.5">
+              {canBuyerDecide
+                ? "The supplier has submitted commercial terms. Evaluate the proposal below to Accept or submit a Counter-Offer."
+                : isAccepted && !existingPo
+                ? "Commercial agreement has been achieved. Issue a binding Purchase Order to lock production schedules."
+                : isCountered
+                ? "Your counter-offer has been transmitted to the supplier. Awaiting their acceptance or counter-proposal."
+                : "Your sourcing inquiry has been submitted and is pending supplier quotation."}
+            </p>
+          </div>
+        </div>
+
+        {canBuyerDecide ? (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsCounterModalOpen(true)}
+              className="h-8 px-3 text-xs font-medium text-[#0052CC] bg-white border border-[#BFDBFE] hover:bg-[#EFF6FF] rounded-[6px] transition-colors cursor-pointer"
+            >
+              Counter Offer
+            </button>
+            <button
+              type="button"
+              onClick={() => setDecisionModalMode("accept")}
+              className="h-8 px-3.5 text-xs font-medium text-white bg-[#059669] hover:bg-[#047857] rounded-[6px] transition-colors cursor-pointer"
+            >
+              Accept Terms
+            </button>
+          </div>
+        ) : isAccepted && !existingPo ? (
+          <button
+            type="button"
+            onClick={() => setIsPoModalOpen(true)}
+            className="h-8 px-3.5 text-xs font-medium text-white bg-[#059669] hover:bg-[#047857] rounded-[6px] transition-colors cursor-pointer shrink-0"
+          >
+            Issue Purchase Order →
+          </button>
+        ) : null}
+      </div>
+
+      {/* 2. Main RFQ Cockpit Card */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-5 shadow-tactile-card">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="space-y-1">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#64748B]">
+              <span className="text-[10px] font-mono font-medium uppercase tracking-wider text-[#64748B]">
                 PROCUREMENT / RFQ DOSSIER
               </span>
-              <span className="text-[#E2E8F0]">•</span>
-              <span className="font-mono text-xs font-bold text-[#0052CC] tracking-wide">
+              <span className="text-[#E4E4E7]">•</span>
+              <span className="font-mono text-xs font-semibold text-[#0052CC]">
                 {rfqShortId}
               </span>
-              <span className="text-[#E2E8F0]">•</span>
-              <span
-                className={`text-[11px] font-bold px-2.5 py-0.5 rounded border uppercase font-mono ${
-                  isAccepted
-                    ? "bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]"
-                    : isCountered
-                    ? "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
-                    : isQuoted
-                    ? "bg-[#DEEBFF] text-[#0747A6] border-[#B3D4FF]"
-                    : "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
-                }`}
-              >
-                {isAccepted
-                  ? "ACCEPTED / READY FOR PO"
-                  : isCountered
-                  ? "COUNTER OFFER IN NEGOTIATION"
-                  : isQuoted
-                  ? "QUOTED / REVIEW REQUIRED"
-                  : "AWAITING SUPPLIER QUOTE"}
-              </span>
+              <span className="text-[#E4E4E7]">•</span>
+              <StatusBadge status={rfq.status} />
             </div>
 
-            <div className="flex items-baseline gap-3 flex-wrap pt-0.5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B1B33] tracking-tight">
+            <div className="flex items-baseline gap-2.5 flex-wrap pt-0.5">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
                 {resolvedProductName}
               </h1>
               {resolvedCasNumber && (
-                <span className="font-mono text-xs text-[#526581] bg-[#FAFBFC] px-2.5 py-0.5 rounded border border-[#E2E8F0] font-semibold">
+                <span className="font-mono text-xs text-[#64748B] bg-[#FAFAFA] px-2 py-0.5 rounded-[4px] border border-[#E4E4E7]">
                   CAS {resolvedCasNumber}
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-[#526581]">
+            <p className="text-xs text-[#64748B]">
               Supplier:{" "}
-              <strong className="text-[#0B1B33]">
+              <strong className="text-[#0F172A]">
                 {supplier?.supplierName ||
                   supplierNameResolved ||
                   `Verified Supplier #${rfq.supplierId}`}
               </strong>{" "}
-              • Sourcing Category:{" "}
-              <span className="font-medium text-[#0B1B33]">
+              • Category:{" "}
+              <span className="font-medium text-[#0F172A]">
                 {product?.category || "Chemical Consignment"}
               </span>
             </p>
           </div>
 
-          {/* Header Quick Action: Scroll to Negotiation History */}
-          <div className="flex items-center gap-3 shrink-0 self-start lg:self-center">
+          {/* Quick Jump */}
+          <div className="flex items-center gap-2 shrink-0 self-start lg:self-center">
             {quotations.length > 0 && (
               <button
                 type="button"
                 onClick={scrollToHistory}
-                className="h-10 px-4 border border-[#E2E8F0] hover:bg-[#FAFBFC] text-[#0B1B33] text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer group"
-                title="Scroll down to complete negotiation history"
+                className="h-8 px-3 border border-[#E4E4E7] hover:bg-[#FAFAFA] text-[#0F172A] text-xs font-medium rounded-[6px] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <History className="w-3.5 h-3.5 text-[#526581] group-hover:text-[#0052CC] transition-colors" />
-                <span>Negotiation History ({quotations.length}) ↓</span>
+                <History className="w-3.5 h-3.5 text-[#64748B]" />
+                <span>Revision History ({quotations.length})</span>
               </button>
             )}
           </div>
         </div>
 
         {/* Structured Context Metadata Bar */}
-        <div className="mt-5 pt-4 border-t border-[#E2E8F0] grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div className="mt-4 pt-3.5 border-t border-[#E4E4E7] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
-              Requested Quantity
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
+              Requested Volume
             </span>
-            <span className="text-sm font-bold text-[#0B1B33] block mt-0.5 font-mono">
+            <span className="text-sm font-bold text-[#0F172A] block mt-0.5 font-mono">
               {formatQty(rfq.quantity, rfq.unit)}
             </span>
           </div>
 
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
               Current Terms
             </span>
-            <span className="text-sm font-bold text-[#0B1B33] block mt-0.5 font-mono">
+            <span className="text-sm font-bold text-[#0052CC] block mt-0.5 font-mono">
               {latestQuotation
                 ? `${formatMoney(latestQuotation.unitPrice, latestQuotation.currency)} / ${rfq.unit.toUpperCase()}`
                 : "Awaiting Quote"}
@@ -442,19 +504,19 @@ export default function BuyerRfqDetailPage() {
           </div>
 
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
-              Request Date
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
+              Inquiry Date
             </span>
-            <span className="text-xs text-[#0B1B33] block mt-0.5 font-mono">
+            <span className="text-xs text-[#0F172A] block mt-0.5 font-mono">
               {formatDate(rfq.createdAt)}
             </span>
           </div>
 
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
               Response Target SLA
             </span>
-            <span className="text-xs font-medium text-[#006644] block mt-0.5">
+            <span className="text-xs font-medium text-[#059669] block mt-0.5">
               Within 24 Hours
             </span>
           </div>

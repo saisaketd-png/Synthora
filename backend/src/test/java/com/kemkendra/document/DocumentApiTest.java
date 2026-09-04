@@ -24,6 +24,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import java.io.File;
 import java.io.IOException;
@@ -257,9 +258,24 @@ public class DocumentApiTest {
     public void testStorageFailureRollsBackDatabase() throws Exception {
         UUID ownerId = UUID.randomUUID();
 
-        // The LocalStorageService is configured to fail when extension is .FAIL_STORAGE
+        // Create a regular file at the "documents" directory location to induce an IOException during directory creation
+        Path documentsPath = tempStorageDir.resolve("documents");
+        if (java.nio.file.Files.exists(documentsPath)) {
+            if (java.nio.file.Files.isDirectory(documentsPath)) {
+                try (var stream = java.nio.file.Files.walk(documentsPath)) {
+                    stream.sorted(java.util.Comparator.reverseOrder()).forEach(p -> {
+                        try { java.nio.file.Files.deleteIfExists(p); } catch (Exception ignored) {}
+                    });
+                }
+            } else {
+                java.nio.file.Files.deleteIfExists(documentsPath);
+            }
+        }
+        java.nio.file.Files.createFile(documentsPath);
+
+        byte[] validPdf = "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF".getBytes();
         MockMultipartFile file = new MockMultipartFile(
-                "file", "test.FAIL_STORAGE", "application/pdf", "data".getBytes()
+                "file", "test-storage-failure.pdf", "application/pdf", validPdf
         );
 
         try {
@@ -272,11 +288,31 @@ public class DocumentApiTest {
                     .andExpect(status().is5xxServerError());
         } catch (Exception e) {
             // Expected NestedServletException wrapping RuntimeException
-            assertTrue(e.getCause().getMessage().contains("Simulated storage failure"));
+            assertTrue(e.getCause().getMessage().contains("Failed to store file"));
+        } finally {
+            java.nio.file.Files.deleteIfExists(documentsPath);
         }
 
-        // Verify DB is clean
+        // Verify DB transaction rolled back cleanly
         assertEquals(0, documentRepository.count());
+    }
+
+    @Test
+    public void testFailStorageExtensionIsRejectedAsInvalidFileType() throws Exception {
+        UUID ownerId = UUID.randomUUID();
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "malicious.FAIL_STORAGE", "application/pdf", "dummy content".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/v1/documents")
+                .file(file)
+                .param("ownerType", "PRODUCT")
+                .param("ownerId", ownerId.toString())
+                .param("category", "COA")
+                .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code", is("INVALID_ARGUMENT")))
+                .andExpect(jsonPath("$.message", containsString("Unsupported file type extension")));
     }
 
     @Test

@@ -1,212 +1,129 @@
 import Link from "next/link";
-import { Search, ChevronDown, ArrowUpRight } from "lucide-react";
+import Image from "next/image";
+import { Search, ChevronDown, ArrowRight } from "lucide-react";
 
 export function SearchHeader() {
-  const popularChips = [
-    { label: "Paracetamol API", query: "Paracetamol" },
-    { label: "Acetic Acid", query: "Acetic Acid" },
-    { label: "Solvents", query: "Solvents" },
-    { label: "Excipients", query: "Excipients" },
-    { label: "Ibuprofen", query: "Ibuprofen" },
-  ];
-
   return (
-    <section className="relative bg-white pt-20 pb-24 overflow-hidden border-b border-slate-100">
-      {/* Grid Background */}
-      <div 
-        className="absolute inset-0 z-0 opacity-[0.15] pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(to right, #94a3b8 1px, transparent 1px), linear-gradient(to bottom, #94a3b8 1px, transparent 1px)`,
-          backgroundSize: '40px 40px'
-        }}
-      />
-      
-      {/* Soft gradient blur (optional, for that SaaS feel) */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50 z-0 pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+    <section className="relative bg-[#0A1128] text-white border-b border-[#1E293B] overflow-hidden">
+      <div className="max-w-[1560px] mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[600px] lg:min-h-[660px]">
           
-          {/* Left Column (7 cols): Hero Content & Search */}
-          <div className="lg:col-span-7 space-y-8">
-            {/* Top Badge */}
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full border border-slate-200 bg-white shadow-sm">
-              <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full uppercase tracking-widest">
-                New
+          {/* Left Column (~55% / 7 cols): Editorial Typography, Sourcing Search & Trust Strip */}
+          <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-10 lg:p-16 z-10">
+            <div className="space-y-6 max-w-2xl">
+              {/* Eyebrow */}
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#38BDF8] block">
+                Chemical Sourcing Platform
               </span>
-              <span className="text-sm font-medium text-slate-600">
-                Verified supplier network across 37 countries
-              </span>
-            </div>
 
-            {/* Headline */}
-            <div>
-              <h1 className="text-[3.5rem] leading-[1.1] font-extrabold tracking-tight text-[#0A192F]">
-                Source <br />
-                Pharmaceutical <br />
-                Ingredients <span className="text-blue-600">Globally</span>
+              {/* Large Confident Editorial Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-[56px] xl:text-[64px] font-bold tracking-tight text-white leading-[1.08]">
+                Source the chemicals <br />
+                your business needs.
               </h1>
-              <p className="text-lg text-slate-500 mt-6 font-medium max-w-xl leading-relaxed">
-                One marketplace for APIs, intermediates, and specialty chemicals — with GMP-verified suppliers, complete technical documentation, and end-to-end procurement support.
+
+              {/* Concise Supporting Narrative */}
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg font-normal">
+                Discover chemical products, connect with verified manufacturers, and manage commercial procurement through one structured B2B marketplace.
               </p>
-            </div>
 
-            {/* Search Pill */}
-            <div className="bg-white p-2 rounded-full border border-slate-200 shadow-lg shadow-slate-200/50 flex flex-col sm:flex-row items-center gap-2 max-w-2xl relative z-20">
-              
-              {/* Category Dropdown */}
-              <div className="relative border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center h-12 min-w-[160px] shrink-0 w-full sm:w-auto">
-                <select
-                  name="category"
-                  aria-label="Select Category"
-                  className="appearance-none bg-transparent pl-5 pr-8 py-2 text-sm font-semibold text-slate-700 cursor-pointer focus-visible:outline-none w-full"
-                  defaultValue="ALL"
+              {/* Large Horizontal Marketplace Search Control */}
+              <div className="pt-2">
+                <form
+                  action="/products"
+                  method="GET"
+                  className="bg-white rounded-[6px] p-2 flex flex-col sm:flex-row items-center gap-2 max-w-xl shadow-2xl border border-white/20"
                 >
-                  <option value="ALL">All Categories</option>
-                  <option value="API">APIs</option>
-                  <option value="INTERMEDIATE">Intermediates</option>
-                  <option value="SOLVENT">Solvents</option>
-                </select>
-                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-4 pointer-events-none" />
+                  {/* Category Dropdown */}
+                  <div className="relative border-b sm:border-b-0 sm:border-r border-[#E4E4E7] flex items-center h-11 min-w-[150px] shrink-0 w-full sm:w-auto">
+                    <select
+                      name="category"
+                      aria-label="Select chemical category"
+                      className="w-full h-full bg-transparent text-xs font-semibold text-[#0F172A] pl-3 pr-7 appearance-none cursor-pointer focus:outline-none"
+                      defaultValue=""
+                    >
+                      <option value="">All Categories</option>
+                      <option value="API">APIs & Actives</option>
+                      <option value="INTERMEDIATE">Intermediates</option>
+                      <option value="EXCIPIENT">Excipients</option>
+                      <option value="SOLVENT">Solvents</option>
+                      <option value="SPECIALTY_CHEMICAL">Specialty Chemicals</option>
+                    </select>
+                    <ChevronDown className="w-3.5 h-3.5 text-[#64748B] absolute right-2 pointer-events-none" />
+                  </div>
+
+                  {/* Text Search Input */}
+                  <div className="flex-1 flex items-center h-11 w-full px-2">
+                    <Search className="w-4 h-4 text-[#0052CC] mr-2.5 shrink-0" />
+                    <input
+                      type="text"
+                      name="search"
+                      placeholder="Search chemicals, CAS numbers, grades or product codes..."
+                      className="w-full bg-transparent text-xs text-[#0F172A] placeholder:text-[#64748B] focus:outline-none font-medium"
+                    />
+                  </div>
+
+                  {/* Search Action */}
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto h-11 px-6 bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] text-white text-xs font-semibold rounded-[4px] transition-all flex items-center justify-center gap-2 shrink-0 shadow-xs"
+                  >
+                    <span>Search</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </form>
+
+                <div className="pt-2 text-[11px] font-mono text-slate-400">
+                  Chemical name &middot; CAS number &middot; Grade &middot; Product code
+                </div>
               </div>
 
-              {/* Search Input */}
-              <div className="relative flex-1 flex items-center h-12 w-full">
-                <Search className="w-5 h-5 text-slate-400 absolute left-4" />
-                <input
-                  type="text"
-                  name="query"
-                  placeholder="Search products, CAS numbers, suppli..."
-                  className="w-full pl-11 pr-4 py-2 text-[15px] font-medium text-slate-900 placeholder-slate-400 bg-transparent focus-visible:outline-none"
-                  aria-label="Search chemical database"
-                />
-              </div>
-
-              {/* Search Button */}
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-8 h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[15px] rounded-full transition-colors flex items-center justify-center gap-2 shrink-0 shadow-md shadow-blue-600/20"
-              >
-                <Search className="w-4 h-4" />
-                <span>Search</span>
-              </button>
-            </div>
-
-            {/* Popular Tags */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <span className="text-sm font-semibold text-slate-500">
-                Popular:
-              </span>
-              {popularChips.map((chip) => (
+              {/* Primary vs Secondary CTAs */}
+              <div className="flex flex-wrap items-center gap-4 pt-1">
                 <Link
-                  key={chip.label}
-                  href={`/products?query=${encodeURIComponent(chip.query)}`}
-                  className="px-4 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-full text-[13px] font-semibold text-slate-600 transition-colors shadow-sm"
+                  href="/products"
+                  className="h-11 px-6 bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] text-white text-xs font-semibold rounded-[4px] transition-colors flex items-center justify-center gap-2 shadow-xs"
                 >
-                  {chip.label}
+                  <span>Explore Marketplace</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
-              ))}
+                <Link
+                  href="/rfq"
+                  className="h-11 px-6 bg-transparent hover:bg-white/5 border border-slate-700 text-slate-200 text-xs font-medium rounded-[4px] transition-colors flex items-center justify-center"
+                >
+                  <span>Request an RFQ</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Quiet Horizontal Trust Line */}
+            <div className="pt-8 mt-6 border-t border-slate-800 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium tracking-wider text-slate-400">
+              <span className="text-slate-200">STRUCTURED RFQs</span>
+              <span>&middot;</span>
+              <span className="text-slate-200">SUPPLIER SOURCING</span>
+              <span>&middot;</span>
+              <span className="text-slate-200">COMMERCIAL NEGOTIATION</span>
+              <span>&middot;</span>
+              <span className="text-slate-200">ORDER WORKFLOW</span>
             </div>
           </div>
 
-          {/* Right Column (5 cols): Live Marketplace Pulse Card */}
-          <div className="lg:col-span-5 relative">
-            <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 flex flex-col overflow-hidden">
-              
-              {/* Card Header */}
-              <div className="px-8 pt-8 pb-6 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse" />
-                  <span className="font-bold text-slate-800 text-[15px]">Live Marketplace Pulse</span>
-                </div>
-                <span className="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] font-mono rounded-md uppercase tracking-wider">
-                  realtime
-                </span>
-              </div>
+          {/* Right Column (~45% / 5 cols): Edge-to-edge Macro Chemical Material Editorial Visual */}
+          <div className="lg:col-span-5 relative min-h-[360px] lg:min-h-full border-t lg:border-t-0 lg:border-l border-slate-800 bg-[#0A1128] overflow-hidden">
+            <Image
+              src="/hero-chemical-material.jpg"
+              alt="High-purity crystalline and pharmaceutical chemical raw material"
+              fill
+              priority
+              className="object-cover object-center brightness-95 contrast-105"
+            />
+            {/* Natural gradient blend: dissolves seamlessly into the left navy canvas */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A1128] via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#0A1128] lg:via-[#0A1128]/20 lg:to-transparent pointer-events-none" />
 
-              {/* Grid Metrics */}
-              <div className="px-8 pb-8 grid grid-cols-2 gap-4">
-                
-                {/* Products */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[13px] font-medium text-slate-500">Products</span>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-300" />
-                  </div>
-                  <div className="text-[32px] font-bold text-blue-600 leading-none mb-2 tracking-tight">10,482</div>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                    <span className="text-blue-500 flex items-center">
-                      <ArrowUpRight className="w-3 h-3" />
-                    </span>
-                    +124 this week
-                  </div>
-                </div>
-
-                {/* Verified Suppliers */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[13px] font-medium text-slate-500">Verified Suppliers</span>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-300" />
-                  </div>
-                  <div className="text-[32px] font-bold text-teal-500 leading-none mb-2 tracking-tight">1,284</div>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                    <span className="text-teal-500 flex items-center">
-                      <ArrowUpRight className="w-3 h-3" />
-                    </span>
-                    +38 this month
-                  </div>
-                </div>
-
-                {/* Countries */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[13px] font-medium text-slate-500">Countries</span>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-300" />
-                  </div>
-                  <div className="text-[32px] font-bold text-slate-800 leading-none mb-2 tracking-tight">37</div>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                    <span className="text-slate-400 flex items-center">
-                      <ArrowUpRight className="w-3 h-3" />
-                    </span>
-                    Global reach
-                  </div>
-                </div>
-
-                {/* RFQs Today */}
-                <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-[13px] font-medium text-slate-500">RFQs Today</span>
-                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-300" />
-                  </div>
-                  <div className="text-[32px] font-bold text-orange-500 leading-none mb-2 tracking-tight">286</div>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                    <span className="text-orange-500 flex items-center">
-                      <ArrowUpRight className="w-3 h-3" />
-                    </span>
-                    Live
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Bottom Strip */}
-              <div className="bg-[#0A192F] px-8 py-5 flex items-center justify-between mt-auto">
-                <div>
-                  <div className="text-slate-400 text-xs mb-0.5 font-medium">Avg. supplier response</div>
-                  <div className="text-white font-bold text-[15px]">under 4 hours</div>
-                </div>
-                
-                {/* Overlapping Circles */}
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-600 border-2 border-[#0A192F] z-10" />
-                  <div className="w-8 h-8 rounded-full bg-teal-500 border-2 border-[#0A192F] z-20" />
-                  <div className="w-8 h-8 rounded-full bg-orange-500 border-2 border-[#0A192F] z-30" />
-                  <div className="w-8 h-8 rounded-full bg-slate-700 border-2 border-[#0A192F] z-40 flex items-center justify-center text-white text-[10px] font-bold">
-                    +9
-                  </div>
-                </div>
-              </div>
-
+            {/* Understated Editorial Notation (integrated, subtle, not a floating UI card) */}
+            <div className="absolute bottom-5 right-5 text-right font-mono text-[11px] text-slate-400/90 pointer-events-none hidden sm:block">
+              <span className="text-slate-300 font-semibold block text-xs">High-Purity Compendial Assay</span>
+              <span>Controlled Crystalline & Powder Spec</span>
             </div>
           </div>
 

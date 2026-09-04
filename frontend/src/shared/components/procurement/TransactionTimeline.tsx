@@ -295,36 +295,36 @@ export function TransactionTimeline({
   };
 
   return (
-    <div className={`bg-white border border-[#DFE1E6] rounded-2xl p-5 sm:p-7 shadow-xs ${className}`}>
+    <div className={`bg-white rounded-[8px] border border-[#E4E4E7] p-5 sm:p-6 shadow-tactile-card ${className}`}>
       {/* Timeline Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-[#DFE1E6] mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E4E4E7] mb-5">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#0052CC] bg-[#DEEBFF] px-2 py-0.5 rounded">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0052CC] bg-[#EFF6FF] px-2 py-0.5 rounded-[4px] border border-[#BFDBFE]">
               COMMERCIAL AUDIT TRAIL
             </span>
-            <span className="text-xs font-bold text-[#5E6C84]">
+            <span className="text-xs font-medium text-[#64748B]">
               {completedCount} of {steps.length} Milestones Reached
             </span>
           </div>
-          <h2 className="text-sm sm:text-base font-bold text-[#091E42] mt-1">
+          <h2 className="text-sm sm:text-[15px] font-bold text-[#0F172A] mt-1">
             Unified Transaction Lifecycle Timeline
           </h2>
         </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-[#5E6C84]">
-          <ShieldCheck className="w-4 h-4 text-[#00875A]" />
-          <span>Immutable Platform Audit Verification</span>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-[#64748B]">
+          <ShieldCheck className="w-4 h-4 text-[#059669]" />
+          <span>Immutable Platform Audit Trail</span>
         </div>
       </div>
 
       {/* Timeline Steps */}
       <div className="relative">
         {/* Continuous Connecting Line for Desktop */}
-        <div className="hidden lg:block absolute top-[22px] left-6 right-6 h-0.5 bg-[#DFE1E6] -z-0" />
+        <div className="hidden lg:block absolute top-[20px] left-6 right-6 h-0.5 bg-[#E4E4E7] -z-0" />
 
         {/* Steps Grid: Responsive List on Mobile, Horizontal Flow on Desktop */}
-        <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-5 xl:grid-cols-5 gap-y-6 gap-x-4 relative z-10">
-          {steps.map((step, idx) => {
+        <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-5 xl:grid-cols-5 gap-y-4 gap-x-3 relative z-10">
+          {steps.map((step) => {
             const isDone = step.status === "COMPLETED";
             const isCurrent = step.status === "CURRENT";
             const isCancelled = step.status === "CANCELLED" || step.status === "REJECTED";
@@ -333,41 +333,41 @@ export function TransactionTimeline({
             return (
               <div
                 key={step.key}
-                className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
+                className={`p-3 rounded-[6px] border transition-colors ${
                   isDone
-                    ? "bg-[#E3FCEF]/40 border-[#ABF5D1]"
+                    ? "bg-[#ECFDF5]/50 border-[rgba(5,150,105,0.2)]"
                     : isCurrent
-                    ? "bg-[#DEEBFF]/40 border-[#0052CC] ring-1 ring-[#0052CC]/30 shadow-xs"
+                    ? "bg-[#EFF6FF]/60 border-[#0052CC] shadow-xs"
                     : isCancelled
-                    ? "bg-rose-50/50 border-rose-200"
-                    : "bg-[#FAFBFC] border-[#DFE1E6] opacity-65"
+                    ? "bg-[#FEF2F2]/50 border-[rgba(220,38,38,0.2)]"
+                    : "bg-[#FAFAFA] border-[#E4E4E7] opacity-65"
                 }`}
               >
                 {/* Header with Icon & State */}
                 <div className="flex items-center justify-between mb-2">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
+                    className={`w-7 h-7 rounded-[4px] flex items-center justify-center font-bold text-xs ${
                       isDone
-                        ? "bg-[#E3FCEF] text-[#006644]"
+                        ? "bg-[#ECFDF5] text-[#059669] border border-[rgba(5,150,105,0.2)]"
                         : isCurrent
-                        ? "bg-[#0052CC] text-white animate-pulse"
+                        ? "bg-[#0052CC] text-white"
                         : isCancelled
-                        ? "bg-rose-100 text-rose-700"
-                        : "bg-[#F4F5F7] text-[#5E6C84]"
+                        ? "bg-[#FEF2F2] text-[#DC2626]"
+                        : "bg-[#F4F4F5] text-[#64748B]"
                     }`}
                   >
                     {step.icon}
                   </div>
 
                   <span
-                    className={`text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                    className={`text-[9px] font-mono font-medium uppercase tracking-wider px-1.5 py-0.2 rounded-[3px] ${
                       isDone
-                        ? "bg-[#E3FCEF] text-[#006644]"
+                        ? "bg-[#ECFDF5] text-[#059669] border border-[rgba(5,150,105,0.2)]"
                         : isCurrent
-                        ? "bg-[#DEEBFF] text-[#0052CC]"
+                        ? "bg-[#EFF6FF] text-[#0052CC] border border-[#BFDBFE]"
                         : isCancelled
-                        ? "bg-rose-100 text-rose-700"
-                        : "bg-[#F4F5F7] text-[#5E6C84]"
+                        ? "bg-[#FEF2F2] text-[#DC2626] border border-[rgba(220,38,38,0.2)]"
+                        : "bg-[#F4F4F5] text-[#64748B] border border-[#E4E4E7]"
                     }`}
                   >
                     {step.status}
@@ -375,19 +375,19 @@ export function TransactionTimeline({
                 </div>
 
                 {/* Title & Actor */}
-                <div className="space-y-1">
-                  <h4 className="text-xs font-bold text-[#091E42] leading-tight line-clamp-1">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-semibold text-[#0F172A] leading-tight line-clamp-1">
                     {step.title}
                   </h4>
-                  <p className="text-[11px] text-[#5E6C84] leading-normal line-clamp-2">
+                  <p className="text-[11px] text-[#64748B] leading-normal line-clamp-2">
                     {step.subtitle}
                   </p>
                 </div>
 
                 {/* Timestamp */}
                 {formattedTime && (
-                  <div className="mt-2.5 pt-2 border-t border-[#DFE1E6]/60 flex items-center gap-1.5 text-[10px] font-mono text-[#5E6C84]">
-                    <Clock className="w-3 h-3 text-[#8993A4] shrink-0" />
+                  <div className="mt-2 pt-1.5 border-t border-[#E4E4E7] flex items-center gap-1 text-[10px] font-mono text-[#64748B]">
+                    <Clock className="w-3 h-3 text-[#94A3B8] shrink-0" />
                     <span className="truncate">{formattedTime}</span>
                   </div>
                 )}

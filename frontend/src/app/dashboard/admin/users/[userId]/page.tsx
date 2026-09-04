@@ -3,6 +3,7 @@
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 import {
   ArrowLeft,
   User as UserIcon,
@@ -67,10 +68,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
-      const res = await fetch(`/api/v1/admin/users/${userId}`, { headers });
+      const res = await authenticatedFetch(`/api/v1/admin/users/${userId}`);
       if (!res.ok) {
         throw new Error(res.status === 404 ? "User not found" : "Failed to load user detail");
       }

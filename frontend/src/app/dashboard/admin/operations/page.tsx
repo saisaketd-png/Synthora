@@ -14,7 +14,6 @@ import {
   Building2,
   Package,
   Users,
-  Sparkles,
   ShoppingBag,
   Scale,
   Activity,
@@ -23,6 +22,8 @@ import {
   Bell,
   Sliders,
 } from "lucide-react";
+import { PageHeader, StatusBadge } from "@/shared/components/ui/KemkendraUI";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 interface PlatformSnapshot {
   users: {
@@ -98,37 +99,41 @@ interface AuditLogItem {
   action: string;
   targetType: string;
   targetId: string;
-  actorEmail: string;
+  actorEmail?: string;
   createdAt: string;
-  reason?: string;
+  details?: string;
 }
 
-export default function AdminOperationsDashboard() {
+export default function AdminOperationsPage() {
   const [snapshot, setSnapshot] = useState<PlatformSnapshot | null>(null);
   const [queue, setQueue] = useState<AttentionQueueItem[]>([]);
-  const [recentAudits, setRecentAudits] = useState<AuditLogItem[]>([]);
+  const [recentAudit, setRecentAudit] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<string | null>(null);
 
   async function loadData() {
     try {
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
-
       const [snapRes, queueRes, auditRes] = await Promise.all([
-        fetch("/api/v1/admin/operations/platform-snapshot", { headers }),
-        fetch("/api/v1/admin/operations/attention-queue", { headers }),
-        fetch("/api/v1/admin/audit?size=6", { headers }).catch(() => null),
+        authenticatedFetch("/api/v1/admin/operations/snapshot").catch(() => null),
+        authenticatedFetch("/api/v1/admin/operations/attention-queue").catch(() => null),
+        authenticatedFetch("/api/v1/admin/operations/audit/recent?limit=8").catch(() => null),
       ]);
 
-      if (snapRes.ok) setSnapshot(await snapRes.json());
-      if (queueRes.ok) setQueue(await queueRes.json());
-      if (auditRes && auditRes.ok) {
-        const auditData = await auditRes.json();
-        setRecentAudits(auditData.content || []);
+      if (snapRes && snapRes.ok) {
+        setSnapshot(await snapRes.json());
       }
+      if (queueRes && queueRes.ok) {
+        const qData = await queueRes.json();
+        setQueue(Array.isArray(qData) ? qData : qData.content || []);
+      }
+      if (auditRes && auditRes.ok) {
+        const aData = await auditRes.json();
+        setRecentAudit(Array.isArray(aData) ? aData : aData.content || []);
+      }
+      setLastRefreshed(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
     } catch (err) {
-      console.error("Failed to load operations control data", err);
+      console.error("Failed to load operations dashboard", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -137,8 +142,6 @@ export default function AdminOperationsDashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   function handleRefresh() {
@@ -147,271 +150,166 @@ export default function AdminOperationsDashboard() {
   }
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* Header Banner */}
-      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 p-6 md:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mb-3">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            Platform Control Center
-          </div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
-            Administrative Operations & Governance
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            Platform Operations
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Governance & Operational Desk
           </h1>
-          <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-            Live operational observability across identity, supplier compliance, product catalog, marketplace volume, and communications.
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Live telemetry across platform participants, catalog readiness, transaction throughput, and compliance queues.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-xs font-medium text-slate-200 border border-slate-700 transition cursor-pointer"
+            className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh Feeds
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+            <span>{lastRefreshed ? `Refreshed ${lastRefreshed}` : "Refresh"}</span>
           </button>
           <Link
             href="/dashboard/admin/marketplace"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-lg shadow-indigo-600/30 transition"
+            className="h-8 px-3.5 text-xs font-medium text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <ShoppingBag className="w-3.5 h-3.5" />
-            Marketplace Hub
+            <span>Marketplace Hub</span>
           </Link>
         </div>
       </div>
 
-      {/* Snapshot KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        {/* Users */}
-        <Link
-          href="/dashboard/admin/users"
-          className="group p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-indigo-500/50 hover:shadow-md transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Users</span>
-            <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
-              <Users className="w-4 h-4" />
+      {/* 2. Unified Operations Telemetry Band */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-xs">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] mb-3">
+          Platform Snapshot
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-y sm:divide-y-0 sm:divide-x divide-[#E4E4E7]">
+          {/* Users */}
+          <Link href="/dashboard/admin/users" className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0 group">
+            <span className="text-[11px] text-[#64748B] block group-hover:text-[#0052CC]">Users</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5 group-hover:text-[#0052CC]">
+              {loading ? "—" : snapshot?.users.totalUsers.toLocaleString() ?? "0"}
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {loading ? "..." : snapshot?.users.totalUsers.toLocaleString() ?? "0"}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium">{snapshot?.users.activeUsers ?? 0} active</span>
-              <span>•</span>
-              <span className="text-rose-600 dark:text-rose-400 font-medium">{snapshot?.users.suspendedUsers ?? 0} suspended</span>
-            </div>
-          </div>
-        </Link>
+            <span className="text-[10px] text-[#059669] font-mono">{snapshot?.users.activeUsers ?? 0} active</span>
+          </Link>
 
-        {/* Suppliers */}
-        <Link
-          href="/dashboard/admin/suppliers"
-          className="group p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-emerald-500/50 hover:shadow-md transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Suppliers</span>
-            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
-              <Building2 className="w-4 h-4" />
+          {/* Suppliers */}
+          <Link href="/dashboard/admin/suppliers" className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0 group">
+            <span className="text-[11px] text-[#64748B] block group-hover:text-[#0052CC]">Suppliers</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5 group-hover:text-[#0052CC]">
+              {loading ? "—" : snapshot?.suppliers.totalSuppliers.toLocaleString() ?? "0"}
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {loading ? "..." : snapshot?.suppliers.totalSuppliers.toLocaleString() ?? "0"}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium">{snapshot?.suppliers.verifiedSuppliers ?? 0} verified</span>
-              <span>•</span>
-              <span className="text-amber-600 dark:text-amber-400 font-medium">{snapshot?.suppliers.pendingSuppliers ?? 0} pending</span>
-            </div>
-          </div>
-        </Link>
+            <span className="text-[10px] text-[#059669] font-mono">{snapshot?.suppliers.verifiedSuppliers ?? 0} verified</span>
+          </Link>
 
-        {/* Master Catalog */}
-        <Link
-          href="/dashboard/admin/catalog"
-          className="group p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-cyan-500/50 hover:shadow-md transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Catalog Offerings</span>
-            <div className="p-2 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 dark:text-cyan-400">
-              <Package className="w-4 h-4" />
+          {/* Catalog */}
+          <Link href="/dashboard/admin/catalog" className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0 group">
+            <span className="text-[11px] text-[#64748B] block group-hover:text-[#0052CC]">Offerings</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5 group-hover:text-[#0052CC]">
+              {loading ? "—" : snapshot?.catalog.activeOfferings.toLocaleString() ?? "0"}
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {loading ? "..." : snapshot?.catalog.activeOfferings.toLocaleString() ?? "0"}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <span className="text-cyan-600 dark:text-cyan-400 font-medium">{snapshot?.catalog.activeMasterProducts ?? 0} products</span>
-              <span>•</span>
-              <span className="text-amber-600 dark:text-amber-400 font-medium">{snapshot?.catalog.pendingOfferings ?? 0} in review</span>
-            </div>
-          </div>
-        </Link>
+            <span className="text-[10px] text-[#D97706] font-mono">{snapshot?.catalog.pendingOfferings ?? 0} in review</span>
+          </Link>
 
-        {/* Marketplace */}
-        <Link
-          href="/dashboard/admin/marketplace"
-          className="group p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-purple-500/50 hover:shadow-md transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Marketplace RFQs</span>
-            <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
-              <ShoppingBag className="w-4 h-4" />
+          {/* Marketplace RFQs */}
+          <Link href="/dashboard/admin/transactions/rfqs" className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0 group">
+            <span className="text-[11px] text-[#64748B] block group-hover:text-[#0052CC]">Active RFQs</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5 group-hover:text-[#0052CC]">
+              {loading ? "—" : snapshot?.marketplace.activeRfqs.toLocaleString() ?? "0"}
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {loading ? "..." : snapshot?.marketplace.activeRfqs.toLocaleString() ?? "0"}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <span className="text-purple-600 dark:text-purple-400 font-medium">{snapshot?.marketplace.pendingQuotations ?? 0} quotes</span>
-              <span>•</span>
-              <span className="text-indigo-600 dark:text-indigo-400 font-medium">{snapshot?.marketplace.activeOrders ?? 0} orders</span>
-            </div>
-          </div>
-        </Link>
+            <span className="text-[10px] text-[#64748B] font-mono">{snapshot?.marketplace.pendingQuotations ?? 0} quotes</span>
+          </Link>
 
-        {/* Governance */}
-        <Link
-          href="/dashboard/admin/account-governance"
-          className="group p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-rose-500/50 hover:shadow-md transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Governance</span>
-            <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
-              <Scale className="w-4 h-4" />
+          {/* Governance */}
+          <Link href="/dashboard/admin/account-governance" className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0 group">
+            <span className="text-[11px] text-[#64748B] block group-hover:text-[#0052CC]">Appeals</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5 group-hover:text-[#0052CC]">
+              {loading ? "—" : snapshot?.governance.openAppeals.toLocaleString() ?? "0"}
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {loading ? "..." : snapshot?.governance.openAppeals.toLocaleString() ?? "0"}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <span className="text-rose-600 dark:text-rose-400 font-medium">{snapshot?.governance.activeSuspensions ?? 0} suspended</span>
-              <span>•</span>
-              <span className="text-amber-600 dark:text-amber-400 font-medium">{snapshot?.governance.underReviewAppeals ?? 0} in review</span>
-            </div>
-          </div>
-        </Link>
+            <span className="text-[10px] text-[#DC2626] font-mono">{snapshot?.governance.activeSuspensions ?? 0} bans</span>
+          </Link>
 
-        {/* Communication */}
-        <Link
-          href="/dashboard/notifications"
-          className="group p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-blue-500/50 hover:shadow-md transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Communications</span>
-            <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
-              <Bell className="w-4 h-4" />
+          {/* Policies */}
+          <Link href="/dashboard/admin/settings" className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0 group">
+            <span className="text-[11px] text-[#64748B] block group-hover:text-[#0052CC]">Runtime Flags</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5 group-hover:text-[#0052CC]">
+              {loading ? "—" : snapshot?.policies?.activeFeatureFlags ?? 0}
             </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {loading ? "..." : snapshot?.communication?.totalNotifications.toLocaleString() ?? "0"}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <span className="text-blue-600 dark:text-blue-400 font-medium">{snapshot?.communication?.notificationsToday ?? 0} today</span>
-              <span>•</span>
-              <span className="text-slate-500 dark:text-slate-400 font-medium">{snapshot?.communication?.unreadNotifications ?? 0} unread</span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Policies & Controls */}
-        <Link
-          href="/dashboard/admin/settings"
-          className="group p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-amber-500/50 hover:shadow-md transition"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Policies & Controls</span>
-            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-              <Sliders className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-2xl font-bold text-slate-900 dark:text-white">
-              {loading ? "..." : snapshot?.policies?.activeFeatureFlags ?? 0}
-            </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-              <span className={snapshot?.policies?.maintenanceModeActive ? "text-rose-600 font-bold" : "text-emerald-600 font-medium"}>
-                {snapshot?.policies?.maintenanceModeActive ? "MAINTENANCE ACTIVE" : "System Operational"}
-              </span>
-            </div>
-          </div>
-        </Link>
+            <span className={`text-[10px] font-mono ${snapshot?.policies?.maintenanceModeActive ? "text-[#DC2626] font-bold" : "text-[#059669]"}`}>
+              {snapshot?.policies?.maintenanceModeActive ? "Maintenance" : "Operational"}
+            </span>
+          </Link>
+        </div>
       </div>
 
-      {/* Operational Attention Queue & Quick Actions */}
+      {/* 3. Operational Attention Queue & Action Feeds */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Prioritized Attention Queue */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
+        {/* Operational Attention Queue (2 Cols) */}
+        <div className="lg:col-span-2 space-y-3">
+          <div className="flex items-center justify-between pb-1 border-b border-[#DFE1E6]">
             <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-500" />
-                Operational Attention Queue
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#091E42] font-mono">
+                Operational Adjudication Queue
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Tasks requiring administrative adjudication, review, or compliance approval.
+              <p className="text-[11px] text-[#5E6C84]">
+                Items requiring compliance verification, supplier approval, or dispute moderation.
               </p>
             </div>
-            <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-              {queue.length} Pending Actions
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#FFFAE6] text-[#974F0C] border border-[#FFE380] rounded">
+              {queue.length} Pending
             </span>
           </div>
 
           {loading ? (
-            <div className="p-8 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm text-slate-500">
+            <div className="p-8 text-center bg-white border border-[#DFE1E6] rounded-md text-xs text-[#5E6C84] font-mono">
               Loading operational queue...
             </div>
           ) : queue.length === 0 ? (
-            <div className="p-8 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-              <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">All Operational Queues Clear</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                No outstanding supplier verifications, moderation backlogs, or appeals waiting for administrative action.
+            <div className="p-8 text-center bg-white border border-[#DFE1E6] rounded-md space-y-2">
+              <CheckCircle2 className="w-8 h-8 text-[#00875A] mx-auto" />
+              <h3 className="text-xs font-bold text-[#091E42]">All Operational Queues Clear</h3>
+              <p className="text-[11px] text-[#5E6C84] max-w-sm mx-auto">
+                No outstanding supplier credential reviews, catalog moderation backlogs, or appeals waiting for administrative decision.
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="border border-[#DFE1E6] rounded-md bg-white divide-y divide-[#DFE1E6] overflow-hidden">
               {queue.map((item) => (
                 <div
                   key={item.id}
-                  className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:shadow transition flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FAFBFC] transition-colors"
                 >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md ${
+                        className={`text-[9px] uppercase font-bold font-mono px-1.5 py-0.2 rounded border ${
                           item.priority === "HIGH"
-                            ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
-                            : "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
+                            ? "bg-[#FFEBE6] text-[#BF2600] border-[#FFBDAD]"
+                            : "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
                         }`}
                       >
-                        {item.priority} Priority
+                        {item.priority} PRIORITY
                       </span>
-                      <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                      <span className="text-[11px] font-mono font-semibold text-[#5E6C84]">
                         {item.count} items
                       </span>
                     </div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{item.title}</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
+                    <h3 className="text-xs font-bold text-[#091E42]">{item.title}</h3>
+                    <p className="text-[11px] text-[#5E6C84] leading-relaxed">{item.description}</p>
                   </div>
 
                   <Link
                     href={item.actionUrl}
-                    className="self-start sm:self-center shrink-0 flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 hover:opacity-90 transition"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-[#0052CC] bg-white hover:bg-[#F4F5F7] border border-[#DFE1E6] rounded transition-colors self-start sm:self-center shrink-0 shadow-2xs"
                   >
-                    {item.actionLabel}
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>{item.actionLabel}</span>
+                    <ArrowRight className="w-3 h-3" />
                   </Link>
                 </div>
               ))}
@@ -419,95 +317,92 @@ export default function AdminOperationsDashboard() {
           )}
         </div>
 
-        {/* Quick Actions & Recent Audit */}
+        {/* Side Panel: Consoles & Recent Audit Trail */}
         <div className="space-y-6">
-          {/* Quick Actions Hub */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-500" />
-              Administrative Quick Navigation
-            </h2>
-            <div className="grid grid-cols-2 gap-2 text-xs font-medium">
+          {/* Quick Nav Consoles */}
+          <div className="bg-white border border-[#E4E4E7] rounded-[8px] overflow-hidden shadow-tactile-card">
+            <div className="px-4 py-3 border-b border-[#E4E4E7] bg-[#FAFAFA]">
+              <h2 className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider font-mono">
+                Management Modules
+              </h2>
+            </div>
+            <div className="divide-y divide-[#E4E4E7] text-xs">
               <Link
                 href="/dashboard/admin/users"
-                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60 transition flex flex-col gap-1"
+                className="px-4 py-2.5 flex items-center justify-between hover:bg-[#FAFAFA] transition-colors group cursor-pointer"
               >
-                <Users className="w-4 h-4 text-indigo-500" />
-                <span>User Directory</span>
+                <div className="flex items-center gap-2.5">
+                  <Users className="w-4 h-4 text-[#64748B] group-hover:text-[#0052CC]" />
+                  <span className="font-medium text-[#0F172A] group-hover:text-[#0052CC]">User Directory & Roles</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#0052CC]" />
               </Link>
               <Link
                 href="/dashboard/admin/suppliers"
-                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60 transition flex flex-col gap-1"
+                className="px-4 py-2.5 flex items-center justify-between hover:bg-[#FAFAFA] transition-colors group cursor-pointer"
               >
-                <Building2 className="w-4 h-4 text-emerald-500" />
-                <span>Supplier Center</span>
-              </Link>
-              <Link
-                href="/dashboard/admin/marketplace"
-                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60 transition flex flex-col gap-1"
-              >
-                <ShoppingBag className="w-4 h-4 text-purple-500" />
-                <span>Marketplace Hub</span>
-              </Link>
-              <Link
-                href="/dashboard/admin/account-governance"
-                className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60 transition flex flex-col gap-1"
-              >
-                <Scale className="w-4 h-4 text-rose-500" />
-                <span>Governance</span>
-              </Link>
-              <Link
-                href="/dashboard/notifications"
-                className="col-span-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700/60 transition flex items-center justify-between"
-              >
-                <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-blue-500" />
-                  <span>Notification Center</span>
+                <div className="flex items-center gap-2.5">
+                  <Building2 className="w-4 h-4 text-[#64748B] group-hover:text-[#0052CC]" />
+                  <span className="font-medium text-[#0F172A] group-hover:text-[#0052CC]">Supplier Directory & Verification</span>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#0052CC]" />
+              </Link>
+              <Link
+                href="/dashboard/admin/catalog"
+                className="px-4 py-2.5 flex items-center justify-between hover:bg-[#FAFAFA] transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Package className="w-4 h-4 text-[#64748B] group-hover:text-[#0052CC]" />
+                  <span className="font-medium text-[#0F172A] group-hover:text-[#0052CC]">Master Chemical Catalog</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#0052CC]" />
+              </Link>
+              <Link
+                href="/dashboard/admin/feature-controls"
+                className="px-4 py-2.5 flex items-center justify-between hover:bg-[#FAFAFA] transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Sliders className="w-4 h-4 text-[#64748B] group-hover:text-[#0052CC]" />
+                  <span className="font-medium text-[#0F172A] group-hover:text-[#0052CC]">Feature Controls & Gates</span>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#0052CC]" />
               </Link>
             </div>
           </div>
 
           {/* Recent Audit Events */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Activity className="w-4 h-4 text-blue-500" />
-                Recent Privileged Events
+          <div className="bg-white border border-[#E4E4E7] rounded-[8px] overflow-hidden shadow-tactile-card">
+            <div className="px-4 py-3 border-b border-[#E4E4E7] bg-[#FAFAFA] flex items-center justify-between">
+              <h2 className="text-xs font-semibold text-[#0F172A] uppercase tracking-wider font-mono">
+                Recent Audit Trail
               </h2>
-              <Link
-                href="/dashboard/admin/audit"
-                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                Full Audit Trail
+              <Link href="/dashboard/admin/audit" className="text-[11px] font-semibold text-[#0052CC] hover:underline">
+                Full Log →
               </Link>
             </div>
-
-            {recentAudits.length === 0 ? (
-              <p className="text-xs text-slate-500 dark:text-slate-400">No recent privileged logs recorded.</p>
-            ) : (
-              <div className="space-y-2.5">
-                {recentAudits.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-750 text-xs space-y-1"
-                  >
+            <div className="divide-y divide-[#E4E4E7] text-xs">
+              {recentAudit.length === 0 ? (
+                <div className="p-4 text-center text-[#64748B] text-[11px]">
+                  No recent audit events recorded.
+                </div>
+              ) : (
+                recentAudit.slice(0, 5).map((log) => (
+                  <div key={log.id} className="p-3 space-y-1 hover:bg-[#FAFAFA] transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-900 dark:text-slate-200">
-                        {item.action}
+                      <span className="font-mono text-[10px] font-semibold text-[#0052CC] uppercase">
+                        {log.action}
                       </span>
-                      <span className="text-[10px] text-slate-500">
-                        {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                      <span className="text-[10px] text-[#64748B] font-mono">
+                        {log.createdAt ? new Date(log.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate">
-                      by <span className="font-medium text-slate-800 dark:text-slate-300">{item.actorEmail || "System"}</span> on {item.targetType}
-                    </div>
+                    <p className="text-[11px] text-[#0F172A] font-mono truncate">
+                      {log.targetType} • {log.targetId ? log.targetId.substring(0, 8) : "N/A"}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

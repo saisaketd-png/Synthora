@@ -17,7 +17,8 @@ import {
   MessageSquare,
   HelpCircle,
 } from "lucide-react";
-import { resolveApiUrl } from "@/lib/apiUrl";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 
 interface PlatformSetting {
   key: string;
@@ -48,12 +49,7 @@ export default function AdminSettingsPage() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl("/api/v1/admin/settings"), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await authenticatedFetch("/api/v1/admin/settings");
 
       if (!res.ok) throw new Error("Failed to load platform settings");
       const data = await res.json();
@@ -80,13 +76,8 @@ export default function AdminSettingsPage() {
 
     try {
       setSaving(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl(`/api/v1/admin/settings/${editingSetting.key}`), {
+      const res = await authenticatedFetch(`/api/v1/admin/settings/${editingSetting.key}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ value: editValue }),
       });
 
@@ -106,6 +97,7 @@ export default function AdminSettingsPage() {
   };
 
   const allCategories = Array.from(new Set(groups.map((g) => g.category)));
+  const allSettings = groups.flatMap((g) => g.settings);
 
   const filteredGroups = groups
     .map((group) => {
@@ -137,27 +129,28 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">Platform Policies & Settings</h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-              Admin Policy Center
-            </span>
-          </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Configure dynamic commercial policies, buyer limits, and platform rules without code deployment.
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            System Policies
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Platform Policies
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Active operational parameters governing transaction limits, quotation validities, and marketplace rules.
           </p>
         </div>
+
         <button
           onClick={fetchSettings}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+          className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
         >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+          <span>Refresh</span>
         </button>
       </div>
 
@@ -187,42 +180,45 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      {/* Filters & Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+      {/* Filters & Category Navigation */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#E4E4E7] pb-1">
+        <div className="flex items-center gap-6 overflow-x-auto w-full sm:w-auto">
           <button
             onClick={() => setSelectedCategory("ALL")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`pb-2.5 text-xs font-semibold tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
               selectedCategory === "ALL"
-                ? "bg-gray-900 text-white shadow-sm"
-                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                ? "border-[#0052CC] text-[#0052CC]"
+                : "border-transparent text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
-            All Policies
+            ALL POLICIES ({allSettings.length})
           </button>
-          {allCategories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                selectedCategory === cat
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {allCategories.map((cat) => {
+            const count = allSettings.filter((s: PlatformSetting) => s.category === cat).length;
+            return (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`pb-2.5 text-xs font-semibold tracking-wider transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+                  selectedCategory === cat
+                    ? "border-[#0052CC] text-[#0052CC]"
+                    : "border-transparent text-[#64748B] hover:text-[#0F172A]"
+                }`}
+              >
+                {cat} ({count < 10 ? `0${count}` : count})
+              </button>
+            );
+          })}
         </div>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <div className="relative w-full sm:w-64 mb-2 sm:mb-0">
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
           <input
             type="text"
-            placeholder="Search policies or keys..."
+            placeholder="Search policies or parameters..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full pl-7 pr-2.5 py-1 text-xs bg-white border border-[#E4E4E7] rounded-[4px] text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
           />
         </div>
       </div>
@@ -231,78 +227,61 @@ export default function AdminSettingsPage() {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-36 bg-gray-100 rounded-xl animate-pulse" />
+            <div key={i} className="h-24 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[8px] animate-pulse" />
           ))}
         </div>
       ) : filteredGroups.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-xl border border-gray-200">
-          <Sliders className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-base font-medium text-gray-900">No platform policies found</h3>
-          <p className="text-sm text-gray-500 mt-1">Try adjusting your category filter or search terms.</p>
+        <div className="bg-white p-12 text-center rounded-[8px] border border-[#E4E4E7]">
+          <Sliders className="w-8 h-8 text-[#94A3B8] mx-auto mb-2" />
+          <h3 className="text-xs font-medium text-[#0F172A]">No platform policies found</h3>
+          <p className="text-[11px] text-[#64748B] mt-1">Try adjusting category or search parameters.</p>
         </div>
       ) : (
         <div className="space-y-6">
           {filteredGroups.map((group) => (
-            <div key={group.category} className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                {getCategoryIcon(group.category)}
-                <h2 className="text-sm font-bold uppercase tracking-wider text-gray-700">
-                  {group.category} POLICIES
-                </h2>
-                <span className="text-xs font-medium text-gray-400">
-                  ({group.settings.length})
-                </span>
+            <div key={group.category} className="space-y-2">
+              <div className="text-[11px] font-mono uppercase tracking-wider text-[#64748B] px-1">
+                {group.category} Registry
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white border border-[#E4E4E7] rounded-[8px] divide-y divide-[#E4E4E7] overflow-hidden shadow-xs">
                 {group.settings.map((setting) => (
                   <div
                     key={setting.key}
-                    className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 transition-all flex flex-col justify-between"
+                    className="p-4 hover:bg-[#F8FAFC] transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
                   >
-                    <div>
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div>
-                          <span className="font-mono text-xs font-semibold px-2 py-0.5 bg-gray-100 text-gray-800 rounded border border-gray-200">
-                            {setting.key}
-                          </span>
-                          <p className="text-sm text-gray-600 mt-2">{setting.description}</p>
-                        </div>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700">
+                    <div className="space-y-1 max-w-2xl">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-semibold text-[#0F172A]">
+                          {setting.key}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-[3px] bg-[#F4F4F5] text-[#64748B] border border-[#E4E4E7]">
                           {setting.dataType}
                         </span>
                       </div>
-
-                      {/* Current Value Display */}
-                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-100 flex items-center justify-between">
-                        <span className="text-xs text-gray-500 font-medium">Active Policy Value:</span>
-                        <span className="font-mono text-sm font-bold text-gray-900">{setting.value}</span>
-                      </div>
-
-                      {/* Impact Warning Banner */}
+                      <p className="text-xs text-[#475569]">{setting.description}</p>
                       {setting.impactWarning && (
-                        <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2 text-xs text-amber-800">
-                          <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <span className="font-semibold">Marketplace Impact: </span>
-                            {setting.impactWarning}
-                          </div>
+                        <div className="text-[11px] text-[#64748B] pt-0.5">
+                          <span className="text-[#B45309] font-medium">Impact:</span> {setting.impactWarning}
                         </div>
                       )}
+                      <div className="text-[10px] text-[#94A3B8] font-mono">
+                        Updated {setting.updatedBy ? `by ${setting.updatedBy}` : "via system bootstrap"}
+                      </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>
-                          {setting.updatedBy ? `By ${setting.updatedBy}` : "System Default"}
-                        </span>
+                    <div className="flex items-center gap-4 shrink-0 self-start md:self-center">
+                      <div className="text-right">
+                        <div className="text-base font-bold font-mono text-[#0F172A]">
+                          {setting.value}
+                        </div>
+                        <span className="text-[10px] text-[#64748B]">active threshold</span>
                       </div>
                       <button
                         onClick={() => handleOpenEdit(setting)}
-                        className="px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors"
+                        className="h-7 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors cursor-pointer shadow-xs"
                       >
-                        Adjust Policy
+                        Adjust
                       </button>
                     </div>
                   </div>

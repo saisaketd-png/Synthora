@@ -1,37 +1,52 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-kemkendra-bg: #F7F9FC;
-  --color-kemkendra-surface: #FFFFFF;
-  --color-kemkendra-navy: #0B1F3A;
-  --color-kemkendra-deepnavy: #07152A;
-  --color-kemkendra-blue: #155EEF;
-  --color-kemkendra-blue-hover: #104EC6;
-  --color-kemkendra-blue-secondary: #2563EB;
-  --color-kemkendra-teal: #0F9F9A;
-  --color-kemkendra-success: #059669;
-  --color-kemkendra-warning: #D97706;
-  --color-kemkendra-danger: #DC2626;
-  --color-kemkendra-text-primary: #0F172A;
-  --color-kemkendra-text-secondary: #475569;
-  --color-kemkendra-text-muted: #64748B;
-  --color-kemkendra-border: #E2E8F0;
-  --color-kemkendra-subtle: #F1F5F9;
+  /* 1. Surfaces & Canvas */
+  --color-canvas: #FAFAFA;
+  --color-surface-raised: #FFFFFF;
+  --color-surface-subtle: #F4F4F5;
+  --color-surface-muted: #E4E4E7;
+  --color-surface-dark: #0F172A;
 
+  /* 2. Neutral Borders (ultra-fine & subtle) */
+  --color-border-subtle: rgba(15, 23, 42, 0.08);
+  --color-border-strong: rgba(15, 23, 42, 0.16);
+  --color-border: #E4E4E7;
 
-  --color-brand-primary: #155EEF;
-  --color-brand-secondary: #0F9F9A;
-  --color-brand-accent: #D97706;
-  --color-brand-dark: #0B1F3A;
-  --color-surface-subtle: #F1F5F9;
-  --color-border-subtle: #E2E8F0;
-  
+  /* 3. Text Hierarchy (Zero pure black) */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+
+  /* 4. Single Primary Action Accent */
+  --color-accent-primary: #0052CC;
+  --color-accent-hover: #0747A6;
+  --color-accent-active: #003884;
+
+  /* 5. Semantic States */
+  --color-success: #059669;
+  --color-success-bg: #ECFDF5;
+  --color-success-border: rgba(5, 150, 105, 0.2);
+
+  --color-warning: #D97706;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-border: rgba(217, 119, 6, 0.2);
+
+  --color-danger: #DC2626;
+  --color-danger-bg: #FEF2F2;
+  --color-danger-border: rgba(220, 38, 38, 0.2);
+
+  /* Typography Stacks */
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Universal Radii Standards */
+  --radius-control: 6px;
+  --radius-container: 8px;
 }
 
 :root {
-  --background: #F7F9FC;
+  --background: #FAFAFA;
   --foreground: #0F172A;
 }
 
@@ -39,37 +54,60 @@ html, body {
   max-width: 100%;
   overflow-x: hidden;
   position: relative;
+  background-color: #FAFAFA;
+  color: #0F172A;
 }
 
 body {
-  background-color: #F7F9FC;
-  color: #0F172A;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
-/* Accessible Table and Form Utilities */
-.table-dense th, .table-dense td {
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
+/* Headings Tracking Standard */
+h1 {
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  font-weight: 700;
 }
 
-/* Custom Scrollbar */
+h2 {
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+h3 {
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+/* Accessible Diffuse Shadow Stack */
+.shadow-tactile-card {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 2px 6px rgba(15, 23, 42, 0.03);
+}
+
+.shadow-tactile-modal {
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 16px 32px -4px rgba(15, 23, 42, 0.08);
+}
+
+/* Custom Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: #FAFAFA;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #D4D4D8;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: #A1A1AA;
 }

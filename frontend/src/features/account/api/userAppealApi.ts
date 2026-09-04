@@ -1,4 +1,4 @@
-import { resolveApiUrl } from "@/lib/apiUrl";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 export interface UserAppeal {
   id: string;
@@ -21,21 +21,9 @@ export interface UserSuspensionDetail {
   activeAppeal: UserAppeal | null;
 }
 
-function getAuthHeaders(): HeadersInit {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("kemkendra_token") || localStorage.getItem("token")
-      : null;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
 export const userAppealApi = {
   async getMySuspension(): Promise<UserSuspensionDetail> {
-    const res = await fetch(resolveApiUrl("/api/v1/account/suspension"), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch("/api/v1/account/suspension", {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch suspension status");
@@ -43,8 +31,7 @@ export const userAppealApi = {
   },
 
   async getMyAppeals(): Promise<UserAppeal[]> {
-    const res = await fetch(resolveApiUrl("/api/v1/account/appeals"), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch("/api/v1/account/appeals", {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch appeals");
@@ -52,8 +39,7 @@ export const userAppealApi = {
   },
 
   async getMyAppealDetail(appealId: string): Promise<UserAppeal> {
-    const res = await fetch(resolveApiUrl(`/api/v1/account/appeals/${appealId}`), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch(`/api/v1/account/appeals/${appealId}`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch appeal detail");
@@ -61,9 +47,8 @@ export const userAppealApi = {
   },
 
   async submitAppeal(reason: string): Promise<UserAppeal> {
-    const res = await fetch(resolveApiUrl("/api/v1/account/appeals"), {
+    const res = await authenticatedFetch("/api/v1/account/appeals", {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify({ reason }),
     });
     if (!res.ok) {
@@ -74,9 +59,8 @@ export const userAppealApi = {
   },
 
   async respondToInformation(appealId: string, response: string): Promise<UserAppeal> {
-    const res = await fetch(resolveApiUrl(`/api/v1/account/appeals/${appealId}/response`), {
+    const res = await authenticatedFetch(`/api/v1/account/appeals/${appealId}/response`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify({ response }),
     });
     if (!res.ok) {

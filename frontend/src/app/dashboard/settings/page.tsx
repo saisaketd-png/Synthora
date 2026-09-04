@@ -14,7 +14,7 @@ import {
 import {
   NotificationPreferenceItem,
 } from "@/features/notifications/types/notification";
-import { SectionHeader } from "@/shared/components/SectionHeader";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 import {
   User,
   Mail,
@@ -243,73 +243,73 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      <SectionHeader
+    <div className="max-w-4xl mx-auto space-y-6 pb-16 text-[#0F172A]">
+      <PageHeader
         title="Account Settings"
-        subtitle="Manage your profile information, notification channel preferences, and security credentials."
+        description="Manage your verified profile details, configure granular notification channels, and update access credentials."
       />
 
       {/* 1. PROFILE DETAILS CARD */}
-      <div className="bg-white rounded-2xl border border-[#DFE1E6] shadow-xs overflow-hidden">
-        <div className="px-6 py-5 border-b border-[#DFE1E6] bg-[#FAFBFC]">
+      <div className="bg-white rounded-[8px] border border-[#E4E4E7] shadow-tactile-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E4E4E7] bg-[#FAFAFA]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#DEEBFF] text-[#0052CC] flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-[6px] bg-[#EFF6FF] text-[#0052CC] flex items-center justify-center font-bold">
               <User className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#091E42]">Personal & Contact Details</h2>
-              <p className="text-xs text-[#5E6C84]">Update your display name and authorized contact number</p>
+              <h2 className="text-sm font-bold text-[#0F172A]">Personal & Authorized Contact</h2>
+              <p className="text-xs text-[#64748B]">Update your commercial display name and authorized contact number</p>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleProfileSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleProfileSubmit} className="p-5 space-y-5">
           {profileSuccess && (
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-3 text-emerald-800 text-sm">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="rounded-[6px] bg-[#ECFDF5] border border-[rgba(5,150,105,0.2)] p-3 flex items-center gap-2.5 text-[#059669] text-xs font-medium">
+              <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
               <span>Profile information updated successfully.</span>
             </div>
           )}
 
           {profileError && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-center gap-3 text-rose-800 text-sm">
-              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <div className="rounded-[6px] bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] p-3 flex items-center gap-2.5 text-[#DC2626] text-xs font-medium">
+              <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
               <span>{profileError}</span>
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Email (Read Only) */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
+            <div className="space-y-1">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
                 Email Address
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <Mail className="w-4 h-4" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                  <Mail className="w-3.5 h-3.5" />
                 </div>
                 <input
                   type="email"
                   disabled
                   value={profile?.email || ""}
-                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#5E6C84] bg-[#F4F5F7] cursor-not-allowed outline-none font-medium"
+                  className="w-full rounded-[6px] border border-[#E4E4E7] pl-9 pr-3 py-2 text-xs text-[#64748B] bg-[#F4F4F5] cursor-not-allowed outline-none font-mono"
                 />
               </div>
-              <p className="text-[11px] text-[#5E6C84]">Email address cannot be modified once registered.</p>
+              <p className="text-[10px] text-[#94A3B8]">Email address cannot be modified once registered.</p>
             </div>
 
             {/* Account Role & Verification */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
+            <div className="space-y-1">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
                 Account Role & Verification
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <Shield className="w-4 h-4" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                  <Shield className="w-3.5 h-3.5" />
                 </div>
-                <div className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#091E42] bg-[#F4F5F7] flex items-center justify-between">
+                <div className="w-full rounded-[6px] border border-[#E4E4E7] pl-9 pr-3 py-2 text-xs text-[#0F172A] bg-[#F4F4F5] flex items-center justify-between">
                   <span className="font-semibold">{profile?.role || "USER"}</span>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#059669] bg-[#ECFDF5] border border-[rgba(5,150,105,0.2)] px-1.5 py-0.2 rounded-[4px]">
                     <Check className="w-3 h-3" /> Verified
                   </span>
                 </div>
@@ -317,13 +317,13 @@ export default function SettingsPage() {
             </div>
 
             {/* Full Name */}
-            <div className="space-y-1.5">
-              <label htmlFor="name" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
-                Full Name <span className="text-rose-500">*</span>
+            <div className="space-y-1">
+              <label htmlFor="name" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
+                Full Name <span className="text-[#DC2626]">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <User className="w-4 h-4" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                  <User className="w-3.5 h-3.5" />
                 </div>
                 <input
                   id="name"
@@ -332,20 +332,20 @@ export default function SettingsPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={loadingProfile || savingProfile}
-                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
+                  className="w-full rounded-[6px] border border-[#E4E4E7] pl-9 pr-3 py-2 text-xs text-[#0F172A] placeholder:text-[#94A3B8] outline-none transition focus:border-[#0052CC] bg-white"
                   placeholder="e.g. John Doe"
                 />
               </div>
             </div>
 
             {/* Phone Number */}
-            <div className="space-y-1.5">
-              <label htmlFor="phone" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
+            <div className="space-y-1">
+              <label htmlFor="phone" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
                 Phone Number
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <Phone className="w-4 h-4" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                  <Phone className="w-3.5 h-3.5" />
                 </div>
                 <input
                   id="phone"
@@ -353,76 +353,76 @@ export default function SettingsPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={loadingProfile || savingProfile}
-                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
+                  className="w-full rounded-[6px] border border-[#E4E4E7] pl-9 pr-3 py-2 text-xs text-[#0F172A] placeholder:text-[#94A3B8] outline-none transition focus:border-[#0052CC] bg-white"
                   placeholder="+91 98765 43210"
                 />
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[#DFE1E6] flex justify-end">
+          <div className="pt-3 border-t border-[#E4E4E7] flex justify-end">
             <button
               type="submit"
               disabled={loadingProfile || savingProfile}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0052CC] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0747A6] shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-[6px] bg-[#0052CC] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#0747A6] active:bg-[#003884] shadow-xs disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>{savingProfile ? "Saving Details..." : "Save Details"}</span>
+              <span>{savingProfile ? "Saving..." : "Save Details"}</span>
             </button>
           </div>
         </form>
       </div>
 
       {/* 2. NOTIFICATION PREFERENCES CARD */}
-      <div className="bg-white rounded-2xl border border-[#DFE1E6] shadow-xs overflow-hidden">
-        <div className="px-6 py-5 border-b border-[#DFE1E6] bg-[#FAFBFC]">
+      <div className="bg-white rounded-[8px] border border-[#E4E4E7] shadow-tactile-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E4E4E7] bg-[#FAFAFA]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#EAE6FF] text-[#403294] flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-[6px] bg-[#EFF6FF] text-[#0052CC] flex items-center justify-center font-bold">
               <Bell className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#091E42]">Notification Preferences</h2>
-              <p className="text-xs text-[#5E6C84]">Configure which channels you receive notifications for across commercial and administrative workflows.</p>
+              <h2 className="text-sm font-bold text-[#0F172A]">Notification Preferences</h2>
+              <p className="text-xs text-[#64748B]">Configure which channels you receive notifications for across commercial and administrative workflows.</p>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handlePreferencesSubmit} className="p-6 space-y-6">
+        <form onSubmit={handlePreferencesSubmit} className="p-5 space-y-5">
           {prefSuccess && (
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-3 text-emerald-800 text-sm">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="rounded-[6px] bg-[#ECFDF5] border border-[rgba(5,150,105,0.2)] p-3 flex items-center gap-2.5 text-[#059669] text-xs font-medium">
+              <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
               <span>Notification preferences updated successfully.</span>
             </div>
           )}
 
           {prefError && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-center gap-3 text-rose-800 text-sm">
-              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <div className="rounded-[6px] bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] p-3 flex items-center gap-2.5 text-[#DC2626] text-xs font-medium">
+              <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
               <span>{prefError}</span>
             </div>
           )}
 
           {loadingPreferences ? (
-            <div className="py-8 text-center text-xs text-[#5E6C84]">Loading communication preferences...</div>
+            <div className="py-6 text-center text-xs text-[#64748B]">Loading communication preferences...</div>
           ) : (
-            <div className="divide-y divide-[#EBECF0]">
+            <div className="divide-y divide-[#E4E4E7]">
               {preferences.map((item) => (
                 <div
                   key={item.category}
-                  className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                  className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-[#091E42]">
+                      <span className="text-xs font-semibold text-[#0F172A]">
                         {formatCategoryLabel(item.category)}
                       </span>
                       {item.mandatory && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono font-medium text-[#D97706] bg-[#FFFBEB] px-1.5 py-0.2 rounded-[4px] border border-[rgba(217,119,6,0.2)]">
                           <Lock className="w-2.5 h-2.5" /> Mandatory
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#5E6C84]">
+                    <p className="text-[11px] text-[#64748B]">
                       {item.mandatory
                         ? "Critical security and account-integrity notifications cannot be disabled."
                         : `Receive updates for ${formatCategoryLabel(item.category).toLowerCase()}.`}
@@ -431,25 +431,25 @@ export default function SettingsPage() {
 
                   <div className="flex items-center gap-4 shrink-0">
                     {/* In-App Toggle */}
-                    <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-[#172B4D]">
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-[#0F172A]">
                       <input
                         type="checkbox"
                         checked={item.inAppEnabled}
                         disabled={item.mandatory || savingPreferences}
                         onChange={() => togglePreference(item.category, "inApp")}
-                        className="rounded border-[#DFE1E6] text-[#0052CC] focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
+                        className="rounded-[4px] border-[#E4E4E7] text-[#0052CC] focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
                       />
                       <span>In-App</span>
                     </label>
 
                     {/* Email Toggle */}
-                    <label className="inline-flex items-center gap-2 cursor-pointer text-xs font-medium text-[#172B4D]">
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer text-xs text-[#0F172A]">
                       <input
                         type="checkbox"
                         checked={item.emailEnabled}
                         disabled={item.mandatory || savingPreferences}
                         onChange={() => togglePreference(item.category, "email")}
-                        className="rounded border-[#DFE1E6] text-[#0052CC] focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
+                        className="rounded-[4px] border-[#E4E4E7] text-[#0052CC] focus:ring-[#0052CC] disabled:opacity-50 cursor-pointer"
                       />
                       <span>Email</span>
                     </label>
@@ -459,57 +459,57 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="pt-4 border-t border-[#DFE1E6] flex justify-end">
+          <div className="pt-3 border-t border-[#E4E4E7] flex justify-end">
             <button
               type="submit"
               disabled={loadingPreferences || savingPreferences}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0052CC] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0747A6] shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-[6px] bg-[#0052CC] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#0747A6] active:bg-[#003884] shadow-xs disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>{savingPreferences ? "Saving Preferences..." : "Save Preferences"}</span>
+              <span>{savingPreferences ? "Saving..." : "Save Preferences"}</span>
             </button>
           </div>
         </form>
       </div>
 
       {/* 3. CHANGE PASSWORD CARD */}
-      <div className="bg-white rounded-2xl border border-[#DFE1E6] shadow-xs overflow-hidden">
-        <div className="px-6 py-5 border-b border-[#DFE1E6] bg-[#FAFBFC]">
+      <div className="bg-white rounded-[8px] border border-[#E4E4E7] shadow-tactile-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E4E4E7] bg-[#FAFAFA]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#FFEBE6] text-[#DE350B] flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-[6px] bg-[#FEF2F2] text-[#DC2626] flex items-center justify-center font-bold">
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#091E42]">Change Password</h2>
-              <p className="text-xs text-[#5E6C84]">Ensure your account is protected with a strong, distinct password.</p>
+              <h2 className="text-sm font-bold text-[#0F172A]">Change Password</h2>
+              <p className="text-xs text-[#64748B]">Ensure your account is protected with a strong, distinct password.</p>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handlePasswordSubmit} className="p-6 space-y-6">
+        <form onSubmit={handlePasswordSubmit} className="p-5 space-y-5">
           {passwordSuccess && (
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-center gap-3 text-emerald-800 text-sm">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="rounded-[6px] bg-[#ECFDF5] border border-[rgba(5,150,105,0.2)] p-3 flex items-center gap-2.5 text-[#059669] text-xs font-medium">
+              <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
               <span>Your password has been changed successfully.</span>
             </div>
           )}
 
           {passwordError && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-4 flex items-center gap-3 text-rose-800 text-sm">
-              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <div className="rounded-[6px] bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] p-3 flex items-center gap-2.5 text-[#DC2626] text-xs font-medium">
+              <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
               <span>{passwordError}</span>
             </div>
           )}
 
-          <div className="space-y-4 max-w-lg">
+          <div className="space-y-3.5 max-w-lg">
             {/* Current Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="currentPassword" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
-                Current Password <span className="text-rose-500">*</span>
+            <div className="space-y-1">
+              <label htmlFor="currentPassword" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
+                Current Password <span className="text-[#DC2626]">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <KeyRound className="w-4 h-4" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                  <KeyRound className="w-3.5 h-3.5" />
                 </div>
                 <input
                   id="currentPassword"
@@ -518,28 +518,28 @@ export default function SettingsPage() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   disabled={savingPassword}
-                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-10 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
+                  className="w-full rounded-[6px] border border-[#E4E4E7] pl-9 pr-9 py-2 text-xs text-[#0F172A] placeholder:text-[#94A3B8] outline-none transition focus:border-[#0052CC] bg-white"
                   placeholder="Enter your current password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#5E6C84] hover:text-[#172B4D] transition cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8] hover:text-[#0F172A] transition cursor-pointer"
                   tabIndex={-1}
                 >
-                  {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showCurrentPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>
 
             {/* New Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="newPassword" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
-                New Password <span className="text-rose-500">*</span>
+            <div className="space-y-1">
+              <label htmlFor="newPassword" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
+                New Password <span className="text-[#DC2626]">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <Lock className="w-4 h-4" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                  <Lock className="w-3.5 h-3.5" />
                 </div>
                 <input
                   id="newPassword"
@@ -548,28 +548,28 @@ export default function SettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   disabled={savingPassword}
-                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-10 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
+                  className="w-full rounded-[6px] border border-[#E4E4E7] pl-9 pr-9 py-2 text-xs text-[#0F172A] placeholder:text-[#94A3B8] outline-none transition focus:border-[#0052CC] bg-white"
                   placeholder="Minimum 8 characters"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#5E6C84] hover:text-[#172B4D] transition cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#94A3B8] hover:text-[#0F172A] transition cursor-pointer"
                   tabIndex={-1}
                 >
-                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
               </div>
             </div>
 
             {/* Confirm New Password */}
-            <div className="space-y-1.5">
-              <label htmlFor="confirmPassword" className="block text-xs font-bold uppercase tracking-wider text-[#172B4D]">
-                Confirm New Password <span className="text-rose-500">*</span>
+            <div className="space-y-1">
+              <label htmlFor="confirmPassword" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
+                Confirm New Password <span className="text-[#DC2626]">*</span>
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#5E6C84]">
-                  <KeyRound className="w-4 h-4" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#94A3B8]">
+                  <KeyRound className="w-3.5 h-3.5" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -578,7 +578,7 @@ export default function SettingsPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={savingPassword}
-                  className="w-full rounded-xl border border-[#DFE1E6] pl-10 pr-3.5 py-2.5 text-sm text-[#091E42] placeholder:text-[#5E6C84] outline-none transition focus:border-[#0052CC] focus:ring-3 focus:ring-[#0052CC]/10 bg-white"
+                  className="w-full rounded-[6px] border border-[#E4E4E7] pl-9 pr-3 py-2 text-xs text-[#0F172A] placeholder:text-[#94A3B8] outline-none transition focus:border-[#0052CC] bg-white"
                   placeholder="Re-enter new password"
                 />
               </div>
@@ -587,13 +587,13 @@ export default function SettingsPage() {
             {/* Password Validation Requirements */}
             {newPassword && (
               <div className="text-[11px] space-y-1 pt-1">
-                <p className={newPassword.length >= 8 ? "text-emerald-600 flex items-center gap-1.5" : "text-slate-400 flex items-center gap-1.5"}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${newPassword.length >= 8 ? "bg-emerald-500" : "bg-slate-300"}`} />
+                <p className={newPassword.length >= 8 ? "text-[#059669] flex items-center gap-1.5" : "text-[#94A3B8] flex items-center gap-1.5"}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${newPassword.length >= 8 ? "bg-[#059669]" : "bg-[#CBD5E1]"}`} />
                   At least 8 characters
                 </p>
                 {confirmPassword && (
-                  <p className={newPassword === confirmPassword ? "text-emerald-600 flex items-center gap-1.5" : "text-rose-500 flex items-center gap-1.5"}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${newPassword === confirmPassword ? "bg-emerald-500" : "bg-rose-500"}`} />
+                  <p className={newPassword === confirmPassword ? "text-[#059669] flex items-center gap-1.5" : "text-[#DC2626] flex items-center gap-1.5"}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${newPassword === confirmPassword ? "bg-[#059669]" : "bg-[#DC2626]"}`} />
                     {newPassword === confirmPassword ? "Passwords match" : "Passwords do not match"}
                   </p>
                 )}
@@ -601,7 +601,7 @@ export default function SettingsPage() {
             )}
           </div>
 
-          <div className="pt-4 border-t border-[#DFE1E6] flex justify-end">
+          <div className="pt-3 border-t border-[#E4E4E7] flex justify-end">
             <button
               type="submit"
               disabled={
@@ -610,10 +610,10 @@ export default function SettingsPage() {
                 newPassword.length < 8 ||
                 newPassword !== confirmPassword
               }
-              className="inline-flex items-center gap-2 rounded-xl bg-[#0052CC] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#0747A6] shadow-xs disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-[6px] bg-[#0052CC] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#0747A6] active:bg-[#003884] shadow-xs disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{savingPassword ? "Updating Password..." : "Update Password"}</span>
+              <span>{savingPassword ? "Updating..." : "Update Password"}</span>
             </button>
           </div>
         </form>

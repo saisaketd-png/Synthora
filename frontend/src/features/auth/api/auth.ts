@@ -1,4 +1,5 @@
 import { resolveApiUrl } from "@/lib/apiUrl";
+import { authenticatedFetch } from "./authenticatedFetch";
 
 export type LoginRequest = {
   email: string;
@@ -8,6 +9,7 @@ export type LoginRequest = {
 export type LoginResponse = {
   message: string;
   token: string;
+  expiresIn?: number;
 };
 
 export type AuthUser = {
@@ -15,6 +17,17 @@ export type AuthUser = {
   role: "USER" | "SUPPLIER" | "ADMIN" | string;
   exp?: number;
 };
+
+/**
+ * Reads the client-accessible XSRF-TOKEN cookie value.
+ * Used exclusively for scoped CSRF header validation on cookie-authenticated mutations.
+ * CRITICAL: Reads ONLY the XSRF-TOKEN cookie; never attempts to read HttpOnly refresh cookies.
+ */
+export function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 export async function login(
   data: LoginRequest
@@ -41,7 +54,8 @@ export async function login(
     throw new Error(errorMessage);
   }
 
-  return response.json();
+  const result: LoginResponse = await response.json();
+  return result;
 }
 
 export type RegisterBuyerRequest = {
@@ -182,10 +196,41 @@ export function getAuthUser(): AuthUser | null {
   }
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
   if (typeof window !== "undefined") {
     removeAuthToken();
     window.dispatchEvent(new Event("auth-changed"));
+
+    try {
+      const csrfToken = getCsrfToken();
+      const headers: Record<string, string> = {};
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = csrfToken;
+      }
+      const targetUrl = resolveApiUrl("/api/v1/auth/logout");
+      await fetch(targetUrl, {
+        method: "POST",
+        headers,
+        credentials: "include",
+      });
+    } catch {
+      // Handled silently
+    }
+  }
+}
+
+export async function logoutAll(): Promise<void> {
+  try {
+    await authenticatedFetch("/api/v1/auth/logout-all", {
+      method: "POST",
+    });
+  } catch {
+    // Handled silently
+  } finally {
+    removeAuthToken();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("auth-changed"));
+    }
   }
 }
 
@@ -264,20 +309,9 @@ export type UserProfile = {
 };
 
 export async function getCurrentUserProfile(): Promise<UserProfile> {
-  const token = getAuthToken();
-  const targetUrl = resolveApiUrl("/api/v1/users/me");
-  const response = await fetch(targetUrl, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
+  const response = await authenticatedFetch("/api/v1/users/me");
 
   if (!response.ok) {
-    if (response.status === 401) {
-      handleUnauthorized();
-    }
     let errorMessage = `Failed to fetch profile (HTTP ${response.status})`;
     try {
       const errorData = await response.json();
@@ -295,21 +329,12 @@ export async function updateUserProfile(data: {
   name: string;
   phone?: string;
 }): Promise<UserProfile> {
-  const token = getAuthToken();
-  const targetUrl = resolveApiUrl("/api/v1/users/me");
-  const response = await fetch(targetUrl, {
+  const response = await authenticatedFetch("/api/v1/users/me", {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
     body: JSON.stringify(data),
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      handleUnauthorized();
-    }
     let errorMessage = `Failed to update profile (HTTP ${response.status})`;
     try {
       const errorData = await response.json();
@@ -327,21 +352,12 @@ export async function changePassword(data: {
   currentPassword: string;
   newPassword: string;
 }): Promise<{ message: string }> {
-  const token = getAuthToken();
-  const targetUrl = resolveApiUrl("/api/v1/users/me/change-password");
-  const response = await fetch(targetUrl, {
+  const response = await authenticatedFetch("/api/v1/users/me/change-password", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
     body: JSON.stringify(data),
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      handleUnauthorized();
-    }
     let errorMessage = `Failed to change password (HTTP ${response.status})`;
     try {
       const errorData = await response.json();
@@ -355,9 +371,16 @@ export async function changePassword(data: {
   return response.json();
 }
 
+export type VerifyEmailResult = {
+  message: string;
+  token?: string;
+  role?: string;
+  verificationStatus?: string;
+};
+
 export async function verifyEmail(data: {
   token: string;
-}): Promise<{ message: string }> {
+}): Promise<VerifyEmailResult> {
   const targetUrl = resolveApiUrl("/api/v1/auth/verify-email");
   const response = await fetch(targetUrl, {
     method: "POST",

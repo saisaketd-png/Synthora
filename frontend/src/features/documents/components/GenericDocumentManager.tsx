@@ -170,24 +170,24 @@ export function GenericDocumentManager({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden shadow-2xs h-full flex flex-col justify-between">
+    <div className="bg-white rounded-[8px] border border-[#E4E4E7] overflow-hidden shadow-tactile-card h-full flex flex-col justify-between">
       <div>
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[#E2E8F0] bg-[#FAFBFC] space-y-3">
+        <div className="px-4 py-3.5 border-b border-[#E4E4E7] bg-[#FAFAFA] space-y-2.5">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#0B1B33] font-mono">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#0F172A] font-mono">
               {title}
             </h3>
-            <p className="text-[11px] text-[#526581] mt-0.5">{description}</p>
+            <p className="text-[11px] text-[#64748B] mt-0.5">{description}</p>
           </div>
 
           {canUpload && (
-            <div className="flex items-center gap-2 w-full pt-1 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2 w-full pt-0.5 flex-wrap sm:flex-nowrap">
               {allowedCategories.length > 1 && (
                 <select
                   value={uploadCategory}
                   onChange={(e) => setUploadCategory(e.target.value)}
-                  className="px-2.5 py-1.5 text-xs bg-white border border-[#E2E8F0] rounded-lg font-medium text-[#0B1B33] focus:outline-none focus:border-[#0052CC] flex-1 min-w-[140px] truncate"
+                  className="h-8 px-2.5 text-xs bg-white border border-[#E4E4E7] rounded-[6px] font-normal text-[#0F172A] focus:outline-none focus:border-[#0052CC] flex-1 min-w-[140px] truncate"
                   disabled={isUploading}
                 >
                   {allowedCategories.map((c) => (
@@ -208,7 +208,7 @@ export function GenericDocumentManager({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading || allowedCategories.length === 0}
-                className="inline-flex items-center justify-center px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-lg shadow-2xs disabled:opacity-60 disabled:cursor-not-allowed transition-all whitespace-nowrap cursor-pointer shrink-0"
+                className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium text-white bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] rounded-[6px] shadow-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap cursor-pointer shrink-0 active:scale-[0.99]"
               >
                 {isUploading ? (
                   <>
@@ -228,14 +228,14 @@ export function GenericDocumentManager({
 
         {/* Progress & Notifications */}
         {isUploading && (
-          <div className="p-4 bg-[#FAFBFC] border-b border-[#E2E8F0] space-y-2">
-            <div className="flex justify-between text-xs font-medium text-[#0B1B33]">
+          <div className="p-3.5 bg-[#FAFAFA] border-b border-[#E4E4E7] space-y-1.5">
+            <div className="flex justify-between text-xs font-medium text-[#0F172A]">
               <span>Uploading document...</span>
-              <span>{uploadProgress}%</span>
+              <span className="font-mono">{uploadProgress}%</span>
             </div>
-            <div className="w-full bg-[#E2E8F0] rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-[#E4E4E7] rounded-[4px] h-1.5 overflow-hidden">
               <div
-                className="bg-[#0052CC] h-1.5 rounded-full transition-all duration-300"
+                className="bg-[#0052CC] h-1.5 rounded-[4px] transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
@@ -243,24 +243,24 @@ export function GenericDocumentManager({
         )}
 
         {uploadSuccess && (
-          <div className="p-3 bg-[#E3FCEF] border-b border-[#ABF5D1] flex items-center gap-2 text-[#006644] text-xs font-medium">
-            <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <div className="p-2.5 bg-[#ECFDF5] border-b border-[rgba(5,150,105,0.2)] flex items-center gap-2 text-[#059669] text-xs font-medium">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
             <span>✓ {uploadSuccess}</span>
           </div>
         )}
 
         {error && (
-          <div className="p-3.5 bg-amber-50 border-b border-amber-200 flex items-center justify-between gap-3 text-amber-900 text-xs">
+          <div className="p-3 bg-[#FFFBEB] border-b border-[rgba(217,119,6,0.2)] flex items-center justify-between gap-3 text-[#D97706] text-xs">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-              <span className="font-medium">{error}</span>
+              <AlertCircle className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
+              <span className="font-medium text-[11px]">{error}</span>
             </div>
             <button
               type="button"
               onClick={loadDocuments}
-              className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-amber-300 rounded-md font-bold hover:bg-amber-100 transition-colors text-[11px] cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-[#E4E4E7] rounded-[4px] font-medium hover:bg-[#FAFAFA] transition-colors text-[10px] cursor-pointer shrink-0"
             >
-              <RefreshCw className="w-3 h-3" /> Retry
+              <RefreshCw className="w-2.5 h-2.5" /> Retry
             </button>
           </div>
         )}
@@ -268,61 +268,61 @@ export function GenericDocumentManager({
         {/* Document List */}
         <div>
           {isLoading ? (
-            <div className="flex items-center justify-center p-8 text-[#526581]">
+            <div className="flex items-center justify-center p-6 text-[#64748B]">
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
               <span className="text-xs font-medium">Loading documents...</span>
             </div>
           ) : documents.length === 0 ? (
-            <div className="p-6 text-center text-xs text-[#526581] leading-relaxed bg-[#FAFBFC]">
+            <div className="p-6 text-center text-xs text-[#64748B] leading-relaxed bg-[#FAFAFA]">
               {emptyMessage}
             </div>
           ) : (
-            <ul className="divide-y divide-[#E2E8F0]">
+            <ul className="divide-y divide-[#E4E4E7]">
               {documents.map((doc) => (
                 <li
                   key={doc.id}
-                  className="p-3.5 sm:px-5 hover:bg-[#FAFBFC] transition-colors flex items-center justify-between gap-3"
+                  className="p-3 sm:px-4 hover:bg-[#FAFAFA] transition-colors flex items-center justify-between gap-3"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="p-2 bg-[#DEEBFF] text-[#0052CC] rounded-lg shrink-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="p-2 bg-[#EFF6FF] text-[#0052CC] rounded-[6px] shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-xs font-semibold text-[#0B1B33] truncate">
+                        <h4 className="text-xs font-medium text-[#0F172A] truncate">
                           {doc.originalFileName}
                         </h4>
                         {doc.version && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded-[4px] bg-[#EFF6FF] text-[#0052CC] border border-[#BFDBFE]">
                             v{doc.version}
                           </span>
                         )}
                         {doc.expiryStatus && doc.expiryStatus !== "NO_EXPIRY" && (
                           <span
-                            className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${
+                            className={`text-[9px] font-mono font-medium px-1.5 py-0.2 rounded-[4px] uppercase ${
                               doc.expiryStatus === "VALID"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                ? "bg-[#ECFDF5] text-[#059669] border border-[rgba(5,150,105,0.2)]"
                                 : doc.expiryStatus === "EXPIRING_SOON"
-                                ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                : "bg-rose-50 text-rose-700 border border-rose-200"
+                                ? "bg-[#FFFBEB] text-[#D97706] border border-[rgba(217,119,6,0.2)]"
+                                : "bg-[#FEF2F2] text-[#DC2626] border border-[rgba(220,38,38,0.2)]"
                             }`}
                           >
                             {doc.expiryStatus === "VALID" ? "Valid" : doc.expiryStatus === "EXPIRING_SOON" ? "Expiring Soon" : "Expired"}
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#526581] flex-wrap">
-                        <span className="font-semibold text-[#0B1B33] bg-[#F4F5F7] px-1.5 py-0.5 rounded text-[10px]">
+                      <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[#64748B] flex-wrap">
+                        <span className="font-semibold text-[#0F172A] bg-[#F4F4F5] px-1.5 py-0.2 rounded-[4px] text-[10px] font-mono uppercase">
                           {getCategoryLabel(doc.category)}
                         </span>
                         <span>•</span>
-                        <span>{formatFileSize(doc.fileSize)}</span>
+                        <span className="font-mono">{formatFileSize(doc.fileSize)}</span>
                         <span>•</span>
                         <span>{formatDate(doc.createdAt)}</span>
                         {doc.checksum && (
                           <>
                             <span>•</span>
-                            <span className="font-mono text-[9px] text-zinc-400" title={`SHA-256: ${doc.checksum}`}>
+                            <span className="font-mono text-[9px] text-[#94A3B8]" title={`SHA-256: ${doc.checksum}`}>
                               SHA-256: {doc.checksum.substring(0, 8)}...
                             </span>
                           </>
@@ -331,11 +331,11 @@ export function GenericDocumentManager({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
                       onClick={() => handleDownload(doc.id, doc.originalFileName)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#0052CC] hover:bg-[#DEEBFF]/40 rounded-md transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#0052CC] hover:bg-[#EFF6FF] rounded-[4px] transition-colors cursor-pointer"
                       title="Download Document"
                     >
                       <Download className="w-3.5 h-3.5" />
@@ -346,7 +346,7 @@ export function GenericDocumentManager({
                       <button
                         type="button"
                         onClick={() => handleDelete(doc.id)}
-                        className="p-1.5 text-[#526581] hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
+                        className="p-1 text-[#64748B] hover:text-[#DC2626] hover:bg-[#FEF2F2] rounded-[4px] transition-colors cursor-pointer"
                         title="Delete Document"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -24,8 +26,12 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration:86400000}")
+    @Value("${jwt.expiration:900000}")
     private long jwtExpiration;
+
+    public long getJwtExpiration() {
+        return jwtExpiration;
+    }
 
     @PostConstruct
     public void validateConfiguration() {
@@ -44,9 +50,11 @@ public class JwtService {
         Date expiry = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .issuer(ISSUER)
                 .subject(user.getEmail())
                 .claim("role", user.getRole().name())
+                .claim("iat_ms", now.getTime())
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(getSecretKey())
@@ -61,6 +69,21 @@ public class JwtService {
     public String extractEmail(String token) {
         Claims claims = extractAllClaims(token);
         return claims.getSubject();
+    }
+
+    public String extractJti(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.getId();
+    }
+
+    public Instant extractIssuedAtInstant(String token) {
+        Claims claims = extractAllClaims(token);
+        Long iatMs = claims.get("iat_ms", Long.class);
+        if (iatMs != null) {
+            return Instant.ofEpochMilli(iatMs);
+        }
+        Date issuedAt = claims.getIssuedAt();
+        return issuedAt != null ? issuedAt.toInstant() : Instant.EPOCH;
     }
 
     public boolean isTokenValid(String token) {
@@ -80,6 +103,7 @@ public class JwtService {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
+                .requireIssuer(ISSUER)
                 .verifyWith(getSecretKey())
                 .build()
                 .parseSignedClaims(token)

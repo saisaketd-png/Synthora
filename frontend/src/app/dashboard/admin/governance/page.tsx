@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ShieldAlert, ChevronRight } from "lucide-react";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 interface QueueItem {
   id: string;
@@ -24,10 +25,7 @@ export default function GovernanceQueuePage() {
   useEffect(() => {
     async function fetchQueue() {
       try {
-        const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-        const res = await fetch("/api/v1/admin/operations/governance/queue", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await authenticatedFetch("/api/v1/admin/operations/governance/queue");
         if (res.ok) {
           const data = await res.json();
           setItems(data.content || []);

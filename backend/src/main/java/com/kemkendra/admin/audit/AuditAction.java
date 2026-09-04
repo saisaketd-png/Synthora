@@ -13,6 +13,14 @@ public enum AuditAction {
     USER_ROLE_CHANGED,
     USER_DELETED,
 
+    // Authentication & Session Security Lifecycle
+    AUTH_LOGIN_SUCCESS,
+    AUTH_LOGIN_FAILED,
+    AUTH_REFRESH_SUCCESS,
+    AUTH_REFRESH_REUSE_DETECTED,
+    AUTH_LOGOUT,
+    AUTH_LOGOUT_ALL,
+
     // Account Suspension & Appeals
     APPEAL_SUBMITTED,
     APPEAL_REVIEW_STARTED,

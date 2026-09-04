@@ -25,6 +25,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import com.kemkendra.security.csrf.CsrfCookieFilter;
+import com.kemkendra.security.csrf.CsrfCookieProperties;
+import com.kemkendra.security.csrf.SpaCsrfTokenRequestHandler;
+import com.kemkendra.security.origin.CookieEndpointOriginFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
@@ -32,15 +39,33 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitingFilter rateLimitingFilter;
     private final String allowedOrigins;
+    private final boolean swaggerUiEnabled;
+    private final org.springframework.security.web.csrf.CookieCsrfTokenRepository cookieCsrfTokenRepository;
+    private final SpaCsrfTokenRequestHandler spaCsrfTokenRequestHandler;
+    private final CsrfCookieFilter csrfCookieFilter;
+    private final CsrfCookieProperties csrfCookieProperties;
+    private final CookieEndpointOriginFilter cookieEndpointOriginFilter;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             RateLimitingFilter rateLimitingFilter,
-            @Value("${kemkendra.cors.allowed-origins:http://localhost:3000}") String allowedOrigins
+            @Value("${kemkendra.cors.allowed-origins:http://localhost:3000}") String allowedOrigins,
+            @Value("${springdoc.swagger-ui.enabled:true}") boolean swaggerUiEnabled,
+            org.springframework.security.web.csrf.CookieCsrfTokenRepository cookieCsrfTokenRepository,
+            SpaCsrfTokenRequestHandler spaCsrfTokenRequestHandler,
+            CsrfCookieFilter csrfCookieFilter,
+            CsrfCookieProperties csrfCookieProperties,
+            CookieEndpointOriginFilter cookieEndpointOriginFilter
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.rateLimitingFilter = rateLimitingFilter;
         this.allowedOrigins = allowedOrigins;
+        this.swaggerUiEnabled = swaggerUiEnabled;
+        this.cookieCsrfTokenRepository = cookieCsrfTokenRepository;
+        this.spaCsrfTokenRequestHandler = spaCsrfTokenRequestHandler;
+        this.csrfCookieFilter = csrfCookieFilter;
+        this.csrfCookieProperties = csrfCookieProperties;
+        this.cookieEndpointOriginFilter = cookieEndpointOriginFilter;
     }
 
     @Bean
@@ -90,9 +115,46 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        List<String> publicEndpoints = new java.util.ArrayList<>(List.of(
+                "/api/v1/public/**",
+                "/api/v1/auth/register",
+                "/api/v1/auth/register/**",
+                "/api/v1/auth/login",
+                "/api/v1/auth/refresh",
+                "/api/v1/auth/logout",
+                "/api/v1/auth/forgot-password",
+                "/api/v1/auth/reset-password",
+                "/api/v1/auth/verify-email",
+                "/api/v1/auth/resend-verification",
+                "/actuator/health"
+        ));
+
+        if (swaggerUiEnabled) {
+            publicEndpoints.add("/swagger-ui/**");
+            publicEndpoints.add("/swagger-ui.html");
+            publicEndpoints.add("/v3/api-docs/**");
+        }
+
+        http.cors(Customizer.withDefaults());
+
+        if (csrfCookieProperties.isEnabled()) {
+            http.csrf(csrf -> {
+                csrf.csrfTokenRepository(cookieCsrfTokenRepository)
+                        .csrfTokenRequestHandler(spaCsrfTokenRequestHandler)
+                        .requireCsrfProtectionMatcher(request -> {
+                            String path = request.getRequestURI();
+                            String method = request.getMethod();
+                            return "POST".equalsIgnoreCase(method) &&
+                                    ("/api/v1/auth/refresh".equals(path) || "/api/v1/auth/logout".equals(path));
+                        });
+            });
+            http.addFilterBefore(cookieEndpointOriginFilter, CsrfFilter.class);
+            http.addFilterAfter(csrfCookieFilter, CsrfFilter.class);
+        } else {
+            http.csrf(csrf -> csrf.disable());
+        }
+
         http
-                .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -108,22 +170,8 @@ public class SecurityConfig {
                     headers.contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"));
                 })
                 .authorizeHttpRequests(auth -> auth
-                        // Public authentication & docs & public endpoints
-                        .requestMatchers(
-                                "/api/v1/public/**",
-                                "/api/v1/auth/register",
-                                "/api/v1/auth/register/**",
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/forgot-password",
-                                "/api/v1/auth/reset-password",
-                                "/api/v1/auth/verify-email",
-                                "/api/v1/auth/resend-verification",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/actuator/health",
-                                "/actuator/info"
-                        ).permitAll()
+                        // Public authentication & health & (dev-only docs)
+                        .requestMatchers(publicEndpoints.toArray(new String[0])).permitAll()
 
                         // Public product browsing & public document list
                         .requestMatchers(

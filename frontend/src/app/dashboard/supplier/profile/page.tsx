@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { getMySellerProfile } from "@/features/suppliers/api";
 import { SellerProfile } from "@/features/suppliers/types";
 import { SupplierProfileForm } from "@/features/suppliers/components/SupplierProfileForm";
-import { SectionHeader } from "@/shared/components/SectionHeader";
+import { PageHeader, SkeletonLoader } from "@/shared/components/ui/KemkendraUI";
 import { AlertCircle } from "lucide-react";
 
 const EMPTY_PROFILE: SellerProfile = {
@@ -45,20 +45,20 @@ export default function SupplierProfilePage() {
   }, [loadProfile]);
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      <SectionHeader
-        title="Company Profile"
-        subtitle="Manage your business identity, certifications, and commercial details"
+    <div className="max-w-[1440px] mx-auto space-y-5 text-[#0F172A]">
+      <PageHeader
+        title="Supplier Enterprise Profile"
+        description="Manage your business identity, tax credentials, and manufacturing accreditations across the KemKendra network."
       />
 
       {error ? (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3 text-rose-800">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-          <div className="text-sm font-medium">{error}</div>
+        <div className="p-3.5 rounded-[6px] bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] flex items-start gap-2 text-[#DC2626]">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="text-xs font-medium">{error}</div>
         </div>
       ) : loading ? (
-        <div className="flex justify-center p-12">
-          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        <div className="bg-white p-5 border border-[#E4E4E7] rounded-[8px] shadow-tactile-card">
+          <SkeletonLoader lines={5} />
         </div>
       ) : (
         <SupplierProfileForm

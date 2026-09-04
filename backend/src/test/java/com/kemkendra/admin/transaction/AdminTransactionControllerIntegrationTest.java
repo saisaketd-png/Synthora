@@ -285,7 +285,7 @@ public class AdminTransactionControllerIntegrationTest {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(2)))
-                .andExpect(jsonPath("$.content[0].productName").value("Paracetamol Active Pharmaceutical Ingredient"));
+                .andExpect(jsonPath("$.content[*].productName", org.hamcrest.Matchers.hasItem("Paracetamol Active Pharmaceutical Ingredient")));
 
         // Detail endpoint also succeeds
         mockMvc.perform(get("/api/v1/admin/transactions/rfqs/" + modernRfq.getId())

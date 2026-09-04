@@ -201,28 +201,26 @@ public class SupplierPublicController {
     public ResponseEntity<Page<SupplierProductPublicResponse>> getSupplierProducts(
             @PathVariable Long id,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        
+
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Supplier not found"));
 
         int page = Math.max(0, pageable.getPageNumber());
         int size = Math.min(Math.max(1, pageable.getPageSize()), 100);
-        Sort sort = pageable.getSort();
-        List<Sort.Order> safeOrders = new ArrayList<>();
-        for (Sort.Order order : sort) {
-            if (ALLOWED_PRODUCT_SORT_FIELDS.contains(order.getProperty())) {
-                safeOrders.add(order);
-            }
-        }
-        if (safeOrders.isEmpty()) {
-            safeOrders.add(new Sort.Order(Sort.Direction.DESC, "createdAt"));
-        }
-        Pageable safePageable = org.springframework.data.domain.PageRequest.of(page, size, Sort.by(safeOrders));
+        Pageable safePageable = org.springframework.data.domain.PageRequest.of(page, size);
 
-        // 1. Check active SupplierOffering records first
-        Page<SupplierOffering> offerings = supplierOfferingRepository.findBySupplierId(id, safePageable);
-        if (offerings.hasContent()) {
-            Page<SupplierProductPublicResponse> responsePage = offerings.map(offering -> {
+        // 1. Use JOIN FETCH to load masterProduct eagerly — avoids LazyInitializationException
+        //    when accessing mp.getCategory(), mp.getName() etc. outside a JPA session.
+        List<SupplierOffering> allOfferings = supplierOfferingRepository.findBySupplierId_WithMasterProduct(id);
+        if (!allOfferings.isEmpty()) {
+            // Manual pagination on the in-memory list
+            int start = (int) safePageable.getOffset();
+            int end = Math.min(start + safePageable.getPageSize(), allOfferings.size());
+            List<SupplierOffering> pageContent = start >= allOfferings.size()
+                    ? java.util.Collections.emptyList()
+                    : allOfferings.subList(start, end);
+
+            List<SupplierProductPublicResponse> mapped = pageContent.stream().map(offering -> {
                 MasterProduct mp = offering.getMasterProduct();
                 ProductCategory cat = mp != null && mp.getCategory() != null ? mp.getCategory() : ProductCategory.API;
                 return new SupplierProductPublicResponse(
@@ -240,7 +238,10 @@ public class SupplierPublicController {
                         offering.getAvailabilityStatus(),
                         offering.getExportReady()
                 );
-            });
+            }).collect(Collectors.toList());
+
+            Page<SupplierProductPublicResponse> responsePage =
+                    new org.springframework.data.domain.PageImpl<>(mapped, safePageable, allOfferings.size());
             return ResponseEntity.ok(responsePage);
         }
 

@@ -127,11 +127,11 @@ export function Navbar() {
   const rfqHref = user?.role === "BUYER" ? "/dashboard/rfqs" : "/products";
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-[#DFE1E6] h-[66px] shadow-2xs flex items-center">
+    <header className="sticky top-0 z-50 bg-white border-b border-[#E4E4E7] h-16 shadow-tactile-card flex items-center">
       <div className="max-w-[1560px] w-full mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3 lg:gap-5">
         
         {/* 1. LEFT: KEMKENDRA BRAND & PRIMARY NAV */}
-        <div className="flex items-center gap-4 lg:gap-5 shrink-0">
+        <div className="flex items-center gap-4 lg:gap-6 shrink-0">
           <div className="flex items-center gap-2">
             <KemKendraLogo
               href="/"
@@ -139,7 +139,7 @@ export function Navbar() {
               layout="horizontal"
             />
             {user && (
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-mono font-semibold uppercase tracking-wider bg-[#F4F4F5] text-[#0F172A] border border-[#E4E4E7]">
                 {isAdmin ? "Admin" : isSupplier ? "Supplier" : "Buyer"}
               </span>
             )}
@@ -153,10 +153,10 @@ export function Navbar() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`px-3 py-1.5 rounded-md text-xs sm:text-[13px] font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-[6px] text-xs font-medium transition-colors ${
                     isActive
-                      ? "bg-[#DEEBFF] text-[#0052CC]"
-                      : "text-[#42526E] hover:bg-[#EBECF0] hover:text-[#091E42]"
+                      ? "bg-[#EFF6FF] text-[#0052CC] font-semibold"
+                      : "text-[#475569] hover:bg-[#FAFAFA] hover:text-[#0F172A]"
                   }`}
                 >
                   {link.name}
@@ -166,32 +166,32 @@ export function Navbar() {
           </nav>
         </div>
 
-        {/* 2. CENTER: GLOBAL SEARCH (MAX 520px) */}
-        <div className="flex-1 max-w-[520px] mx-auto hidden md:block">
+        {/* 2. CENTER: GLOBAL SEARCH (MAX 500px) */}
+        <div className="flex-1 max-w-[500px] mx-auto hidden md:block">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5E6C84]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748B]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by chemical name, CAS, formula or category..."
-              className="w-full h-[42px] pl-9 pr-3 text-xs sm:text-[13px] bg-[#FAFBFC] hover:bg-white focus:bg-white border border-[#DFE1E6] rounded-lg focus:outline-none focus:border-[#0052CC] transition-all text-[#091E42] placeholder:text-[#5E6C84] font-medium shadow-2xs"
+              placeholder="Search chemical name, CAS, formula or category..."
+              className="w-full h-9 pl-9 pr-3 text-xs bg-[#FAFAFA] hover:bg-white focus:bg-white border border-[#E4E4E7] rounded-[6px] focus:outline-none focus:border-[#0052CC] focus:ring-1 focus:ring-[#0052CC] transition-colors text-[#0F172A] placeholder:text-[#94A3B8] font-normal shadow-xs"
             />
           </form>
         </div>
 
         {/* 3. RIGHT: ACTIONS, NOTIFICATIONS & USER WORKSPACE TRIGGER */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          {/* Request Quote Button (40px) */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* Request Quote Button */}
           <Link
             href={rfqHref}
-            className="hidden sm:inline-flex items-center gap-1.5 h-[40px] px-4 bg-[#0052CC] hover:bg-[#0747A6] text-white text-xs sm:text-[13px] font-bold rounded-lg transition-all shadow-2xs active:scale-[0.99]"
+            className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3.5 bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] text-white text-xs font-medium rounded-[6px] transition-colors shadow-xs active:scale-[0.99]"
           >
             <span>Request Quote</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
 
-          {/* Compact Notifications Bell (38px Square) */}
+          {/* Compact Notifications Bell */}
           {mounted && user && (
             <div className="flex items-center">
               <NotificationBell isSupplier={isSupplier} />
@@ -204,61 +204,61 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className={`h-[40px] px-2.5 rounded-lg border transition-all flex items-center gap-2.5 bg-white hover:bg-[#FAFBFC] shadow-2xs focus:outline-none w-[160px] sm:w-[170px] ${
-                  isUserMenuOpen ? "border-[#0052CC] ring-1 ring-[#0052CC]/20" : "border-[#DFE1E6]"
+                className={`h-9 px-2.5 rounded-[6px] border transition-colors flex items-center gap-2 bg-white hover:bg-[#FAFAFA] shadow-xs focus:outline-none w-[150px] sm:w-[165px] ${
+                  isUserMenuOpen ? "border-[#0052CC] ring-1 ring-[#0052CC]" : "border-[#E4E4E7]"
                 }`}
                 aria-expanded={isUserMenuOpen}
               >
-                {/* Avatar Initial (28px) */}
-                <div className="w-7 h-7 rounded-md bg-[#DEEBFF] text-[#0747A6] font-bold text-xs flex items-center justify-center font-mono shrink-0">
+                {/* Avatar Initial */}
+                <div className="w-6 h-6 rounded-[4px] bg-[#EFF6FF] text-[#0052CC] font-semibold text-xs flex items-center justify-center font-mono shrink-0">
                   {avatarLetter}
                 </div>
 
                 <div className="flex flex-col items-start text-left min-w-0 flex-1">
-                  <span className="text-xs font-bold text-[#091E42] leading-tight truncate w-full">
+                  <span className="text-xs font-semibold text-[#0F172A] leading-tight truncate w-full">
                     {userDisplayName}
                   </span>
-                  <span className="text-[9px] font-mono font-bold text-[#5E6C84] uppercase">
+                  <span className="text-[9px] font-mono text-[#64748B] uppercase">
                     {user.role}
                   </span>
                 </div>
 
-                <ChevronDown className={`w-3.5 h-3.5 text-[#5E6C84] shrink-0 transition-transform duration-150 ${isUserMenuOpen ? "rotate-180 text-[#0052CC]" : ""}`} />
+                <ChevronDown className={`w-3.5 h-3.5 text-[#64748B] shrink-0 transition-transform duration-150 ${isUserMenuOpen ? "rotate-180 text-[#0052CC]" : ""}`} />
               </button>
 
-              {/* Compact Professional User Dropdown (270px) */}
+              {/* Compact Professional User Dropdown */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-[270px] bg-white rounded-xl border border-[#DFE1E6] shadow-lg p-1.5 z-50 text-xs font-medium divide-y divide-[#DFE1E6] animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute right-0 mt-1.5 w-[260px] bg-white rounded-[8px] border border-[#E4E4E7] shadow-tactile-modal p-1.5 z-50 text-xs font-normal divide-y divide-[#E4E4E7] animate-in fade-in zoom-in-95 duration-100">
                   
                   {/* Compact Header (Height ~70px) */}
-                  <div className="p-2.5 bg-[#FAFBFC] rounded-lg mb-1 space-y-1.5">
+                  <div className="p-2.5 bg-[#FAFAFA] rounded-[6px] mb-1 space-y-1.5 border border-[#E4E4E7]">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-md bg-[#DEEBFF] text-[#0747A6] font-bold text-sm flex items-center justify-center font-mono shrink-0">
+                      <div className="w-8 h-8 rounded-[4px] bg-[#EFF6FF] text-[#0052CC] font-bold text-xs flex items-center justify-center font-mono shrink-0">
                         {avatarLetter}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs font-bold text-[#091E42] block truncate">
+                        <span className="text-xs font-semibold text-[#0F172A] block truncate">
                           {userDisplayName}
                         </span>
-                        <span className="text-[11px] text-[#5E6C84] block truncate">
+                        <span className="text-[11px] text-[#64748B] block truncate">
                           {user.email}
                         </span>
                       </div>
                     </div>
 
                     <div className="pt-0.5 flex items-center justify-between">
-                      <span className="text-[9px] font-mono font-bold text-[#0747A6] bg-[#DEEBFF] px-1.5 py-0.2 rounded uppercase">
+                      <span className="text-[9px] font-mono font-semibold text-[#0052CC] bg-[#EFF6FF] border border-[#BFDBFE] px-1.5 py-0.2 rounded-[4px] uppercase">
                         {user.role}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#006644] bg-[#E3FCEF] border border-[#ABF5D1] px-1.5 py-0.2 rounded">
-                        <ShieldCheck className="w-3 h-3 text-[#00875A]" /> Verified
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#059669] bg-[#ECFDF5] border border-[rgba(5,150,105,0.2)] px-1.5 py-0.2 rounded-[4px]">
+                        <ShieldCheck className="w-3 h-3 text-[#059669]" /> Verified
                       </span>
                     </div>
                   </div>
 
                   {/* Workspace Actions (Role-Tailored, 38px Items) */}
                   <div className="py-1 space-y-0.5">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-[#5E6C84] px-2.5 py-0.5 block">
+                    <span className="text-[9px] font-mono font-semibold uppercase tracking-wider text-[#64748B] px-2.5 py-0.5 block">
                       Workspace
                     </span>
 
@@ -475,7 +475,7 @@ export function Navbar() {
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[#DE350B] hover:bg-[#FFEBE6] rounded-lg transition-colors text-left font-semibold text-xs"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[#DC2626] hover:bg-[#FEF2F2] rounded-[6px] transition-colors text-left font-semibold text-xs cursor-pointer"
                     >
                       <LogOut className="w-3.5 h-3.5 shrink-0" />
                       <span>Sign Out</span>
@@ -488,13 +488,13 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="h-[38px] px-3.5 text-xs font-semibold text-[#091E42] hover:bg-[#F4F5F7] rounded-lg border border-[#DFE1E6] transition-all flex items-center justify-center shadow-2xs"
+                className="h-9 px-3.5 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px] border border-[#E4E4E7] transition-colors flex items-center justify-center shadow-xs"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="h-[38px] px-4 text-xs font-bold text-white bg-[#091E42] hover:bg-[#172B4D] rounded-lg transition-all flex items-center justify-center shadow-2xs"
+                className="h-9 px-3.5 text-xs font-medium text-white bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] rounded-[6px] transition-colors flex items-center justify-center shadow-xs active:scale-[0.99]"
               >
                 Register
               </Link>
@@ -506,7 +506,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="h-[38px] w-[38px] flex items-center justify-center rounded-lg border border-[#DFE1E6] bg-white text-[#091E42] hover:bg-[#FAFBFC]"
+              className="h-9 w-9 flex items-center justify-center rounded-[6px] border border-[#E4E4E7] bg-white text-[#0F172A] hover:bg-[#FAFAFA]"
               aria-label="Toggle mobile menu"
             >
               {isMobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
@@ -517,29 +517,29 @@ export function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {isMobileOpen && (
-        <div className="lg:hidden fixed inset-0 top-[66px] z-40 bg-black/50 backdrop-blur-xs flex justify-end">
-          <div className="bg-white w-[280px] h-[calc(100vh-66px)] p-5 overflow-y-auto space-y-5 shadow-2xl">
+        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-[#0F172A]/40 backdrop-blur-[2px] flex justify-end">
+          <div className="bg-white w-[280px] h-[calc(100vh-64px)] p-4 overflow-y-auto space-y-4 shadow-tactile-modal border-l border-[#E4E4E7]">
             {/* Search */}
             <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <Search className="w-3.5 h-3.5 text-[#5E6C84] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search chemicals, CAS, formula..."
-                className="w-full h-10 pl-8 pr-3 text-xs bg-[#FAFBFC] border border-[#DFE1E6] rounded-lg focus:outline-none focus:border-[#0052CC]"
+                className="w-full h-9 pl-8 pr-3 text-xs bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] focus:outline-none focus:border-[#0052CC] text-[#0F172A]"
               />
             </form>
 
-            <div className="space-y-1 border-b border-[#DFE1E6] pb-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] block mb-1.5">
+            <div className="space-y-0.5 border-b border-[#E4E4E7] pb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1 font-mono px-2">
                 Marketplace
               </span>
               {publicNavLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="block px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#091E42] hover:bg-[#F4F5F7]"
+                  className="block px-2.5 py-1.5 rounded-[6px] text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA]"
                   onClick={() => setIsMobileOpen(false)}
                 >
                   {link.name}
@@ -550,7 +550,7 @@ export function Navbar() {
             <div className="pt-1">
               <Link
                 href={rfqHref}
-                className="w-full h-10 bg-[#0052CC] text-white text-xs font-bold rounded-lg inline-flex items-center justify-center gap-1.5 shadow-xs"
+                className="w-full h-9 bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] text-white text-xs font-medium rounded-[6px] inline-flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.99]"
                 onClick={() => setIsMobileOpen(false)}
               >
                 <span>Request Quote</span>

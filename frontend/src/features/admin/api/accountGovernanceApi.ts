@@ -1,4 +1,4 @@
-import { resolveApiUrl } from "@/lib/apiUrl";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 export interface AccountSuspension {
   id: string;
@@ -65,17 +65,6 @@ export interface PageResponse<T> {
   number: number;
 }
 
-function getAuthHeaders(): HeadersInit {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("kemkendra_token") || localStorage.getItem("token")
-      : null;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
 export const accountGovernanceApi = {
   async getSuspensions(params?: {
     page?: number;
@@ -84,15 +73,15 @@ export const accountGovernanceApi = {
     activeOnly?: boolean;
     role?: string;
   }): Promise<PageResponse<AccountSuspension>> {
-    const url = new URL(resolveApiUrl("/api/v1/admin/account-governance/suspensions"), window.location.origin);
-    if (params?.page !== undefined) url.searchParams.set("page", params.page.toString());
-    if (params?.size !== undefined) url.searchParams.set("size", params.size.toString());
-    if (params?.query) url.searchParams.set("query", params.query);
-    if (params?.activeOnly !== undefined) url.searchParams.set("activeOnly", params.activeOnly.toString());
-    if (params?.role) url.searchParams.set("role", params.role);
+    const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set("page", params.page.toString());
+    if (params?.size !== undefined) searchParams.set("size", params.size.toString());
+    if (params?.query) searchParams.set("query", params.query);
+    if (params?.activeOnly !== undefined) searchParams.set("activeOnly", params.activeOnly.toString());
+    if (params?.role) searchParams.set("role", params.role);
+    const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
-    const res = await fetch(url.toString(), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/suspensions${qs}`, {
       cache: "no-store",
     });
     if (!res.ok) {
@@ -103,8 +92,7 @@ export const accountGovernanceApi = {
   },
 
   async getSuspensionDetail(id: string): Promise<AccountSuspension> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/suspensions/${id}`), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/suspensions/${id}`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch suspension details");
@@ -112,8 +100,7 @@ export const accountGovernanceApi = {
   },
 
   async getUserGovernanceDetail(userId: string): Promise<AdminGovernanceUserDetail> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/users/${userId}/detail`), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/users/${userId}/detail`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch user governance detail");
@@ -124,9 +111,8 @@ export const accountGovernanceApi = {
     userId: string,
     data: { reason: string; internalNotes?: string }
   ): Promise<AccountSuspension> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/users/${userId}/suspend`), {
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/users/${userId}/suspend`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -140,9 +126,8 @@ export const accountGovernanceApi = {
     userId: string,
     data?: { notes?: string }
   ): Promise<AccountSuspension> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/users/${userId}/reinstate`), {
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/users/${userId}/reinstate`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(data || {}),
     });
     if (!res.ok) {
@@ -158,14 +143,14 @@ export const accountGovernanceApi = {
     status?: string;
     query?: string;
   }): Promise<PageResponse<AdminAppeal>> {
-    const url = new URL(resolveApiUrl("/api/v1/admin/account-governance/appeals"), window.location.origin);
-    if (params?.page !== undefined) url.searchParams.set("page", params.page.toString());
-    if (params?.size !== undefined) url.searchParams.set("size", params.size.toString());
-    if (params?.status) url.searchParams.set("status", params.status);
-    if (params?.query) url.searchParams.set("query", params.query);
+    const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set("page", params.page.toString());
+    if (params?.size !== undefined) searchParams.set("size", params.size.toString());
+    if (params?.status) searchParams.set("status", params.status);
+    if (params?.query) searchParams.set("query", params.query);
+    const qs = searchParams.toString() ? `?${searchParams.toString()}` : "";
 
-    const res = await fetch(url.toString(), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/appeals${qs}`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch appeals queue");
@@ -173,8 +158,7 @@ export const accountGovernanceApi = {
   },
 
   async getAppealDetail(appealId: string): Promise<AdminAppeal> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/appeals/${appealId}`), {
-      headers: getAuthHeaders(),
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/appeals/${appealId}`, {
       cache: "no-store",
     });
     if (!res.ok) throw new Error("Failed to fetch appeal details");
@@ -182,9 +166,8 @@ export const accountGovernanceApi = {
   },
 
   async startReview(appealId: string, data?: { internalNotes?: string }): Promise<AdminAppeal> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/appeals/${appealId}/review`), {
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/appeals/${appealId}/review`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(data || {}),
     });
     if (!res.ok) {
@@ -198,9 +181,8 @@ export const accountGovernanceApi = {
     appealId: string,
     data: { message: string; internalNotes?: string }
   ): Promise<AdminAppeal> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/appeals/${appealId}/request-information`), {
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/appeals/${appealId}/request-information`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -214,9 +196,8 @@ export const accountGovernanceApi = {
     appealId: string,
     data?: { reason?: string; internalNotes?: string }
   ): Promise<AdminAppeal> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/appeals/${appealId}/approve`), {
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/appeals/${appealId}/approve`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(data || {}),
     });
     if (!res.ok) {
@@ -230,9 +211,8 @@ export const accountGovernanceApi = {
     appealId: string,
     data?: { reason?: string; internalNotes?: string }
   ): Promise<AdminAppeal> {
-    const res = await fetch(resolveApiUrl(`/api/v1/admin/account-governance/appeals/${appealId}/reject`), {
+    const res = await authenticatedFetch(`/api/v1/admin/account-governance/appeals/${appealId}/reject`, {
       method: "POST",
-      headers: getAuthHeaders(),
       body: JSON.stringify(data || {}),
     });
     if (!res.ok) {

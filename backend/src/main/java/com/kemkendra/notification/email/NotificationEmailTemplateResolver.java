@@ -86,112 +86,67 @@ public class NotificationEmailTemplateResolver {
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
-                    <meta charset="UTF-8">
+                    <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
                     <title>%s</title>
-                    <style>
-                        body {
-                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-                            background-color: #f4f6f8;
-                            margin: 0;
-                            padding: 0;
-                            -webkit-font-smoothing: antialiased;
-                        }
-                        .wrapper {
-                            max-width: 600px;
-                            margin: 30px auto;
-                            background: #ffffff;
-                            border-radius: 8px;
-                            overflow: hidden;
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                            border: 1px solid #e2e8f0;
-                        }
-                        .header {
-                            background-color: #0f172a;
-                            padding: 24px 32px;
-                            text-align: left;
-                        }
-                        .brand {
-                            font-size: 20px;
-                            font-weight: 700;
-                            color: #ffffff;
-                            letter-spacing: 0.5px;
-                            text-decoration: none;
-                        }
-                        .brand-sub {
-                            font-size: 11px;
-                            color: #94a3b8;
-                            text-transform: uppercase;
-                            letter-spacing: 1px;
-                            display: block;
-                            margin-top: 2px;
-                        }
-                        .content {
-                            padding: 32px;
-                            color: #1e293b;
-                        }
-                        .title {
-                            font-size: 18px;
-                            font-weight: 600;
-                            color: #0f172a;
-                            margin: 0 0 16px 0;
-                        }
-                        .message-box {
-                            background-color: #f8fafc;
-                            border-left: 4px solid #2563eb;
-                            padding: 16px 20px;
-                            border-radius: 4px;
-                            margin-bottom: 24px;
-                            color: #334155;
-                            font-size: 15px;
-                            line-height: 1.6;
-                        }
-                        .cta-container {
-                            margin: 28px 0 12px 0;
-                        }
-                        .cta-button {
-                            display: inline-block;
-                            background-color: #2563eb;
-                            color: #ffffff !important;
-                            font-size: 14px;
-                            font-weight: 600;
-                            text-decoration: none;
-                            padding: 12px 28px;
-                            border-radius: 6px;
-                        }
-                        .footer {
-                            background-color: #f8fafc;
-                            padding: 20px 32px;
-                            border-top: 1px solid #e2e8f0;
-                            color: #64748b;
-                            font-size: 12px;
-                            line-height: 1.5;
-                            text-align: center;
-                        }
-                    </style>
                 </head>
-                <body>
-                    <div class="wrapper">
-                        <div class="header">
-                            <span class="brand">KEMKENDRA</span>
-                            <span class="brand-sub">B2B Chemical & Raw Materials Marketplace</span>
-                        </div>
-                        <div class="content">
-                            <h2 class="title">%s</h2>
-                            <div class="message-box">
-                                %s
-                            </div>
-                            <div class="cta-container">
-                                <a href="%s" class="cta-button">%s</a>
-                            </div>
-                        </div>
-                        <div class="footer">
-                            <p style="margin: 0 0 4px 0;">This is an automated notification from KemKendra Chemical Marketplace.</p>
-                            <p style="margin: 0;">Please log in to your account dashboard to manage orders and communications.</p>
-                        </div>
-                    </div>
+                <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
+                    <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 48px 16px;">
+                        <tr>
+                            <td align="center">
+                                <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="max-width: 540px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); overflow: hidden;">
+                                    <!-- Minimal Header -->
+                                    <tr>
+                                        <td style="padding: 32px 40px 24px 40px; border-bottom: 1px solid #f1f5f9;">
+                                            <table width="100%%" border="0" cellspacing="0" cellpadding="0">
+                                                <tr>
+                                                    <td>
+                                                        <span style="font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">KEMKENDRA</span>
+                                                        <span style="display: inline-block; margin-left: 8px; font-size: 13px; color: #94a3b8; font-weight: 400;">&bull;&nbsp; Commercial Portal</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <!-- Editorial Content -->
+                                    <tr>
+                                        <td style="padding: 36px 40px 32px 40px;">
+                                            <h1 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: #0f172a; letter-spacing: -0.2px; line-height: 28px;">
+                                                %s
+                                            </h1>
+                                            <p style="margin: 0 0 28px 0; font-size: 15px; line-height: 24px; color: #334155;">
+                                                %s
+                                            </p>
+                                            <!-- Action Button -->
+                                            <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 0 28px 0;">
+                                                <tr>
+                                                    <td align="center" style="border-radius: 6px; background-color: #0f172a;">
+                                                        <a href="%s" target="_blank" style="display: inline-block; padding: 12px 24px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px; background-color: #0f172a;">
+                                                            %s
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                    <!-- Understated Footer -->
+                                    <tr>
+                                        <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #f1f5f9;">
+                                            <p style="margin: 0 0 4px 0; font-size: 12px; line-height: 18px; color: #64748b;">
+                                                This is an operational transaction message regarding your KemKendra marketplace account.
+                                            </p>
+                                            <p style="margin: 0; font-size: 12px; line-height: 18px; color: #94a3b8;">
+                                                &copy; %d KemKendra Inc. Enterprise B2B Chemical Commerce.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
                 </body>
                 </html>
-                """.formatted(safeTitle, safeTitle, safeMessage, ctaUrl, ctaText);
+                """.formatted(safeTitle, safeTitle, safeMessage, ctaUrl, ctaText, java.time.Year.now().getValue());
     }
 }

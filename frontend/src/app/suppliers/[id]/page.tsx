@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { getSupplierPublicProfile, getSupplierProducts } from "@/features/suppliers/api";
 import { SupplierProductCatalog } from "@/features/suppliers/components/SupplierProductCatalog";
 import { Badge, Button, Card, PageHeader } from "@/shared/components/ui/KemkendraUI";
+import { serializeJsonLd } from "@/shared/utils/security";
 
 export const dynamic = "force-dynamic";
 
@@ -95,7 +96,7 @@ export default async function SupplierProfilePage(props: {
       {/* Inject Supplier Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(supplierJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(supplierJsonLd) }}
       />
       <Navbar />
 

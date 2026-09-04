@@ -81,10 +81,6 @@ public class FileSecurityValidator {
             throw new IllegalArgumentException("Filename cannot be empty");
         }
 
-        if (rawFilename.endsWith(".FAIL_STORAGE")) {
-            return new ValidatedFileInfo(rawFilename, ".FAIL_STORAGE", "application/pdf", file.getSize(), "mock-sha256-checksum");
-        }
-
         // 1. Filename Sanitization and Extension Validation
         String normalizedName = sanitizeFilename(rawFilename);
         String extension = getFileExtension(normalizedName).toLowerCase(Locale.ROOT);

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Search, ChevronRight } from "lucide-react";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 
 interface SearchResult {
   entityType: string;
@@ -27,10 +28,7 @@ export default function UnifiedAdminSearchPage() {
     setLoading(true);
     setSearched(true);
     try {
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(`/api/v1/admin/operations/search?query=${encodeURIComponent(query)}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await authenticatedFetch(`/api/v1/admin/operations/search?query=${encodeURIComponent(query)}`);
       if (res.ok) {
         const data = await res.json();
         setResults(data.content || []);

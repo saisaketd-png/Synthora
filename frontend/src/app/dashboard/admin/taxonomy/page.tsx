@@ -17,7 +17,8 @@ import {
   Power,
   Info,
 } from "lucide-react";
-import { resolveApiUrl } from "@/lib/apiUrl";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 
 interface CatalogTaxonomy {
   id: string;
@@ -59,12 +60,7 @@ export default function AdminTaxonomyPage() {
   const fetchTaxonomies = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl("/api/v1/admin/taxonomy"), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await authenticatedFetch("/api/v1/admin/taxonomy");
 
       if (!res.ok) throw new Error("Failed to load catalog taxonomies");
       const data = await res.json();
@@ -88,13 +84,8 @@ export default function AdminTaxonomyPage() {
 
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl("/api/v1/admin/taxonomy"), {
+      const res = await authenticatedFetch("/api/v1/admin/taxonomy", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           type: formType,
           name: formName,
@@ -125,13 +116,8 @@ export default function AdminTaxonomyPage() {
 
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl(`/api/v1/admin/taxonomy/${editingItem.id}`), {
+      const res = await authenticatedFetch(`/api/v1/admin/taxonomy/${editingItem.id}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           name: formName,
           description: formDescription,
@@ -154,13 +140,9 @@ export default function AdminTaxonomyPage() {
   const handleToggleActive = async (item: CatalogTaxonomy) => {
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
       const endpoint = item.active ? "deactivate" : "activate";
-      const res = await fetch(resolveApiUrl(`/api/v1/admin/taxonomy/${item.id}/${endpoint}`), {
+      const res = await authenticatedFetch(`/api/v1/admin/taxonomy/${item.id}/${endpoint}`, {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (!res.ok) throw new Error(`Failed to ${endpoint} taxonomy item`);
@@ -228,85 +210,61 @@ export default function AdminTaxonomyPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">Catalog Taxonomy & Metadata</h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Taxonomy Master
-            </span>
-          </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage chemical categories, pharmacopoeia grades, packaging specifications, and units with safe reference deactivation.
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            Catalog Taxonomy
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Classification Standards
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Controlled chemical classifications, pharmacopoeial grades, packaging configurations, and measurement units.
           </p>
         </div>
+
         <div className="flex items-center gap-2">
           <button
             onClick={fetchTaxonomies}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+            className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+            <span>Refresh</span>
           </button>
           <button
             onClick={() => {
               resetForm();
               setShowCreateModal(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+            className="h-8 px-3.5 text-xs font-medium text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Add Taxonomy Item
+            <span>Add Item</span>
           </button>
         </div>
       </div>
 
-      {/* Safety Notice Banner */}
-      <div className="p-4 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-start gap-3 text-xs text-blue-900">
-        <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+      {/* Governance Notice Banner */}
+      <div className="p-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-[8px] flex items-center gap-2.5 text-xs text-[#1E40AF]">
+        <Info className="w-4 h-4 text-[#0052CC] shrink-0" />
         <div>
-          <strong className="block text-sm">Non-Destructive Soft-Deactivation Standard</strong>
-          <span>
-            Deactivating a taxonomy item hides it from new catalog and RFQ dropdowns while safely preserving existing products, historical transactions, and audit records.
-          </span>
+          <strong className="font-semibold text-[#0F172A] mr-1.5">Non-Destructive Soft Deactivation:</strong>
+          <span>Deactivated taxonomy standards are omitted from new catalog/RFQ forms while historical transactions and audit trails remain preserved.</span>
         </div>
       </div>
 
-      {/* Status Notice */}
-      {statusMessage && (
-        <div
-          className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
-            statusMessage.type === "success"
-              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-              : "bg-red-50 border-red-200 text-red-800"
-          }`}
-        >
-          <div className="flex items-center gap-2 text-sm font-medium">
-            {statusMessage.type === "success" ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-            ) : (
-              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            )}
-            <span>{statusMessage.text}</span>
-          </div>
-          <button onClick={() => setStatusMessage(null)} className="text-xs opacity-70 hover:opacity-100 font-semibold">
-            Dismiss
-          </button>
-        </div>
-      )}
-
-      {/* Filters & Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto">
+      {/* Filters & Search Toolbar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3 rounded-[8px] border border-[#E4E4E7] shadow-tactile-card">
+        <div className="flex items-center p-0.5 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] w-fit overflow-x-auto max-w-full">
           <button
             onClick={() => setSelectedType("ALL")}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            className={`flex items-center h-7 px-3 text-xs font-medium rounded-[4px] whitespace-nowrap transition-colors cursor-pointer ${
               selectedType === "ALL"
-                ? "bg-gray-900 text-white shadow-sm"
-                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                ? "bg-[#0052CC] text-white shadow-xs"
+                : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
             }`}
           >
             All Types
@@ -315,10 +273,10 @@ export default function AdminTaxonomyPage() {
             <button
               key={t}
               onClick={() => setSelectedType(t)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`flex items-center h-7 px-3 text-xs font-medium rounded-[4px] whitespace-nowrap transition-colors cursor-pointer ${
                 selectedType === t
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-[#0052CC] text-white shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
               }`}
             >
               {t}
@@ -326,116 +284,114 @@ export default function AdminTaxonomyPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 cursor-pointer whitespace-nowrap">
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <label className="flex items-center gap-1.5 text-xs font-medium text-[#475569] cursor-pointer whitespace-nowrap">
             <input
               type="checkbox"
               checked={activeOnly}
               onChange={(e) => setActiveOnly(e.target.checked)}
-              className="rounded text-blue-600 focus:ring-blue-500"
+              className="rounded-[4px] text-[#0052CC] focus:ring-[#0052CC]"
             />
             <span>Active Only</span>
           </label>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <div className="relative w-full sm:w-60">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
             <input
               type="text"
-              placeholder="Search taxonomy code / name..."
+              placeholder="Search code or name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-7 pr-2.5 py-1 text-xs bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
             />
           </div>
         </div>
       </div>
 
-      {/* Taxonomies Grid */}
-      {loading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-36 bg-gray-100 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : filteredGroups.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-xl border border-gray-200">
-          <Layers className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-          <h3 className="text-base font-medium text-gray-900">No taxonomy items matched your filters</h3>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {filteredGroups.map((group) => (
-            <div key={group.type} className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                {getTypeIcon(group.type)}
-                <h2 className="text-sm font-bold uppercase tracking-wider text-gray-700">
-                  {group.type} TAXONOMY
-                </h2>
-                <span className="text-xs font-medium text-gray-400">({group.items.length})</span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {group.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`bg-white p-5 rounded-xl border transition-all flex flex-col justify-between ${
-                      item.active
-                        ? "border-gray-200 shadow-sm hover:border-blue-300"
-                        : "border-gray-200 bg-gray-50/80 opacity-75"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="font-mono text-xs font-bold px-2 py-0.5 bg-gray-100 text-gray-800 rounded border border-gray-200">
-                          {item.code}
+      {/* Taxonomies Table */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] overflow-hidden shadow-tactile-card">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-[#E4E4E7] text-[#475569] font-mono font-semibold uppercase text-[10px] tracking-wider">
+              <tr>
+                <th className="px-4 py-2.5">Type</th>
+                <th className="px-4 py-2.5">Code</th>
+                <th className="px-4 py-2.5">Classification Name</th>
+                <th className="px-4 py-2.5">Description</th>
+                <th className="px-4 py-2.5">Order</th>
+                <th className="px-4 py-2.5">State</th>
+                <th className="px-4 py-2.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E4E4E7] text-[#0F172A]">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-[#64748B]">Loading taxonomy standards...</td>
+                </tr>
+              ) : filteredGroups.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-[#64748B]">No taxonomy items matched your filters.</td>
+                </tr>
+              ) : (
+                filteredGroups.flatMap((group) =>
+                  group.items.map((item) => (
+                    <tr key={item.id} className="hover:bg-[#F8FAFC] transition-colors">
+                      <td className="px-4 py-3">
+                        <span className="text-[11px] font-mono text-[#64748B]">
+                          {item.type}
                         </span>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                            item.active
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-gray-200 text-gray-600"
-                          }`}
-                        >
-                          {item.active ? "ACTIVE" : "INACTIVE"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#0F172A]">
+                        {item.code}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-xs text-[#0F172A]">
+                        {item.name}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-[#475569] max-w-xs truncate">
+                        {item.description || <span className="text-[#94A3B8]">—</span>}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#64748B]">
+                        {item.displayOrder}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1.5 text-xs">
+                          <span className={`w-1.5 h-1.5 rounded-full ${item.active ? "bg-[#059669]" : "bg-[#94A3B8]"}`} />
+                          <span className={`font-medium ${item.active ? "text-[#059669]" : "text-[#64748B]"}`}>
+                            {item.active ? "Active" : "Deactivated"}
+                          </span>
                         </span>
-                      </div>
-
-                      <h3 className="font-bold text-gray-900 text-sm mt-2">{item.name}</h3>
-                      {item.description && (
-                        <p className="text-xs text-gray-500 mt-1 leading-relaxed">{item.description}</p>
-                      )}
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                      <span className="text-[11px] text-gray-400">Order: {item.displayOrder}</span>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => openEditModal(item)}
-                          disabled={actionLoading}
-                          className="px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleToggleActive(item)}
-                          disabled={actionLoading}
-                          className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors ${
-                            item.active
-                              ? "text-amber-700 hover:bg-amber-50"
-                              : "text-emerald-700 hover:bg-emerald-50"
-                          }`}
-                        >
-                          {item.active ? "Deactivate" : "Activate"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => openEditModal(item)}
+                            className="h-7 px-2 bg-white hover:bg-[#FAFAFA] text-[#0F172A] border border-[#E4E4E7] rounded-[4px] text-xs font-medium transition-colors shadow-xs cursor-pointer flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3 text-[#64748B]" />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            onClick={() => handleToggleActive(item)}
+                            disabled={actionLoading}
+                            className={`h-7 px-2 border rounded-[4px] text-xs font-medium transition-colors shadow-xs cursor-pointer flex items-center gap-1 ${
+                              item.active
+                                ? "bg-white hover:bg-[#FEF2F2] text-[#DC2626] border-[rgba(220,38,38,0.3)]"
+                                : "bg-white hover:bg-[#ECFDF5] text-[#059669] border-[rgba(5,150,105,0.3)]"
+                            }`}
+                          >
+                            <Power className="w-3 h-3" />
+                            <span>{item.active ? "Deactivate" : "Activate"}</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       {/* Create / Edit Modal */}
       {(showCreateModal || editingItem) && (

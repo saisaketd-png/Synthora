@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, Suspense, FormEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { verifyEmail, resendVerification } from "@/features/auth/api/auth";
+import { verifyEmail, resendVerification, setAuthToken } from "@/features/auth/api/auth";
 import { KemKendraLogo } from "@/shared/components/KemkendraLogo";
 import { CheckCircle2, AlertTriangle, Mail, ArrowRight, RefreshCw } from "lucide-react";
 
 function VerifyEmailContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const emailParam = searchParams.get("email");
@@ -15,6 +16,8 @@ function VerifyEmailContent() {
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
+  const [redirectMessage, setRedirectMessage] = useState<string>("Redirecting to your workspace...");
 
   // Manual token input state
   const [manualToken, setManualToken] = useState("");
@@ -50,8 +53,47 @@ function VerifyEmailContent() {
     setVerifying(true);
     setErrorMessage(null);
     try {
-      await verifyEmail({ token: cleanToken });
+      const res = await verifyEmail({ token: cleanToken });
       setVerified(true);
+
+      // Hydrate session if JWT token returned
+      if (res.token) {
+        setAuthToken(res.token);
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("auth-changed"));
+        }
+
+        const role = res.role?.toUpperCase();
+        if (role === "SUPPLIER") {
+          // Check verification status
+          const status = res.verificationStatus?.toUpperCase() || "DRAFT";
+          if (status === "DRAFT") {
+            setRedirectMessage("Email verified! Preparing your supplier onboarding workspace...");
+            setRedirectTarget("/dashboard/supplier/onboarding");
+          } else {
+            setRedirectMessage("Email verified! Redirecting to supplier operations desk...");
+            setRedirectTarget("/dashboard/supplier");
+          }
+        } else if (role === "ADMIN") {
+          setRedirectMessage("Email verified! Redirecting to administration console...");
+          setRedirectTarget("/dashboard/admin");
+        } else {
+          setRedirectMessage("Email verified! Redirecting to marketplace...");
+          setRedirectTarget("/products");
+        }
+
+        // Automatic redirect after a brief confirmation moment
+        setTimeout(() => {
+          if (role === "SUPPLIER") {
+            const status = res.verificationStatus?.toUpperCase() || "DRAFT";
+            router.replace(status === "DRAFT" ? "/dashboard/supplier/onboarding" : "/dashboard/supplier");
+          } else if (role === "ADMIN") {
+            router.replace("/dashboard/admin");
+          } else {
+            router.replace("/products");
+          }
+        }, 1200);
+      }
     } catch (err: unknown) {
       setErrorMessage(
         err instanceof Error
@@ -125,16 +167,26 @@ function VerifyEmailContent() {
                 Email Verified!
               </h1>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Your email address has been verified. Your account is activated and ready for use on the KemKendra marketplace.
+                {redirectMessage}
               </p>
             </div>
-            <Link
-              href="/login"
-              className="w-full rounded-lg bg-[#0A192F] hover:bg-slate-800 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2"
-            >
-              Sign In to Your Account
-              <ArrowRight className="w-4 h-4 text-teal-400" />
-            </Link>
+            {redirectTarget ? (
+              <Link
+                href={redirectTarget}
+                className="w-full rounded-lg bg-teal-600 hover:bg-teal-700 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                <span>Continue Now</span>
+                <ArrowRight className="w-4 h-4 text-white" />
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="w-full rounded-lg bg-[#0A192F] hover:bg-slate-800 px-4 py-3 text-xs font-bold uppercase tracking-widest text-white transition-all shadow-md flex items-center justify-center gap-2"
+              >
+                Sign In to Your Account
+                <ArrowRight className="w-4 h-4 text-teal-400" />
+              </Link>
+            )}
           </div>
         )}
 

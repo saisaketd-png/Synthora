@@ -43,6 +43,7 @@ import java.time.Instant;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -505,5 +506,70 @@ public class SupplierOnboardingAndVerificationSecurityTest {
         // Supplier B attempting to access Admin verification workspace for Supplier A must fail with AccessDeniedException
         assertThrows(org.springframework.security.access.AccessDeniedException.class, () ->
                 adminSupplierVerificationController.getVerificationDetails(supplierA.getId()));
+    }
+
+    @Test
+    void test14_OfficialBusinessEmailIsDerivedFromAuthenticatedUserAndCannotBeTampered() {
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(supplierAuthA);
+
+        // 1. Initial profile fetch: businessEmail must equal supplierUserA's email
+        ResponseEntity<SupplierProfileResponse> initialProfileRes = supplierProfileController.getMyProfile(supplierAuthA);
+        assertEquals(HttpStatus.OK, initialProfileRes.getStatusCode());
+        SupplierProfileResponse initialProfile = initialProfileRes.getBody();
+        assertNotNull(initialProfile);
+        assertEquals(supplierUserA.getEmail(), initialProfile.businessEmail(),
+                "Initial profile must derive official business email directly from the authenticated user's registration email");
+        assertFalse(initialProfile.emailVerified(), "Email must not be verified initially if user has not verified it");
+
+        // 2. Attempt malicious update: attacker tries to replace businessEmail with attacker@fraud.com
+        UpdateSupplierProfileRequest tamperedReq = new UpdateSupplierProfileRequest(
+                "Apex Fine Chemicals",
+                "Apex Fine Chemicals Private Limited",
+                "Apex Chem",
+                "MANUFACTURER",
+                "Plot No 42, MIDC Industrial Area Phase II",
+                "Maharashtra",
+                "Mumbai",
+                "400001",
+                "IN",
+                "India",
+                "attacker@fraud.com", // Attempted email replacement
+                "+91 98765 43210",
+                "Dr. Rajesh Kumar",
+                "Managing Director",
+                "https://apexchem.example.com",
+                "27AABCA1234F1Z5",
+                "U24110MH2012PTC234567",
+                "Producer of high purity pharmaceutical intermediates",
+                "USA, Germany, Japan",
+                "APIs, Intermediates",
+                15,
+                true
+        );
+
+        ResponseEntity<SupplierProfileResponse> updateRes = supplierProfileController.updateMyProfile(tamperedReq, supplierAuthA);
+        assertEquals(HttpStatus.OK, updateRes.getStatusCode());
+        SupplierProfileResponse updatedProfile = updateRes.getBody();
+        assertNotNull(updatedProfile);
+
+        // Assert response strictly retains authoritative user email
+        assertEquals(supplierUserA.getEmail(), updatedProfile.businessEmail(),
+                "Backend must ignore/reject attempted business email replacement and retain authoritative user registration email");
+        assertNotEquals("attacker@fraud.com", updatedProfile.businessEmail());
+
+        // 3. Verify in DB directly
+        Supplier reloadedSupplier = supplierRepository.findById(supplierA.getId()).orElseThrow();
+        assertEquals(supplierUserA.getEmail(), reloadedSupplier.getBusinessEmail(),
+                "Database record must maintain authoritative user email and reject tampering");
+
+        // 4. Verification flow synchronization
+        supplierProfileController.verifyEmail(supplierAuthA);
+        ResponseEntity<SupplierProfileResponse> verifiedProfileRes = supplierProfileController.getMyProfile(supplierAuthA);
+        assertTrue(verifiedProfileRes.getBody().emailVerified(), "After verification, emailVerified must be true");
+        assertEquals(supplierUserA.getEmail(), verifiedProfileRes.getBody().businessEmail());
+
+        // 5. Verification status endpoint check
+        ResponseEntity<Map<String, Object>> statusRes = supplierProfileController.getVerificationStatus(supplierAuthA);
+        assertEquals(Boolean.TRUE, statusRes.getBody().get("emailVerified"));
     }
 }

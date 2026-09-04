@@ -362,23 +362,23 @@ export default function SupplierRfqDetailPage() {
       {/* ========================================================================= */}
       {/* 2. RFQ HEADER (Full-Width Top Strip)                                      */}
       {/* ========================================================================= */}
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-6 shadow-2xs">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="font-mono text-xs font-bold text-[#0052CC] tracking-wide">
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-5 sm:p-6 shadow-tactile-card">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-xs font-semibold text-[#0052CC] tracking-wide">
                 {rfqShortId}
               </span>
-              <span className="text-[#E2E8F0]">•</span>
+              <span className="text-[#E4E4E7]">•</span>
               <span
-                className={`text-[11px] font-bold px-2.5 py-0.5 rounded border uppercase font-mono ${
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-[4px] border uppercase font-mono ${
                   isAccepted
-                    ? "bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]"
+                    ? "bg-[#ECFDF5] text-[#059669] border-[rgba(5,150,105,0.2)]"
                     : isCounterOffer
-                    ? "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
+                    ? "bg-[#FFFBEB] text-[#D97706] border-[rgba(217,119,6,0.2)]"
                     : isQuoted
-                    ? "bg-[#DEEBFF] text-[#0747A6] border-[#B3D4FF]"
-                    : "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
+                    ? "bg-[#EFF6FF] text-[#0052CC] border-[#BFDBFE]"
+                    : "bg-[#FFFBEB] text-[#D97706] border-[rgba(217,119,6,0.2)]"
                 }`}
               >
                 {isCounterOffer && !isAccepted
@@ -391,32 +391,32 @@ export default function SupplierRfqDetailPage() {
               </span>
             </div>
 
-            <div className="flex items-baseline gap-3 flex-wrap pt-0.5">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0B1B33] tracking-tight">
+            <div className="flex items-baseline gap-2.5 flex-wrap pt-0.5">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
                 {product?.name || "Specialty Chemical Raw Material"}
               </h1>
               {product?.casNumber && (
-                <span className="font-mono text-xs text-[#526581] bg-[#FAFBFC] px-2 py-0.5 rounded border border-[#E2E8F0]">
+                <span className="font-mono text-[11px] text-[#64748B] bg-[#FAFAFA] px-2 py-0.5 rounded-[4px] border border-[#E4E4E7]">
                   CAS {product.casNumber}
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-[#526581]">
-              Buyer Organization: <strong className="text-[#0B1B33]">{rfq.buyerName || "Verified Enterprise Buyer"}</strong> • Sourcing Category: <span className="font-medium text-[#0B1B33]">{product?.category || "Chemical Consignment"}</span>
+            <p className="text-xs text-[#64748B]">
+              Buyer Organization: <strong className="text-[#0F172A]">{rfq.buyerName || "Verified Enterprise Buyer"}</strong> • Sourcing Category: <span className="font-medium text-[#0F172A]">{product?.category || "Chemical Consignment"}</span>
             </p>
           </div>
 
           {/* Header Quick Action: Scroll to Negotiation History */}
-          <div className="flex items-center gap-3 shrink-0 self-start lg:self-center">
+          <div className="flex items-center gap-2.5 shrink-0 self-start lg:self-center">
             {quotations.length > 0 && (
               <button
                 type="button"
                 onClick={scrollToHistory}
-                className="h-10 px-4 border border-[#E2E8F0] hover:bg-[#FAFBFC] text-[#0B1B33] text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer group"
+                className="h-8 px-3 border border-[#E4E4E7] hover:bg-[#FAFAFA] text-[#0F172A] text-xs font-medium rounded-[6px] transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                 title="Scroll down to complete negotiation history"
               >
-                <History className="w-3.5 h-3.5 text-[#526581] group-hover:text-[#0052CC] transition-colors" />
+                <History className="w-3.5 h-3.5 text-[#64748B]" />
                 <span>Negotiation History ({quotations.length}) ↓</span>
               </button>
             )}
@@ -424,39 +424,39 @@ export default function SupplierRfqDetailPage() {
         </div>
 
         {/* Structured Context Metadata Bar */}
-        <div className="mt-5 pt-4 border-t border-[#E2E8F0] grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div className="mt-4 pt-3.5 border-t border-[#E4E4E7] grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
               Requested Volume
             </span>
-            <span className="text-sm font-bold text-[#0B1B33] block mt-0.5">
+            <span className="text-xs sm:text-sm font-bold text-[#0F172A] block mt-0.5 font-mono">
               {formatQty(rfq.quantity, rfq.unit)}
             </span>
           </div>
 
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
               Current Terms
             </span>
-            <span className="text-sm font-bold text-[#0B1B33] block mt-0.5">
+            <span className="text-xs sm:text-sm font-bold text-[#0F172A] block mt-0.5 font-mono">
               {latestQuotation ? `${formatMoney(latestQuotation.unitPrice, latestQuotation.currency)} / ${rfq.unit.toUpperCase()}` : "Not Quoted Yet"}
             </span>
           </div>
 
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
               Inquiry Received
             </span>
-            <span className="text-xs text-[#0B1B33] block mt-0.5">
+            <span className="text-xs text-[#0F172A] block mt-0.5 font-mono">
               {formatDate(rfq.createdAt)}
             </span>
           </div>
 
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
               Response Target
             </span>
-            <span className="text-xs font-medium text-[#006644] block mt-0.5">
+            <span className="text-xs font-medium text-[#059669] block mt-0.5">
               Within 24 Hours
             </span>
           </div>
@@ -474,59 +474,59 @@ export default function SupplierRfqDetailPage() {
       {/* ========================================================================= */}
       {/* 3. TWO-COLUMN WORKSPACE (Main Left 7 Cols / Buyer Context Right 5 Cols)   */}
       {/* ========================================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* ======================================================================= */}
         {/* LEFT COLUMN: Main RFQ & Commercial Workspace (7 Cols)                  */}
         {/* ======================================================================= */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="lg:col-span-7 space-y-5">
           
           {/* Supplier Turn Ownership Banner */}
           <div
-            className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+            className={`p-3.5 rounded-[8px] border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-xs ${
               supplierTurnIndicator.variant === "warning"
-                ? "bg-amber-50 border-amber-200 text-amber-900"
+                ? "bg-[#FFFBEB] border-[rgba(217,119,6,0.2)] text-[#92400E]"
                 : supplierTurnIndicator.variant === "success"
-                ? "bg-[#E3FCEF] border-[#ABF5D1] text-[#006644]"
+                ? "bg-[#ECFDF5] border-[rgba(5,150,105,0.2)] text-[#065F46]"
                 : supplierTurnIndicator.variant === "danger"
-                ? "bg-rose-50 border-rose-200 text-rose-800"
+                ? "bg-[#FEF2F2] border-[rgba(220,38,38,0.2)] text-[#991B1B]"
                 : supplierTurnIndicator.variant === "brand"
-                ? "bg-[#DEEBFF] border-[#B3D4FF] text-[#0747A6]"
-                : "bg-[#FAFBFC] border-[#DFE1E6] text-[#5E6C84]"
+                ? "bg-[#EFF6FF] border-[#BFDBFE] text-[#1E40AF]"
+                : "bg-[#FAFAFA] border-[#E4E4E7] text-[#64748B]"
             }`}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <span
-                className={`text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                className={`text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-[4px] ${
                   supplierTurnIndicator.variant === "warning"
-                    ? "bg-amber-200/60 text-amber-900 font-extrabold"
+                    ? "bg-[#FDE68A] text-[#92400E]"
                     : supplierTurnIndicator.variant === "success"
-                    ? "bg-[#ABF5D1] text-[#006644]"
+                    ? "bg-[#A7F3D0] text-[#065F46]"
                     : supplierTurnIndicator.variant === "danger"
-                    ? "bg-rose-200 text-rose-800"
+                    ? "bg-[#FECACA] text-[#991B1B]"
                     : supplierTurnIndicator.variant === "brand"
-                    ? "bg-[#B3D4FF] text-[#0747A6]"
-                    : "bg-[#DFE1E6] text-[#5E6C84]"
+                    ? "bg-[#BFDBFE] text-[#1E40AF]"
+                    : "bg-[#E4E4E7] text-[#475569]"
                 }`}
               >
                 {supplierTurnIndicator.label}
               </span>
-              <span className="text-xs font-semibold">{supplierTurnIndicator.subtext}</span>
+              <span className="text-xs font-medium">{supplierTurnIndicator.subtext}</span>
             </div>
           </div>
 
           {/* 1. CURRENT QUOTATION / NEGOTIATION CARD */}
           {latestQuotation ? (
-            <div className="bg-white border border-[#E2E8F0] border-l-4 border-l-[#0052CC] rounded-xl shadow-2xs overflow-hidden">
+            <div className="bg-white border border-[#E4E4E7] border-l-4 border-l-[#0052CC] rounded-[8px] shadow-tactile-card overflow-hidden">
               {/* Light Refined Header */}
-              <div className="px-6 py-4 bg-[#FAFBFC] border-b border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="px-5 py-3.5 bg-[#FAFAFA] border-b border-[#E4E4E7] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#0052CC]">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#0052CC]">
                       CURRENT QUOTATION · V{latestQuotation.quotationVersion}
                     </span>
-                    <span className="text-[#E2E8F0]">•</span>
-                    <span className="text-xs text-[#526581]">
+                    <span className="text-[#E4E4E7]">•</span>
+                    <span className="text-xs text-[#64748B]">
                       {latestQuotation.actorType === "BUYER"
                         ? "Buyer Counter-Offer"
                         : latestQuotation.quotationVersion > 1
@@ -543,7 +543,7 @@ export default function SupplierRfqDetailPage() {
                   <button
                     type="button"
                     onClick={scrollToHistory}
-                    className="text-xs text-[#0052CC] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-[#0052CC] hover:underline font-medium flex items-center gap-1 cursor-pointer"
                   >
                     <span>View Revision History</span>
                     <ChevronRight className="w-3.5 h-3.5" />
@@ -552,124 +552,124 @@ export default function SupplierRfqDetailPage() {
               </div>
 
               {/* 4-Column Commercial Metrics Grid */}
-              <div className="p-6 space-y-5">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+              <div className="p-5 space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px]">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
                       Unit Price
                     </span>
-                    <strong className="text-lg font-extrabold text-[#0B1B33] block mt-0.5">
+                    <strong className="text-base sm:text-lg font-bold text-[#0F172A] block mt-0.5 font-mono">
                       {formatMoney(latestQuotation.unitPrice, latestQuotation.currency)}
                     </strong>
-                    <span className="text-[10px] text-[#64748B] block mt-0.5">per standard {rfq.unit.toLowerCase()}</span>
+                    <span className="text-[10px] text-[#64748B] block mt-0.5 font-mono">per {rfq.unit.toLowerCase()}</span>
                   </div>
 
-                  <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                  <div className="p-3 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px]">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
                       MOQ
                     </span>
-                    <strong className="text-base font-bold text-[#0B1B33] block mt-0.5">
+                    <strong className="text-sm sm:text-base font-bold text-[#0F172A] block mt-0.5 font-mono">
                       {formatQty(latestQuotation.minimumOrderQuantity, rfq.unit)}
                     </strong>
-                    <span className="text-[10px] text-[#64748B] block mt-0.5">Production threshold</span>
+                    <span className="text-[10px] text-[#64748B] block mt-0.5">Threshold</span>
                   </div>
 
-                  <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                  <div className="p-3 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px]">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
                       Lead Time
                     </span>
-                    <strong className="text-base font-bold text-[#0B1B33] block mt-0.5">
+                    <strong className="text-sm sm:text-base font-bold text-[#0F172A] block mt-0.5 font-mono">
                       {latestQuotation.leadTimeDays ? `${latestQuotation.leadTimeDays} Days` : "Standard"}
                     </strong>
-                    <span className="text-[10px] text-[#64748B] block mt-0.5">Upon order confirmation</span>
+                    <span className="text-[10px] text-[#64748B] block mt-0.5">Upon PO confirm</span>
                   </div>
 
-                  <div className="p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                  <div className="p-3 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px]">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
                       Validity
                     </span>
-                    <strong className="text-base font-bold text-[#0B1B33] block mt-0.5">
+                    <strong className="text-sm sm:text-base font-bold text-[#0F172A] block mt-0.5 font-mono">
                       {formatDate(latestQuotation.validityDate)}
                     </strong>
-                    <span className="text-[10px] text-[#64748B] block mt-0.5">Valid commercial offer</span>
+                    <span className="text-[10px] text-[#64748B] block mt-0.5">Commercial offer</span>
                   </div>
                 </div>
 
                 {/* Packaging & Commercial Notes */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
                   {latestQuotation.packagingDetails && (
-                    <div className="flex items-start gap-2 p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg">
-                      <span className="font-bold text-[#64748B] shrink-0 uppercase text-[10px]">Packaging:</span>
-                      <span className="text-[#0B1B33] font-medium">{latestQuotation.packagingDetails}</span>
+                    <div className="flex items-start gap-2 p-3 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px]">
+                      <span className="font-semibold text-[#64748B] shrink-0 uppercase text-[10px] font-mono">Packaging:</span>
+                      <span className="text-[#0F172A] font-medium">{latestQuotation.packagingDetails}</span>
                     </div>
                   )}
 
                   {latestQuotation.commercialMessage && (
-                    <div className="flex items-start gap-2 p-3 bg-[#FAFBFC] border border-[#E2E8F0] rounded-lg sm:col-span-2">
-                      <span className="font-bold text-[#64748B] shrink-0 uppercase text-[10px]">Commercial Notes:</span>
-                      <span className="text-[#0B1B33] italic">"{latestQuotation.commercialMessage}"</span>
+                    <div className="flex items-start gap-2 p-3 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] sm:col-span-2">
+                      <span className="font-semibold text-[#64748B] shrink-0 uppercase text-[10px] font-mono">Notes:</span>
+                      <span className="text-[#0F172A] italic">"{latestQuotation.commercialMessage}"</span>
                     </div>
                   )}
                 </div>
 
                 {/* Action Bar (Deliberate visual hierarchy) */}
                 {!isAccepted && !isClosed && (
-                  <div className="pt-4 border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="pt-3.5 border-t border-[#E4E4E7] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
-                        Action Required
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono">
+                        Commercial Next Step
                       </span>
-                      <p className="text-xs text-[#0B1B33] mt-0.5">
+                      <p className="text-xs text-[#0F172A] mt-0.5">
                         {isCounterOffer
-                          ? "Review the buyer's proposed terms and send your response."
+                          ? "Review buyer counter-offer and transmit acceptance or revision."
                           : "Commercial proposal transmitted to buyer. Awaiting feedback."}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
                       {isCounterOffer ? (
                         <>
-                          {/* 1. DECLINE / REJECT (Destructive text/outline) */}
+                          {/* 1. DECLINE / REJECT */}
                           <button
                             type="button"
                             onClick={() => setDecisionModalMode("reject")}
                             disabled={decisionSubmitting}
-                            className="px-4 py-2 text-xs font-semibold text-rose-700 hover:text-rose-800 border border-rose-200 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                            className="h-8 px-3 text-xs font-medium text-[#DC2626] hover:text-[#B91C1C] border border-[#E4E4E7] hover:border-rose-300 hover:bg-[#FEF2F2] rounded-[6px] transition-colors cursor-pointer disabled:opacity-50"
                           >
                             Decline Proposal
                           </button>
 
-                          {/* 2. COUNTER / REVISE (Secondary outline) */}
+                          {/* 2. COUNTER / REVISE */}
                           <button
                             type="button"
                             onClick={() => setShowRevisionForm(!showRevisionForm)}
                             disabled={decisionSubmitting}
-                            className={`px-4 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer flex items-center gap-1.5 ${
+                            className={`h-8 px-3 text-xs font-medium rounded-[6px] border transition-colors cursor-pointer flex items-center gap-1.5 ${
                               showRevisionForm
-                                ? "bg-[#DEEBFF] text-[#0052CC] border-[#B3D4FF]"
-                                : "border-[#0052CC] text-[#0052CC] hover:bg-[#DEEBFF]/30"
+                                ? "bg-[#EFF6FF] text-[#0052CC] border-[#BFDBFE]"
+                                : "border-[#E4E4E7] text-[#0F172A] hover:bg-[#FAFAFA]"
                             }`}
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                             <span>{showRevisionForm ? "Close Form" : "Counter Offer"}</span>
                           </button>
 
-                          {/* 3. ACCEPT (Solid Primary Emerald) */}
+                          {/* 3. ACCEPT */}
                           <button
                             type="button"
                             onClick={() => setDecisionModalMode("accept")}
                             disabled={decisionSubmitting}
-                            className="px-5 py-2 bg-[#00875A] hover:bg-[#006644] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                            className="h-8 px-3.5 bg-[#059669] hover:bg-[#047857] text-white text-xs font-medium rounded-[6px] shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
                           >
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Accept Quotation</span>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Accept Terms</span>
                           </button>
                         </>
                       ) : (
                         <button
                           type="button"
                           onClick={() => setShowRevisionForm(!showRevisionForm)}
-                          className="px-4 py-2 border border-[#0052CC] text-[#0052CC] hover:bg-[#DEEBFF]/30 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="h-8 px-3 border border-[#E4E4E7] text-[#0F172A] hover:bg-[#FAFAFA] text-xs font-medium rounded-[6px] transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span>{showRevisionForm ? "Hide Revision Form" : "Revise Quotation"}</span>
@@ -1052,58 +1052,58 @@ export default function SupplierRfqDetailPage() {
         <div className="lg:col-span-5 space-y-6">
           
           {/* 1. BUYER SOURCING REQUIREMENTS */}
-          <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-2xs overflow-hidden">
-            <div className="px-5 py-3.5 bg-[#FAFBFC] border-b border-[#E2E8F0] flex items-center justify-between">
+          <div className="bg-white border border-[#E4E4E7] rounded-[8px] shadow-tactile-card overflow-hidden">
+            <div className="px-5 py-3.5 bg-[#FAFAFA] border-b border-[#E4E4E7] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[#0052CC]" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-[#0B1B33]">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[#0F172A] font-mono">
                   Buyer Sourcing Requirements
                 </h2>
               </div>
-              <span className="font-mono text-[10px] font-semibold text-[#526581]">
+              <span className="font-mono text-[10px] font-semibold text-[#64748B]">
                 SPEC: {product?.id ? product.id.substring(0, 8).toUpperCase() : "STANDARD"}
               </span>
             </div>
 
-            <div className="p-5 space-y-4">
-              <div className="grid grid-cols-1 gap-y-2.5 text-xs divide-y divide-[#E2E8F0]">
-                <div className="flex justify-between items-baseline py-1 border-b border-[#E2E8F0]">
-                  <span className="text-[#64748B]">Target Compound</span>
-                  <strong className="text-[#0B1B33]">{product?.name || "Chemical Raw Material"}</strong>
+            <div className="p-5 space-y-3.5">
+              <div className="grid grid-cols-1 gap-y-2 text-xs divide-y divide-[#E4E4E7]">
+                <div className="flex justify-between items-baseline py-1 border-b border-[#E4E4E7]">
+                  <span className="text-[#64748B]">Target Monograph</span>
+                  <strong className="text-[#0F172A]">{product?.name || "Chemical Raw Material"}</strong>
                 </div>
 
-                <div className="flex justify-between items-baseline py-1 border-b border-[#E2E8F0]">
+                <div className="flex justify-between items-baseline py-1 border-b border-[#E4E4E7]">
                   <span className="text-[#64748B]">Requested Volume</span>
-                  <span className="font-bold text-[#0B1B33]">{formatQty(rfq.quantity, rfq.unit)}</span>
+                  <span className="font-mono font-bold text-[#0F172A]">{formatQty(rfq.quantity, rfq.unit)}</span>
                 </div>
 
-                <div className="flex justify-between items-baseline py-1 border-b border-[#E2E8F0]">
+                <div className="flex justify-between items-baseline py-1 border-b border-[#E4E4E7]">
                   <span className="text-[#64748B]">CAS Registry Number</span>
-                  <span className="font-mono font-bold text-[#0B1B33]">{product?.casNumber || "—"}</span>
+                  <span className="font-mono font-bold text-[#0F172A]">{product?.casNumber || "—"}</span>
                 </div>
 
-                <div className="flex justify-between items-baseline py-1 border-b border-[#E2E8F0]">
+                <div className="flex justify-between items-baseline py-1 border-b border-[#E4E4E7]">
                   <span className="text-[#64748B]">Assay / Minimum Purity</span>
-                  <span className="font-semibold text-[#0B1B33]">{product?.purity ? `${product.purity}% minimum` : "Standard Technical Grade"}</span>
+                  <span className="font-medium text-[#0F172A]">{product?.purity ? `${product.purity}% minimum` : "Standard Technical Grade"}</span>
                 </div>
 
-                <div className="flex justify-between items-baseline py-1 border-b border-[#E2E8F0]">
+                <div className="flex justify-between items-baseline py-1 border-b border-[#E4E4E7]">
                   <span className="text-[#64748B]">Pharmacopoeia Standard</span>
-                  <span className="font-semibold text-[#0B1B33] uppercase">{product?.grade || "IP / BP / USP Standard"}</span>
+                  <span className="font-medium text-[#0F172A] uppercase">{product?.grade || "IP / BP / USP Standard"}</span>
                 </div>
 
-                <div className="flex justify-between items-baseline py-1 border-b border-[#E2E8F0]">
+                <div className="flex justify-between items-baseline py-1 border-b border-[#E4E4E7]">
                   <span className="text-[#64748B]">Packaging Required</span>
-                  <span className="font-semibold text-[#0B1B33]">{product?.packaging || "Standard Drum Container"}</span>
+                  <span className="font-medium text-[#0F172A]">{product?.packaging || "Standard Drum Container"}</span>
                 </div>
               </div>
 
               {/* Buyer Notes */}
-              <div className="pt-2 border-t border-[#E2E8F0]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1">
-                  Buyer Message & Technical Notes
+              <div className="pt-2 border-t border-[#E4E4E7]">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
+                  Buyer Message & Technical Remarks
                 </span>
-                <div className="p-3 bg-[#FAFBFC] rounded-lg border border-[#E2E8F0] text-xs text-[#0B1B33] leading-relaxed">
+                <div className="p-3 bg-[#FAFAFA] rounded-[6px] border border-[#E4E4E7] text-xs text-[#0F172A] leading-relaxed">
                   {rfq.message || "Standard commercial inquiry for monograph raw material. Please provide best price and dispatch timeline."}
                 </div>
               </div>
@@ -1111,7 +1111,7 @@ export default function SupplierRfqDetailPage() {
           </div>
 
           {/* 2. INQUIRY DOCUMENTS & TECHNICAL ATTACHMENTS */}
-          <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-2xs p-5">
+          <div className="bg-white border border-[#E4E4E7] rounded-[8px] shadow-tactile-card p-5">
             <GenericDocumentManager
               title="Inquiry Documents"
               description="Technical specifications, test protocols, NDA and compliance requirements."
@@ -1128,40 +1128,40 @@ export default function SupplierRfqDetailPage() {
           </div>
 
           {/* 3. NEGOTIATION STATUS */}
-          <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs space-y-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block border-b border-[#E2E8F0] pb-2">
+          <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-tactile-card space-y-2.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block border-b border-[#E4E4E7] pb-1.5 font-mono">
               NEGOTIATION STATUS
             </span>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[#526581]">Current Stage</span>
+                <span className="text-[#64748B]">Current Stage</span>
                 <span
-                  className={`text-[11px] font-bold px-2 py-0.5 rounded border uppercase font-mono ${
+                  className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-[4px] border uppercase ${
                     isAccepted
-                      ? "bg-[#E3FCEF] text-[#006644] border-[#ABF5D1]"
+                      ? "bg-[#ECFDF5] text-[#059669] border-[rgba(5,150,105,0.2)]"
                       : isCounterOffer
-                      ? "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
+                      ? "bg-[#FFFBEB] text-[#D97706] border-[rgba(217,119,6,0.2)]"
                       : isQuoted
-                      ? "bg-[#DEEBFF] text-[#0747A6] border-[#B3D4FF]"
-                      : "bg-[#FFFAE6] text-[#974F0C] border-[#FFE380]"
+                      ? "bg-[#EFF6FF] text-[#0052CC] border-[#BFDBFE]"
+                      : "bg-[#FFFBEB] text-[#D97706] border-[rgba(217,119,6,0.2)]"
                   }`}
                 >
                   {isCounterOffer && !isAccepted
-                    ? "Counter-Offer Received"
+                    ? "Action Required"
                     : isAccepted
-                    ? "Agreed"
+                    ? "Accepted"
                     : isQuoted
                     ? "Quoted"
-                    : "Awaiting Quote"}
+                    : "Pending"}
                 </span>
               </div>
 
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-0.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block mb-0.5 font-mono">
                   Next Step
                 </span>
-                <p className="text-xs text-[#0B1B33] leading-relaxed">
+                <p className="text-xs text-[#0F172A] leading-relaxed">
                   {isAccepted
                     ? "Commercial consensus reached. Buyer will issue formal purchase order."
                     : isCounterOffer
@@ -1172,23 +1172,23 @@ export default function SupplierRfqDetailPage() {
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-[#E2E8F0] flex justify-between items-center">
-                <span className="text-[#526581]">Version</span>
-                <strong className="font-mono text-[#0B1B33]">
+              <div className="pt-2 border-t border-[#E4E4E7] flex justify-between items-center">
+                <span className="text-[#64748B]">Version</span>
+                <strong className="font-mono text-[#0F172A]">
                   {latestQuotation ? `V${latestQuotation.quotationVersion}` : "Draft"}
                 </strong>
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-[#526581]">Revisions</span>
-                <span className="font-bold text-[#0B1B33]">{quotations.length}</span>
+                <span className="text-[#64748B]">Revisions</span>
+                <span className="font-bold text-[#0F172A]">{quotations.length}</span>
               </div>
             </div>
           </div>
 
           {/* 4. PROCUREMENT MILESTONES */}
-          <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs space-y-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block border-b border-[#E2E8F0] pb-2">
+          <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-5 shadow-tactile-card space-y-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block border-b border-[#E4E4E7] pb-2">
               PROCUREMENT MILESTONES
             </span>
 
@@ -1245,26 +1245,26 @@ export default function SupplierRfqDetailPage() {
           </div>
 
           {/* 5. BUYER PROFILE */}
-          <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-2xs space-y-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block border-b border-[#E2E8F0] pb-2">
+          <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-tactile-card space-y-2.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block border-b border-[#E4E4E7] pb-1.5 font-mono">
               BUYER PROFILE
             </span>
 
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-[#526581]">Organization</span>
-                <strong className="text-[#0B1B33]">{rfq.buyerName || "Enterprise Chemical Buyer"}</strong>
+                <span className="text-[#64748B]">Organization</span>
+                <strong className="text-[#0F172A]">{rfq.buyerName || "Enterprise Chemical Buyer"}</strong>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#526581]">Account Status</span>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#006644]">
+                <span className="text-[#64748B]">Account Status</span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#059669]">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Verified Buyer
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#526581]">Payment Rating</span>
-                <span className="font-semibold text-[#0B1B33]">AAA (Prompt Settlement)</span>
+                <span className="text-[#64748B]">Payment Rating</span>
+                <span className="font-semibold text-[#0F172A]">AAA (Prompt Settlement)</span>
               </div>
             </div>
           </div>
@@ -1276,54 +1276,46 @@ export default function SupplierRfqDetailPage() {
       {/* 4. SUPPLIER ACCEPT / REJECT CONFIRMATION MODAL                            */}
       {/* ========================================================================= */}
       {decisionModalMode && latestQuotation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-xl shadow-2xl border border-[#E2E8F0] max-w-md w-full overflow-hidden">
-            <div className="px-6 py-4 bg-[#0B1B33] text-white flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/50 backdrop-blur-[2px]">
+          <div className="bg-white rounded-[8px] shadow-tactile-modal border border-[#E4E4E7] max-w-md w-full overflow-hidden">
+            <div className="px-5 py-3.5 bg-[#FAFAFA] border-b border-[#E4E4E7] text-[#0F172A] flex items-center justify-between">
               <h3 className="text-sm font-bold">
-                {decisionModalMode === "accept" ? "Accept Buyer's Counter-Offer?" : "Reject Buyer's Counter-Offer?"}
+                {decisionModalMode === "accept" ? "Accept Buyer Counter-Offer?" : "Decline Buyer Counter-Offer?"}
               </h3>
               <button
                 type="button"
                 onClick={() => setDecisionModalMode(null)}
-                className="text-slate-400 hover:text-white cursor-pointer"
+                className="text-[#64748B] hover:text-[#0F172A] p-1 rounded-[4px] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs">
+            <div className="p-5 space-y-3.5 text-xs">
               {decisionError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg">
+                <div className="p-3 bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] text-[#DC2626] rounded-[6px]">
                   {decisionError}
                 </div>
               )}
 
               {decisionModalMode === "accept" ? (
                 <div className="space-y-3">
-                  <p className="text-[#0B1B33] leading-relaxed">
+                  <p className="text-[#0F172A] leading-relaxed">
                     You are accepting the buyer's counter-offer (Version {latestQuotation.quotationVersion}) under the following agreed commercial terms:
                   </p>
 
-                  <div className="p-3.5 bg-[#FAFBFC] rounded-lg border border-[#E2E8F0] space-y-1.5 text-xs">
-                    <div className="flex justify-between">
+                  <div className="p-3.5 bg-[#FAFAFA] rounded-[6px] border border-[#E4E4E7] space-y-1.5 text-xs">
+                    <div className="flex justify-between font-mono">
                       <span className="text-[#64748B]">Unit Price:</span>
-                      <strong className="text-[#0B1B33]">{formatMoney(latestQuotation.unitPrice, latestQuotation.currency)} / {rfq.unit.toUpperCase()}</strong>
+                      <strong className="text-[#0F172A]">{formatMoney(latestQuotation.unitPrice, latestQuotation.currency)} / {rfq.unit.toUpperCase()}</strong>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between font-mono">
                       <span className="text-[#64748B]">Quantity:</span>
-                      <span className="text-[#0B1B33]">{formatQty(rfq.quantity, rfq.unit)}</span>
+                      <span className="text-[#0F172A]">{formatQty(rfq.quantity, rfq.unit)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#64748B]">MOQ:</span>
-                      <span className="text-[#0B1B33]">{formatQty(latestQuotation.minimumOrderQuantity, rfq.unit)}</span>
-                    </div>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between font-mono">
                       <span className="text-[#64748B]">Lead Time:</span>
-                      <span className="text-[#0B1B33]">{latestQuotation.leadTimeDays ? `${latestQuotation.leadTimeDays} days` : "Standard"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[#64748B]">Validity:</span>
-                      <span className="text-[#0B1B33]">{formatDate(latestQuotation.validityDate)}</span>
+                      <span className="text-[#0F172A]">{latestQuotation.leadTimeDays ? `${latestQuotation.leadTimeDays} days` : "Standard"}</span>
                     </div>
                   </div>
 
@@ -1333,15 +1325,15 @@ export default function SupplierRfqDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-[#0B1B33] leading-relaxed">
+                  <p className="text-[#0F172A] leading-relaxed">
                     You are about to decline the buyer's proposed commercial terms. This will mark the current negotiation as rejected.
                   </p>
                 </div>
               )}
 
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#64748B] mb-1">
-                  Optional Remarks / Reason
+                <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-1 font-mono">
+                  Remarks / Operational Reason
                 </label>
                 <textarea
                   rows={3}
@@ -1352,16 +1344,16 @@ export default function SupplierRfqDetailPage() {
                       ? "e.g. Terms accepted. Ready for standard dispatch schedule."
                       : "e.g. Price below minimum production margin."
                   }
-                  className="w-full text-xs rounded-lg border border-[#E2E8F0] p-3 text-[#0B1B33] placeholder:text-[#8993A4] focus:outline-none focus:border-[#0052CC]"
+                  className="w-full text-xs rounded-[6px] border border-[#E4E4E7] p-2.5 text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0052CC]"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E8F0]">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#E4E4E7]">
                 <button
                   type="button"
                   onClick={() => setDecisionModalMode(null)}
                   disabled={decisionSubmitting}
-                  className="px-4 py-2 text-xs font-bold text-[#64748B] hover:text-[#0B1B33] cursor-pointer"
+                  className="h-8 px-3 text-xs font-medium text-[#64748B] hover:text-[#0F172A] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1370,10 +1362,10 @@ export default function SupplierRfqDetailPage() {
                   type="button"
                   onClick={decisionModalMode === "accept" ? handleConfirmAccept : handleConfirmReject}
                   disabled={decisionSubmitting}
-                  className={`px-5 py-2 rounded-lg text-white text-xs font-semibold uppercase tracking-wider cursor-pointer ${
+                  className={`h-8 px-4 rounded-[6px] text-white text-xs font-medium cursor-pointer shadow-xs transition-colors active:scale-[0.99] ${
                     decisionModalMode === "accept"
-                      ? "bg-[#00875A] hover:bg-[#006644]"
-                      : "bg-[#DE350B] hover:bg-[#BF2600]"
+                      ? "bg-[#059669] hover:bg-[#047857]"
+                      : "bg-[#DC2626] hover:bg-[#B91C1C]"
                   }`}
                 >
                   {decisionSubmitting

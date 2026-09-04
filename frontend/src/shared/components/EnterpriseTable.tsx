@@ -35,26 +35,26 @@ export function EnterpriseTable<T>({
   }
 
   return (
-    <div className={`overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>
-      <table className="w-full text-left border-collapse text-xs sm:text-sm">
+    <div className={`overflow-x-auto rounded-[8px] border border-[#E4E4E7] bg-white shadow-tactile-card ${className}`}>
+      <table className="w-full text-left border-collapse text-xs">
         <thead>
-          <tr className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider text-[11px] sticky top-0 z-10">
+          <tr className="bg-[#FAFAFA] border-b border-[#E4E4E7] text-[#64748B] font-semibold uppercase tracking-wider text-[10px] font-mono sticky top-0 z-10">
             {columns.map((col, idx) => (
               <th
                 key={idx}
                 scope="col"
-                className={`py-3 px-4 font-bold ${col.className || ""}`}
+                className={`py-2.5 px-4 font-semibold ${col.className || ""}`}
               >
                 {col.header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 text-slate-800 font-medium">
+        <tbody className="divide-y divide-[#E4E4E7] text-[#0F172A] font-normal">
           {data.map((item) => (
             <tr
               key={keyExtractor(item)}
-              className="hover:bg-slate-50/90 transition-colors h-14"
+              className="hover:bg-[#FAFAFA] transition-colors"
             >
               {columns.map((col, idx) => (
                 <td key={idx} className={`py-2.5 px-4 align-middle ${col.className || ""}`}>

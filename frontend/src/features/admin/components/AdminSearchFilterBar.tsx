@@ -43,22 +43,22 @@ export function AdminSearchFilterBar({
   };
 
   return (
-    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3 sm:space-y-0 sm:flex sm:items-center sm:gap-4">
+    <div className="bg-white p-3.5 rounded-[8px] border border-[#E4E4E7] shadow-tactile-card space-y-2.5 sm:space-y-0 sm:flex sm:items-center sm:gap-3">
       {/* Search Input */}
       <div className="relative flex-1">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         <input
           type="text"
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}
           placeholder={searchPlaceholder}
-          className="w-full pl-9.5 pr-8 py-2 text-xs sm:text-sm font-medium bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-hidden transition-all placeholder:text-slate-400 text-slate-900"
+          className="w-full pl-9 pr-8 py-1.5 text-xs font-medium bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] focus:bg-white focus:border-[#0052CC] focus:outline-hidden transition-all placeholder:text-[#94A3B8] text-[#0F172A]"
         />
         {localSearch && (
           <button
             type="button"
             onClick={handleClear}
-            className="p-1 text-slate-400 hover:text-slate-600 rounded-lg absolute right-2 top-1/2 -translate-y-1/2"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-[#94A3B8] hover:text-[#0F172A] transition-colors cursor-pointer"
             aria-label="Clear search"
           >
             <X className="w-3.5 h-3.5" />
@@ -66,19 +66,15 @@ export function AdminSearchFilterBar({
         )}
       </div>
 
-      {/* Filter Children & Reset */}
+      {/* Action Filters Slot */}
       {children && (
-        <div className="flex flex-wrap items-center gap-2.5">
-          <div className="hidden lg:flex items-center gap-1 text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">
-            <Filter className="w-3.5 h-3.5" />
-            Filters:
-          </div>
+        <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-[#E4E4E7]">
           {children}
           {onReset && (
             <button
               type="button"
               onClick={handleClear}
-              className="px-3 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl border border-slate-200 transition-colors"
+              className="h-8 px-2.5 text-xs font-medium text-[#64748B] hover:text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px] border border-[#E4E4E7] transition-colors cursor-pointer shadow-xs"
             >
               Reset
             </button>

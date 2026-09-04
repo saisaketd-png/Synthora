@@ -169,7 +169,7 @@ export function ProductCatalogTable({ products }: ProductCatalogTableProps) {
         return (
           <article
             key={product.id}
-            className="bg-white border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-2xl p-4 sm:p-6 lg:p-7 shadow-sm transition-all space-y-4 sm:space-y-6"
+            className="bg-white border border-[#E4E4E7] hover:border-[#0052CC] rounded-[8px] p-4 sm:p-5 shadow-tactile-card transition-colors space-y-4"
           >
             {/* ======================================================================= */}
             {/* A. MOBILE-FIRST COMPACT CARD (< lg screens: 360px - 1023px)             */}

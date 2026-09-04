@@ -46,47 +46,45 @@ export function ShipOrderModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/50 backdrop-blur-[2px] animate-in fade-in duration-150">
+      <div className="bg-white rounded-[8px] border border-[#E4E4E7] shadow-tactile-modal w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         {/* HEADER */}
-        <div className="border-b-[3px] border-[#0A192F] p-6 bg-slate-50 flex items-start justify-between">
+        <div className="p-4 sm:p-5 border-b border-[#E4E4E7] bg-[#FAFAFA] flex items-start justify-between">
           <div>
-            <span className="block text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-1">
+            <span className="block text-[10px] font-mono font-medium uppercase tracking-wider text-[#0052CC] mb-0.5">
               FULFILLMENT OPERATION
             </span>
-            <h2 className="text-xl font-bold text-[#0A192F] tracking-tight">
-              Ship Order
+            <h2 className="text-base font-bold text-[#0F172A] tracking-tight">
+              Dispatch Consignment Shipment
             </h2>
-            <p className="text-sm text-slate-500 mt-1 font-mono">
-              PO REFERENCE: {poNumber}
+            <p className="text-xs text-[#64748B] mt-0.5 font-mono">
+              PO Reference: <strong className="text-[#0F172A]">{poNumber}</strong>
             </p>
           </div>
           <button
             onClick={onClose}
             disabled={submitting}
-            className="text-slate-400 hover:text-slate-600 p-1"
+            className="text-[#64748B] hover:text-[#0F172A] p-1.5 rounded-[4px] hover:bg-[#F4F4F5] transition-colors cursor-pointer"
             aria-label="Close modal"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* BODY */}
-        <div className="p-6 overflow-y-auto">
+        <div className="p-5 overflow-y-auto space-y-4 text-xs">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-[3px] border-red-600">
-              <p className="text-sm font-medium text-red-900">{error}</p>
+            <div className="p-3 bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] rounded-[6px] text-[#DC2626]">
+              <p className="text-xs font-medium">{error}</p>
             </div>
           )}
 
-          <form id="shipOrderForm" onSubmit={handleSubmit} className="space-y-6">
-            
-            <div className="space-y-2">
-              <label htmlFor="carrier" className="block text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                CARRIER <span className="text-red-500">*</span>
+          <form id="shipOrderForm" onSubmit={handleSubmit} className="space-y-3.5">
+            <div className="space-y-1">
+              <label htmlFor="carrier" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
+                Logistics Carrier <span className="text-[#DC2626]">*</span>
               </label>
               <input
                 id="carrier"
@@ -95,14 +93,14 @@ export function ShipOrderModal({
                 disabled={submitting}
                 value={carrier}
                 onChange={(e) => setCarrier(e.target.value)}
-                placeholder="e.g. FedEx, DHL, Maersk"
-                className="w-full border-b border-slate-300 focus:border-[#0A192F] bg-transparent py-2 text-sm text-[#0A192F] placeholder:text-slate-400 focus:outline-none transition-colors"
+                placeholder="e.g. Blue Dart, DHL Express, V-Trans, FedEx"
+                className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="trackingNumber" className="block text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                TRACKING NUMBER <span className="text-red-500">*</span>
+            <div className="space-y-1">
+              <label htmlFor="trackingNumber" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
+                AWB / Waybill Tracking Number <span className="text-[#DC2626]">*</span>
               </label>
               <input
                 id="trackingNumber"
@@ -111,14 +109,14 @@ export function ShipOrderModal({
                 disabled={submitting}
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
-                placeholder="Tracking / Waybill Number"
-                className="w-full border-b border-slate-300 focus:border-[#0A192F] bg-transparent py-2 text-sm font-mono text-[#0A192F] placeholder:text-slate-400 placeholder:font-sans focus:outline-none transition-colors"
+                placeholder="Consignment Tracking Code"
+                className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs font-mono text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="estimatedDeliveryDate" className="block text-[10px] font-bold uppercase tracking-widest text-slate-600">
-                ESTIMATED DELIVERY DATE (OPTIONAL)
+            <div className="space-y-1">
+              <label htmlFor="estimatedDeliveryDate" className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">
+                Estimated Delivery Date (Optional)
               </label>
               <input
                 id="estimatedDeliveryDate"
@@ -126,33 +124,31 @@ export function ShipOrderModal({
                 disabled={submitting}
                 value={estimatedDeliveryDate}
                 onChange={(e) => setEstimatedDeliveryDate(e.target.value)}
-                className="w-full border-b border-slate-300 focus:border-[#0A192F] bg-transparent py-2 text-sm font-mono text-[#0A192F] focus:outline-none transition-colors"
+                className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs font-mono text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
               />
             </div>
-
           </form>
         </div>
 
         {/* FOOTER */}
-        <div className="border-t border-slate-200 p-6 bg-slate-50 flex items-center justify-end gap-4">
+        <div className="border-t border-[#E4E4E7] p-4 bg-[#FAFAFA] flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-6 py-2.5 text-[11px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-900 transition-colors disabled:opacity-50"
+            className="h-8 px-4 text-xs font-medium text-[#64748B] hover:text-[#0F172A] transition-colors cursor-pointer disabled:opacity-50"
           >
-            CANCEL
+            Cancel
           </button>
           <button
             type="submit"
             form="shipOrderForm"
             disabled={submitting || !carrier.trim() || !trackingNumber.trim()}
-            className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold uppercase tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50"
+            className="h-8 px-4 bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] text-white text-xs font-medium rounded-[6px] shadow-xs transition-colors cursor-pointer disabled:opacity-50 active:scale-[0.99]"
           >
-            {submitting ? "PROCESSING..." : "CONFIRM SHIPMENT"}
+            {submitting ? "Transmitting..." : "Confirm & Ship Consignment"}
           </button>
         </div>
-
       </div>
     </div>
   );

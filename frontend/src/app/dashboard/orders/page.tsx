@@ -3,10 +3,10 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, RefreshCw, ArrowRight, ShoppingBag, Package } from "lucide-react";
+import { Search, RefreshCw, ArrowRight, ShoppingBag, Package, ChevronRight, Filter } from "lucide-react";
 import { getBuyerOrders } from "@/features/order/api/getBuyerOrders";
 import { PurchaseOrderResponse } from "@/features/order/api/createOrder";
-import { StatusBadge, SkeletonLoader } from "@/shared/components/ui/KemkendraUI";
+import { PageHeader, StatusBadge } from "@/shared/components/ui/KemkendraUI";
 
 type StatusFilter = "ALL" | "PLACED" | "CONFIRMED" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "CANCELLED";
 type SortOption = "DATE_DESC" | "DATE_ASC" | "VALUE_DESC" | "VALUE_ASC";
@@ -92,7 +92,7 @@ export default function BuyerOrdersPage() {
     {
       label: "Total Orders",
       value: totalCount,
-      subtext: `${totalActiveValueFormatted} committed`,
+      subtext: `${totalActiveValueFormatted} volume`,
       active: statusFilter === "ALL",
       onClick: () => setStatusFilter("ALL"),
     },
@@ -100,7 +100,6 @@ export default function BuyerOrdersPage() {
       label: "Awaiting Confirmation",
       value: placedCount,
       subtext: placedCount > 0 ? "Pending supplier" : "All acknowledged",
-      badgeVariant: placedCount > 0 ? "warning" : undefined,
       active: statusFilter === "PLACED",
       onClick: () => setStatusFilter("PLACED"),
     },
@@ -114,154 +113,108 @@ export default function BuyerOrdersPage() {
     {
       label: "In Fulfillment",
       value: processingCount + shippedCount,
-      subtext: `${shippedCount} in transit`,
+      subtext: `${shippedCount} dispatched`,
       active: statusFilter === "PROCESSING" || statusFilter === "SHIPPED",
       onClick: () => setStatusFilter("PROCESSING"),
     },
     {
-      label: "Delivered & Received",
+      label: "Delivered",
       value: deliveredCount,
-      subtext: "Fulfilled contracts",
+      subtext: "Ready for completion",
       active: statusFilter === "DELIVERED",
       onClick: () => setStatusFilter("DELIVERED"),
     },
   ];
 
   return (
-    <div className="max-w-[1440px] mx-auto space-y-6">
+    <div className="space-y-5 pb-16 text-[#0F172A]">
       {/* 1. Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-3 border-b border-[#DFE1E6] pb-5">
-        <div>
-          <h1 className="text-2xl sm:text-[28px] font-bold text-[#091E42] tracking-tight">
-            Purchase Orders
-          </h1>
-          <p className="text-sm text-[#5E6C84] mt-1">
-            Manage binding purchase orders, supplier fulfillment milestones, and delivery receipts.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 self-start sm:self-auto shrink-0">
-          <span className="text-xs font-mono font-bold px-2.5 py-1 bg-white text-[#091E42] border border-[#DFE1E6] rounded">
-            {placedCount > 0 ? `${placedCount} awaiting supplier` : "All orders in progress"}
-          </span>
+      <PageHeader
+        title="Purchase Orders"
+        description="Manage binding commercial purchase orders, track multi-stage chemical fulfillment milestones, and confirm receipts."
+        actions={
           <button
             type="button"
             onClick={loadOrders}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0052CC] hover:bg-[#EBECF0] px-2.5 py-1.5 rounded transition-colors disabled:opacity-50 border border-[#DFE1E6] bg-white cursor-pointer"
+            className="h-9 px-3.5 bg-white border border-[#E4E4E7] hover:bg-[#FAFAFA] text-[#0F172A] text-xs font-medium rounded-[6px] transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            <span>Refresh</span>
+            <span>Refresh Ledger</span>
           </button>
+        }
+      />
+
+      {/* 2. Structured Operational KPI Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
+        {summaryMetrics.map((m, idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={m.onClick}
+            className={`p-3 bg-white border rounded-[8px] text-left transition-colors shadow-tactile-card group cursor-pointer ${
+              m.active ? "border-[#0052CC] ring-1 ring-[#0052CC]" : "border-[#E4E4E7] hover:border-[#0052CC]"
+            }`}
+          >
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block font-mono truncate">
+              {m.label}
+            </span>
+            <strong className="text-xl font-bold font-mono text-[#0F172A] block mt-0.5 group-hover:text-[#0052CC] transition-colors">
+              {m.value}
+            </strong>
+            <span className="text-[11px] text-[#64748B] block mt-0.5 truncate">
+              {m.subtext}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* 3. Toolbar: Filter Tabs & Search */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3 shadow-tactile-card flex flex-col md:flex-row md:items-center justify-between gap-3">
+        {/* Search */}
+        <div className="relative w-full md:max-w-sm">
+          <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search PO number, RFQ, chemical or supplier..."
+            className="w-full h-9 pl-8.5 pr-3 text-xs bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0052CC] focus:bg-white"
+          />
+        </div>
+
+        {/* Filters & Sorting */}
+        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+          <span className="text-[11px] text-[#64748B] font-mono uppercase tracking-wider">
+            Sort:
+          </span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="h-9 px-2.5 text-xs bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] font-normal text-[#0F172A] focus:outline-none focus:border-[#0052CC] cursor-pointer"
+          >
+            <option value="DATE_DESC">Newest First</option>
+            <option value="DATE_ASC">Oldest First</option>
+            <option value="VALUE_DESC">Highest Value</option>
+            <option value="VALUE_ASC">Lowest Value</option>
+          </select>
         </div>
       </div>
 
-      {/* 2. Compact Summary Row */}
-      {loading ? (
-        <div className="bg-white p-5 border border-[#DFE1E6] rounded-lg">
-          <SkeletonLoader lines={2} />
-        </div>
-      ) : (
-        <div className="bg-white border border-[#DFE1E6] rounded-lg grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#DFE1E6] overflow-hidden">
-          {summaryMetrics.map((m, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={m.onClick}
-              className={`p-4 sm:p-5 text-left transition-colors group block min-w-0 cursor-pointer ${
-                m.active ? "bg-[#EBECF0]/60" : "hover:bg-[#FAFBFC]"
-              }`}
-            >
-              <div className="text-[11px] font-bold uppercase tracking-wider text-[#5E6C84] truncate mb-1">
-                {m.label}
-              </div>
-              <div className="text-2xl sm:text-3xl font-bold font-mono text-[#091E42] tracking-tight group-hover:text-[#0052CC] transition-colors">
-                {m.value}
-              </div>
-              <div className="text-xs text-[#5E6C84] truncate mt-1 flex items-center gap-1.5">
-                {m.badgeVariant === "warning" && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF8B00]" />
-                )}
-                <span>{m.subtext}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* 3. PO Workspace Table Container */}
-      <div className="bg-white border border-[#DFE1E6] rounded-lg overflow-hidden space-y-0">
-        {/* Workspace Toolbar */}
-        <div className="p-4 border-b border-[#DFE1E6] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FAFBFC]">
-          {/* Search */}
-          <div className="relative w-full md:max-w-md">
-            <Search className="w-4 h-4 text-[#5E6C84] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search PO number, RFQ, chemical or supplier..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-[#DFE1E6] rounded focus:outline-none focus:border-[#0052CC] placeholder:text-[#5E6C84]"
-            />
+      {/* 4. PO Table Container */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] shadow-tactile-card overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center text-xs text-[#64748B]">
+            <div className="w-6 h-6 border-2 border-[#0052CC] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <span>Loading purchase order ledger...</span>
           </div>
-
-          {/* Filters & Sorting */}
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
-            {/* Desktop Status Filters */}
-            <div className="hidden sm:flex items-center gap-1 bg-[#EBECF0] p-0.5 rounded border border-[#DFE1E6] overflow-x-auto">
-              {(["ALL", "PLACED", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "COMPLETED", "CANCELLED"] as StatusFilter[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setStatusFilter(f)}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded transition-colors cursor-pointer whitespace-nowrap ${
-                    statusFilter === f
-                      ? "bg-white text-[#091E42] shadow-2xs font-bold"
-                      : "text-[#5E6C84] hover:text-[#091E42]"
-                  }`}
-                >
-                  {f === "ALL" ? "All" : f === "PLACED" ? "Placed" : f.charAt(0) + f.slice(1).toLowerCase()}
-                </button>
-              ))}
-            </div>
-
-            {/* Mobile Status Dropdown Filter */}
-            <div className="sm:hidden w-full">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className="w-full text-xs bg-white border border-[#DFE1E6] rounded px-3 py-2 font-semibold text-[#091E42] focus:outline-none focus:border-[#0052CC]"
-              >
-                <option value="ALL">All Statuses ({totalCount})</option>
-                <option value="PLACED">Placed ({placedCount})</option>
-                <option value="CONFIRMED">Confirmed ({confirmedCount})</option>
-                <option value="PROCESSING">Processing ({processingCount})</option>
-                <option value="SHIPPED">Shipped ({shippedCount})</option>
-                <option value="DELIVERED">Delivered ({deliveredCount})</option>
-                <option value="COMPLETED">Completed ({completedCount})</option>
-                <option value="CANCELLED">Cancelled</option>
-              </select>
-            </div>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="text-xs bg-white border border-[#DFE1E6] rounded px-2.5 py-1.5 font-medium text-[#091E42] focus:outline-none focus:border-[#0052CC] cursor-pointer ml-auto sm:ml-0"
-            >
-              <option value="DATE_DESC">Newest First</option>
-              <option value="DATE_ASC">Oldest First</option>
-              <option value="VALUE_DESC">Highest Value</option>
-              <option value="VALUE_ASC">Lowest Value</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Data Table or Empty State */}
-        {filteredOrders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="py-12 px-4 text-center space-y-2 max-w-md mx-auto">
-            <span className="text-sm font-bold text-[#091E42] block">
-              No purchase orders found
-            </span>
-            <p className="text-xs text-[#5E6C84]">
+            <Package className="w-8 h-8 text-[#94A3B8] mx-auto" />
+            <h3 className="text-xs font-semibold text-[#0F172A]">
+              No Purchase Orders Found
+            </h3>
+            <p className="text-[11px] text-[#64748B]">
               {searchQuery || statusFilter !== "ALL"
                 ? "No purchase orders match your current search or status filter."
                 : "Confirmed purchase orders will appear here once an RFQ quotation is accepted."}
@@ -269,77 +222,75 @@ export default function BuyerOrdersPage() {
             <div className="pt-2">
               <Link
                 href="/dashboard/rfqs"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0052CC] hover:underline"
+                className="inline-flex items-center gap-1.5 h-8 px-3.5 bg-[#0052CC] text-white text-xs font-medium rounded-[6px] hover:bg-[#0747A6] transition-colors shadow-xs"
               >
-                <span>View My Sourcing RFQs</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>Browse Active RFQs</span>
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-[#FAFBFC] border-b border-[#DFE1E6] text-[11px] font-bold uppercase tracking-wider text-[#5E6C84]">
-                  <th className="py-3 px-4">PO Number</th>
-                  <th className="py-3 px-4">Chemical / Compound</th>
-                  <th className="py-3 px-4">Supplier</th>
-                  <th className="py-3 px-4">Order Quantity</th>
-                  <th className="py-3 px-4">Contract Value</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Order Date</th>
-                  <th className="py-3 px-4 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#DFE1E6] text-xs">
-                {filteredOrders.map((order) => {
-                  return (
-                    <tr
-                      key={order.id}
-                      onClick={() => router.push(`/dashboard/orders/${order.id}`)}
-                      className="hover:bg-[#FAFBFC] transition-colors cursor-pointer group"
-                    >
-                      <td className="py-3.5 px-4 font-mono font-bold text-[#091E42]">
-                        {order.poNumber}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <span className="font-bold text-[#091E42] group-hover:text-[#0052CC] block truncate">
-                          {order.productName || "Chemical Product"}
-                        </span>
-                        <span className="text-[10px] font-mono text-[#5E6C84]">
-                          RFQ-{order.rfqId ? order.rfqId.slice(0, 8).toUpperCase() : "N/A"}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-4 text-[#172B4D]">
-                        Supplier #{order.supplierId}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono text-[#172B4D]">
-                        {order.quantity.toLocaleString()} {order.unit.toUpperCase()}
-                      </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-[#091E42]">
-                        {order.currency} {order.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="py-3.5 px-4">
-                        <StatusBadge status={order.status} size="sm" />
-                      </td>
-                      <td className="py-3.5 px-4 text-[#5E6C84] whitespace-nowrap">
-                        {new Date(order.placedAt).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <span className="inline-flex items-center gap-1 text-[#0052CC] font-semibold group-hover:underline">
-                          <span>View Details</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="divide-y divide-[#E4E4E7]">
+            {/* Desktop Table Header */}
+            <div className="hidden lg:grid grid-cols-12 gap-4 px-4 py-2.5 bg-[#FAFAFA] text-[10px] font-semibold font-mono uppercase tracking-wider text-[#64748B] border-b border-[#E4E4E7]">
+              <div className="col-span-2">PO Identifier</div>
+              <div className="col-span-3">Chemical Compound</div>
+              <div className="col-span-2">Supplier</div>
+              <div className="col-span-2">Quantity & Volume</div>
+              <div className="col-span-2">Order Value</div>
+              <div className="col-span-1 text-right">Status</div>
+            </div>
+
+            {/* Table Rows */}
+            {filteredOrders.map((order) => {
+              const currency = order.currency || "INR";
+              return (
+                <div
+                  key={order.id}
+                  onClick={() => router.push(`/dashboard/orders/${order.id}`)}
+                  className="p-4 lg:px-4 lg:py-3 hover:bg-[#FAFAFA] transition-colors cursor-pointer group flex flex-col lg:grid lg:grid-cols-12 gap-3 lg:gap-4 items-start lg:items-center"
+                >
+                  <div className="lg:col-span-2 min-w-0">
+                    <span className="font-mono text-xs font-semibold text-[#0052CC] group-hover:underline block">
+                      {order.poNumber}
+                    </span>
+                    <span className="text-[10px] font-mono text-[#64748B]">
+                      {new Date(order.placedAt).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="lg:col-span-3 min-w-0">
+                    <span className="text-xs font-medium text-[#0F172A] group-hover:text-[#0052CC] block truncate">
+                      {order.productName || "Chemical Product Consignment"}
+                    </span>
+                    <span className="text-[10px] font-mono text-[#64748B]">
+                      RFQ-{order.rfqId ? order.rfqId.slice(0, 8).toUpperCase() : "N/A"}
+                    </span>
+                  </div>
+
+                  <div className="lg:col-span-2 text-xs text-[#475569]">
+                    Supplier #{order.supplierId}
+                  </div>
+
+                  <div className="lg:col-span-2 font-mono text-xs text-[#0F172A]">
+                    {order.quantity.toLocaleString()} {order.unit.toUpperCase()}
+                  </div>
+
+                  <div className="lg:col-span-2 font-mono text-xs font-semibold text-[#0F172A]">
+                    {currency} {order.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+
+                  <div className="lg:col-span-1 flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto">
+                    <StatusBadge status={order.status} />
+                    <ChevronRight className="w-3 h-3 text-[#94A3B8] lg:hidden" />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

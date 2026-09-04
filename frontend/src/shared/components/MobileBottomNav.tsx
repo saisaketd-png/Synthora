@@ -99,7 +99,7 @@ export function MobileBottomNav() {
     <>
       {/* 1. FIXED MOBILE BOTTOM NAVIGATION BAR (Height 58px) */}
       <nav
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#DFE1E6] h-[58px] shadow-lg flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E4E4E7] h-[58px] shadow-tactile-card flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom)]"
         aria-label="Mobile Bottom Navigation"
       >
         {tabs.map((tab) => {
@@ -113,8 +113,8 @@ export function MobileBottomNav() {
             <Link
               key={tab.label}
               href={tab.href}
-              className={`flex-1 flex flex-col items-center justify-center py-1 rounded-lg transition-all ${
-                isActive ? "text-[#0052CC]" : "text-[#5E6C84] hover:text-[#091E42]"
+              className={`flex-1 flex flex-col items-center justify-center py-1 rounded-[6px] transition-all ${
+                isActive ? "text-[#0052CC]" : "text-[#64748B] hover:text-[#0F172A]"
               }`}
             >
               <div className="relative">
@@ -122,7 +122,7 @@ export function MobileBottomNav() {
               </div>
               <span
                 className={`text-[10px] tracking-tight mt-0.5 ${
-                  isActive ? "font-bold text-[#0052CC]" : "font-medium text-[#5E6C84]"
+                  isActive ? "font-semibold text-[#0052CC]" : "font-medium text-[#64748B]"
                 }`}
               >
                 {tab.label}
@@ -178,16 +178,16 @@ export function MobileBottomNav() {
         <div className="lg:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-150">
           <div className="bg-white w-[300px] max-w-[85vw] h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-200">
             {/* Drawer Header */}
-            <div className="p-4 border-b border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-between">
+            <div className="p-4 border-b border-[#E4E4E7] bg-[#FAFAFA] flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-[#DEEBFF] text-[#0747A6] font-bold text-sm flex items-center justify-center font-mono shrink-0">
+                <div className="w-8 h-8 rounded-[6px] bg-[#EFF6FF] text-[#0052CC] font-bold text-xs flex items-center justify-center font-mono shrink-0">
                   {userDisplayName.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0">
-                  <strong className="text-sm text-[#091E42] block truncate">
+                  <strong className="text-sm font-semibold text-[#0F172A] block truncate">
                     {userDisplayName}
                   </strong>
-                  <span className="text-[10px] font-mono font-bold text-[#0052CC] uppercase">
+                  <span className="text-[10px] font-mono font-semibold text-[#0052CC] uppercase">
                     {user?.role} WORKSPACE
                   </span>
                 </div>
@@ -196,10 +196,10 @@ export function MobileBottomNav() {
               <button
                 type="button"
                 onClick={() => setMoreDrawerOpen(false)}
-                className="p-1.5 text-[#64748B] hover:text-[#091E42] rounded-lg cursor-pointer"
+                className="p-1.5 text-[#64748B] hover:text-[#0F172A] rounded-[6px] cursor-pointer"
                 aria-label="Close menu"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -208,13 +208,13 @@ export function MobileBottomNav() {
               {/* Buyer Links */}
               {isBuyer && (
                 <div className="space-y-1">
-                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
+                  <span className="px-3 text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
                     Procurement Operations
                   </span>
                   <Link
                     href="/dashboard/buyer"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <LayoutDashboard className="w-4 h-4 text-[#0052CC]" />
                     <span>Procurement Desk</span>
@@ -222,7 +222,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/rfqs"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <FileText className="w-4 h-4 text-[#0052CC]" />
                     <span>My Sourcing RFQs</span>
@@ -230,7 +230,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/orders"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <ShoppingBag className="w-4 h-4 text-[#0052CC]" />
                     <span>Purchase Orders</span>
@@ -238,7 +238,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/buyer/shortlist"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <Bookmark className="w-4 h-4 text-[#0052CC]" />
                     <span>Saved Shortlists</span>
@@ -246,7 +246,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/notifications"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center justify-between px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <div className="flex items-center gap-2.5">
                       <Bell className="w-4 h-4 text-[#0052CC]" />
@@ -264,13 +264,13 @@ export function MobileBottomNav() {
               {/* Supplier Links */}
               {isSupplier && (
                 <div className="space-y-1">
-                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
+                  <span className="px-3 text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
                     Supplier Operations
                   </span>
                   <Link
                     href="/dashboard/supplier"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <LayoutDashboard className="w-4 h-4 text-[#0052CC]" />
                     <span>Supplier Operations</span>
@@ -278,7 +278,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/supplier/products"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <Package className="w-4 h-4 text-[#0052CC]" />
                     <span>Product Offerings</span>
@@ -286,7 +286,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/supplier/rfqs"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <FileText className="w-4 h-4 text-[#0052CC]" />
                     <span>RFQ Inquiries</span>
@@ -294,7 +294,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/supplier/orders"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <ShoppingBag className="w-4 h-4 text-[#0052CC]" />
                     <span>Purchase Orders</span>
@@ -302,7 +302,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/supplier/profile"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <Building2 className="w-4 h-4 text-[#0052CC]" />
                     <span>Company Profile</span>
@@ -310,22 +310,22 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/supplier/verification"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
-                    <ShieldCheck className="w-4 h-4 text-[#00875A]" />
+                    <ShieldCheck className="w-4 h-4 text-[#059669]" />
                     <span>Compliance & Verification</span>
                   </Link>
                   <Link
                     href="/dashboard/notifications"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center justify-between px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <div className="flex items-center gap-2.5">
                       <Bell className="w-4 h-4 text-[#0052CC]" />
                       <span>Notifications</span>
                     </div>
                     {unreadCount > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold font-mono bg-[#0052CC] text-white rounded-full">
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-semibold font-mono bg-[#0052CC] text-white rounded-[4px]">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
@@ -336,13 +336,13 @@ export function MobileBottomNav() {
               {/* Admin Links */}
               {isAdmin && (
                 <div className="space-y-1">
-                  <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
+                  <span className="px-3 text-[10px] font-semibold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
                     Administration
                   </span>
                   <Link
                     href="/dashboard/admin/operations"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <LayoutDashboard className="w-4 h-4 text-[#0052CC]" />
                     <span>Operations Console</span>
@@ -350,7 +350,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/admin/catalog"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <Layers className="w-4 h-4 text-[#0052CC]" />
                     <span>Master Catalog</span>
@@ -358,7 +358,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/admin/suppliers"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <Building2 className="w-4 h-4 text-[#0052CC]" />
                     <span>Supplier Moderation</span>
@@ -366,15 +366,15 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/admin/suppliers/quality"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
-                    <ShieldCheck className="w-4 h-4 text-[#00875A]" />
+                    <ShieldCheck className="w-4 h-4 text-[#059669]" />
                     <span>Supplier Verification</span>
                   </Link>
                   <Link
                     href="/dashboard/admin/users"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <Users className="w-4 h-4 text-[#0052CC]" />
                     <span>User Management</span>
@@ -382,7 +382,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/admin/transactions/rfqs"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <FileText className="w-4 h-4 text-[#0052CC]" />
                     <span>RFQ Oversight</span>
@@ -390,7 +390,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/admin/transactions/orders"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <ShoppingBag className="w-4 h-4 text-[#0052CC]" />
                     <span>Order Oversight</span>
@@ -398,14 +398,14 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/notifications"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center justify-between px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <div className="flex items-center gap-2.5">
                       <Bell className="w-4 h-4 text-[#0052CC]" />
                       <span>Notifications</span>
                     </div>
                     {unreadCount > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[11px] font-bold font-mono bg-[#0052CC] text-white rounded-full">
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-semibold font-mono bg-[#0052CC] text-white rounded-[4px]">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
@@ -413,7 +413,7 @@ export function MobileBottomNav() {
                   <Link
                     href="/dashboard/admin/activity"
                     onClick={() => setMoreDrawerOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                    className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                   >
                     <Activity className="w-4 h-4 text-[#0052CC]" />
                     <span>Audit Logs</span>
@@ -422,14 +422,14 @@ export function MobileBottomNav() {
               )}
 
               {/* Public Marketplace Quick Navigation */}
-              <div className="space-y-1 pt-2 border-t border-[#E2E8F0]">
-                <span className="px-3 text-[10px] font-bold uppercase tracking-wider text-[#64748B] block mb-1 font-mono">
+              <div className="space-y-1 pt-2 border-t border-[#E4E4E7]">
+                <span className="px-3 text-[10px] font-mono font-semibold uppercase tracking-wider text-[#64748B] block mb-1">
                   Public Marketplace
                 </span>
                 <Link
                   href="/products"
                   onClick={() => setMoreDrawerOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#475569] hover:text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                 >
                   <FlaskConical className="w-4 h-4 text-[#0052CC]" />
                   <span>Chemical Catalog</span>
@@ -437,7 +437,7 @@ export function MobileBottomNav() {
                 <Link
                   href="/categories"
                   onClick={() => setMoreDrawerOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#475569] hover:text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                 >
                   <Layers className="w-4 h-4 text-[#0052CC]" />
                   <span>Categories</span>
@@ -445,7 +445,7 @@ export function MobileBottomNav() {
                 <Link
                   href="/suppliers"
                   onClick={() => setMoreDrawerOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-sm font-semibold text-[#172B4D] hover:bg-[#F4F5F7] rounded-xl"
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#475569] hover:text-[#0F172A] hover:bg-[#FAFAFA] rounded-[6px]"
                 >
                   <Building2 className="w-4 h-4 text-[#0052CC]" />
                   <span>Verified Suppliers</span>
@@ -454,11 +454,11 @@ export function MobileBottomNav() {
             </div>
 
             {/* Sign Out Button */}
-            <div className="p-3 border-t border-[#E2E8F0] bg-[#F8FAFC]">
+            <div className="p-3 border-t border-[#E4E4E7] bg-[#FAFAFA]">
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="w-full flex items-center justify-center gap-2 h-11 px-4 text-[#DE350B] hover:bg-[#FFEBE6] bg-white border border-[#FFBDAD] rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 h-9 px-4 text-[#DC2626] hover:bg-[#FEF2F2] bg-white border border-[#E4E4E7] rounded-[6px] font-semibold text-xs transition-colors cursor-pointer shadow-xs"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out of Workspace</span>

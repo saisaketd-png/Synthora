@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +22,14 @@ public interface SupplierOfferingRepository extends JpaRepository<SupplierOfferi
     boolean existsByMasterProductIdAndSupplierId(UUID masterProductId, Long supplierId);
 
     Page<SupplierOffering> findBySupplierId(Long supplierId, Pageable pageable);
+
+    /**
+     * Fetches offerings with masterProduct eagerly loaded via JOIN FETCH.
+     * Use for public-facing endpoints to prevent LazyInitializationException
+     * when accessing MasterProduct fields outside a transaction/session.
+     */
+    @Query("SELECT so FROM SupplierOffering so JOIN FETCH so.masterProduct mp WHERE so.supplier.id = :supplierId")
+    List<SupplierOffering> findBySupplierId_WithMasterProduct(@Param("supplierId") Long supplierId);
 
     long countBySupplierId(Long supplierId);
 

@@ -10,44 +10,44 @@ export function ProcurementWorkflow() {
   ];
 
   return (
-    <div className="bg-[#0A192F] rounded-[2.5rem] p-10 flex flex-col h-full shadow-2xl">
+    <div className="bg-[#0F172A] border border-[#1E293B] rounded-[8px] p-6 sm:p-8 flex flex-col h-full shadow-tactile-card">
       
       {/* Header */}
-      <div className="mb-10">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
-          <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">
-            How it works
+      <div className="mb-6 pb-4 border-b border-[#1E293B]">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-[#0052CC]" />
+          <span className="text-[10px] font-mono font-medium text-[#60A5FA] uppercase tracking-wider">
+            Operational Protocol
           </span>
         </div>
-        <h2 className="text-3xl font-bold text-white tracking-tight mb-4 leading-tight">
-          A guided path from search to shipment
+        <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight leading-snug">
+          Structured Procurement from Inquiry to Consignment
         </h2>
-        <p className="text-sm text-slate-400 leading-relaxed max-w-md">
-          Move through a single, transparent procurement journey — every step tracked, documented, and audit-ready.
+        <p className="text-xs text-slate-300 leading-relaxed mt-1">
+          Complete commercial lifecycle with binding quotation commitments, verified technical specifications, and end-to-end shipment custody.
         </p>
       </div>
 
       {/* Vertical Steps */}
       <div className="relative flex-1">
         {/* Vertical Line */}
-        <div className="absolute left-[23px] top-6 bottom-6 w-px bg-slate-800" />
+        <div className="absolute left-[17px] top-4 bottom-4 w-px bg-slate-800" />
         
-        <div className="space-y-8 relative">
+        <div className="space-y-6 relative">
           {steps.map((s) => {
             const Icon = s.icon;
             return (
-              <div key={s.step} className="flex items-center gap-6 group">
-                <div className="relative z-10 w-12 h-12 rounded-full border border-slate-700 bg-[#0A192F] flex items-center justify-center group-hover:border-teal-500 group-hover:shadow-[0_0_15px_rgba(23,181,174,0.2)] transition-all">
-                  <Icon className="w-5 h-5 text-teal-500" />
+              <div key={s.step} className="flex items-center gap-4 group">
+                <div className="relative z-10 w-9 h-9 rounded-[6px] border border-slate-700 bg-[#1E293B] flex items-center justify-center group-hover:border-[#0052CC] transition-colors">
+                  <Icon className="w-4 h-4 text-[#60A5FA]" />
                 </div>
                 
                 <div className="flex-1 flex justify-between items-center">
                   <div>
-                    <h3 className="font-bold text-white text-[15px] mb-1">{s.title}</h3>
-                    <p className="text-[13px] text-slate-400">{s.desc}</p>
+                    <h3 className="font-semibold text-white text-xs mb-0.5">{s.title}</h3>
+                    <p className="text-[11px] text-slate-400">{s.desc}</p>
                   </div>
-                  <div className="text-[10px] font-mono font-bold text-slate-500">
+                  <div className="text-[10px] font-mono text-slate-500 font-semibold">
                     {s.step}
                   </div>
                 </div>

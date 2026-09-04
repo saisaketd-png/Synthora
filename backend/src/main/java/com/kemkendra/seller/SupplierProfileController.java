@@ -27,9 +27,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -76,6 +78,13 @@ public class SupplierProfileController {
     public ResponseEntity<SupplierProfileResponse> getMyProfile(Authentication auth) {
         User user = resolveAuthenticatedUser(auth);
         Supplier supplier = identityResolver.resolveOperationalSupplier(user);
+
+        // Ensure supplier entity has latest authoritative email
+        if (!user.getEmail().equals(supplier.getBusinessEmail())) {
+            supplier.setBusinessEmail(user.getEmail());
+            supplier = supplierRepository.save(supplier);
+        }
+
         return ResponseEntity.ok(toResponse(supplier));
     }
 
@@ -104,7 +113,17 @@ public class SupplierProfileController {
         if (req.postalCode() != null) supplier.setPostalCode(req.postalCode().trim());
         if (req.countryCode() != null && !req.countryCode().isBlank()) supplier.setCountryCode(req.countryCode().trim().toUpperCase());
         if (req.countryName() != null && !req.countryName().isBlank()) supplier.setCountryName(req.countryName().trim());
-        if (req.businessEmail() != null) supplier.setBusinessEmail(req.businessEmail().trim());
+
+        // Authoritative enforcement: Never trust client-submitted businessEmail.
+        // Always derive official business email from authenticated user's verified registration email.
+        if (req.businessEmail() != null && !req.businessEmail().isBlank()
+                && !req.businessEmail().trim().equalsIgnoreCase(user.getEmail())) {
+            log.warn("Ignored client attempt to change authoritative supplier email from {} to {} for user {}",
+                    user.getEmail(), req.businessEmail().trim(), user.getId());
+        }
+        supplier.setBusinessEmail(user.getEmail());
+        supplier.setEmailVerified(user.isEmailVerified());
+
         if (req.businessPhone() != null) supplier.setBusinessPhone(req.businessPhone().trim());
         if (req.authorizedRepresentativeName() != null) supplier.setAuthorizedRepresentativeName(req.authorizedRepresentativeName().trim());
         if (req.authorizedRepresentativeDesignation() != null) supplier.setAuthorizedRepresentativeDesignation(req.authorizedRepresentativeDesignation().trim());
@@ -244,6 +263,11 @@ public class SupplierProfileController {
     public ResponseEntity<SupplierProfileResponse> verifyEmail(Authentication auth) {
         User user = resolveAuthenticatedUser(auth);
         Supplier supplier = identityResolver.resolveOperationalSupplier(user);
+        if (user.getEmailVerifiedAt() == null) {
+            user.setEmailVerifiedAt(Instant.now());
+            userRepository.save(user);
+        }
+        supplier.setBusinessEmail(user.getEmail());
         supplier.setEmailVerified(true);
         Supplier saved = supplierRepository.save(supplier);
         return ResponseEntity.ok(toResponse(saved));
@@ -267,7 +291,7 @@ public class SupplierProfileController {
                 "name", supplier.getName(),
                 "verificationStatus", supplier.getVerificationStatus() != null ? supplier.getVerificationStatus().name() : "PENDING",
                 "verified", Boolean.TRUE.equals(supplier.getVerified()),
-                "emailVerified", Boolean.TRUE.equals(supplier.getEmailVerified()),
+                "emailVerified", (user != null && user.isEmailVerified()) || Boolean.TRUE.equals(supplier.getEmailVerified()),
                 "phoneVerified", Boolean.TRUE.equals(supplier.getPhoneVerified()),
                 "verificationNotes", supplier.getVerificationNotes() != null ? supplier.getVerificationNotes() : "",
                 "adminRequestInfoNotes", supplier.getAdminRequestInfoNotes() != null ? supplier.getAdminRequestInfoNotes() : ""
@@ -314,9 +338,13 @@ public class SupplierProfileController {
     }
 
     private SupplierProfileResponse toResponse(Supplier s) {
+        User user = s.getUser();
+        String officialEmail = (user != null && user.getEmail() != null) ? user.getEmail() : s.getBusinessEmail();
+        boolean isEmailVerified = (user != null && user.isEmailVerified()) || Boolean.TRUE.equals(s.getEmailVerified());
+
         return new SupplierProfileResponse(
                 s.getId(),
-                s.getUser() != null ? s.getUser().getId() : null,
+                user != null ? user.getId() : null,
                 s.getName(),
                 s.getSlug(),
                 s.getLegalName() != null ? s.getLegalName() : s.getName(),
@@ -328,11 +356,11 @@ public class SupplierProfileController {
                 s.getPostalCode(),
                 s.getCountryCode(),
                 s.getCountryName(),
-                s.getBusinessEmail(),
+                officialEmail,
                 s.getBusinessPhone(),
                 s.getAuthorizedRepresentativeName(),
                 s.getAuthorizedRepresentativeDesignation(),
-                Boolean.TRUE.equals(s.getEmailVerified()),
+                isEmailVerified,
                 Boolean.TRUE.equals(s.getPhoneVerified()),
                 s.getWebsite(),
                 s.getTaxVatNumber(),

@@ -96,6 +96,12 @@ public class GlobalExceptionHandler {
         return new ApiErrorResponse(LocalDateTime.now(), HttpStatus.FORBIDDEN.value(), "FORBIDDEN", ex.getMessage() != null ? ex.getMessage() : "Access denied", request.getRequestURI());
     }
 
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiErrorResponse handleAuthenticationException(org.springframework.security.core.AuthenticationException ex, HttpServletRequest request) {
+        return new ApiErrorResponse(LocalDateTime.now(), HttpStatus.UNAUTHORIZED.value(), "UNAUTHORIZED", ex.getMessage() != null ? ex.getMessage() : "Authentication required to access this resource", request.getRequestURI());
+    }
+
     @ExceptionHandler(IllegalStateException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiErrorResponse handleIllegalState(IllegalStateException ex, HttpServletRequest request) {
@@ -118,6 +124,23 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiErrorResponse handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex, HttpServletRequest request) {
         return new ApiErrorResponse(LocalDateTime.now(), HttpStatus.NOT_FOUND.value(), "NOT_FOUND", ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrorResponse handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex, HttpServletRequest request) {
+        String msg = "A database constraint was violated. A record with the provided details may already exist.";
+        String exMsg = ex.getMessage() != null ? ex.getMessage() : "";
+        if (ex.getCause() != null && ex.getCause().getMessage() != null) {
+            exMsg += " " + ex.getCause().getMessage();
+        }
+        if (exMsg.contains("users_phone_key")) {
+            msg = "Phone number already registered";
+        } else if (exMsg.contains("users_email_key")) {
+            msg = "Email already registered";
+        }
+        log.warn("Database constraint violation on {}: {}", request.getRequestURI(), msg);
+        return new ApiErrorResponse(LocalDateTime.now(), HttpStatus.BAD_REQUEST.value(), "DUPLICATE_RESOURCE", msg, request.getRequestURI());
     }
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);

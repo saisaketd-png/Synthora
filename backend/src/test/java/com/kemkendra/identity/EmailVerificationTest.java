@@ -176,7 +176,9 @@ public class EmailVerificationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(verifyReq)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Email verified successfully. You can now log in."));
+                .andExpect(jsonPath("$.message").value("Email verified successfully."))
+                .andExpect(jsonPath("$.token").isString())
+                .andExpect(jsonPath("$.role").value("USER"));
 
         // Check user is marked as verified
         User verifiedUser = userRepository.findByEmail("candidate@kemkendra.com").orElseThrow();
@@ -364,5 +366,53 @@ public class EmailVerificationTest {
                         .content(objectMapper.writeValueAsString(adminLogin)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isString());
+    }
+
+    @Test
+    @DisplayName("9. Supplier verification returns JWT token, SUPPLIER role, and DRAFT verificationStatus")
+    void testSupplierVerifyEmail_returnsTokenRoleAndDraftStatus() throws Exception {
+        User supplierUser = new User();
+        supplierUser.setName("Apex Chemical Industries");
+        supplierUser.setEmail("onboarding.test@apexchem.com");
+        supplierUser.setPasswordHash(passwordEncoder.encode("Password123!"));
+        supplierUser.setRole(UserRole.SUPPLIER);
+        supplierUser.setStatus(UserStatus.ACTIVE);
+        supplierUser = userRepository.save(supplierUser);
+
+        com.kemkendra.product.Supplier supplier = new com.kemkendra.product.Supplier();
+        supplier.setUser(supplierUser);
+        supplier.setName("Apex Chemical Industries");
+        supplier.setSlug("apex-chemical-industries-" + System.currentTimeMillis());
+        supplier.setLegalName("Apex Chemical Industries Ltd");
+        supplier.setBusinessType("MANUFACTURER");
+        supplier.setVerificationStatus(com.kemkendra.seller.SupplierVerificationStatus.DRAFT);
+        supplier.setVerified(false);
+        supplier.setEmailVerified(false);
+        supplierRepository.save(supplier);
+
+        String rawToken = "supplier-raw-token-987654321";
+        String tokenHash = EmailVerificationService.hashToken(rawToken);
+        EmailVerificationToken token = new EmailVerificationToken(
+                null,
+                supplierUser,
+                tokenHash,
+                Instant.now().plus(24, ChronoUnit.HOURS)
+        );
+        tokenRepository.save(token);
+
+        VerifyEmailRequest verifyReq = new VerifyEmailRequest(rawToken);
+        mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(verifyReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Email verified successfully."))
+                .andExpect(jsonPath("$.token").isString())
+                .andExpect(jsonPath("$.role").value("SUPPLIER"))
+                .andExpect(jsonPath("$.verificationStatus").value("DRAFT"));
+
+        // Confirm supplier entity emailVerified is now true
+        com.kemkendra.product.Supplier updatedSupplier = supplierRepository.findByUser(supplierUser).orElseThrow();
+        assertThat(updatedSupplier.getEmailVerified()).isTrue();
+        assertThat(updatedSupplier.getVerificationStatus()).isEqualTo(com.kemkendra.seller.SupplierVerificationStatus.DRAFT);
     }
 }

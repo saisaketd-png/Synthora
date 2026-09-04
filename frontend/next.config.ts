@@ -20,17 +20,25 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 86400,
     remotePatterns: [
       {
-        protocol: "http",
-        hostname: "localhost",
-      },
-      {
-        protocol: "http",
-        hostname: "127.0.0.1",
+        protocol: "https",
+        hostname: "kemkendra.com",
       },
       {
         protocol: "https",
-        hostname: "**",
+        hostname: "*.kemkendra.com",
       },
+      ...(process.env.NODE_ENV !== "production"
+        ? [
+            {
+              protocol: "http" as const,
+              hostname: "localhost",
+            },
+            {
+              protocol: "http" as const,
+              hostname: "127.0.0.1",
+            },
+          ]
+        : []),
     ],
   },
   experimental: {
@@ -47,17 +55,28 @@ const nextConfig: NextConfig = {
   async headers() {
     const isProd = process.env.NODE_ENV === "production";
 
+    // SECURITY B1: In production, strictly prohibit 'unsafe-eval' to eliminate dynamic script execution sinks.
+    // In local development only, 'unsafe-eval' is permitted for React/Turbopack source map hydration.
+    const scriptSrc = isProd
+      ? "script-src 'self' 'unsafe-inline'"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+
+    const connectSrc = isProd
+      ? "connect-src 'self' https:"
+      : "connect-src 'self' http://localhost:* http://127.0.0.1:* https:";
+
     const cspHeader = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      scriptSrc,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
-      "connect-src 'self' http://localhost:* http://127.0.0.1:* https:",
+      connectSrc,
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'none'",
+      "frame-src 'self'",
       "manifest-src 'self'",
       "worker-src 'self' blob:",
     ].join("; ");
@@ -81,13 +100,13 @@ const nextConfig: NextConfig = {
       },
       {
         key: "Permissions-Policy",
-        value: "camera=(), microphone=(), geolocation=(), payment=()",
+        value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), display-capture=()",
       },
       ...(isProd
         ? [
             {
               key: "Strict-Transport-Security",
-              value: "max-age=31536000; includeSubDomains",
+              value: "max-age=31536000; includeSubDomains; preload",
             },
           ]
         : []),

@@ -22,16 +22,29 @@ public class NotificationStreamService {
 
     private static final Logger log = LoggerFactory.getLogger(NotificationStreamService.class);
     private static final long SSE_TIMEOUT = 30 * 60 * 1000L; // 30 minutes
+    public static final int MAX_EMITTERS_PER_USER = 5;
 
     private final Map<UUID, CopyOnWriteArrayList<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
 
     public SseEmitter subscribe(UUID userId) {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
-        userEmitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
         emitter.onCompletion(() -> removeEmitter(userId, emitter));
         emitter.onTimeout(() -> removeEmitter(userId, emitter));
         emitter.onError(e -> removeEmitter(userId, emitter));
+
+        userEmitters.compute(userId, (id, existingList) -> {
+            CopyOnWriteArrayList<SseEmitter> list = (existingList != null) ? existingList : new CopyOnWriteArrayList<>();
+            while (list.size() >= MAX_EMITTERS_PER_USER) {
+                SseEmitter oldest = list.remove(0);
+                try {
+                    oldest.complete();
+                } catch (Exception ignored) {
+                }
+            }
+            list.add(emitter);
+            return list;
+        });
 
         try {
             emitter.send(SseEmitter.event()
@@ -44,14 +57,20 @@ public class NotificationStreamService {
         return emitter;
     }
 
-    private void removeEmitter(UUID userId, SseEmitter emitter) {
-        CopyOnWriteArrayList<SseEmitter> emitters = userEmitters.get(userId);
-        if (emitters != null) {
-            emitters.remove(emitter);
-            if (emitters.isEmpty()) {
-                userEmitters.remove(userId);
-            }
-        }
+    public void removeEmitter(UUID userId, SseEmitter emitter) {
+        userEmitters.computeIfPresent(userId, (id, list) -> {
+            list.remove(emitter);
+            return list.isEmpty() ? null : list;
+        });
+    }
+
+    public int getActiveEmitterCount(UUID userId) {
+        CopyOnWriteArrayList<SseEmitter> list = userEmitters.get(userId);
+        return list != null ? list.size() : 0;
+    }
+
+    public int getTotalActiveUsers() {
+        return userEmitters.size();
     }
 
     public void sendNotification(UUID recipientId, NotificationResponse notification, long unreadCount) {

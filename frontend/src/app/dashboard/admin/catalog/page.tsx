@@ -90,178 +90,158 @@ export default function MasterCatalogGovernanceDashboardPage() {
   const verifiedSup = stats?.verifiedSuppliersCount ?? 0;
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
-      {/* Top Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+    <div className="max-w-[1400px] mx-auto space-y-7 text-[#0F172A]">
+      {/* 1. Technical Eyebrow & Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-            <FlaskConical className="w-7 h-7 text-blue-600" />
-            MASTER CATALOG GOVERNANCE & OPERATIONS
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            Master Catalog
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Catalog Governance
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Centralized canonical chemical compound registry, field verification engine, and governance hub.
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Master chemical compound registry, supplier commercial offerings, and verification lifecycle.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => loadData()}
-            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"
+            className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isSearching ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`w-3.5 h-3.5 ${isSearching ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+            <span>Refresh</span>
           </button>
 
           <Link
             href="/dashboard/admin/catalog/master-products/new"
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+            className="h-8 px-3.5 bg-[#0052CC] hover:bg-[#0747A6] text-white rounded-[4px] text-xs font-medium transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Add Master Product
+            <span>Add Master Product</span>
           </Link>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-800 text-xs font-medium">
+        <div className="p-3 rounded-[6px] bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] text-[#DC2626] text-xs">
           {error}
         </div>
       )}
 
-      {/* Action Center Ribbon */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30">
-            <AlertTriangle className="w-5 h-5" />
+      {/* 2. Catalog Overview Horizontal Band (Editorial, not 8 giant cards) */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-xs">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] mb-3">
+          Catalog Overview
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 divide-y sm:divide-y-0 sm:divide-x divide-[#E4E4E7]">
+          <div className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Active Products</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">{stats?.activeMasterProducts || 0}</div>
           </div>
-          <div>
-            <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-wider block">
-              REQUIRES ADMIN ACTION
+          <div className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Supplier Offerings</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">{stats?.totalOfferings || 0}</div>
+          </div>
+          <div className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Pending Review</span>
+            <div className={`text-lg font-bold font-mono mt-0.5 ${pendingOff > 0 ? "text-[#D97706]" : "text-[#0F172A]"}`}>{pendingOff}</div>
+          </div>
+          <div className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Verified Suppliers</span>
+            <div className="text-lg font-bold font-mono text-[#059669] mt-0.5">{verifiedSup}</div>
+          </div>
+          <div className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Flagged Offers</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">{flaggedOff}</div>
+          </div>
+          <div className="sm:px-3 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Duplicates</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">{dupeCount}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Action Required Compact Strip */}
+      {(pendingReqs > 0 || pendingOff > 0 || dupeCount > 0) && (
+        <div className="p-3 rounded-[6px] bg-[#FFFBEB] border border-[rgba(217,119,6,0.3)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2 text-xs text-[#92400E]">
+            <AlertTriangle className="w-3.5 h-3.5 text-[#D97706] shrink-0" />
+            <span className="font-semibold uppercase text-[10px] tracking-wider">Action Required:</span>
+            <span>
+              {pendingReqs} product requests · {pendingOff} offering reviews · {dupeCount} duplicate candidates
             </span>
-            <div className="text-xs font-bold text-slate-200">
-              {stats ? (
-                <>
-                  <strong className="text-white font-extrabold">{pendingReqs}</strong> Uncatalogued Requests |{" "}
-                  <strong className="text-white font-extrabold">{pendingOff}</strong> Pending Offering Reviews |{" "}
-                  <strong className="text-white font-extrabold">{dupeCount}</strong> Duplicates
-                </>
-              ) : (
-                "Scanning catalog governance queues..."
-              )}
-            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {pendingOff > 0 && (
+              <Link
+                href="/dashboard/admin/catalog/offerings"
+                className="h-6 px-2 bg-white hover:bg-[#FAFAFA] text-[#0F172A] border border-[#E4E4E7] text-xs font-medium rounded-[4px] transition-colors shadow-xs flex items-center"
+              >
+                Review Offerings ({pendingOff})
+              </Link>
+            )}
+            {pendingReqs > 0 && (
+              <Link
+                href="/dashboard/admin/catalog/requests"
+                className="h-6 px-2 bg-white hover:bg-[#FAFAFA] text-[#0F172A] border border-[#E4E4E7] text-xs font-medium rounded-[4px] transition-colors shadow-xs flex items-center"
+              >
+                Product Requests ({pendingReqs})
+              </Link>
+            )}
+            {dupeCount > 0 && (
+              <Link
+                href="/dashboard/admin/catalog/duplicates"
+                className="h-6 px-2 bg-white hover:bg-[#FAFAFA] text-[#0F172A] border border-[#E4E4E7] text-xs font-medium rounded-[4px] transition-colors shadow-xs flex items-center"
+              >
+                Duplicates ({dupeCount})
+              </Link>
+            )}
           </div>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/dashboard/admin/catalog/offerings"
-            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs"
-          >
-            Offering Review ({pendingOff})
-          </Link>
-          <Link
-            href="/dashboard/admin/catalog/requests"
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs"
-          >
-            Review Requests ({pendingReqs})
-          </Link>
-          <Link
-            href="/dashboard/admin/catalog/duplicates"
-            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-colors shadow-2xs"
-          >
-            Duplicates ({dupeCount})
-          </Link>
-          <Link
-            href="/dashboard/admin/catalog/audit"
-            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors border border-slate-700"
-          >
-            Audit Logs
-          </Link>
-        </div>
-      </div>
-
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">ACTIVE MASTER PRODUCTS</span>
-          <strong className="text-xl font-extrabold text-slate-900">{stats?.activeMasterProducts || 0}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider block">TOTAL OFFERINGS</span>
-          <strong className="text-xl font-extrabold text-blue-600">{stats?.totalOfferings || 0}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider block">PENDING OFFERINGS</span>
-          <strong className="text-xl font-extrabold text-amber-600">{pendingOff}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider block">VERIFIED SUPPLIERS</span>
-          <strong className="text-xl font-extrabold text-emerald-600">{verifiedSup}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-rose-600 uppercase tracking-wider block">FLAGGED OFFERINGS</span>
-          <strong className="text-xl font-extrabold text-rose-600">{flaggedOff}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">DRAFT PRODUCTS</span>
-          <strong className="text-xl font-extrabold text-slate-900">{stats?.draftMasterProducts || 0}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-purple-600 uppercase tracking-wider block">DUPLICATES</span>
-          <strong className="text-xl font-extrabold text-purple-600">{dupeCount}</strong>
-        </div>
-
-        <div className="p-3.5 bg-white border border-slate-200 rounded-2xl shadow-2xs space-y-1">
-          <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider block">PENDING REQUESTS</span>
-          <strong className="text-xl font-extrabold text-amber-600">{pendingReqs}</strong>
-        </div>
-      </div>
+      )}
 
       {/* Multi-Field Server-Side Search Bar */}
-      <div className="p-5 bg-white border border-slate-200 rounded-3xl shadow-2xs space-y-4">
-        <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3">
+      <div className="p-3.5 bg-white border border-[#E4E4E7] rounded-[8px] shadow-tactile-card space-y-3">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-2.5">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+            <Search className="w-3.5 h-3.5 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search Master Product by Chemical Name, CAS (e.g. 103-90-2), Code (e.g. API-MP-100428), Formula..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+              placeholder="Search Master Product by Chemical Name, CAS (e.g. 103-90-2), Code, Formula..."
+              className="w-full pl-8.5 pr-3 py-1.5 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0052CC] transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSearching}
-            className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-2xs disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+            className="h-8 px-4 bg-[#0052CC] hover:bg-[#0747A6] text-white rounded-[6px] text-xs font-medium transition-colors shadow-xs disabled:opacity-50 flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
           >
             {isSearching ? (
               <>
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                SEARCHING...
+                <span>Searching...</span>
               </>
             ) : (
-              "SEARCH"
+              <span>Search</span>
             )}
           </button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 pt-2 border-t border-slate-100">
-          <div className="flex items-center gap-2">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span className="font-bold text-slate-700">Category:</span>
+        <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B] pt-2 border-t border-[#E4E4E7]">
+          <div className="flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-[#94A3B8]" />
+            <span className="font-medium text-[#0F172A]">Category:</span>
             <select
               value={category}
               onChange={(e) => { setCategory(e.target.value); setPage(0); }}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700"
+              className="h-7 px-2 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] text-xs text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
             >
               <option value="">All Categories</option>
               <option value="API">API</option>
@@ -272,12 +252,12 @@ export default function MasterCatalogGovernanceDashboardPage() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-700">Status:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium text-[#0F172A]">Status:</span>
             <select
               value={status}
               onChange={(e) => { setStatus(e.target.value); setPage(0); }}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700"
+              className="h-7 px-2 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] text-xs text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
             >
               <option value="">All Statuses</option>
               <option value="ACTIVE">ACTIVE</option>
@@ -287,12 +267,12 @@ export default function MasterCatalogGovernanceDashboardPage() {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-700">Verified Suppliers Only:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium text-[#0F172A]">Verified Suppliers:</span>
             <select
               value={verifiedFilter}
               onChange={(e) => { setVerifiedFilter(e.target.value); setPage(0); }}
-              className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700"
+              className="h-7 px-2 bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] text-xs text-[#0F172A] focus:outline-none focus:border-[#0052CC]"
             >
               <option value="">All</option>
               <option value="true">Yes</option>
@@ -303,76 +283,80 @@ export default function MasterCatalogGovernanceDashboardPage() {
       </div>
 
       {/* Master Products Table */}
-      <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] overflow-hidden shadow-tactile-card">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-[#F8FAFC] border-b border-[#E4E4E7] text-[#475569] font-mono font-semibold uppercase tracking-wider text-[10px]">
               <tr>
                 <th className="px-4 py-3">Code & Name</th>
                 <th className="px-4 py-3">CAS & Formula</th>
                 <th className="px-4 py-3">Category</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Verification Score</th>
-                <th className="px-4 py-3">Verification Status</th>
+                <th className="px-4 py-3">Completeness</th>
+                <th className="px-4 py-3">Verification</th>
                 <th className="px-4 py-3">Offerings</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+            <tbody className="divide-y divide-[#E4E4E7] text-[#0F172A]">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">Loading Master Catalog Records...</td>
+                  <td colSpan={8} className="p-8 text-center text-[#64748B]">Loading Master Catalog Records...</td>
                 </tr>
               ) : products.length > 0 ? (
                 products.map((mp) => {
                   const score = mp.casNumber && mp.molecularFormula ? 100 : 75;
                   return (
-                    <tr key={mp.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-4 py-3.5">
-                        <span className="font-mono text-[10px] font-bold text-slate-400 block">{mp.masterProductCode}</span>
-                        <strong className="text-slate-900 font-bold block">{mp.name}</strong>
+                    <tr key={mp.id} className="hover:bg-[#F8FAFC] transition-colors">
+                      <td className="px-4 py-3">
+                        <span className="text-[#0F172A] font-semibold text-xs block">{mp.name}</span>
+                        <span className="font-mono text-[10px] text-[#64748B] block mt-0.5">{mp.masterProductCode || "—"}</span>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="block font-mono text-[11px]">CAS: {mp.casNumber || "N/A"}</span>
-                        <span className="text-slate-400 font-mono text-[10px] block">{mp.molecularFormula || "N/A"}</span>
+                      <td className="px-4 py-3 text-xs">
+                        <span className="block font-mono text-[11px] text-[#0F172A]">CAS {mp.casNumber || "—"}</span>
+                        <span className="text-[#64748B] text-[10px] block font-mono">{mp.molecularFormula || "—"}</span>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-800 text-[10px] font-extrabold rounded uppercase">
-                          {mp.category.replace("_", " ")}
+                      <td className="px-4 py-3">
+                        <span className="text-xs text-[#475569]">
+                          {mp.category || "—"}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
-                          mp.status === "ACTIVE" ? "bg-emerald-50 text-emerald-800 border border-emerald-200" :
-                          mp.status === "MERGED" ? "bg-purple-50 text-purple-800 border border-purple-200" :
-                          "bg-slate-100 text-slate-700 border border-slate-200"
-                        }`}>
-                          {mp.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 font-bold font-mono">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`px-2 py-0.5 rounded text-[10px] ${score === 100 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
-                            {score}%
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1.5 text-xs">
+                          <span className={`w-1.5 h-1.5 rounded-full ${
+                            mp.status === "ACTIVE" ? "bg-[#059669]" :
+                            mp.status === "MERGED" ? "bg-[#D97706]" : "bg-[#94A3B8]"
+                          }`} />
+                          <span className={`font-medium ${
+                            mp.status === "ACTIVE" ? "text-[#059669]" :
+                            mp.status === "MERGED" ? "text-[#D97706]" : "text-[#64748B]"
+                          }`}>
+                            {mp.status === "ACTIVE" ? "Active" : mp.status === "MERGED" ? "Merged" : (mp.status || "—")}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase ${
-                          score === 100 ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-amber-50 text-amber-800 border border-amber-200"
-                        }`}>
-                          {score === 100 ? "VERIFIED" : "NEEDS REVIEW"}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="font-bold text-slate-900 block">{mp.offeringCount} Offerings</span>
+                      <td className="px-4 py-3 font-mono text-xs">
+                        <span className={`inline-flex px-1.5 py-0.5 rounded-[4px] font-semibold ${score === 100 ? "bg-[#ECFDF5] text-[#059669]" : "bg-[#FFFBEB] text-[#D97706]"}`}>
+                          {score}%
+                        </span>
                       </td>
-                      <td className="px-4 py-3.5 text-right">
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2 py-0.5 rounded-[4px] text-[10px] font-mono font-semibold uppercase border ${
+                          score === 100 ? "bg-[#ECFDF5] text-[#059669] border-[rgba(5,150,105,0.2)]" : "bg-[#FFFBEB] text-[#D97706] border-[rgba(217,119,6,0.2)]"
+                        }`}>
+                          {score === 100 ? "VERIFIED" : "REVIEW"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#0F172A]">
+                        {mp.offeringCount} {mp.offeringCount === 1 ? "Offer" : "Offers"}
+                      </td>
+                      <td className="px-4 py-3 text-right">
                         <Link
                           href={`/dashboard/admin/catalog/master-products/${mp.id}`}
-                          className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
+                          className="h-7 px-2.5 bg-white hover:bg-[#FAFAFA] text-[#0F172A] border border-[#E4E4E7] rounded-[4px] text-xs font-medium transition-colors inline-flex items-center gap-1 shadow-xs"
                         >
-                          <Eye className="w-3.5 h-3.5" /> View / Govern
+                          <Eye className="w-3.5 h-3.5 text-[#64748B]" />
+                          <span>Govern</span>
                         </Link>
                       </td>
                     </tr>
@@ -380,7 +364,7 @@ export default function MasterCatalogGovernanceDashboardPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-slate-500">No Master Product catalog items found.</td>
+                  <td colSpan={8} className="p-8 text-center text-[#64748B]">No Master Product catalog items found.</td>
                 </tr>
               )}
             </tbody>

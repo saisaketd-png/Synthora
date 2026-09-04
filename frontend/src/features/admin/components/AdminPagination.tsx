@@ -26,11 +26,11 @@ export function AdminPagination({
   const endItem = Math.min((page + 1) * pageSize, totalElements);
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-2">
-      <div className="text-xs sm:text-sm text-slate-500 font-medium">
-        Showing <span className="font-bold text-slate-900">{startItem}</span> to{" "}
-        <span className="font-bold text-slate-900">{endItem}</span> of{" "}
-        <span className="font-bold text-slate-900">{totalElements}</span> results
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-3 px-2">
+      <div className="text-xs text-[#64748B]">
+        Showing <span className="font-mono font-bold text-[#0F172A]">{startItem}</span> to{" "}
+        <span className="font-mono font-bold text-[#0F172A]">{endItem}</span> of{" "}
+        <span className="font-mono font-bold text-[#0F172A]">{totalElements}</span> results
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -38,26 +38,26 @@ export function AdminPagination({
           type="button"
           onClick={() => onPageChange(page - 1)}
           disabled={page <= 0 || disabled}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs"
+          className="inline-flex items-center gap-1 h-8 px-2.5 text-xs font-medium text-[#475569] bg-white border border-[#E4E4E7] rounded-[6px] hover:bg-[#FAFAFA] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-xs cursor-pointer"
           aria-label="Previous Page"
         >
-          <ChevronLeft className="w-4 h-4" />
-          Previous
+          <ChevronLeft className="w-3.5 h-3.5" />
+          <span>Previous</span>
         </button>
 
-        <span className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 rounded-lg">
-          Page {page + 1} of {totalPages}
+        <span className="h-8 px-3 inline-flex items-center text-xs font-mono font-semibold text-[#0F172A] bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px]">
+          {page + 1} / {totalPages}
         </span>
 
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={page >= totalPages - 1 || disabled}
-          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs"
+          className="inline-flex items-center gap-1 h-8 px-2.5 text-xs font-medium text-[#475569] bg-white border border-[#E4E4E7] rounded-[6px] hover:bg-[#FAFAFA] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-xs cursor-pointer"
           aria-label="Next Page"
         >
-          Next
-          <ChevronRight className="w-4 h-4" />
+          <span>Next</span>
+          <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

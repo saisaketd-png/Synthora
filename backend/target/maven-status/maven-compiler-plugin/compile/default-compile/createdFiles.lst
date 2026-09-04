@@ -20,6 +20,7 @@ com\kemkendra\seller\verification\dto\FinalizeVerificationRequest.class
 com\kemkendra\order\dto\CreatePurchaseOrderRequest.class
 com\kemkendra\seller\verification\EvidenceStatus.class
 com\kemkendra\admin\config\PlatformFeatureFlagRepository.class
+com\kemkendra\security\csrf\CsrfCookieFilter.class
 com\kemkendra\product\ProductRequest.class
 com\kemkendra\notification\NotificationStreamService.class
 com\kemkendra\order\dto\ShipmentResponse.class
@@ -29,6 +30,7 @@ com\kemkendra\admin\audit\AuditLog.class
 com\kemkendra\notification\Notification.class
 com\kemkendra\document\DocumentRepository.class
 com\kemkendra\product\dto\UpdateProductRequest.class
+com\kemkendra\identity\service\RefreshTokenService$CreatedSession.class
 com\kemkendra\admin\config\dto\AdminConfigDtos$UpdateTaxonomyRequest.class
 com\kemkendra\order\PurchaseOrder.class
 com\kemkendra\product\dto\MasterProductDetailResponse.class
@@ -58,7 +60,9 @@ com\kemkendra\document\FileSecurityValidator.class
 com\kemkendra\admin\analytics\dto\AnalyticsTrendsDto.class
 com\kemkendra\product\apis\ProductImageController.class
 com\kemkendra\security\ratelimit\RateLimitProperties.class
+com\kemkendra\security\origin\CookieEndpointOriginFilter.class
 com\kemkendra\product\dto\AdminUpdateSupplierOfferingRequest.class
+com\kemkendra\notification\email\AsyncEmailDispatcher.class
 com\kemkendra\rfq\RfqStatus.class
 com\kemkendra\admin\config\dto\AdminConfigDtos$UpdateAnnouncementRequest.class
 com\kemkendra\notification\email\EmailServiceImpl.class
@@ -73,6 +77,7 @@ com\kemkendra\product\verification\dto\OfferingAuditDto.class
 com\kemkendra\admin\transaction\api\AdminTransactionController.class
 com\kemkendra\admin\config\dto\AdminConfigDtos$PlatformSettingDto.class
 com\kemkendra\product\ProductMasterMappingRepository.class
+com\kemkendra\identity\dto\LoginAuthResult.class
 com\kemkendra\notification\email\EmailService.class
 com\kemkendra\product\dto\ImageContentResult.class
 com\kemkendra\product\dto\AdminMasterProductSearchCriteria.class
@@ -219,6 +224,7 @@ com\kemkendra\buyer\shortlist\dto\AddShortlistItemRequest.class
 com\kemkendra\product\ProductSupplierService.class
 com\kemkendra\admin\operations\dto\AdminOperationsDtos$CategoryBreakdownDto.class
 com\kemkendra\admin\config\dto\AdminConfigDtos$PlatformSettingsGroupDto.class
+com\kemkendra\security\csrf\SpaCsrfTokenRequestHandler.class
 com\kemkendra\admin\audit\dto\AdminAuditLogResponse.class
 com\kemkendra\admin\analytics\dto\FunnelStageDto.class
 com\kemkendra\product\verification\SupplierOfferingVerificationEvidence.class
@@ -239,6 +245,7 @@ com\kemkendra\admin\operations\dto\AdminOperationsDtos$SupplierQualityItemRespon
 com\kemkendra\common\LegalConstants.class
 com\kemkendra\admin\analytics\dto\DataPointDto.class
 com\kemkendra\common\ResourceNotFoundException.class
+com\kemkendra\security\cookie\AuthCookieProperties.class
 com\kemkendra\product\verification\dto\SuspendOfferingRequest.class
 com\kemkendra\notification\events\PurchaseOrderConfirmedEvent.class
 com\kemkendra\admin\taxonomy\CatalogTaxonomy.class
@@ -267,7 +274,9 @@ com\kemkendra\admin\analytics\AdminAnalyticsService.class
 com\kemkendra\product\ProductImageService$ImageContentResult.class
 com\kemkendra\seller\verification\VerificationType.class
 com\kemkendra\product\dto\ProductSupplierRequest.class
+com\kemkendra\security\csrf\CsrfCookieProperties.class
 com\kemkendra\identity\dto\UpdateProfileRequest.class
+com\kemkendra\identity\service\EmailVerificationService$1.class
 com\kemkendra\admin\user\api\AdminUserController.class
 com\kemkendra\product\verification\SupplierOfferingVerificationService.class
 com\kemkendra\config\AdminBootstrap.class
@@ -310,6 +319,7 @@ com\kemkendra\notification\events\OrderDeliveredEvent.class
 com\kemkendra\product\apis\AdminMasterCatalogController.class
 com\kemkendra\rfq\apis\RfqController.class
 com\kemkendra\admin\transaction\dto\AdminQuotationSummary.class
+com\kemkendra\identity\dto\RefreshTokenResponse.class
 com\kemkendra\product\dto\ProductResponse.class
 com\kemkendra\product\ProductCodeGenerator.class
 com\kemkendra\notification\events\RfqExpiredEvent.class
@@ -318,6 +328,7 @@ com\kemkendra\identity\dto\ChangePasswordResponse.class
 com\kemkendra\admin\announcement\PlatformAnnouncement.class
 com\kemkendra\admin\operations\dto\AdminOperationsDtos$AdminSearchResultItem.class
 com\kemkendra\product\ProductSupplier.class
+com\kemkendra\identity\dto\LogoutResponse.class
 com\kemkendra\document\DocumentUploadRequest.class
 com\kemkendra\identity\dto\RegisterRequest.class
 com\kemkendra\identity\dto\SupplierRegisterResponse.class
@@ -346,6 +357,7 @@ com\kemkendra\admin\operations\dto\AdminOperationsDtos$SupplierVerificationPipel
 com\kemkendra\identity\EmailVerificationTokenRepository.class
 com\kemkendra\product\dto\SupplierOfferingResponse.class
 com\kemkendra\rfq\dto\RfqResponse.class
+com\kemkendra\security\origin\OriginValidator.class
 com\kemkendra\admin\api\AdminSystemController.class
 com\kemkendra\order\apis\PurchaseOrderController.class
 com\kemkendra\seller\verification\SupplierVerificationEvidence.class
@@ -373,8 +385,10 @@ com\kemkendra\security\RateLimitExceededException.class
 com\kemkendra\document\storage\StorageService.class
 com\kemkendra\product\verification\dto\RejectOfferingRequest.class
 com\kemkendra\buyer\shortlist\dto\ShortlistItemDto.class
+com\kemkendra\identity\RefreshToken.class
 com\kemkendra\admin\announcement\PlatformAnnouncementRepository.class
 com\kemkendra\security\ratelimit\RateLimitProperties$LimitRule.class
+com\kemkendra\identity\dto\RefreshTokenRotateResult.class
 com\kemkendra\product\verification\dto\VerifyOfferingItemRequest.class
 com\kemkendra\admin\operations\dto\AdminOperationsDtos$AttentionQueueItem.class
 com\kemkendra\order\ShipmentRepository.class
@@ -424,9 +438,12 @@ com\kemkendra\product\verification\SupplierOfferingVerificationEvidenceRepositor
 com\kemkendra\notification\NotificationType.class
 com\kemkendra\product\dto\CatalogImageResponse.class
 com\kemkendra\account\api\UserAppealController.class
+com\kemkendra\security\cookie\AuthCookieService.class
 com\kemkendra\product\dto\ApproveAndLinkPayload.class
 com\kemkendra\product\verification\dto\SupplierOfferingGovernanceWorkspaceDto.class
 com\kemkendra\notification\events\QuotationSubmittedEvent.class
+com\kemkendra\identity\RefreshTokenRepository.class
+com\kemkendra\security\csrf\CsrfConfig.class
 com\kemkendra\seller\verification\dto\VerificationChecklistItemDto.class
 com\kemkendra\admin\transaction\dto\AdminPurchaseOrderDetailResponse.class
 com\kemkendra\identity\service\PasswordResetService.class
@@ -447,6 +464,7 @@ com\kemkendra\admin\operations\dto\AdminOperationsDtos$SupplierOfferingQualityIt
 com\kemkendra\product\verification\OfferingEvidenceStatus.class
 com\kemkendra\product\ProductCodeGenerator$1.class
 com\kemkendra\security\ratelimit\InMemoryRateLimiterStorage$Consumption.class
+com\kemkendra\identity\service\RefreshTokenService.class
 com\kemkendra\admin\audit\AuditAction.class
 com\kemkendra\product\dto\FlagOfferingPayload.class
 com\kemkendra\buyer\shortlist\BuyerShortlistController.class

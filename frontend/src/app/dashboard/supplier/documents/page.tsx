@@ -18,6 +18,7 @@ import {
 import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 import { DocumentList } from "@/shared/components/documents/DocumentList";
 import { DocumentResponse, getDocuments } from "@/features/documents/api/documentApi";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 
 const COMPLIANCE_CATEGORIES = [
   { value: "GST_CERTIFICATE", label: "GST Certificate" },
@@ -124,96 +125,88 @@ export default function SupplierDocumentsVaultPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-16">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-zinc-900 via-zinc-800 to-indigo-950 text-white p-8 rounded-3xl shadow-xl">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 backdrop-blur-md border border-white/10 text-emerald-400">
-            <FileCheck className="w-3.5 h-3.5" />
-            <span>Cryptographic Document Vault (SHA-256 Governed)</span>
+    <div className="max-w-[1440px] mx-auto space-y-5 text-[#0F172A]">
+      {/* 1. Page Header */}
+      <PageHeader
+        title="Compliance & Technical Documents Vault"
+        description={`Cryptographic document repository (SHA-256 Governed) for ${companyName} statutory certificates, accreditations, and quality filings.`}
+        actions={
+          <div className="flex items-center gap-2">
+            <Link
+              href="/dashboard/supplier/verification"
+              className="h-8 px-3 text-xs font-medium bg-white text-[#0F172A] border border-[#E4E4E7] hover:bg-[#FAFAFA] rounded-[6px] transition-colors shadow-xs flex items-center gap-1.5"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
+              <span>Verification Status</span>
+            </Link>
+            <button
+              onClick={loadSupplierProfile}
+              className="h-8 px-3 text-xs font-medium text-[#0F172A] bg-white border border-[#E4E4E7] hover:bg-[#FAFAFA] rounded-[6px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
+              title="Refresh documents"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-            Documents & Compliance Vault
-          </h1>
-          <p className="text-sm text-zinc-300 max-w-2xl">
-            Central repository for {companyName}&apos;s statutory compliance certificates, quality assurances, technical datasheets, and commercial records with full revision lineages.
-          </p>
+        }
+      />
+
+      {/* 2. Overview Metric Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3.5 shadow-tactile-card">
+          <div className="flex items-center justify-between text-[#64748B] mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">Active Records</span>
+            <FolderOpen className="w-3.5 h-3.5 text-[#0052CC]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#0F172A]">{stats.total}</div>
+          <div className="text-[11px] text-[#64748B] mt-0.5">Governed records</div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/supplier/verification"
-            className="px-4 py-2.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/10 transition-colors flex items-center gap-1.5"
-          >
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Verification Center</span>
-          </Link>
-          <button
-            onClick={loadSupplierProfile}
-            className="p-2.5 text-xs font-semibold bg-white/10 hover:bg-white/20 text-white rounded-xl backdrop-blur-md border border-white/10 transition-colors"
-            title="Refresh documents"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+        <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3.5 shadow-tactile-card">
+          <div className="flex items-center justify-between text-[#64748B] mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">Valid & Verified</span>
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#059669]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#059669]">{stats.valid}</div>
+          <div className="text-[11px] text-[#64748B] mt-0.5">Compliant & current</div>
+        </div>
+
+        <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3.5 shadow-tactile-card">
+          <div className="flex items-center justify-between text-[#64748B] mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">Expiring Soon</span>
+            <Clock className="w-3.5 h-3.5 text-[#D97706]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#D97706]">{stats.expiringSoon}</div>
+          <div className="text-[11px] text-[#64748B] mt-0.5">Within 30 days</div>
+        </div>
+
+        <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3.5 shadow-tactile-card">
+          <div className="flex items-center justify-between text-[#64748B] mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">Expired</span>
+            <AlertTriangle className="w-3.5 h-3.5 text-[#DC2626]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#DC2626]">{stats.expired}</div>
+          <div className="text-[11px] text-[#64748B] mt-0.5">Requires renewal</div>
+        </div>
+
+        <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3.5 shadow-tactile-card">
+          <div className="flex items-center justify-between text-[#64748B] mb-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider font-mono">Audit Lineage</span>
+            <FileText className="w-3.5 h-3.5 text-[#64748B]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#0F172A]">{stats.versions}</div>
+          <div className="text-[11px] text-[#64748B] mt-0.5">Version revisions</div>
         </div>
       </div>
 
-      {/* Overview Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-zinc-500 mb-2">
-            <span className="text-xs font-medium">Active Documents</span>
-            <FolderOpen className="w-4 h-4 text-indigo-500" />
-          </div>
-          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{stats.total}</div>
-          <div className="text-[11px] text-zinc-400 mt-1">Current governed records</div>
-        </div>
-
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-zinc-500 mb-2">
-            <span className="text-xs font-medium">Valid & Active</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          </div>
-          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{stats.valid}</div>
-          <div className="text-[11px] text-zinc-400 mt-1">Compliant & verified</div>
-        </div>
-
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-zinc-500 mb-2">
-            <span className="text-xs font-medium">Expiring Soon</span>
-            <Clock className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.expiringSoon}</div>
-          <div className="text-[11px] text-zinc-400 mt-1">Action within 30 days</div>
-        </div>
-
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-zinc-500 mb-2">
-            <span className="text-xs font-medium">Expired</span>
-            <AlertTriangle className="w-4 h-4 text-rose-500" />
-          </div>
-          <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">{stats.expired}</div>
-          <div className="text-[11px] text-zinc-400 mt-1">Requires renewal</div>
-        </div>
-
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
-          <div className="flex items-center justify-between text-zinc-500 mb-2">
-            <span className="text-xs font-medium">Total Versions</span>
-            <FileText className="w-4 h-4 text-zinc-500" />
-          </div>
-          <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{stats.versions}</div>
-          <div className="text-[11px] text-zinc-400 mt-1">Audit revision trail</div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
+      {/* 3. Category Filter Tabs */}
+      <div className="flex items-center gap-1.5 border-b border-[#E4E4E7] pb-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab("ALL")}
-          className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-[6px] transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === "ALL"
-              ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
-              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              ? "bg-[#0052CC] text-white shadow-xs"
+              : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
           }`}
         >
           All Vault Records
@@ -221,10 +214,10 @@ export default function SupplierDocumentsVaultPage() {
 
         <button
           onClick={() => setActiveTab("COMPLIANCE")}
-          className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-[6px] transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === "COMPLIANCE"
-              ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
-              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              ? "bg-[#0052CC] text-white shadow-xs"
+              : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
           }`}
         >
           Statutory & Compliance
@@ -232,21 +225,21 @@ export default function SupplierDocumentsVaultPage() {
 
         <button
           onClick={() => setActiveTab("QUALITY")}
-          className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-[6px] transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === "QUALITY"
-              ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
-              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              ? "bg-[#0052CC] text-white shadow-xs"
+              : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
           }`}
         >
-          Quality & Accreditations (ISO/GMP)
+          Quality & Certifications (ISO/GMP)
         </button>
 
         <button
           onClick={() => setActiveTab("TECHNICAL")}
-          className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-[6px] transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === "TECHNICAL"
-              ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
-              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              ? "bg-[#0052CC] text-white shadow-xs"
+              : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
           }`}
         >
           Technical Data (TDS/MSDS/COA)
@@ -254,10 +247,10 @@ export default function SupplierDocumentsVaultPage() {
 
         <button
           onClick={() => setActiveTab("COMMERCIAL")}
-          className={`px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-[6px] transition-colors whitespace-nowrap cursor-pointer ${
             activeTab === "COMMERCIAL"
-              ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-sm"
-              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              ? "bg-[#0052CC] text-white shadow-xs"
+              : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F4F4F5]"
           }`}
         >
           Commercial & Shipments

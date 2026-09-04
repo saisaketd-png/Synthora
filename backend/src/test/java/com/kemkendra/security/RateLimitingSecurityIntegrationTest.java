@@ -252,4 +252,93 @@ class RateLimitingSecurityIntegrationTest {
         assertEquals(maxAllowed, successCount.get());
         assertEquals(totalRequests - maxAllowed, rateLimitedCount.get());
     }
+
+    @Test
+    @DisplayName("Direct untrusted connection ignores spoofed X-Forwarded-For headers")
+    void testDirectUntrustedRequestIgnoresSpoofedXForwardedFor() throws Exception {
+        String directUntrustedIp = "203.0.113.88";
+
+        // Perform 5 requests with spoofed X-Forwarded-For
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(get("/api/v1/products")
+                    .with(req -> {
+                        req.setRemoteAddr(directUntrustedIp);
+                        return req;
+                    })
+                    .header("X-Forwarded-For", "1.1.1." + i))
+                    .andExpect(status().isOk());
+        }
+
+        // 6th request with a new spoofed X-Forwarded-For IP must STILL be rate limited because direct remoteAddr is tracked
+        mockMvc.perform(get("/api/v1/products")
+                .with(req -> {
+                    req.setRemoteAddr(directUntrustedIp);
+                    return req;
+                })
+                .header("X-Forwarded-For", "9.9.9.9"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code", is("RATE_LIMIT_EXCEEDED")));
+    }
+
+    @Test
+    @DisplayName("Multi-hop X-Forwarded-For extracts rightmost untrusted client IP, ignoring client-prepended headers")
+    void testMultiHopXForwardedForExtractsRightmostUntrustedClient() throws Exception {
+        String realClientIp = "203.0.113.99";
+
+        // Attacker sends header with spoofed IP prepended before their real IP
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(get("/api/v1/products")
+                    .header("X-Forwarded-For", "10.0.0.1, 1.2.3." + i + ", " + realClientIp))
+                    .andExpect(status().isOk());
+        }
+
+        // 6th attempt with a different spoofed prefix must be rejected because realClientIp is exhausted
+        mockMvc.perform(get("/api/v1/products")
+                .header("X-Forwarded-For", "8.8.8.8, " + realClientIp))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code", is("RATE_LIMIT_EXCEEDED")));
+    }
+
+    @Test
+    @DisplayName("Direct untrusted connection ignores spoofed CF-Connecting-IP")
+    void testDirectUntrustedRequestIgnoresCFConnectingIp() throws Exception {
+        String directUntrustedIp = "203.0.113.77";
+
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(get("/api/v1/products")
+                    .with(req -> {
+                        req.setRemoteAddr(directUntrustedIp);
+                        return req;
+                    })
+                    .header("CF-Connecting-IP", "8.8.8." + i))
+                    .andExpect(status().isOk());
+        }
+
+        // 6th attempt with different CF-Connecting-IP must be rejected
+        mockMvc.perform(get("/api/v1/products")
+                .with(req -> {
+                    req.setRemoteAddr(directUntrustedIp);
+                    return req;
+                })
+                .header("CF-Connecting-IP", "1.2.3.4"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code", is("RATE_LIMIT_EXCEEDED")));
+    }
+
+    @Test
+    @DisplayName("Legitimate CF-Connecting-IP is respected when arriving via trusted proxy")
+    void testLegitimateCFConnectingIpViaTrustedProxy() throws Exception {
+        String clientIp = "198.51.100.22";
+
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(get("/api/v1/products")
+                    .header("CF-Connecting-IP", clientIp))
+                    .andExpect(status().isOk());
+        }
+
+        // 6th request from same client is rate limited
+        mockMvc.perform(get("/api/v1/products")
+                .header("CF-Connecting-IP", clientIp))
+                .andExpect(status().isTooManyRequests());
+    }
 }

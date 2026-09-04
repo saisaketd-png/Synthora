@@ -24,7 +24,7 @@ export function AdminBadge({ type, label, className = "" }: AdminBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide border uppercase ${colorStyles} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] text-[10px] font-mono font-semibold tracking-wider border uppercase ${colorStyles} ${className}`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-75" />
       {displayLabel}

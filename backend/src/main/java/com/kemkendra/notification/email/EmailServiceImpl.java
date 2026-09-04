@@ -1,12 +1,15 @@
 package com.kemkendra.notification.email;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +17,10 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * Production implementation of EmailService using Spring JavaMailSender.
- * Isolates all SMTP/MIME delivery failures from business execution.
+ *
+ * sendHtmlEmailAsync delegates to AsyncEmailDispatcher — a separate Spring bean —
+ * so that @Async AOP proxy intercepts correctly. Direct self-calls (this.method())
+ * bypass the proxy and @Async would silently run synchronously.
  */
 @Service
 public class EmailServiceImpl implements EmailService {
@@ -26,6 +32,11 @@ public class EmailServiceImpl implements EmailService {
     private final String fromName;
     private final boolean mailEnabled;
 
+    // @Lazy to break the circular dependency: AsyncEmailDispatcher → EmailService → EmailServiceImpl → AsyncEmailDispatcher
+    @Lazy
+    @Autowired
+    private AsyncEmailDispatcher asyncEmailDispatcher;
+
     public EmailServiceImpl(
             @Autowired(required = false) JavaMailSender mailSender,
             @Value("${kemkendra.mail.from:notifications@kemkendra.com}") String fromAddress,
@@ -35,6 +46,19 @@ public class EmailServiceImpl implements EmailService {
         this.fromAddress = fromAddress;
         this.fromName = fromName;
         this.mailEnabled = mailEnabled;
+    }
+
+    @PostConstruct
+    void logSmtpConfig() {
+        if (mailSender instanceof JavaMailSenderImpl impl) {
+            log.info("[SMTP-DIAG] host={} port={} username={} passwordLen={} mailEnabled={}",
+                    impl.getHost(), impl.getPort(), impl.getUsername(),
+                    impl.getPassword() != null ? impl.getPassword().length() : 0,
+                    mailEnabled);
+        } else {
+            log.warn("[SMTP-DIAG] JavaMailSender is not JavaMailSenderImpl — type: {}",
+                    mailSender != null ? mailSender.getClass().getName() : "null");
+        }
     }
 
     @Override
@@ -64,11 +88,19 @@ public class EmailServiceImpl implements EmailService {
             helper.setText(htmlBody, true);
 
             mailSender.send(message);
-            log.info("Successfully dispatched notification email to {} with subject '{}'", to, subject);
+            log.info("Successfully dispatched email to {} — subject '{}'", to, subject);
         } catch (Exception e) {
-            log.error("Failed to send notification email to {} with subject '{}': {}. " +
-                    "To enable real email dispatch, configure valid SMTP credentials (SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD) in your environment variables.",
-                    to, subject, e.getMessage());
+            log.error("Failed to send email to {} — subject '{}': {}", to, subject, e.getMessage());
         }
+    }
+
+    /**
+     * Fires email asynchronously via AsyncEmailDispatcher.
+     * Must delegate to a separate Spring bean — NOT call this.sendHtmlEmail() —
+     * because self-calls bypass the Spring AOP proxy and @Async silently does nothing.
+     */
+    @Override
+    public void sendHtmlEmailAsync(String to, String subject, String htmlBody) {
+        asyncEmailDispatcher.dispatch(to, subject, htmlBody);
     }
 }

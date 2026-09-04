@@ -17,6 +17,22 @@ spring:
     baseline-on-migrate: true
     out-of-order: true
 
+  mail:
+    host: ${SMTP_HOST:smtp.gmail.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        debug: true
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: smtp.gmail.com
+
 logging:
   level:
     root: INFO
@@ -25,4 +41,5 @@ logging:
 
 jwt:
   secret: ${JWT_SECRET:KemKendraDevSecretKeyForJwtSigning2026!}
-  expiration: ${JWT_EXPIRATION:86400000}
+  expiration: ${JWT_EXPIRATION:900000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}

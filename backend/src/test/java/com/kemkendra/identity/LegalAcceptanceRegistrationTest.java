@@ -254,4 +254,82 @@ public class LegalAcceptanceRegistrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").isNotEmpty());
     }
+
+    @Test
+    @DisplayName("Buyer registration with duplicate phone number fails with 400 and descriptive error")
+    void testBuyerRegistration_duplicatePhoneFails() throws Exception {
+        RegisterRequest req1 = new RegisterRequest(
+                "First Buyer",
+                "buyer1.phone@kemkendra-test.com",
+                "+919999988888",
+                "Password123!",
+                true,
+                true
+        );
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req1)))
+                .andExpect(status().isCreated());
+
+        RegisterRequest req2 = new RegisterRequest(
+                "Second Buyer",
+                "buyer2.phone@kemkendra-test.com",
+                "+919999988888",
+                "Password123!",
+                true,
+                true
+        );
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Phone number already registered"));
+    }
+
+    @Test
+    @DisplayName("Supplier registration with duplicate phone number fails with 400 and descriptive error")
+    void testSupplierRegistration_duplicatePhoneFails() throws Exception {
+        SupplierRegisterRequest req1 = new SupplierRegisterRequest(
+                "First Supplier",
+                "supplier1.phone@kemkendra-test.com",
+                "Password123!",
+                "First Supplier Corp",
+                "India",
+                "IN",
+                "+918888877777",
+                null,
+                null,
+                null,
+                true,
+                true
+        );
+
+        mockMvc.perform(post("/api/v1/auth/register/supplier")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req1)))
+                .andExpect(status().isCreated());
+
+        SupplierRegisterRequest req2 = new SupplierRegisterRequest(
+                "Second Supplier",
+                "supplier2.phone@kemkendra-test.com",
+                "Password123!",
+                "Second Supplier Corp",
+                "India",
+                "IN",
+                "+918888877777",
+                null,
+                null,
+                null,
+                true,
+                true
+        );
+
+        mockMvc.perform(post("/api/v1/auth/register/supplier")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Phone number already registered"));
+    }
 }

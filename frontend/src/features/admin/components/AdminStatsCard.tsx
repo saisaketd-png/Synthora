@@ -14,34 +14,35 @@ export function AdminStatsCard({
   value,
   subtitle,
   icon: Icon,
-  color = "teal",
+  color = "blue",
 }: AdminStatsCardProps) {
   const colorStyles = {
-    teal: "bg-teal-50 text-teal-600 border-teal-100",
-    purple: "bg-purple-50 text-purple-600 border-purple-100",
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    amber: "bg-amber-50 text-amber-600 border-amber-100",
-    rose: "bg-rose-50 text-rose-600 border-rose-100",
-    slate: "bg-slate-50 text-slate-600 border-slate-200",
+    teal: "text-[#059669] bg-[#ECFDF5] border-[rgba(5,150,105,0.2)]",
+    purple: "text-[#7C3AED] bg-[#F5F3FF] border-[rgba(124,58,237,0.2)]",
+    blue: "text-[#0052CC] bg-[#EFF6FF] border-[#BFDBFE]",
+    amber: "text-[#D97706] bg-[#FFFBEB] border-[rgba(217,119,6,0.2)]",
+    rose: "text-[#DC2626] bg-[#FEF2F2] border-[rgba(220,38,38,0.2)]",
+    slate: "text-[#475569] bg-[#F4F4F5] border-[#E4E4E7]",
   }[color];
 
   return (
-    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between gap-4">
+    <div className="bg-white p-4 rounded-[8px] border border-[#E4E4E7] shadow-tactile-card flex items-center justify-between gap-4">
       <div>
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+        <p className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider font-mono mb-1">
           {title}
         </p>
-        <h4 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+        <h4 className="text-xl sm:text-2xl font-bold font-mono text-[#0F172A] tracking-tight">
           {value}
         </h4>
         {subtitle && (
-          <p className="text-xs font-medium text-slate-500 mt-1">{subtitle}</p>
+          <p className="text-[11px] text-[#64748B] mt-1">{subtitle}</p>
         )}
       </div>
 
-      <div className={`p-3.5 rounded-2xl border ${colorStyles}`}>
-        <Icon className="w-6 h-6" />
+      <div className={`p-2 rounded-[6px] border ${colorStyles} shrink-0`}>
+        <Icon className="w-5 h-5" />
       </div>
     </div>
   );
 }
+

@@ -23,6 +23,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from "@/features/notifications/api/notifications";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 import {
   NotificationCategory,
   NotificationResponse,
@@ -209,43 +210,38 @@ export default function NotificationInboxPage() {
   const unreadCountOnPage = rawNotifications.filter((n) => !n.read).length;
 
   return (
-    <div className="max-w-[1240px] mx-auto py-2 sm:py-4 space-y-6">
+    <div className="max-w-[1240px] mx-auto space-y-5 pb-16 text-[#0F172A]">
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DFE1E6] pb-5">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#091E42] tracking-tight">
-            Notification & Communication Center
-          </h1>
-          <p className="text-sm sm:text-[15px] text-[#526581] mt-1 leading-normal">
-            Real-time administrative and marketplace updates across RFQs, orders, compliance, and governance.
-          </p>
-        </div>
-
-        {/* Header Actions */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={() => loadNotifications(false)}
-            disabled={loading}
-            className="p-2 text-[#5E6C84] hover:text-[#091E42] bg-white border border-[#DFE1E6] rounded-lg hover:bg-[#FAFBFC] transition-colors shadow-2xs cursor-pointer"
-            title="Refresh"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          </button>
-          <button
-            type="button"
-            onClick={handleMarkAll}
-            disabled={markingAll || unreadCountOnPage === 0}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-[#091E42] bg-white border border-[#DFE1E6] hover:bg-[#FAFBFC] rounded-lg transition-colors shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-          >
-            <CheckCheck className="w-4 h-4 text-[#0052CC]" />
-            <span>Mark all as read</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Notification Center"
+        description="Real-time procurement alerts, commercial quotation updates, order dispatch notices, and compliance messages."
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => loadNotifications(false)}
+              disabled={loading}
+              className="h-9 px-3 bg-white border border-[#E4E4E7] hover:bg-[#FAFAFA] text-[#0F172A] rounded-[6px] transition-colors shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-1.5 text-xs font-medium"
+              title="Refresh"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              <span>Refresh</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleMarkAll}
+              disabled={markingAll || unreadCountOnPage === 0}
+              className="h-9 px-3.5 bg-white border border-[#E4E4E7] hover:bg-[#FAFAFA] text-[#0F172A] rounded-[6px] transition-colors shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 text-xs font-medium"
+            >
+              <CheckCheck className="w-3.5 h-3.5 text-[#0052CC]" />
+              <span>Mark all as read</span>
+            </button>
+          </div>
+        }
+      />
 
       {/* 2. CATEGORY FILTER TABS */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-[#EBECF0]">
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-[#E4E4E7] text-xs">
         {CATEGORY_TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = selectedCategory === tab.value;
@@ -257,10 +253,10 @@ export default function NotificationInboxPage() {
                 setSelectedCategory(tab.value);
                 setPage(0);
               }}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+              className={`h-8 px-3 rounded-[6px] text-xs font-medium transition-colors flex items-center gap-1.5 shrink-0 ${
                 isActive
-                  ? "bg-[#0052CC] text-white shadow-xs"
-                  : "bg-white text-[#5E6C84] hover:text-[#091E42] hover:bg-[#FAFBFC] border border-[#DFE1E6]"
+                  ? "bg-[#EFF6FF] text-[#0052CC] font-semibold"
+                  : "text-[#475569] hover:bg-[#FAFAFA] hover:text-[#0F172A]"
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -271,32 +267,32 @@ export default function NotificationInboxPage() {
       </div>
 
       {/* 3. FILTER BAR & SEARCH */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFBFC] p-3 rounded-xl border border-[#DFE1E6]">
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-3 shadow-tactile-card flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Left: Search input */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-[#7A869A] absolute left-3 top-1/2 -translate-y-1/2" />
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Filter notifications by keyword..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm bg-white border border-[#DFE1E6] rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#0052CC]/20 focus:border-[#0052CC] text-[#091E42]"
+            className="w-full h-9 pl-8.5 pr-3 text-xs bg-[#FAFAFA] border border-[#E4E4E7] rounded-[6px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-[#0052CC] focus:bg-white"
           />
         </div>
 
         {/* Right: Unread Filter & Count */}
-        <div className="flex items-center gap-3">
-          <div className="inline-flex items-center p-0.5 bg-[#EBECF0] rounded-lg text-xs font-semibold">
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center p-0.5 bg-[#F4F4F5] rounded-[6px] text-xs border border-[#E4E4E7]">
             <button
               type="button"
               onClick={() => {
                 setFilterUnreadOnly(false);
                 setPage(0);
               }}
-              className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-[4px] text-xs transition-colors cursor-pointer ${
                 !filterUnreadOnly
-                  ? "bg-white text-[#0052CC] font-bold shadow-xs"
-                  : "text-[#5E6C84] hover:text-[#091E42]"
+                  ? "bg-white text-[#0052CC] font-semibold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
               }`}
             >
               All
@@ -307,24 +303,24 @@ export default function NotificationInboxPage() {
                 setFilterUnreadOnly(true);
                 setPage(0);
               }}
-              className={`px-3 py-1 rounded-md transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-2.5 py-1 rounded-[4px] text-xs transition-colors flex items-center gap-1.5 cursor-pointer ${
                 filterUnreadOnly
-                  ? "bg-white text-[#0052CC] font-bold shadow-xs"
-                  : "text-[#5E6C84] hover:text-[#091E42]"
+                  ? "bg-white text-[#0052CC] font-semibold shadow-xs"
+                  : "text-[#64748B] hover:text-[#0F172A]"
               }`}
             >
               <Filter className="w-3 h-3" />
               <span>Unread</span>
               {unreadCountOnPage > 0 && (
-                <span className="font-mono text-[10px] font-bold bg-[#DEEBFF] text-[#0747A6] px-1.5 py-0.2 rounded-full">
+                <span className="font-mono text-[10px] font-medium bg-[#EFF6FF] text-[#0052CC] px-1.5 py-0.2 rounded-[4px] border border-[#BFDBFE]">
                   {unreadCountOnPage}
                 </span>
               )}
             </button>
           </div>
 
-          <span className="text-xs text-[#5E6C84] font-medium hidden md:inline">
-            Total: <strong>{totalElements}</strong>
+          <span className="text-xs text-[#64748B] font-mono hidden md:inline">
+            Total: <strong className="text-[#0F172A]">{totalElements}</strong>
           </span>
         </div>
       </div>

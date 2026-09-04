@@ -18,6 +18,8 @@ import { getAdminOrders } from "@/features/admin/api/adminApi";
 import { AdminOrderList } from "@/features/admin/components/transactions/AdminOrderList";
 import { AdminStatsCard } from "@/features/admin/components/AdminStatsCard";
 
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
+
 export default function AdminOrdersPage() {
   const [data, setData] = useState<PaginatedResponse<AdminPurchaseOrderResponse>>({
     content: [],
@@ -71,78 +73,68 @@ export default function AdminOrdersPage() {
   const cancelledCount = data.content.filter((o) => o.status === "CANCELLED").length;
 
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xs">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200">
-              <ShoppingCart className="w-3.5 h-3.5" />
-              Order Fulfillment Oversight
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Purchase Order Oversight
-            </h1>
-            <p className="text-sm text-slate-600 max-w-2xl">
-              Monitor purchase order lifecycle, fulfillment milestones, and carrier shipment tracking. Administrative order cancellations are recorded in the audit log.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => fetchOrders()}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-2xs disabled:opacity-50"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-sky-600" : ""}`} />
-            Refresh
-          </button>
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
+        <div>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            Commercial Fulfillment
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Purchase Orders & Shipments
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Commercial contracts, order acceptance, carrier dispatch, milestone progress, and fulfillment audit records.
+          </p>
         </div>
+
+        <button
+          type="button"
+          onClick={() => fetchOrders()}
+          disabled={isLoading}
+          className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 self-start sm:self-auto"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+          <span>Refresh</span>
+        </button>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <AdminStatsCard
-          title="Total Orders"
-          value={totalOrders}
-          subtitle="Matching criteria"
-          icon={ShoppingCart}
-          color="blue"
-        />
-        <AdminStatsCard
-          title="In Fulfillment (Page)"
-          value={inFulfillmentCount}
-          subtitle="Placed / Confirmed / Processing"
-          icon={CheckCircle2}
-          color="teal"
-        />
-        <AdminStatsCard
-          title="Dispatched / Done (Page)"
-          value={dispatchedCount}
-          subtitle="Shipped / Delivered"
-          icon={Truck}
-          color="slate"
-        />
-        <AdminStatsCard
-          title="Cancelled (Page)"
-          value={cancelledCount}
-          subtitle="Terminated orders"
-          icon={Ban}
-          color="rose"
-        />
+      {/* 2. Horizontal Overview Band */}
+      <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-xs">
+        <div className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] mb-3">
+          Order Volumes
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[#E4E4E7]">
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Total Orders</span>
+            <div className="text-lg font-bold font-mono text-[#0F172A] mt-0.5">{totalOrders}</div>
+          </div>
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">In Fulfillment</span>
+            <div className="text-lg font-bold font-mono text-[#D97706] mt-0.5">{inFulfillmentCount}</div>
+          </div>
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Dispatched / Delivered</span>
+            <div className="text-lg font-bold font-mono text-[#059669] mt-0.5">{dispatchedCount}</div>
+          </div>
+          <div className="sm:px-4 first:pl-0 last:pr-0 py-1 sm:py-0">
+            <span className="text-[11px] text-[#64748B] block">Cancelled</span>
+            <div className="text-lg font-bold font-mono text-[#DC2626] mt-0.5">{cancelledCount}</div>
+          </div>
+        </div>
       </div>
 
       {/* Error Banner */}
       {error && (
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-bold shadow-xs">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
+        <div className="flex items-center justify-between p-3.5 rounded-[6px] bg-[#FEF2F2] border border-[rgba(220,38,38,0.2)] text-[#DC2626] text-xs shadow-xs">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0" />
             <span>{error}</span>
           </div>
           <button
             type="button"
             onClick={() => fetchOrders()}
-            className="px-3 py-1.5 bg-white text-rose-700 border border-rose-200 rounded-xl hover:bg-rose-100 text-xs font-bold transition-colors"
+            className="px-2.5 py-1 bg-white text-[#DC2626] border border-[#E4E4E7] rounded-[4px] hover:bg-[#FAFAFA] text-xs font-medium transition-colors cursor-pointer"
           >
             Retry
           </button>

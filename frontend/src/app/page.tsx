@@ -2,12 +2,11 @@ import { getProducts } from "@/features/products/api/getProducts";
 import { Product } from "@/features/products/types/product";
 import { Navbar } from "@/features/home/components/Navbar";
 import { SearchHeader } from "@/features/home/components/SearchHeader";
-import { TrustBar } from "@/features/home/components/TrustBar";
 import { FeaturedCatalogPreview } from "@/features/home/components/FeaturedCatalogPreview";
 import { CategoryShortcuts } from "@/features/home/components/CategoryShortcuts";
-import { SupplierSpotlight } from "@/features/home/components/SupplierSpotlight";
-import { MarketActivity } from "@/features/home/components/MarketActivity";
-import { ProcurementWorkflow } from "@/features/home/components/ProcurementWorkflow";
+import { BrandStatement } from "@/features/home/components/BrandStatement";
+import { BuyerSupplierSplit } from "@/features/home/components/BuyerSupplierSplit";
+import { TrustSection } from "@/features/home/components/TrustSection";
 import { ResourcesSection } from "@/features/home/components/ResourcesSection";
 import { EnterpriseCTA } from "@/features/home/components/EnterpriseCTA";
 import { Footer } from "@/features/home/components/Footer";
@@ -27,21 +26,31 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900 antialiased selection:bg-teal-500/20">
+    <div className="min-h-screen flex flex-col bg-white font-sans text-[#0F172A] antialiased">
       <Navbar />
       <main className="flex-1">
+        {/* 1. HERO: Full-Bleed Editorial Hero with Edge-to-Edge Chemical Facility Visual */}
         <SearchHeader />
-        <FeaturedCatalogPreview products={products} />
-        <section className="py-24 bg-slate-50 border-b border-slate-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <MarketActivity />
-              <ProcurementWorkflow />
-            </div>
-          </div>
-        </section>
+
+        {/* 2. CHEMICAL CATEGORIES: High-End Horizontal Directory */}
         <CategoryShortcuts />
+
+        {/* 3. MARKETPLACE CATALOG DISCOVERY: Products in Demand */}
+        <FeaturedCatalogPreview products={products} />
+
+        {/* 4. PROCUREMENT PIPELINE: 6-Stage Engineering Process Diagram + Large Editorial Statement */}
+        <BrandStatement />
+
+        {/* 5. BUYER & SUPPLIER SPLIT: 50/50 Editorial Value Proposition */}
+        <BuyerSupplierSplit />
+
+        {/* 6. GOVERNANCE & TRUST: Structured Verification & Auditability */}
+        <TrustSection />
+
+        {/* 7. TECHNICAL MONOGRAPHS & REGULATORY COMPLIANCE */}
         <ResourcesSection />
+
+        {/* 8. COMPACT COMMERCIAL CTA */}
         <EnterpriseCTA />
       </main>
       <Footer />

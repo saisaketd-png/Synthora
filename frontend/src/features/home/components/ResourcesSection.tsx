@@ -1,84 +1,86 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText, BookOpen, ShieldCheck } from "lucide-react";
 
 export function ResourcesSection() {
   const resources = [
     {
-      title: "Q3 API Manufacturing Trends & Forecasts",
-      category: "Market Analysis",
-      date: "Oct 12, 2023",
-      color: "bg-blue-100 text-blue-600",
+      title: "Active Pharmaceutical Ingredients (API) Regulatory Standards",
+      category: "Regulatory Dossier",
+      date: "Industry Standard",
+      summary: "Compliance guidelines covering Drug Master Files (DMF), US FDA, EDQM, and WHO-GMP requirements for API imports.",
     },
     {
-      title: "Navigating EU GMP Compliance Changes",
-      category: "Regulatory",
-      date: "Oct 05, 2023",
-      color: "bg-teal-100 text-teal-600",
+      title: "Technical Specification Benchmarks: Chemical Purity & Assay",
+      category: "Quality Assurance",
+      date: "Monograph Protocol",
+      summary: "Understanding analytical testing protocols: HPLC assay, impurity profiles, residual solvents, and COA validation.",
     },
     {
-      title: "Global Freight Benchmarks for Chemicals",
+      title: "Dangerous Goods (DG) Classifications & Consignment Custody",
       category: "Supply Chain",
-      date: "Sep 28, 2023",
-      color: "bg-orange-100 text-orange-600",
+      date: "Logistics Framework",
+      summary: "INCOTERMS, UN numbers, temperature-controlled cold chain logistics, and customs documentation requirements.",
     },
   ];
 
   return (
-    <section className="py-24 bg-white border-b border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 sm:py-20 bg-white border-b border-[#E4E4E7]">
+      <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-2 h-2 rounded-full bg-teal-400" />
-              <span className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">
-                Knowledge & Data
-              </span>
-            </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-[#0A192F] tracking-tight">
-              News & Market Insights
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+          <div>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0052CC] font-mono bg-[#EFF6FF] border border-[#BFDBFE] px-2.5 py-1 rounded-[4px]">
+              Technical Knowledge
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0F172A] tracking-tight mt-2.5">
+              Procurement & Compliance Guidelines
             </h2>
+            <p className="text-xs sm:text-sm text-[#64748B] mt-1.5 max-w-2xl leading-relaxed">
+              Technical monographs, regulatory documentation standards, and logistics specifications for institutional chemical procurement.
+            </p>
           </div>
           
           <Link
             href="/resources"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 text-[13px] font-bold rounded-full transition-all shrink-0"
+            className="h-9 px-4 bg-white border border-[#E4E4E7] hover:bg-[#FAFAFA] text-[#0F172A] text-xs font-medium rounded-[6px] transition-colors inline-flex items-center gap-2 shadow-xs shrink-0 self-start md:self-auto"
           >
-            <span>View all reports</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>View All Documentation</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
           </Link>
         </div>
 
         {/* 3-Column Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {resources.map((r, i) => (
-            <div
+            <Link
               key={i}
-              className="group rounded-[2rem] border border-slate-200 overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 flex flex-col bg-white"
+              href="/resources"
+              className="group bg-white hover:bg-[#FAFAFA] p-6 rounded-[8px] border border-[#E4E4E7] hover:border-[#0052CC] transition-colors flex flex-col justify-between shadow-tactile-card"
             >
-              {/* Image Placeholder */}
-              <div className="h-48 bg-slate-50 relative overflow-hidden flex items-center justify-center border-b border-slate-100 group-hover:scale-105 transition-transform duration-500">
-                <svg className="w-16 h-16 text-slate-200" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19 3H5c-1.103 0-2 .897-2 2v14c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2zM5 19V5h14l.002 14H5z" />
-                  <path d="m10 14-1-1-3 4h12l-5-7z" />
-                </svg>
-                {/* Overlay badge */}
-                <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${r.color}`}>
-                  {r.category}
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="px-2 py-0.5 rounded-[4px] text-[10px] font-mono font-medium uppercase tracking-wider bg-[#EFF6FF] text-[#0052CC] border border-[#BFDBFE]">
+                    {r.category}
+                  </span>
+                  <span className="text-[10px] font-mono text-[#64748B]">
+                    {r.date}
+                  </span>
                 </div>
-              </div>
-              
-              {/* Content */}
-              <div className="p-6 flex flex-col flex-1">
-                <h3 className="text-lg font-bold text-slate-900 mb-4 leading-tight group-hover:text-blue-600 transition-colors">
+                
+                <h3 className="text-sm font-semibold text-[#0F172A] mb-2 leading-snug group-hover:text-[#0052CC] transition-colors">
                   {r.title}
                 </h3>
-                <div className="mt-auto text-[13px] font-semibold text-slate-400">
-                  {r.date}
-                </div>
+                <p className="text-xs text-[#64748B] leading-relaxed">
+                  {r.summary}
+                </p>
               </div>
-            </div>
+
+              <div className="mt-5 pt-3 border-t border-[#E4E4E7] flex items-center justify-between text-xs font-medium text-[#0052CC]">
+                <span>Read Technical Article</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </Link>
           ))}
         </div>
         

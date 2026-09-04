@@ -667,14 +667,19 @@ export default function SupplierVerificationCenterPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#172B4D] mb-1">Business Email *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-[#172B4D]">Business Email *</label>
+                  <span className="text-[10px] text-[#5E6C84] flex items-center gap-1 font-mono">
+                    <Lock className="w-3 h-3 text-[#5E6C84]" /> Bound to account
+                  </span>
+                </div>
                 <input
                   type="email"
                   value={formData.businessEmail}
-                  onChange={(e) => setFormData({ ...formData, businessEmail: e.target.value })}
-                  disabled={!isDraftOrInfo}
+                  readOnly
+                  disabled
                   placeholder="corporate.contact@domain.com"
-                  className="w-full bg-[#FAFBFC] border border-[#DFE1E6] rounded-xl px-3 py-2 text-xs text-[#091E42] focus:bg-white focus:outline-none focus:border-[#0052CC] font-mono shadow-2xs"
+                  className="w-full bg-[#EBECF0] border border-[#DFE1E6] rounded-xl px-3 py-2 text-xs text-[#172B4D] cursor-not-allowed font-mono shadow-2xs"
                 />
               </div>
 

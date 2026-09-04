@@ -39,6 +39,7 @@ public class PasswordResetService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final RefreshTokenService refreshTokenService;
     private final String appBaseUrl;
 
     public PasswordResetService(
@@ -46,11 +47,13 @@ public class PasswordResetService {
             PasswordResetTokenRepository passwordResetTokenRepository,
             PasswordEncoder passwordEncoder,
             EmailService emailService,
+            RefreshTokenService refreshTokenService,
             @Value("${kemkendra.app.base-url:http://localhost:3000}") String appBaseUrl) {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.refreshTokenService = refreshTokenService;
         this.appBaseUrl = appBaseUrl != null && appBaseUrl.endsWith("/")
                 ? appBaseUrl.substring(0, appBaseUrl.length() - 1)
                 : (appBaseUrl != null ? appBaseUrl : "http://localhost:3000");
@@ -94,14 +97,7 @@ public class PasswordResetService {
         String resetUrl = appBaseUrl + "/reset-password?token=" + rawToken;
         sendResetEmail(user, resetUrl);
 
-        log.info("""
-
-                ================================================================================
-                [PASSWORD RESET DISPATCHED]
-                Recipient: {} (User ID: {})
-                Reset URL: {}
-                ================================================================================""",
-                user.getEmail(), user.getId(), resetUrl);
+        log.info("Dispatched password reset for user ID: {}, recipient: {}", user.getId(), user.getEmail());
         return ForgotPasswordResponse.ofDefault();
     }
 
@@ -129,8 +125,9 @@ public class PasswordResetService {
             throw new IllegalArgumentException("User account is inactive or not found.");
         }
 
-        // Update password using existing PasswordEncoder
+        // Update password using existing PasswordEncoder and record password change timestamp for session revocation
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordChangedAt(Instant.now());
         userRepository.save(user);
 
         // Mark token as used
@@ -140,6 +137,9 @@ public class PasswordResetService {
 
         // Invalidate any other outstanding tokens for this user
         passwordResetTokenRepository.invalidateActiveTokensForUser(user, now);
+
+        // Revoke all active refresh sessions for this user (Phase C.2)
+        refreshTokenService.revokeAllUserSessions(user.getId());
 
         log.info("Password successfully reset for user ID: {}", user.getId());
         return ResetPasswordResponse.ofDefault();
@@ -164,67 +164,75 @@ public class PasswordResetService {
         String subject = "[KemKendra] Reset Your Password";
         String htmlBody = """
                 <!DOCTYPE html>
-                <html>
+                <html lang="en">
                 <head>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Reset Your Password</title>
+                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                    <title>Reset your KemKendra password</title>
                 </head>
-                <body style="margin: 0; padding: 0; background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f8fafc;">
-                    <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0f172a; padding: 40px 20px;">
+                <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #0f172a;">
+                    <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 48px 16px;">
                         <tr>
                             <td align="center">
-                                <table width="100%%" max-width="600" style="max-width: 600px; background-color: #1e293b; border-radius: 12px; border: 1px solid #334155; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);">
-                                    <!-- Header -->
+                                <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="max-width: 540px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); overflow: hidden;">
+                                    <!-- Minimal Header -->
                                     <tr>
-                                        <td style="padding: 32px 40px; background: linear-gradient(135deg, #1e293b 0%%, #0f172a 100%%); border-bottom: 1px solid #334155;">
+                                        <td style="padding: 32px 40px 24px 40px; border-bottom: 1px solid #f1f5f9;">
                                             <table width="100%%" border="0" cellspacing="0" cellpadding="0">
                                                 <tr>
                                                     <td>
-                                                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: -0.5px;">KEMKENDRA</h1>
-                                                        <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">B2B Chemical & Raw Materials Marketplace</p>
+                                                        <span style="font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: 0.5px;">KEMKENDRA</span>
+                                                        <span style="display: inline-block; margin-left: 8px; font-size: 13px; color: #94a3b8; font-weight: 400;">&bull;&nbsp; Global B2B Chemical Marketplace</span>
                                                     </td>
                                                 </tr>
                                             </table>
                                         </td>
                                     </tr>
-                                    <!-- Body -->
+                                    <!-- Editorial Body -->
                                     <tr>
-                                        <td style="padding: 40px;">
-                                            <h2 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #f8fafc;">Password Reset Request</h2>
-                                            <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: #cbd5e1;">
+                                        <td style="padding: 36px 40px 32px 40px;">
+                                            <h1 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: #0f172a; letter-spacing: -0.2px; line-height: 28px;">
+                                                Password reset request
+                                            </h1>
+                                            <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 24px; color: #334155;">
                                                 Hello %s,
                                             </p>
-                                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 24px; color: #cbd5e1;">
-                                                We received a request to reset your password for your KemKendra account. Click the button below to choose a new password:
+                                            <p style="margin: 0 0 28px 0; font-size: 15px; line-height: 24px; color: #334155;">
+                                                We received a request to reset the password for your KemKendra account. Click the button below to choose a new password.
                                             </p>
-                                            <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="margin: 28px 0;">
+                                            <!-- Solid Primary Action -->
+                                            <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 0 28px 0;">
                                                 <tr>
-                                                    <td align="center">
-                                                        <a href="%s" style="display: inline-block; background: linear-gradient(135deg, #0284c7 0%%, #0369a1 100%%); color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 600; padding: 14px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
+                                                    <td align="center" style="border-radius: 6px; background-color: #0f172a;">
+                                                        <a href="%s" target="_blank" style="display: inline-block; padding: 12px 28px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px; background-color: #0f172a;">
                                                             Reset Password
                                                         </a>
                                                     </td>
                                                 </tr>
                                             </table>
-                                            <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 20px; color: #94a3b8;">
-                                                <strong>Note:</strong> This link will expire in <strong>15 minutes</strong> and can only be used once.
+                                            <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 20px; color: #64748b;">
+                                                This link expires in 15 minutes. If you did not request a password reset, your account remains secure and no action is needed.
                                             </p>
-                                            <p style="margin: 0 0 24px 0; font-size: 13px; line-height: 20px; color: #94a3b8;">
-                                                If you did not request this password reset, please ignore this email or contact security if you have concerns. Your password will remain unchanged.
-                                            </p>
-                                            <hr style="border: 0; border-top: 1px solid #334155; margin: 24px 0;">
-                                            <p style="margin: 0; font-size: 12px; line-height: 18px; color: #64748b; word-break: break-all;">
-                                                If the button above doesn't work, copy and paste this link into your browser:<br>
-                                                <a href="%s" style="color: #38bdf8; text-decoration: underline;">%s</a>
-                                            </p>
+                                            <!-- Monospace direct link -->
+                                            <div style="border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                                                <p style="margin: 0 0 4px 0; font-size: 12px; color: #94a3b8;">
+                                                    Trouble with the button? Use this URL directly:
+                                                </p>
+                                                <p style="margin: 0; font-size: 12px; line-height: 18px; color: #2563eb; word-break: break-all; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;">
+                                                    <a href="%s" target="_blank" style="color: #2563eb; text-decoration: underline;">%s</a>
+                                                </p>
+                                            </div>
                                         </td>
                                     </tr>
-                                    <!-- Footer -->
+                                    <!-- Understated Footer -->
                                     <tr>
-                                        <td style="padding: 24px 40px; background-color: #0f172a; border-top: 1px solid #334155; text-align: center;">
-                                            <p style="margin: 0; font-size: 12px; color: #64748b;">
-                                                &copy; %d KemKendra Marketplace. All rights reserved.
+                                        <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #f1f5f9;">
+                                            <p style="margin: 0 0 4px 0; font-size: 12px; line-height: 18px; color: #64748b;">
+                                                KemKendra Inc. &bull; Enterprise Chemical Sourcing &amp; Compliance
+                                            </p>
+                                            <p style="margin: 0; font-size: 12px; line-height: 18px; color: #94a3b8;">
+                                                &copy; %d KemKendra. All rights reserved.
                                             </p>
                                         </td>
                                     </tr>

@@ -19,7 +19,8 @@ import {
   Search,
   Filter,
 } from "lucide-react";
-import { resolveApiUrl } from "@/lib/apiUrl";
+import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
+import { PageHeader } from "@/shared/components/ui/KemkendraUI";
 
 interface PlatformAnnouncement {
   id: string;
@@ -70,12 +71,7 @@ export default function AdminAnnouncementsPage() {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl("/api/v1/admin/announcements?size=100"), {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await authenticatedFetch("/api/v1/admin/announcements?size=100");
 
       if (!res.ok) throw new Error("Failed to load announcements");
       const data = await res.json();
@@ -99,13 +95,8 @@ export default function AdminAnnouncementsPage() {
 
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl("/api/v1/admin/announcements/preview"), {
+      const res = await authenticatedFetch("/api/v1/admin/announcements/preview", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           title: formTitle,
           message: formMessage,
@@ -134,13 +125,8 @@ export default function AdminAnnouncementsPage() {
 
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl("/api/v1/admin/announcements"), {
+      const res = await authenticatedFetch("/api/v1/admin/announcements", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           title: formTitle,
           message: formMessage,
@@ -177,12 +163,8 @@ export default function AdminAnnouncementsPage() {
   const handlePublish = async (id: string) => {
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl(`/api/v1/admin/announcements/${id}/publish`), {
+      const res = await authenticatedFetch(`/api/v1/admin/announcements/${id}/publish`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (!res.ok) throw new Error("Failed to publish announcement");
@@ -198,12 +180,8 @@ export default function AdminAnnouncementsPage() {
   const handleDeactivate = async (id: string) => {
     try {
       setActionLoading(true);
-      const token = localStorage.getItem("kemkendra_token") || localStorage.getItem("token");
-      const res = await fetch(resolveApiUrl(`/api/v1/admin/announcements/${id}/deactivate`), {
+      const res = await authenticatedFetch(`/api/v1/admin/announcements/${id}/deactivate`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       if (!res.ok) throw new Error("Failed to deactivate announcement");
@@ -259,38 +237,39 @@ export default function AdminAnnouncementsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+    <div className="max-w-[1400px] mx-auto space-y-6 text-[#0F172A] pb-12">
+      {/* 1. Calm Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 border-b border-[#E4E4E7] pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-gray-900">Platform Announcements</h1>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-              Broadcast Center
-            </span>
-          </div>
-          <p className="text-sm text-gray-500 mt-1">
-            Broadcast operational notices, scheduled maintenance alerts, and policy changes to marketplace participants.
+          <span className="text-[11px] font-mono uppercase tracking-widest text-[#0052CC] block mb-1">
+            Broadcast Operations
+          </span>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[#0F172A]">
+            Platform Announcements
+          </h1>
+          <p className="text-xs text-[#64748B] mt-1 max-w-xl">
+            Participant broadcast bulletins, scheduled maintenance alerts, and compliance advisories.
           </p>
         </div>
+
         <div className="flex items-center gap-2">
           <button
             onClick={fetchAnnouncements}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+            className="h-8 px-3 text-xs font-medium text-[#475569] bg-white hover:bg-[#FAFAFA] border border-[#E4E4E7] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0052CC]" : "text-[#64748B]"}`} />
+            <span>Refresh</span>
           </button>
           <button
             onClick={() => {
               resetForm();
               setShowCreateModal(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+            className="h-8 px-3.5 text-xs font-medium text-white bg-[#0052CC] hover:bg-[#0747A6] rounded-[4px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            New Announcement
+            <span>New Announcement</span>
           </button>
         </div>
       </div>

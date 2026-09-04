@@ -46,57 +46,46 @@ export function ActionCenterAlerts({ items }: ActionCenterAlertsProps) {
   };
 
   return (
-    <div className="bg-white border border-[#DFE1E6] rounded-2xl p-5 sm:p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-[#FFF0B3] text-[#974F0C]">
-            <AlertCircle className="w-4 h-4" />
+    <div className="bg-white border border-[#E4E4E7] rounded-[8px] p-4 shadow-xs">
+      <div className="flex items-center justify-between mb-3 border-b border-[#E4E4E7] pb-3">
+        <div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#64748B] block">
+            Review Queue
           </span>
-          <h3 className="text-base font-bold text-[#091E42]">Admin Attention Required</h3>
+          <h3 className="text-sm font-semibold text-[#0F172A] mt-0.5">
+            Operational Attention
+          </h3>
         </div>
-        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#FFFAE6] text-[#974F0C] border border-[#FFE380] font-mono">
-          {items.length} {items.length === 1 ? "Queue" : "Queues"}
+        <span className="text-xs font-mono text-[#D97706] font-semibold">
+          {items.length} {items.length === 1 ? "action queue" : "action queues"}
         </span>
       </div>
 
-      <div className="space-y-2.5">
-        {items.map((item) => {
-          const style = severityStyles[item.severity] || severityStyles.LOW;
-          const Icon = style.icon;
-
-          return (
-            <div
-              key={item.id}
-              className={`p-3.5 rounded-xl border transition-all ${style.bg} flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs`}
-            >
-              <div className="flex items-start gap-2.5">
-                <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${style.iconColor}`} />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-[#091E42]">{item.title}</span>
-                    <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase font-mono ${style.badge}`}>
-                      {item.severity}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#5E6C84] mt-0.5">{item.description}</p>
-                </div>
+      <div className="divide-y divide-[#E4E4E7]">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-[6px] bg-[#FFFBEB] border border-[rgba(217,119,6,0.3)] text-[#D97706] font-mono font-bold text-sm flex items-center justify-center shrink-0">
+                {item.count}
               </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                <span className="text-base font-bold text-[#091E42] font-mono">
-                  {item.count.toLocaleString("en-US")}
-                </span>
-                <Link
-                  href={item.actionUrl}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#091E42] bg-white hover:bg-[#F4F5F7] border border-[#DFE1E6] rounded-lg transition-colors shadow-2xs"
-                >
-                  <span>Review</span>
-                  <ArrowRight className="w-3 h-3 text-[#5E6C84]" />
-                </Link>
+              <div>
+                <div className="text-xs font-semibold text-[#0F172A]">{item.title}</div>
+                <p className="text-[11px] text-[#64748B] line-clamp-1">{item.description}</p>
               </div>
             </div>
-          );
-        })}
+
+            <Link
+              href={item.actionUrl}
+              className="h-7 px-2.5 bg-white hover:bg-[#FAFAFA] text-[#0052CC] border border-[#BFDBFE] rounded-[4px] text-xs font-medium transition-colors shadow-xs inline-flex items-center gap-1 shrink-0"
+            >
+              <span>Review</span>
+              <ArrowRight className="w-3 h-3 text-[#0052CC]" />
+            </Link>
+          </div>
+        ))}
       </div>
     </div>
   );

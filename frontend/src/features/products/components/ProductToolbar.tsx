@@ -106,16 +106,16 @@ export function ProductToolbar({ totalResults }: ProductToolbarProps) {
   }
 
   return (
-    <div className="bg-white px-5 sm:px-6 py-4 rounded-2xl border border-[#E2E8F0] shadow-sm space-y-3">
+    <div className="bg-white px-4 sm:px-5 py-3.5 rounded-md border border-[#DFE1E6] shadow-2xs space-y-2.5">
       {/* Top Header Row: Count + Sort Dropdown */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg sm:text-xl font-bold text-[#091E42] tracking-tight">
-              {totalResults} {totalResults === 1 ? "Chemical Found" : "Chemicals Found"}
+            <h2 className="text-base sm:text-lg font-bold text-[#091E42] tracking-tight">
+              {totalResults} {totalResults === 1 ? "Chemical Listing" : "Chemical Listings"} Found
             </h2>
           </div>
-          <p className="text-xs text-[#64748B] mt-0.5 font-medium">
+          <p className="text-[11px] text-[#5E6C84]">
             Matching your current procurement criteria
           </p>
         </div>
@@ -123,16 +123,16 @@ export function ProductToolbar({ totalResults }: ProductToolbarProps) {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <label
             htmlFor="catalog-sort-select"
-            className="text-xs font-bold uppercase tracking-wider text-[#64748B] flex items-center gap-1"
+            className="text-[11px] font-bold uppercase tracking-wider text-[#5E6C84] flex items-center gap-1 font-mono"
           >
-            <ArrowUpDown className="w-3 h-3 text-[#64748B]" />
+            <ArrowUpDown className="w-3 h-3 text-[#5E6C84]" />
             Sort:
           </label>
           <select
             id="catalog-sort-select"
             value={searchParams.get("sort") || ""}
             onChange={(e) => updateParam("sort", e.target.value)}
-            className="h-9.5 px-3 bg-[#F8FAFC] hover:bg-white border border-[#CBD5E1] text-[#091E42] text-xs font-semibold rounded-xl focus:outline-none focus:border-[#0052CC] cursor-pointer transition-all shadow-2xs"
+            className="h-8 px-2.5 bg-white border border-[#DFE1E6] text-[#091E42] text-xs font-semibold rounded focus:outline-none focus:border-[#0052CC] cursor-pointer transition-colors shadow-2xs"
             aria-label="Sort chemicals"
           >
             <option value="">Best Match</option>
@@ -145,21 +145,21 @@ export function ProductToolbar({ totalResults }: ProductToolbarProps) {
 
       {/* Active Filter Chips Strip */}
       {activeChips.length > 0 && (
-        <div className="pt-2.5 border-t border-[#F1F5F9] flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] mr-1">
+        <div className="pt-2 border-t border-[#DFE1E6] flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E6C84] mr-1 font-mono">
             Active:
           </span>
 
           {activeChips.map((chip) => (
             <span
               key={chip.key}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#DEEBFF] text-[#0747A6] border border-[#B3D4FF]"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-[#DEEBFF] text-[#0747A6] border border-[#B3D4FF]"
             >
               <span>{chip.label}</span>
               <button
                 type="button"
                 onClick={() => removeParam(chip.key)}
-                className="p-0.5 hover:bg-[#B3D4FF] rounded-md transition-colors"
+                className="p-0.5 hover:bg-[#B3D4FF] rounded transition-colors"
                 aria-label={`Remove filter ${chip.label}`}
               >
                 <X className="w-3 h-3 text-[#0747A6]" />
@@ -170,10 +170,10 @@ export function ProductToolbar({ totalResults }: ProductToolbarProps) {
           <button
             type="button"
             onClick={clearAll}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-[#64748B] hover:text-[#0052CC] transition-colors ml-auto"
+            className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-[#5E6C84] hover:text-[#0052CC] transition-colors ml-auto"
           >
             <RotateCcw className="w-3 h-3" />
-            <span>Clear all filters</span>
+            <span>Reset filters</span>
           </button>
         </div>
       )}

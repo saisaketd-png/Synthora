@@ -17,7 +17,8 @@ spring:
 
 jwt:
   secret: ${JWT_SECRET:KemKendraDevSecretKeyForJwtSigning2026!}
-  expiration: 86400000
+  expiration: 900000
+  refresh-expiration: 604800000
 
 kemkendra:
   storage:
@@ -25,6 +26,19 @@ kemkendra:
       root: ./target/test-storage
   documents:
     max-file-size: 10485760
+  cors:
+    allowed-origins: http://localhost:3000
+  security:
+    cookie:
+      secure: false
+      same-site: Strict
+      path: /
+      max-age: 604800s
+    csrf:
+      enabled: true
+      enforce: true
+      secure: false
+      same-site: Strict
   mail:
     enabled: ${MAIL_ENABLED:false}
     from: notifications@kemkendra.com

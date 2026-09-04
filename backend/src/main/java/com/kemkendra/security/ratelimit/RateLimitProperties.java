@@ -9,6 +9,7 @@ public class RateLimitProperties {
 
     private boolean enabled = true;
     private LimitRule login = new LimitRule(10, 60);
+    private LimitRule refresh = new LimitRule(20, 60);
     private LimitRule registration = new LimitRule(10, 60);
     private LimitRule passwordReset = new LimitRule(10, 60);
     private LimitRule emailVerification = new LimitRule(15, 60);
@@ -60,6 +61,14 @@ public class RateLimitProperties {
         this.login = login;
     }
 
+    public LimitRule getRefresh() {
+        return refresh;
+    }
+
+    public void setRefresh(LimitRule refresh) {
+        this.refresh = refresh;
+    }
+
     public LimitRule getRegistration() {
         return registration;
     }
@@ -95,6 +104,7 @@ public class RateLimitProperties {
     public LimitRule getRule(RateLimitCategory category) {
         return switch (category) {
             case LOGIN -> login;
+            case REFRESH -> refresh;
             case REGISTRATION -> registration;
             case PASSWORD_RESET -> passwordReset;
             case EMAIL_VERIFICATION -> emailVerification;

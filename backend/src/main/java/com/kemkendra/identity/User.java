@@ -59,6 +59,12 @@ public class User {
     @Column(name = "email_verified_at")
     private Instant emailVerifiedAt;
 
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
+
+    @Column(name = "sessions_invalidated_at")
+    private Instant sessionsInvalidatedAt;
+
     public User() {
     }
 
@@ -217,5 +223,21 @@ public class User {
 
     public boolean isEmailVerified() {
         return emailVerifiedAt != null;
+    }
+
+    public Instant getPasswordChangedAt() {
+        return passwordChangedAt;
+    }
+
+    public void setPasswordChangedAt(Instant passwordChangedAt) {
+        this.passwordChangedAt = passwordChangedAt;
+    }
+
+    public Instant getSessionsInvalidatedAt() {
+        return sessionsInvalidatedAt;
+    }
+
+    public void setSessionsInvalidatedAt(Instant sessionsInvalidatedAt) {
+        this.sessionsInvalidatedAt = sessionsInvalidatedAt;
     }
 }

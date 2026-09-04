@@ -53,138 +53,138 @@ export function SupplierProfileForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 bg-white border border-slate-200 p-8 rounded-sm shadow-sm">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-5">
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white border border-[#E4E4E7] p-5 sm:p-6 rounded-[8px] shadow-tactile-card text-[#0F172A]">
+      <div className="flex items-center justify-between border-b border-[#E4E4E7] pb-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 font-serif">Company Profile</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Manage your public business identity and commercial information.
+          <h2 className="text-base font-bold text-[#0F172A] tracking-tight">Organization Profile & Commercial Identity</h2>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Manage your verified business identity, statutory registration, and chemical supply credentials.
           </p>
         </div>
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-6 rounded-sm text-sm transition-colors disabled:opacity-50"
+          className="h-8 px-4 bg-[#0052CC] hover:bg-[#0747A6] active:bg-[#003884] text-white font-medium text-xs rounded-[6px] transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
         >
           {saving ? (
-            "Saving..."
+            "Saving Changes..."
           ) : (
             <>
-              <Save className="w-4 h-4" />
-              Save Profile
+              <Save className="w-3.5 h-3.5" />
+              <span>Save Profile</span>
             </>
           )}
         </button>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 text-red-700 text-sm flex items-start gap-3 rounded-sm border border-red-200">
-          <AlertCircle className="w-5 h-5 shrink-0" />
+        <div className="p-3 bg-[#FEF2F2] text-[#DC2626] text-xs flex items-start gap-2 rounded-[6px] border border-[rgba(220,38,38,0.2)]">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <p>{error}</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">Company Name *</label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">Company Legal Name <span className="text-[#DC2626]">*</span></label>
           <input
             type="text"
             name="companyName"
             required
             value={formData.companyName}
             onChange={handleChange}
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">GST Number</label>
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">GST / Tax Identification Number</label>
           <input
             type="text"
             name="gstNumber"
             value={formData.gstNumber || ""}
             onChange={handleChange}
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs font-mono text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">Address</label>
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">Registered Address</label>
           <input
             type="text"
             name="address"
             value={formData.address || ""}
             onChange={handleChange}
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">City</label>
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">City</label>
           <input
             type="text"
             name="city"
             value={formData.city || ""}
             onChange={handleChange}
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">State / Province</label>
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">State / Province</label>
           <input
             type="text"
             name="state"
             value={formData.state || ""}
             onChange={handleChange}
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">Country</label>
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">Country</label>
           <input
             type="text"
             name="country"
             value={formData.country || ""}
             onChange={handleChange}
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">Website</label>
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">Corporate Website</label>
           <input
             type="url"
             name="website"
             value={formData.website || ""}
             onChange={handleChange}
             placeholder="https://www.example.com"
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">Certifications</label>
+        <div className="space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">Accreditations & Certifications</label>
           <input
             type="text"
             name="certifications"
             value={formData.certifications || ""}
             onChange={handleChange}
-            placeholder="e.g. ISO 9001, CE, GMP (comma separated)"
-            className="w-full border border-slate-300 rounded-sm px-4 py-2.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            placeholder="e.g. ISO 9001, WHO-GMP, REACH (comma separated)"
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC]"
           />
         </div>
 
-        <div className="md:col-span-2 space-y-2">
-          <label className="block text-sm font-bold text-slate-900 uppercase tracking-wider">About Company</label>
+        <div className="md:col-span-2 space-y-1">
+          <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#64748B] font-mono">Enterprise Description & Capabilities</label>
           <textarea
             name="aboutCompany"
-            rows={5}
+            rows={4}
             value={formData.aboutCompany || ""}
             onChange={handleChange}
-            placeholder="Provide a detailed description of your company, history, and capabilities..."
-            className="w-full border border-slate-300 rounded-sm px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-y"
+            placeholder="Provide a detailed description of manufacturing facilities, reaction capabilities, and batch capacities..."
+            className="w-full px-3 py-2 border border-[#E4E4E7] rounded-[6px] text-xs text-[#0F172A] bg-white focus:outline-none focus:border-[#0052CC] resize-y"
           ></textarea>
         </div>
       </div>
