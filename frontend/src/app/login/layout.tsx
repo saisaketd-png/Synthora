@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description: "Sign in to access your KemKendra buyer or supplier account.",
   robots: {
     index: false,
-    follow: true,
+    follow: false,
   },
 };
 

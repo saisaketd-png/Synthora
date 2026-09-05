@@ -9,6 +9,7 @@ import { SupplierCard } from "@/features/suppliers/components/SupplierCard";
 import Link from "next/link";
 import { ChevronRight, ChevronLeft, Building2, ShieldCheck, RefreshCw } from "lucide-react";
 import { PageHeader, EmptyState, ErrorState } from "@/shared/components/ui/KemkendraUI";
+import { serializeJsonLd } from "@/shared/utils/security";
 
 export const dynamic = "force-dynamic";
 
@@ -63,12 +64,40 @@ export default async function SuppliersPage(props: {
   const totalPages = response?.totalPages || 0;
   const currentPage = queryParams.page || 0;
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Chemical Suppliers",
+        item: `${SITE_URL}/suppliers`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F9FC] font-sans text-[#0F172A] antialiased">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+      />
       <Navbar />
 
       <main className="flex-1 py-8 sm:py-12">
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <nav className="flex items-center gap-2 text-xs font-semibold text-[#64748B]">
+            <Link href="/" className="hover:text-[#155EEF]">Home</Link>
+            <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8]" />
+            <span className="text-[#0F172A] font-extrabold">Chemical Suppliers</span>
+          </nav>
           
           <PageHeader
             title="Supplier Directory"

@@ -5,6 +5,16 @@ import { ArrowLeft, FileText, ShieldAlert, CheckCircle } from "lucide-react";
 export const metadata = {
   title: "Terms of Service | KemKendra B2B Marketplace",
   description: "KemKendra Terms of Service for buyers and verified chemical suppliers.",
+  alternates: {
+    canonical: "https://kemkendra.online/terms",
+  },
+  openGraph: {
+    title: "Terms of Service | KemKendra B2B Marketplace",
+    description: "KemKendra Terms of Service for buyers and verified chemical suppliers.",
+    url: "https://kemkendra.online/terms",
+    siteName: "KemKendra",
+    type: "website",
+  },
 };
 
 export default function TermsOfServicePage() {

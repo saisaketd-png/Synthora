@@ -25,10 +25,10 @@ export async function generateMetadata(props: {
         robots: { index: false, follow: true },
       };
     }
-    const title = `${supplier.name} | Verified Chemical Manufacturer | KemKendra`;
+    const title = `${supplier.name} | Verified Chemical Manufacturer & Supplier | KemKendra`;
     const description =
       supplier.aboutCompany ||
-      `Source chemical compounds, APIs, and specialty raw materials from verified supplier ${supplier.name} on KemKendra.`;
+      `Source chemical compounds, APIs, and specialty raw materials from verified supplier ${supplier.name}${supplier.countryName ? ` in ${supplier.countryName}` : ""}. View verified status, chemical catalog, and submit RFQs directly on KemKendra.`;
 
     return {
       title,
@@ -89,6 +89,31 @@ export default async function SupplierProfilePage(props: {
     } : undefined,
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Chemical Suppliers",
+        item: `${SITE_URL}/suppliers`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: supplier.name,
+        item: `${SITE_URL}/suppliers/${params.id}`,
+      },
+    ],
+  };
+
   const certList = supplier.certifications ? supplier.certifications.split(",").map(c => c.trim()) : [];
 
   return (
@@ -97,6 +122,10 @@ export default async function SupplierProfilePage(props: {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(supplierJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <Navbar />
 

@@ -13,6 +13,7 @@ import { ProductCatalogHero } from "@/features/products/components/ProductCatalo
 import { getUniqueCategories, getUniqueCountries } from "@/features/products/utils/extractFilters";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { serializeJsonLd } from "@/shared/utils/security";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,7 @@ export async function generateMetadata(props: {
     description:
       "Browse and source pharmaceutical APIs, intermediates, specialty chemicals, and solvents from verified global suppliers. Compare CAS numbers, purity grades, and request quotes directly.",
     alternates: {
-      canonical: "/products",
+      canonical: "https://kemkendra.online/products",
     },
     robots: {
       index: !hasFilters,
@@ -118,8 +119,53 @@ export default async function ProductsPage(props: {
   const categories = getUniqueCategories(products);
   const countries = getUniqueCountries(products);
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://kemkendra.online",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Chemical Catalog",
+        item: "https://kemkendra.online/products",
+      },
+    ],
+  };
+
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Chemical Product Catalog | KemKendra",
+    description:
+      "Browse and source pharmaceutical APIs, intermediates, specialty chemicals, and solvents from verified global suppliers.",
+    url: "https://kemkendra.online/products",
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: products.slice(0, 20).map((prod, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `https://kemkendra.online/products/${prod.productCode || prod.id}`,
+        name: prod.name,
+      })),
+    },
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans text-[#1E293B] antialiased">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(collectionJsonLd) }}
+      />
       <Navbar />
 
       <main className="flex-1 py-8 sm:py-10">

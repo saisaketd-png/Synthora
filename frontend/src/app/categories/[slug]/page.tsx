@@ -13,16 +13,22 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Clock, Factory, Layers, ArrowLeft } from "lucide-react";
 
+import { serializeJsonLd } from "@/shared/utils/security";
+
 export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
   const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
+
   const categoryMeta = CANONICAL_CATEGORIES.find(
     (c) => c.id === resolvedParams.slug.toLowerCase() || c.key.toLowerCase() === resolvedParams.slug.toLowerCase()
   );
@@ -34,12 +40,19 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${categoryMeta.name} | Verified Chemical Sourcing | KemKendra`;
-  const description = categoryMeta.description;
+  const title = `${categoryMeta.name} Chemicals | Verified Suppliers & B2B Sourcing | KemKendra`;
+  const description = `Explore verified suppliers and commercial offerings for ${categoryMeta.name} chemicals on KemKendra. Request quotes, view specifications, and source bulk chemicals.`;
+
+  const filterKeys = ["search", "casNumber", "country", "verified", "purityMin", "purityMax", "moqMin", "moqMax", "inStock", "coa", "msds", "exportReady", "sort", "page"];
+  const hasFilters = filterKeys.some((k) => !!resolvedSearchParams?.[k]);
 
   return {
     title,
     description,
+    robots: {
+      index: !hasFilters,
+      follow: true,
+    },
     alternates: {
       canonical: `${SITE_URL}/categories/${categoryMeta.id}`,
     },
@@ -49,6 +62,11 @@ export async function generateMetadata({
       url: `${SITE_URL}/categories/${categoryMeta.id}`,
       siteName: "KemKendra",
       type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   };
 }
@@ -164,8 +182,61 @@ export default async function CategoryDetailPage({
   const categories = getUniqueCategories(products);
   const countries = getUniqueCountries(products);
 
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${categoryMeta.name} Chemicals`,
+    description: `Explore verified suppliers and commercial offerings for ${categoryMeta.name} chemicals on KemKendra.`,
+    url: `${SITE_URL}/categories/${categoryMeta.id}`,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: products.length,
+      itemListElement: products.map((p, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: p.name,
+        url: `${SITE_URL}/products/${p.productCode || p.id}`,
+      })),
+    },
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: SITE_URL,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Chemical Categories",
+        item: `${SITE_URL}/categories`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: categoryMeta.name,
+        item: `${SITE_URL}/categories/${categoryMeta.id}`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F9FC] font-sans text-[#0F172A] antialiased">
+      {/* Schema.org Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+      />
+
       <Navbar />
 
       <main className="flex-1 py-8">

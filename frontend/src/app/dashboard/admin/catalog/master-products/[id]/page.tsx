@@ -29,6 +29,7 @@ import {
   Check,
 } from "lucide-react";
 import { getCategoryAbbreviation, getCategoryDisplayName } from "@/features/categories/utils/categoryUtils";
+import { parseChemicalSynonyms } from "@/features/admin/utils/chemicalSynonymParser";
 import {
   getMasterProductDetail,
   updateMasterProduct,
@@ -242,26 +243,12 @@ export default function MasterProductGovernanceDetailPage() {
   };
 
   const parseSynonymsFromText = (input: string): string[] => {
-    if (!input) return [];
-    const items = input.split(/[\r\n,;]+/);
-    const seen = new Set<string>();
-    const result: string[] = [];
-
-    for (const raw of items) {
-      const trimmed = raw.trim();
-      if (!trimmed) continue;
-      const lower = trimmed.toLowerCase();
-      if (!seen.has(lower)) {
-        seen.add(lower);
-        result.push(trimmed);
-      }
-    }
-    return result;
+    return parseChemicalSynonyms(input);
   };
 
   const handleBulkSynonymsInputChange = (text: string) => {
     setBulkSynonymsInput(text);
-    setParsedSynonyms(parseSynonymsFromText(text));
+    setParsedSynonyms(parseChemicalSynonyms(text));
   };
 
   const handleRemovePreviewSynonym = (indexToRemove: number) => {
@@ -329,16 +316,17 @@ export default function MasterProductGovernanceDetailPage() {
 
   const handleBulkSynonymsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (parsedSynonyms.length === 0) {
+    const toSubmit = parsedSynonyms.length > 0 ? parsedSynonyms : parseChemicalSynonyms(bulkSynonymsInput);
+    if (toSubmit.length === 0) {
       toast.error("Please provide at least one valid synonym");
       return;
     }
 
     try {
       setBulkSynonymsSubmitting(true);
-      const res = await addOfficialSynonymsBulk(id, parsedSynonyms);
+      const res = await addOfficialSynonymsBulk(id, toSubmit);
       toast.success(
-        `Added ${res.addedCount || parsedSynonyms.length} synonym(s)${
+        `Added ${res.addedCount || toSubmit.length} synonym(s)${
           res.skippedCount && res.skippedCount > 0 ? ` (${res.skippedCount} skipped as duplicate)` : ""
         }`
       );
@@ -2018,11 +2006,11 @@ export default function MasterProductGovernanceDetailPage() {
                   rows={6}
                   value={bulkSynonymsInput}
                   onChange={(e) => handleBulkSynonymsInputChange(e.target.value)}
-                  placeholder={`4-Carbazolol\n4-Hydroxy Carbazole\n4-Hydroxy-9H-carbazole\n9H-Carbazol-4-ol\n\nOr comma/semicolon separated:\n4-Carbazolol, 4-Hydroxy Carbazole; 9H-Carbazol-4-ol`}
+                  placeholder={`Example:\nDimethyl 1,4-cyclohexanedione-2,5-dicarboxylate\nDimethyl succinylsuccinate\n1,4-Cyclohexanedione-2,5-dicarboxylic acid dimethyl ester`}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-mono text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-normal leading-relaxed"
                 />
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Supports newlines, commas, and semicolons. Whitespace is automatically trimmed and duplicates are discarded.
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Enter one synonym per line. You can also separate synonyms with semicolons. Commas inside chemical names are preserved.
                 </p>
               </div>
 

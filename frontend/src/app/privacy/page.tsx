@@ -5,6 +5,16 @@ import { ArrowLeft, Shield, Lock, Eye, CheckCircle2 } from "lucide-react";
 export const metadata = {
   title: "Privacy Policy | KemKendra B2B Marketplace",
   description: "KemKendra Privacy Policy, commercial data protection, and confidentiality standards.",
+  alternates: {
+    canonical: "https://kemkendra.online/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | KemKendra B2B Marketplace",
+    description: "KemKendra Privacy Policy, commercial data protection, and confidentiality standards.",
+    url: "https://kemkendra.online/privacy",
+    siteName: "KemKendra",
+    type: "website",
+  },
 };
 
 export default function PrivacyPolicyPage() {

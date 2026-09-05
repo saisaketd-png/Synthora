@@ -15,6 +15,8 @@ KemKendra provides secure, transparent, and compliant sourcing for pharmaceutica
   - [Pharmaceutical Excipients](https://kemkendra.online/categories/excipient): Binders, disintegrants, lubricants, and solubilizers.
 - [Verified Suppliers Directory](https://kemkendra.online/suppliers): Directory of vetted chemical manufacturers with operational facilities, production capacities, and compliance status.
 - [Industries Served](https://kemkendra.online/industries): Chemical sourcing mapped to Pharmaceutical Manufacturing, Agrochemicals, Polymers, Specialty Inks, and Water Treatment.
+- [About KemKendra](https://kemkendra.online/about): Enterprise chemical sourcing mission, verified manufacturer standards, and compliance.
+- [Contact Procurement Desk](https://kemkendra.online/contact): Helpdesk in Bengaluru, Karnataka (+91 7676447077, kemkendra1@gmail.com).
 - [Resources & Documentation](https://kemkendra.online/resources): Standards and technical guides for Certificate of Analysis (COA), Technical Data Sheet (TDS), and Material Safety Data Sheet (MSDS).
 
 ## Procurement & Trade Workflows

@@ -142,27 +142,32 @@ export function Footer() {
             {/* Column 4: Company & Trust */}
             <div className="space-y-3">
               <h3 className="font-semibold text-white uppercase tracking-wider text-[11px] font-mono">
-                Governance
+                Company & Trust
               </h3>
               <ul className="space-y-2 text-xs text-[#94A3B8]">
                 <li>
-                  <Link href="/resources" className="hover:text-white transition-colors">
-                    Compliance & COA
+                  <Link href="/about" className="hover:text-white transition-colors">
+                    About KemKendra
                   </Link>
                 </li>
                 <li>
-                  <Link href="/resources" className="hover:text-white transition-colors">
-                    Export Standards
+                  <Link href="/contact" className="hover:text-white transition-colors">
+                    Contact Helpdesk
                   </Link>
                 </li>
                 <li>
-                  <Link href="/resources" className="hover:text-white transition-colors">
-                    Terms of Procurement
+                  <Link href="/terms" className="hover:text-white transition-colors">
+                    Terms of Service
                   </Link>
                 </li>
                 <li>
-                  <Link href="/resources" className="hover:text-white transition-colors">
+                  <Link href="/privacy" className="hover:text-white transition-colors">
                     Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/resources" className="hover:text-white transition-colors">
+                    Compliance & COA Guides
                   </Link>
                 </li>
               </ul>
@@ -180,14 +185,17 @@ export function Footer() {
           </div>
 
           <div className="flex items-center space-x-6 text-[11px]">
-            <Link href="/resources" className="hover:text-slate-300 transition-colors">
-              Privacy Standards
+            <Link href="/about" className="hover:text-slate-300 transition-colors">
+              About Us
             </Link>
-            <Link href="/resources" className="hover:text-slate-300 transition-colors">
-              Terms of Procurement
+            <Link href="/privacy" className="hover:text-slate-300 transition-colors">
+              Privacy Policy
             </Link>
-            <Link href="/resources" className="hover:text-slate-300 transition-colors">
-              Security Specifications
+            <Link href="/terms" className="hover:text-slate-300 transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/contact" className="hover:text-slate-300 transition-colors">
+              Contact Desk
             </Link>
           </div>
         </div>

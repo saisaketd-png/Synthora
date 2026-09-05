@@ -20,6 +20,7 @@ import SupplierComparison from "@/features/products/components/SupplierCompariso
 import { ProductDocuments } from "@/features/products/components/ProductDocuments";
 import { serializeJsonLd } from "@/shared/utils/security";
 import { getCategoryAbbreviation, getCategoryDisplayName } from "@/features/categories/utils/categoryUtils";
+import { CANONICAL_CATEGORIES } from "@/features/categories/api/categoryApi";
 
 export const dynamic = "force-dynamic";
 
@@ -34,10 +35,11 @@ export async function generateMetadata({
   const resolvedParams = await params;
   try {
     const product: Product = await fetchProductDetail(resolvedParams.id);
-    const title = `${product.name} (CAS ${product.casNumber || "N/A"}) | Verified Chemical Suppliers | KemKendra`;
+    const title = `${product.name} | Specifications, Suppliers & Commercial Offerings | KemKendra`;
+    const formulaPart = product.molecularFormula ? ` (${product.molecularFormula})` : "";
     const description =
       product.description ||
-      `Source high-purity ${product.name} (CAS ${product.casNumber || "N/A"}) with verified documentation, COAs, and competitive pricing from verified chemical manufacturers on KemKendra.`;
+      `Explore ${product.name}, including CAS number ${product.casNumber || "N/A"}${formulaPart}, specifications, available supplier offerings, and quotation options on KemKendra.`;
     const canonicalCode = product.productCode || resolvedParams.id;
 
     return {
@@ -99,6 +101,18 @@ export default async function ProductDetailPage({
       : `${API_URL}${product.primaryImageUrl}`
     : null;
 
+  // Real commercial offers only when price is present
+  const offers = product.price && product.price > 0
+    ? {
+        "@type": "Offer",
+        price: product.price,
+        priceCurrency: "INR",
+        availability: (product.stock && product.stock > 0) ? "https://schema.org/InStock" : "https://schema.org/PreOrder",
+        itemCondition: "https://schema.org/NewCondition",
+        url: `${SITE_URL}/products/${canonicalCode}`,
+      }
+    : undefined;
+
   // Schema.org JSON-LD Structured Data for Chemical Compound
   const productJsonLd = {
     "@context": "https://schema.org/",
@@ -115,13 +129,14 @@ export default async function ProductDetailPage({
           value: product.casNumber,
         }
       : undefined,
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: "USD",
-      offerCount: product.offeringCount || 1,
-      availability: "https://schema.org/InStock",
-    },
+    ...(offers ? { offers } : {}),
   };
+
+  const matchedCategory = CANONICAL_CATEGORIES.find(
+    (c) => c.key === product.category || c.id === product.category?.toLowerCase()
+  );
+  const categoryHref = matchedCategory ? `/categories/${matchedCategory.id}` : `/products?category=${encodeURIComponent(product.category || "API")}`;
+  const categoryName = matchedCategory ? matchedCategory.name : (product.category ? product.category.replace(/_/g, " ") : "Chemicals");
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -142,8 +157,8 @@ export default async function ProductDetailPage({
       {
         "@type": "ListItem",
         position: 3,
-        name: product.category ? product.category.replace(/_/g, " ") : "Chemicals",
-        item: `${SITE_URL}/products?category=${encodeURIComponent(product.category || "API")}`,
+        name: categoryName,
+        item: `${SITE_URL}${categoryHref}`,
       },
       {
         "@type": "ListItem",
@@ -187,10 +202,10 @@ export default async function ProductDetailPage({
             {product.category && (
               <>
                 <Link
-                  href={`/products?category=${encodeURIComponent(product.category)}`}
+                  href={categoryHref}
                   className="hover:text-[#0052CC] transition-colors uppercase font-bold"
                 >
-                  {product.category.replace(/_/g, " ")}
+                  {categoryName}
                 </Link>
                 <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8]" />
               </>
