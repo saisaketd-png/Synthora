@@ -4,7 +4,7 @@ export { resolveApiUrl, getApiBaseUrl } from "./apiUrl";
 
 export async function fetchProductDetail(idOrCode: string) {
   const masterRes = await fetch(resolveApiUrl(`/api/v1/public/master-products/${encodeURIComponent(idOrCode)}`), {
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
 
   if (masterRes.ok) {
@@ -14,7 +14,7 @@ export async function fetchProductDetail(idOrCode: string) {
 
     try {
       const imgRes = await fetch(resolveApiUrl(`/api/v1/master-products/${mp.id}/images`), {
-        cache: "no-store",
+        next: { revalidate: 60 },
       });
       if (imgRes.ok) {
         images = await imgRes.json();
@@ -59,7 +59,7 @@ export async function fetchProductDetail(idOrCode: string) {
 
 export async function fetchProductSuppliers(idOrCode: string) {
   const offeringsRes = await fetch(resolveApiUrl(`/api/v1/public/master-products/${encodeURIComponent(idOrCode)}/offerings`), {
-    cache: "no-store",
+    next: { revalidate: 60 },
   });
 
   if (offeringsRes.ok) {

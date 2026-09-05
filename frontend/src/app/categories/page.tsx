@@ -5,7 +5,7 @@ import { CategoryGrid } from "@/features/home/components/CategoryGrid";
 
 import { serializeJsonLd } from "@/shared/utils/security";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 

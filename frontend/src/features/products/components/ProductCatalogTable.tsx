@@ -28,8 +28,14 @@ import { fetchProductSuppliers } from "@/lib/api";
 import { ProductSupplier } from "./SupplierComparison";
 import { authenticatedFetch } from "@/features/auth/api/authenticatedFetch";
 import { useToast } from "@/shared/context/ToastContext";
-import RfqModal from "../../rfq/components/RfqModal";
-import SupplierOfferingModal from "./SupplierOfferingModal";
+import dynamic from "next/dynamic";
+
+const RfqModal = dynamic(() => import("../../rfq/components/RfqModal"), {
+  ssr: false,
+});
+const SupplierOfferingModal = dynamic(() => import("./SupplierOfferingModal"), {
+  ssr: false,
+});
 
 interface ProductCatalogTableProps {
   products: Product[];

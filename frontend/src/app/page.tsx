@@ -13,7 +13,7 @@ import { EnterpriseCTA } from "@/features/home/components/EnterpriseCTA";
 import { Footer } from "@/features/home/components/Footer";
 import { serializeJsonLd } from "@/shared/utils/security";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "KemKendra | Verified Chemical Suppliers & B2B Chemical Marketplace",

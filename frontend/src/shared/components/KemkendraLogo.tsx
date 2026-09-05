@@ -79,11 +79,11 @@ export function KemKendraLogo({
   const isHorizontal = layout === "horizontal" || (layout === "auto" && showWordmark);
   const logoSrc = isDark
     ? isHorizontal
-      ? "/kemkendra-logo-horizontal-dark.png"
-      : "/kemkendra-logo-dark.png"
+      ? "/kemkendra-logo-horizontal-dark.webp"
+      : "/kemkendra-logo-dark.webp"
     : isHorizontal
-    ? "/kemkendra-logo-horizontal.png"
-    : "/kemkendra-logo.png";
+    ? "/kemkendra-logo-horizontal.webp"
+    : "/kemkendra-logo.webp";
 
   const content = (
     <div

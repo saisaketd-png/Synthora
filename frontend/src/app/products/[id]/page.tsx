@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { fetchProductDetail } from "@/lib/api";
 import { notFound } from "next/navigation";
 import { Product } from "@/features/products/types/product";
@@ -22,7 +23,7 @@ import { serializeJsonLd } from "@/shared/utils/security";
 import { getCategoryAbbreviation, getCategoryDisplayName } from "@/features/categories/utils/categoryUtils";
 import { CANONICAL_CATEGORIES } from "@/features/categories/api/categoryApi";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -223,11 +224,13 @@ export default async function ProductDetailPage({
               <div className="lg:col-span-5 w-full">
                 <div className="relative w-full h-64 sm:h-80 md:h-[380px] rounded-[6px] border border-[#E4E4E7] bg-[#FAFAFA] p-4 sm:p-6 flex items-center justify-center overflow-hidden">
                   {resolvedImageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={resolvedImageUrl}
                       alt={`${product.name} canonical chemical monograph`}
-                      className="w-full h-full object-contain"
+                      fill
+                      priority
+                      sizes="(max-width: 768px) 100vw, 400px"
+                      className="object-contain p-4"
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center text-[#64748B] space-y-2">

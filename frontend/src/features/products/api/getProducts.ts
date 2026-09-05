@@ -36,7 +36,7 @@ export async function getProducts(params: ProductQueryParams = {}): Promise<Prod
 
   try {
     const response = await fetch(url, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (!response.ok) {

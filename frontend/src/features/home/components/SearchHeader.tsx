@@ -111,10 +111,12 @@ export function SearchHeader() {
           {/* Right Column (~45% / 5 cols): Edge-to-edge Macro Chemical Material Editorial Visual */}
           <div className="lg:col-span-5 relative min-h-[360px] lg:min-h-full border-t lg:border-t-0 lg:border-l border-slate-800 bg-[#0A1128] overflow-hidden">
             <Image
-              src="/hero-chemical-material.jpg"
+              src="/hero-chemical-material.webp"
               alt="High-purity crystalline and pharmaceutical chemical raw material"
               fill
               priority
+              sizes="(max-width: 1024px) 100vw, 45vw"
+              quality={82}
               className="object-cover object-center brightness-95 contrast-105"
             />
             {/* Natural gradient blend: dissolves seamlessly into the left navy canvas */}
