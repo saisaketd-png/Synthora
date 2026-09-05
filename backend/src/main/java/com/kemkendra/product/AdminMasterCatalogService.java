@@ -587,8 +587,39 @@ public class AdminMasterCatalogService {
     public MasterProductDetailResponse getMasterProductDetail(UUID id, Authentication authentication) {
         resolveAdmin(authentication);
         MasterProduct mp = masterProductRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MasterProduct not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Master product not found"));
+        return buildMasterProductDetail(mp);
+    }
 
+    public MasterProductDetailResponse getMasterProductDetail(String idOrCode, Authentication authentication) {
+        resolveAdmin(authentication);
+        if (idOrCode == null || idOrCode.isBlank()) {
+            throw new ResourceNotFoundException("Master product not found");
+        }
+        String trimmed = idOrCode.trim();
+        UUID uuid = null;
+        try {
+            uuid = UUID.fromString(trimmed);
+        } catch (IllegalArgumentException ignored) {
+            // Not a standard UUID format
+        }
+
+        MasterProduct mp = null;
+        if (uuid != null) {
+            mp = masterProductRepository.findById(uuid).orElse(null);
+        }
+        if (mp == null) {
+            mp = masterProductRepository.findByMasterProductCodeIgnoreCase(trimmed).orElse(null);
+        }
+        if (mp == null) {
+            throw new ResourceNotFoundException("Master product not found");
+        }
+
+        return buildMasterProductDetail(mp);
+    }
+
+    private MasterProductDetailResponse buildMasterProductDetail(MasterProduct mp) {
+        UUID id = mp.getId();
         List<SupplierOfferingResponse> offerings = mp.getOfferings() != null
                 ? mp.getOfferings().stream().map(this::toSupplierOfferingResponse).toList()
                 : List.of();

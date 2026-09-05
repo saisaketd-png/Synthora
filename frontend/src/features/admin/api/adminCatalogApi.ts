@@ -305,8 +305,16 @@ export async function setMasterProductStatus(id: string, status: string): Promis
 }
 
 export async function getMasterProductDetail(id: string): Promise<any> {
-  const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products/${id}`);
-  if (!res.ok) throw new Error("Failed to load master product details");
+  const res = await authenticatedFetch(`/api/v1/admin/catalog/master-products/${encodeURIComponent(id)}`);
+  if (!res.ok) {
+    let err = `Failed to load master product details (HTTP ${res.status})`;
+    try {
+      const errJson = await res.json();
+      err = errJson.message || errJson.error || err;
+    } catch {}
+    throw new Error(err);
+  }
+  return res.json();
 }
 
 export async function verifyChemicalField(id: string, payload: { fieldName: string; status: string; notes?: string }): Promise<MasterProduct> {

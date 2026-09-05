@@ -147,7 +147,7 @@ public class AdminMasterCatalogController {
 
     @GetMapping("/master-products/{id}")
     public ResponseEntity<MasterProductDetailResponse> getMasterProductDetail(
-            @PathVariable UUID id,
+            @PathVariable String id,
             Authentication authentication) {
         return ResponseEntity.ok(adminMasterCatalogService.getMasterProductDetail(id, authentication));
     }

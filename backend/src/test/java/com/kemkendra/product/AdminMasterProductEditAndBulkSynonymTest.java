@@ -171,4 +171,40 @@ public class AdminMasterProductEditAndBulkSynonymTest {
                         .content(objectMapper.writeValueAsString(bulkPayload)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    @WithMockUser(username = "admin.edit.test@kemkendra.com", roles = {"ADMIN"})
+    @DisplayName("Admin can fetch master product details by UUID")
+    void testAdminGetMasterProductDetailByUuid() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/catalog/master-products/" + testProduct.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(testProduct.getId().toString()))
+                .andExpect(jsonPath("$.name").value(testProduct.getName()))
+                .andExpect(jsonPath("$.masterProductCode").value(testProduct.getMasterProductCode()))
+                .andExpect(jsonPath("$.casNumber").value(testProduct.getCasNumber()));
+    }
+
+    @Test
+    @WithMockUser(username = "admin.edit.test@kemkendra.com", roles = {"ADMIN"})
+    @DisplayName("Admin can fetch master product details by master product code")
+    void testAdminGetMasterProductDetailByCode() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/catalog/master-products/" + testProduct.getMasterProductCode()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(testProduct.getId().toString()))
+                .andExpect(jsonPath("$.name").value(testProduct.getName()))
+                .andExpect(jsonPath("$.masterProductCode").value(testProduct.getMasterProductCode()));
+    }
+
+    @Test
+    @WithMockUser(username = "admin.edit.test@kemkendra.com", roles = {"ADMIN"})
+    @DisplayName("Admin get non-existent master product returns 404")
+    void testAdminGetMasterProductDetailNotFound() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/catalog/master-products/" + UUID.randomUUID()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+
+        mockMvc.perform(get("/api/v1/admin/catalog/master-products/NON-EXISTENT-CODE"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"));
+    }
 }

@@ -55,7 +55,8 @@ import { useToast } from "@/shared/context/ToastContext";
 export default function MasterProductGovernanceDetailPage() {
   const toast = useToast();
   const params = useParams();
-  const id = params.id as string;
+  const rawId = params?.id;
+  const id = (Array.isArray(rawId) ? rawId[0] : rawId)?.trim() || "";
   const router = useRouter();
 
   const [detail, setDetail] = useState<any | null>(null);
@@ -151,13 +152,21 @@ export default function MasterProductGovernanceDetailPage() {
   };
 
   const loadData = useCallback(async () => {
+    if (!id) {
+      setError("Master product not found");
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
       const data = await getMasterProductDetail(id);
+      if (!data) {
+        throw new Error("Master product not found");
+      }
       setDetail(data);
     } catch (e: any) {
-      setError(e.message || "Failed to load master product detail");
+      setError(e.message || "Master product not found");
     } finally {
       setLoading(false);
     }
@@ -567,13 +576,29 @@ export default function MasterProductGovernanceDetailPage() {
 
   if (error || !detail) {
     return (
-      <div className="max-w-7xl mx-auto p-8 space-y-4">
-        <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs font-medium">
-          {error || "Master Product not found"}
+      <div className="max-w-xl mx-auto p-8 mt-12">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <AlertCircle className="w-6 h-6 text-slate-500" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold text-slate-900">
+              Master product not found
+            </h2>
+            <p className="text-xs text-slate-500">
+              The product may have been removed or is no longer available.
+            </p>
+          </div>
+          <div className="pt-2">
+            <Link
+              href="/dashboard/admin/catalog"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors shadow-xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Return to Master Catalog</span>
+            </Link>
+          </div>
         </div>
-        <Link href="/dashboard/admin/catalog" className="text-xs font-bold text-blue-600 underline">
-          &larr; Return to Master Catalog
-        </Link>
       </div>
     );
   }
