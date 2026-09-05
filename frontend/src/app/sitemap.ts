@@ -3,6 +3,9 @@ import { getProducts } from "@/features/products/api/getProducts";
 import { getSuppliers } from "@/features/suppliers/api";
 import { CANONICAL_CATEGORIES } from "@/features/categories/api/categoryApi";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://kemkendra.online";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -92,7 +95,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic products
   let productRoutes: MetadataRoute.Sitemap = [];
   try {
-    const productPage = await getProducts({ size: 100 });
+    const productPage = await getProducts({ size: 1000 });
     if (productPage && productPage.content) {
       productRoutes = productPage.content.map((product) => ({
         url: `${BASE_URL}/products/${product.productCode || product.id}`,
@@ -110,7 +113,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic suppliers
   let supplierRoutes: MetadataRoute.Sitemap = [];
   try {
-    const supplierPage = await getSuppliers({ size: 100 });
+    const supplierPage = await getSuppliers({ size: 1000 });
     if (supplierPage && supplierPage.content) {
       supplierRoutes = supplierPage.content.map((supplier) => ({
         url: `${BASE_URL}/suppliers/${supplier.id}`,
