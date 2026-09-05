@@ -31,13 +31,14 @@ public class FileSecurityValidator {
     ) {}
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
-            ".pdf", ".png", ".jpg", ".jpeg", ".doc", ".docx", ".xls", ".xlsx", ".csv"
+            ".pdf", ".png", ".jpg", ".jpeg", ".webp", ".doc", ".docx", ".xls", ".xlsx", ".csv"
     );
 
     private static final Set<String> ALLOWED_MIME_TYPES = Set.of(
             "application/pdf",
             "image/png",
             "image/jpeg",
+            "image/webp",
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.ms-excel",
@@ -59,7 +60,7 @@ public class FileSecurityValidator {
     );
 
     private static final Pattern DOUBLE_EXTENSION_PATTERN = Pattern.compile(
-            "\\.(pdf|png|jpe?g|docx?|xlsx?|csv)\\.(exe|bat|cmd|sh|ps1|jar|class|dll|msi|scr|com|vbs|js|jsp|php|asp|html?|svg)$",
+            "\\.(pdf|png|jpe?g|webp|docx?|xlsx?|csv)\\.(exe|bat|cmd|sh|ps1|jar|class|dll|msi|scr|com|vbs|js|jsp|php|asp|html?|svg)$",
             Pattern.CASE_INSENSITIVE
     );
 
@@ -209,6 +210,18 @@ public class FileSecurityValidator {
                 }
                 if (!"image/jpeg".equals(detectedMime)) {
                     throw new IllegalArgumentException("Detected MIME type does not match JPEG extension");
+                }
+                break;
+
+            case ".webp":
+                // WebP magic bytes: RIFF....WEBP (0x52 0x49 0x46 0x46 .... 0x57 0x45 0x42 0x50)
+                if (bytes.length < 12 ||
+                        bytes[0] != 0x52 || bytes[1] != 0x49 || bytes[2] != 0x46 || bytes[3] != 0x46 ||
+                        bytes[8] != 0x57 || bytes[9] != 0x45 || bytes[10] != 0x42 || bytes[11] != 0x50) {
+                    throw new IllegalArgumentException("File signature mismatch: expected WebP image");
+                }
+                if (!"image/webp".equals(detectedMime)) {
+                    throw new IllegalArgumentException("Detected MIME type does not match WebP extension");
                 }
                 break;
 

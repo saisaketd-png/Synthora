@@ -387,4 +387,23 @@ public class MasterProductOfferingImageSecurityTest {
         assertFalse(res.imageUrl().contains("D:\\"));
         assertFalse(res.imageUrl().contains("src/main"));
     }
+
+    // 26. WebP image format is permitted for canonical product images
+    @Test
+    public void test26_WebPUploadAllowed() {
+        byte[] validWebp = new byte[] {
+                0x52, 0x49, 0x46, 0x46, // "RIFF"
+                0x18, 0x00, 0x00, 0x00, // file size
+                0x57, 0x45, 0x42, 0x50, // "WEBP"
+                0x56, 0x50, 0x38, 0x20, // "VP8 "
+                0x0C, 0x00, 0x00, 0x00, // chunk size
+                (byte) 0xD0, 0x01, 0x00, (byte) 0x9D, 0x01, 0x2A, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00
+        };
+        MockMultipartFile file = new MockMultipartFile("file", "dimethyl_succinyl_succinate.webp", "image/webp", validWebp);
+        CatalogImageResponse res = catalogImageService.uploadMasterProductImage(masterProduct.getId(), file, "Structure WebP", adminAuth);
+        assertNotNull(res);
+        assertNotNull(res.id());
+        assertEquals("dimethyl_succinyl_succinate.webp", res.fileName());
+        assertTrue(res.imageUrl().contains("/content"));
+    }
 }
